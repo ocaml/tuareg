@@ -2096,6 +2096,26 @@ Returns t iff skipped to indentation."
              (current-column))
         (current-column))))))
 
+(defun tuareg-compute-->-indent ()
+  (let ((keyword-->-match
+         (save-excursion (cons (tuareg-find-->-match) (point)))))
+    (cond ((string= (car keyword-->-match) "|")
+           (tuareg-find-->-match)
+           (re-search-forward "|[ \t]*")
+           (+ (current-column) tuareg-default-indent))
+          ((string= (car keyword-->-match) ":")
+           (goto-char (cdr keyword-->-match))
+           (if (not (looking-at "\\<class\\>"))
+               (tuareg-find-->-match)) ; matching `val' or `let'
+           (+ (current-column) tuareg-val-indent))
+          ((or (string= (car keyword-->-match) "val")
+               (string= (car keyword-->-match) "type")
+               (string= (car keyword-->-match) "let"))
+           (goto-char (cdr keyword-->-match))
+           (+ (current-column) tuareg-val-indent))
+          (t (tuareg-back-to-paren-or-indentation)
+             (+ tuareg-default-indent (current-column))))))
+
 (defun tuareg-compute-normal-indent ()
   (let ((leading-operator (looking-at tuareg-operator-regexp)))
     (beginning-of-line)
@@ -2142,26 +2162,7 @@ Returns t iff skipped to indentation."
                 (tuareg-indent-from-paren leading-operator)
               (+ tuareg-default-indent (tuareg-indent-from-paren leading-operator))))
            ((looking-at "->")
-            (let ((keyword-->-match
-                   (save-excursion
-                     (cons (tuareg-find-->-match) (point)))))
-              (cond
-               ((string= (car keyword-->-match) "|")
-                (tuareg-find-->-match)
-                (re-search-forward "|[ \t]*")
-                (+ (current-column) tuareg-default-indent))
-               ((string= (car keyword-->-match) ":")
-                (goto-char (cdr keyword-->-match))
-                (if (not (looking-at "\\<class\\>"))
-                    (tuareg-find-->-match)) ; matching `val' or `let'
-                (+ (current-column) tuareg-val-indent))
-               ((or (string= (car keyword-->-match) "val")
-                    (string= (car keyword-->-match) "type")
-                    (string= (car keyword-->-match) "let"))
-                (goto-char (cdr keyword-->-match))
-                (+ (current-column) tuareg-val-indent))
-               (t (tuareg-back-to-paren-or-indentation)
-                  (+ tuareg-default-indent (current-column))))))
+            (tuareg-compute-->-indent))
            ((looking-at (tuareg-give-keyword-regexp))
             (cond
              ((string= kwop ";")
