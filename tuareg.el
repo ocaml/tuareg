@@ -1453,6 +1453,9 @@ For synchronous programming.")
     ("and" . tuareg-find-and-match))
   "Association list used in Tuareg mode for skipping back over nested blocks.")
 
+(defun tuareg-find-leading-kwop-match (kwop)
+  (funcall (cdr (assoc kwop tuareg-leading-kwop-alist))))
+
 (defconst tuareg-binding-regexp "\\(\\<and\\>\\|(*\\<let\\>\\)")
 
 (defun tuareg-assoc-indent (kwop &optional look-for-let-or-and)
@@ -1639,8 +1642,7 @@ If found, return the actual text of the keyword or operator."
             (backward-char)
           (setq found t)))
        ((looking-at (tuareg-give-matching-keyword-regexp))
-        (funcall (cdr (assoc (tuareg-match-string 0)
-                             tuareg-leading-kwop-alist))))
+        (tuareg-find-leading-kwop-match (tuareg-match-string 0)))
        (t
         (setq found t))))
     (if found kwop (goto-char (point-min)) nil)))
@@ -2321,7 +2323,7 @@ Returns t iff skipped to indentation."
          (+ (current-column)
             tuareg-in-indent))
         ((string-match (tuareg-give-matching-kwop-regexp) kwop)
-         (funcall (cdr (assoc kwop tuareg-leading-kwop-alist)))
+         (tuareg-find-leading-kwop-match kwop)
          (if (tuareg-in-indentation-p)
              (+ (current-column)
                 (tuareg-assoc-indent kwop t))
@@ -2505,7 +2507,7 @@ Returns t iff skipped to indentation."
   (let* ((old-point (point))
          (paren-match-p (looking-at "[|>]?[]})]\\|>\\."))
          (real-pipe (looking-at "|\\([^|]\\|$\\)"))
-         (matching-kwop (funcall (cdr (assoc kwop tuareg-leading-kwop-alist)))))
+         (matching-kwop (tuareg-find-leading-kwop-match kwop)))
     (cond ((string= kwop "|")
            (if real-pipe
                (tuareg-compute-pipe-indent matching-kwop old-point)
