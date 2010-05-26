@@ -21,7 +21,26 @@
 (eval-when-compile (require 'cl))
 (require 'easymenu)
 
-(defconst tuareg-mode-version "Tuareg Version 1.99.1"
+(defconst tuareg-mode-version
+  (concat "Tuareg Version 1.99.2 ("
+          (eval-when-compile
+            (let ((file (or byte-compile-current-file load-file-name)))
+              (when file
+                (setq file (expand-file-name "version"
+                                             (file-name-directory file))))
+              (with-temp-buffer
+                (if (and file (file-exists-p file))
+                    (insert-file-contents-literally file)
+                    (let ((default-directory
+                           (if file
+                               (file-name-directory file)
+                               default-directory)))
+                      (condition-case nil
+                          (call-process "hg" nil t nil "id" "-i" "--debug")
+                        (error (insert "unknown\n")))))
+                (buffer-substring-no-properties
+                 (point-min) (1- (point-max))))))
+          ")")
   "         Copyright (C) 1997-2006 Albert Cohen, all rights reserved.
          Copyright (C) 2009-2010 Jane Street Holding, LLC.
          Copying is covered by the GNU General Public License.
