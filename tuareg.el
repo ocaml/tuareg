@@ -173,7 +173,7 @@ this value is automatically added to `function', `with', `parse' and
 some cases of `type' keywords to leave enough space for `|' backward
 indentation.
 
-For exemple, setting this variable to 0 leads to the following indentation:
+For example, setting this variable to 0 leads to the following indentation:
   match ... with
     X -> ...
     | Y -> ...
@@ -803,7 +803,7 @@ Regexp match data 0 points to the chars."
         (when (and (if (fboundp 'char-displayable-p)
                        (char-displayable-p (cdr x))
                      t)
-                   (not (assoc (car x) alist)))	; not yet in alist.
+                   (not (assoc (car x) alist))) ; not yet in alist.
           (push x alist)))
       (when alist
         `((,(regexp-opt (mapcar 'car alist) t)
@@ -815,11 +815,11 @@ Regexp match data 0 points to the chars."
     (modify-syntax-entry ?? ". p" st)
     (modify-syntax-entry ?~ ". p" st)
     (modify-syntax-entry ?: "." st)
-    (modify-syntax-entry ?' "w" st)	; ' is part of words (for primes).
+    (modify-syntax-entry ?' "w" st) ; ' is part of words (for primes).
     (modify-syntax-entry
      ;; ` is punctuation or character delimiter (Caml Light compatibility).
      ?` (if tuareg-support-camllight "\"" ".") st)
-    (modify-syntax-entry ?\" "\"" st)	; " is a string delimiter
+    (modify-syntax-entry ?\" "\"" st) ; " is a string delimiter
     (modify-syntax-entry ?\\ "\\" st)
     (modify-syntax-entry ?*  ". 23" st)
     (condition-case nil
@@ -2089,7 +2089,7 @@ Returns t iff skipped to indentation."
 ;             (if tuareg-support-metaocaml
 ;                 (progn
 ;                   (tuareg-search-forward-paren) nil)
-;		(tuareg-back-to-paren-or-indentation)))
+;               (tuareg-back-to-paren-or-indentation)))
              (t (back-to-indentation) t)))
       (cond
     ;   ((looking-at "|[^|]")
