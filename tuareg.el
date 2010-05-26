@@ -1702,7 +1702,8 @@ If found, return the actual text of the keyword or operator."
       kwop))))
 
 (defun tuareg-find-then-match ()
-  (let ((kwop (tuareg-find-kwop tuareg-find-then-match-regexp "\\(->\\|unless\\|until\\)")))
+  (let ((kwop (tuareg-find-kwop tuareg-find-then-match-regexp
+                                "\\(->\\|unless\\|until\\)")))
     (cond ((string= kwop "if")
            (let ((back (point)))
              (tuareg-back-to-paren-or-indentation)
@@ -1713,7 +1714,8 @@ If found, return the actual text of the keyword or operator."
           (t kwop))))
 
 (defun tuareg-find-then-else-match ()
-  (let ((kwop (tuareg-find-kwop tuareg-find-then-match-regexp "\\(->\\|unless\\|until\\)")))
+  (let ((kwop (tuareg-find-kwop tuareg-find-then-match-regexp
+                                "\\(->\\|unless\\|until\\)")))
     (cond
      ((string= kwop "if")
       (let ((pos (point)))
@@ -2243,7 +2245,8 @@ Returns t iff skipped to indentation."
         ((looking-at "\\<begin\\>\\|->")
          (if (looking-at (tuareg-no-code-after "\\(\\<begin\\>\\|->\\)"))
              (tuareg-indent-from-paren leading-operator)
-           (+ tuareg-default-indent (tuareg-indent-from-paren leading-operator))))
+           (+ tuareg-default-indent
+              (tuareg-indent-from-paren leading-operator))))
         ((or (string= kwop "let") (string= kwop "and"))
          (tuareg-back-to-paren-or-indentation)
          (+ (tuareg-paren-or-indentation-indent)
@@ -2332,7 +2335,8 @@ Returns t iff skipped to indentation."
            ((looking-at "\\.<")
             (if (looking-at (tuareg-no-code-after "\\.<"))
                 (tuareg-indent-from-paren leading-operator)
-              (+ tuareg-default-indent (tuareg-indent-from-paren leading-operator))))
+              (+ tuareg-default-indent
+                 (tuareg-indent-from-paren leading-operator))))
            ((looking-at "->")
             (tuareg-compute-arrow-indent))
            ((looking-at (tuareg-give-keyword-regexp))
@@ -2864,7 +2868,8 @@ module/class are considered enclosed in this module/class."
     (save-excursion
       (let ((begin (point)) (cpt 0) (lines-left 0) (stop)
             (inside-module-or-class (tuareg-inside-module-or-class-p))
-            (looking-block (looking-at tuareg-inside-module-or-class-opening-full)))
+            (looking-block
+             (looking-at tuareg-inside-module-or-class-opening-full)))
         (if (and looking-block inside-module-or-class)
             (progn
               (setq begin (nth 0 inside-module-or-class))
@@ -2872,8 +2877,9 @@ module/class are considered enclosed in this module/class."
               (goto-char end))
           (if inside-module-or-class
               (progn
-                (setq stop (save-excursion (goto-char (nth 1 inside-module-or-class))
-                                           (beginning-of-line) (point)))
+                (setq stop (save-excursion
+                             (goto-char (nth 1 inside-module-or-class))
+                             (beginning-of-line) (point)))
                 (if (< stop end) (setq stop (point-max))))
             (setq stop (point-max)))
           (save-restriction
@@ -3653,7 +3659,8 @@ Short cuts for interaction within the toplevel:
   (concat "[" tuareg-alpha "][0-9_'" tuareg-alpha "]*"))
 
 (defconst tuareg-definitions-bind-skip-regexp
-  (concat (tuareg-ro "rec" "type" "virtual") "\\|'" tuareg--id-regexp "\\|('.*)")
+  (concat (tuareg-ro "rec" "type" "virtual") "\\|'"
+          tuareg--id-regexp "\\|('.*)")
   "Regexp matching stuff to ignore after a binding keyword.")
 
 (defconst tuareg-identifier-regexp (concat "\\<" tuareg--id-regexp "\\>"))
