@@ -1439,17 +1439,19 @@ For synchronous programming.")
            tuareg-|-extra-unindent)
       ind)))
 
+(defconst tuareg-meaningful-word-regexp
+  (concat "[^ \t\n_0-9" tuareg-alpha "]\\|\\<\\(\\w\\|_\\)+\\>\\|\\*)"))
 (defun tuareg-find-meaningful-word ()
   "Look back for a word, skipping comments and blanks.
 Returns the actual text of the word, if found."
-  (let ((found nil) (kwop nil))
-    (while
-        (and (not found)
-             (re-search-backward
-              (concat
-               "[^ \t\n_0-9" tuareg-alpha "]\\|\\<\\(\\w\\|_\\)+\\>\\|\\*)")
-              (point-min) t))
+  (let ((found nil) (kwop nil) (pt (point)))
+    (while (and (not found)
+                (re-search-backward tuareg-meaningful-word-regexp
+                                    (point-min) t))
       (setq kwop (tuareg-match-string 0))
+      (when (= pt (point))
+        (error "tuareg-find-meaningful-word: inf loop at %d, kwop=%s" pt kwop))
+      (setq pt (point))
       (if kwop
           (if (tuareg-in-comment-p)
               (tuareg-beginning-of-literal-or-comment-fast)
@@ -3521,16 +3523,20 @@ Short cuts for interaction within the toplevel:
   "\\<\\(and\\|val\\|type\\|module\\|class\\|exception\\|let\\)\\>"
   "Regexp matching definition phrases.")
 
+(defconst tuareg--id-regexp
+  (concat "[" tuareg-alpha "][0-9_'" tuareg-alpha "]*"))
+
 (defconst tuareg-definitions-bind-skip-regexp
-  (concat "\\<\\(rec\\|type\\|virtual\\)\\>\\|'[" tuareg-alpha "][0-9_'"
-          tuareg-alpha "]*\\|('.*)")
+  (concat "\\<\\(rec\\|type\\|virtual\\)\\>\\|'" tuareg--id-regexp "\\|('.*)")
   "Regexp matching stuff to ignore after a binding keyword.")
 
+(defconst tuareg-identifier-regexp (concat "\\<" tuareg--id-regexp "\\>"))
+
 (defun tuareg-list-definitions ()
-  "Parse the buffer and gather toplevel definitions for quick
-jump via the definitions menu."
+  "Parse the buffer and gather toplevel definitions
+for a quick jump via the definitions menu."
   (interactive)
-  (message "Searching definitions...")
+  (message "Searching for definitions...")
   (save-excursion
     (let ((cpt 0) (kw) (menu)
           (value-list) (type-list) (module-list) (class-list) (misc-list))
@@ -3548,8 +3554,7 @@ jump via the definitions menu."
           (when (looking-at tuareg-definitions-bind-skip-regexp)
             (goto-char (match-end 0)))
           (tuareg-skip-blank-and-comments)
-          (when (looking-at
-                 (concat "\\<[" tuareg-alpha "][0-9_'" tuareg-alpha "]*\\>"))
+          (when (looking-at tuareg-identifier-regexp)
             ;; Menu item : [name (goto-char ...) t]
             (let* ((p (make-marker))
                    (ref (vector (tuareg-match-string 0)
