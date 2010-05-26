@@ -1468,6 +1468,11 @@ For synchronous programming.")
            tuareg-|-extra-unindent)
       ind)))
 
+(defun tuareg-in-monadic-op-p (&optional pos)
+  (unless pos (setq pos (point)))
+  (and (char-equal ?> (char-before pos))
+       (char-equal ?> (char-before (1- pos)))))
+
 (defconst tuareg-meaningful-word-regexp
   (concat "[^ \t\n_0-9" tuareg-alpha "]\\|\\<\\(\\w\\|_\\)+\\>\\|\\*)"))
 (defun tuareg-find-meaningful-word ()
@@ -1626,14 +1631,11 @@ If found, return the actual text of the keyword or operator."
     (if (looking-at "\\[|") "[|" kwop)))
 
 (defun tuareg-find-monadic-match ()
-  (let (pos kwop)
+  (let (kwop)
     (while (or (null kwop)
-               (and (string= kwop "=")
-                    (char-equal ?> (char-after (- pos 1)))
-                    (char-equal ?> (char-after (- pos 2)))))
+               (and (string= kwop "=") (tuareg-in-monadic-op-p)))
       (when kwop (tuareg-backward-char 2))
-      (setq kwop (tuareg-find-kwop tuareg-find-monadic-match-regexp)
-            pos (point)))
+      (setq kwop (tuareg-find-kwop tuareg-find-monadic-match-regexp)))
     kwop))
 
 (defun tuareg-find-with-match ()
