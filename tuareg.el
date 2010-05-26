@@ -2411,58 +2411,55 @@ Returns t iff skipped to indentation."
            (nil 0)
            (t (tuareg-compute-argument-indent leading-operator))))))))
 
+(defun tuareg-compute-pipe-indent (matching-kwop old-point)
+  (cond
+    ((string= matching-kwop "|")
+     (tuareg-back-to-paren-or-indentation)
+     (current-column))
+    ((and (string= matching-kwop "=")
+          (not (tuareg-false-=-p)))
+     (re-search-forward "=[ \t]*")
+     (current-column))
+    ((and matching-kwop
+          (looking-at (tuareg-give-match-pipe-kwop-regexp)))
+     (when (looking-at (tuareg-give-extra-unindent-regexp))
+       (tuareg-back-to-paren-or-indentation))
+     (- (+ (tuareg-assoc-indent matching-kwop t)
+           (if (looking-at "|") tuareg-default-indent 0)
+           (current-column))
+        (if (or (string= matching-kwop "type")
+                (string= matching-kwop "["))
+            0
+            tuareg-pipe-extra-unindent)))
+    (t
+     (goto-char old-point)
+     (tuareg-compute-normal-indent))))
+
+(defun tuareg-compute-paren-indent (paren-match-p)
+  (unless paren-match-p
+    (tuareg-search-forward-paren))
+  (when (looking-at "\\(\(\\|\\(\{\\(.*with\\)?\\|\\[\\)[ \t]*\\(\(\\*\\|$\\)\\)")
+    (tuareg-back-to-paren-or-indentation))
+  (current-column))
+
 (defun tuareg-compute-kwop-indent (kwop)
   (when (string= kwop "rec")
     (setq kwop "and"))
   (let* ((old-point (point))
          (paren-match-p (looking-at "[|>]?[]})]\\|>\\."))
-         (need-back-kwop (not (string= kwop "and")))
          (real-pipe (looking-at "|\\([^|]\\|$\\)"))
-         (matching-kwop (funcall (cdr (assoc kwop tuareg-leading-kwop-alist))))
-         (match-pipe-kwop-p
-          (and matching-kwop
-               (looking-at (tuareg-give-match-pipe-kwop-regexp)))))
-    (cond ((and (string= kwop "|") real-pipe)
-           (cond
-             ((string= matching-kwop "|")
-              (when need-back-kwop
-                (tuareg-back-to-paren-or-indentation))
-              (current-column))
-             ((and (string= matching-kwop "=")
-                   (not (tuareg-false-=-p)))
-              (re-search-forward "=[ \t]*")
-              (current-column))
-             (match-pipe-kwop-p
-              (when (and need-back-kwop
-                         (looking-at (tuareg-give-extra-unindent-regexp)))
-                (tuareg-back-to-paren-or-indentation))
-              (- (+ (tuareg-assoc-indent matching-kwop t)
-                    (if (looking-at "|") tuareg-default-indent 0)
-                    (current-column))
-                 (if (or (string= matching-kwop "type")
-                         (string= matching-kwop "["))
-                     0
-                     tuareg-pipe-extra-unindent)))
-             (t
-              (goto-char old-point)
-              (tuareg-compute-normal-indent))))
-          ((and (string= kwop "|") (not real-pipe))
-           (goto-char old-point)
-           (tuareg-compute-normal-indent))
+         (matching-kwop (funcall (cdr (assoc kwop tuareg-leading-kwop-alist)))))
+    (cond ((string= kwop "|")
+           (if real-pipe
+               (tuareg-compute-pipe-indent matching-kwop old-point)
+             (goto-char old-point)
+             (tuareg-compute-normal-indent)))
           ((looking-at "[[{(][<|]?\\|\\.<")
-           (if (and (string= kwop "|") real-pipe)
-               (current-column)
-             (unless paren-match-p
-               (tuareg-search-forward-paren))
-             (when (looking-at "\\(\(\\|\\(\{\\(.*with\\)?\\|\\[\\)[ \t]*\\(\(\\*\\|$\\)\\)")
-               (tuareg-back-to-paren-or-indentation))
-             (current-column)))
+           (tuareg-compute-paren-indent paren-match-p))
           ((and (string= kwop "with")
                 (or (string= matching-kwop "module")
                     (string= matching-kwop "struct")))
            (tuareg-paren-or-indentation-indent))
-          ;; ((fboundp 'tuareg-compute-indent-hook)
-          ;;  (tuareg-compute-indent-hook kwop matching-kwop))
           ((and (tuareg-editing-ls3)
                 (or (string= kwop "do")
                     (string= kwop "done")
@@ -2486,7 +2483,7 @@ Returns t iff skipped to indentation."
            (+ (current-column)
               (if (string= matching-kwop "let")
                   0 tuareg-default-indent)))
-          (need-back-kwop ; pretty general case
+          ((not (string= kwop "and")) ; pretty general case
            (if (tuareg-in-indentation-p)
                (+ (current-column)
                   (if (and (string= kwop "then")
