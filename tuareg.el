@@ -1366,9 +1366,12 @@ For synchronous programming.")
   (tuareg-ro "and" "do" "done" "then" "else" "end" "in" "down" "downto")
   "Regexp matching Caml keywords which act as end block delimiters.")
 
+(defconst tuareg-extra-ls3-keyword-regexp
+  (tuareg-ro "where" "unless" "until" "every")
+  "Additional Lucid Synchrone keywords.")
+
 (defconst tuareg-matching-keyword-regexp-ls3
-  (concat tuareg-matching-keyword-regexp "\\|"
-          (tuareg-ro "where" "unless" "until" "every"))
+  (concat tuareg-matching-keyword-regexp "\\|" tuareg-extra-ls3-keyword-regexp)
   "Regexp matching Caml keywords which act as end block delimiters
 For synchronous programming.")
 
@@ -1386,8 +1389,7 @@ For synchronous programming.")
   "Regexp matching Caml keywords or operators which act as end block delimiters.")
 
 (defconst tuareg-matching-kwop-regexp-ls3
-  (concat tuareg-matching-kwop-regexp "\\|"
-          (tuareg-ro "where" "unless" "until" "every"))
+  (concat tuareg-matching-kwop-regexp "\\|" tuareg-extra-ls3-keyword-regexp)
   "Regexp matching Caml keywords or operators which act as end block delimiters.
 For synchronous programming.")
 
