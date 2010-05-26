@@ -2218,11 +2218,26 @@ Returns t iff skipped to indentation."
            (goto-char (cdr keyword-arrow-match))
            (+ (current-column) tuareg-val-indent))
           ((string= (car keyword-arrow-match) ">>=")
+           ;; find the last ">>="
+           ;; (goto-char (cdr keyword-arrow-match))
+           ;; (let ((back (point)))
+           ;;   (while (string= ">>=" (tuareg-find-arrow-match))
+           ;;     (setq back (point)))
+           ;;   (goto-char back))
+           ;; (if (not (re-search-backward
+           ;;           (concat "(\\|" (tuareg-give-keyword-regexp))
+           ;;           (point-min) t))
+           ;;     0
+           ;;   (goto-char (match-end 0))
+           ;;   (tuareg-skip-blank-and-comments)
+           ;;   (tuareg-compute-indent))
+
            ;; this is not perfect, in particular, inside match.
            ;; (see example in sample.ml)
            ;; the problem is that we cannot skip an expression backwards.
            ;; workaround: wrap code in parens
-           (tuareg-find-semicolon-match))
+           (tuareg-find-semicolon-match)
+           )
           (t (tuareg-paren-or-indentation-indent)))))
 
 (defun tuareg-compute-keyword-indent (kwop leading-operator)
