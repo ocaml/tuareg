@@ -2645,10 +2645,7 @@ Returns t iff skipped to indentation."
   (unless (and (string= match "(")
                (search-forward "->" beg-pos t))
     (forward-char (length match)))
-  (skip-syntax-forward "\s-" beg-pos)
-  (while (and (tuareg-in-comment-p)
-              (not (zerop (skip-syntax-forward "\s-" beg-pos))))
-    ())
+  (tuareg-skip-blank-and-comments)
   (current-column))
 
 (defun tuareg-indent-command (&optional from-leading-star)
