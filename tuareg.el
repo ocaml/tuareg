@@ -1482,7 +1482,7 @@ Gathered here for memoization and dynamic reconfiguration purposes."
     (tuareg-make-find-kwop-regexp
      "\\<\\(match\\|try\\|module\\|begin\\|with\\|type\\)\\>\\|[[{(]"))
   (defconst tuareg-find-in-match-regexp
-    (tuareg-make-find-kwop-regexp "\\<let\\|open\\>"))
+    (tuareg-make-find-kwop-regexp "\\<\\(let\\|open\\)\\>"))
   (defconst tuareg-find-then-match-regexp
     (tuareg-make-find-kwop-regexp "\\(->\\|unless\\|until\\)"))
   (defconst tuareg-find-else-match-regexp
@@ -2413,7 +2413,6 @@ Compute new indentation based on Caml syntax."
               (progn
                 (tuareg-find-meaningful-word)
                 (tuareg-find-in-match)
-                ;; sds: why was it here?! (tuareg-back-to-paren-or-indentation)
                 (current-column))
             (tuareg-compute-normal-indent))
         (tuareg-find-phrase-indentation)))
