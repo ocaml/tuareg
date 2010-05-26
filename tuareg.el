@@ -2229,6 +2229,7 @@ Returns t iff skipped to indentation."
                      (string= tmpkwop "{"))))
              (tuareg-paren-or-indentation-indent)
            (+ (tuareg-paren-or-indentation-column)
+              (* 2 tuareg-default-indent) ; assume a missing first "|"
               (tuareg-assoc-indent kwop t))))
         ((string-match "\\<\\(fun\\|of\\)\\>" kwop)
          (+ (tuareg-paren-or-indentation-column)
