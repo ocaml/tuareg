@@ -3406,9 +3406,7 @@ Short cuts for interaction within the toplevel:
   (setq tuareg-manual-url (read-from-minibuffer "URL: " tuareg-manual-url))
   (funcall tuareg-browser tuareg-manual-url))
 
-(defun tuareg-xemacs-w3-manual (url)
-  "*Browse Caml reference manual."
-  (w3-fetch-other-frame url))
+(fset 'tuareg-xemacs-w3-manual 'w3-fetch-other-frame)
 
 (defun tuareg-netscape-manual (url)
   "*Browse Caml reference manual."
@@ -3513,6 +3511,13 @@ Short cuts for interaction within the toplevel:
   "Initial content of the definitions menu.")
 (make-variable-buffer-local 'tuareg-definitions-menu)
 
+(eval-when-compile
+  (autoload 'line-number "xemacs"))
+(defun tuareg-line-number ()
+  (if (fboundp 'count-lines)
+      (1+ (count-lines 1 (point)))
+      (line-number)))
+
 (defun tuareg-list-definitions ()
   "Parse the buffer and gather toplevel definitions for quick
 jump via the definitions menu."
@@ -3570,9 +3575,7 @@ jump via the definitions menu."
           (goto-char last-and)))
       (if scan-error
           (message "Parse error when scanning definitions: line %s."
-                   (if tuareg-with-xemacs
-                       (line-number)
-                     (1+ (count-lines 1 (point)))))
+                   (tuareg-line-number))
         ;; Sort and build lists
         (mapcar (lambda (pair)
                   (when (cdr pair)
