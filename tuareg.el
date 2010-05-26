@@ -771,7 +771,7 @@ alignment and can thus lead to surprises."
            ;; Some greek letters for type parameters.
            ("'a" . ,(make-char 'symbol 97))
            ("'b" . ,(make-char 'symbol 98))
-           ("'c" . ,(make-char 'symbol 99))
+           ("'c" . ,(make-char 'symbol 103)) ; sic! 99 is chi, 103 is gamma
            ("'d" . ,(make-char 'symbol 100))))
         ((fboundp 'decode-char) ;; or a unicode font.
          `(("fun" . ,(decode-char 'ucs 955))
