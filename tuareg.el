@@ -1817,6 +1817,13 @@ If found, return the actual text of the keyword or operator."
       (if (tuareg-in-indentation-p)
           kwop
         (progn (forward-char -1) (tuareg-find-->-match))))
+     ((string= kwop "fun")
+      (let ((pos (point)))
+        (skip-chars-backward " \t")
+        (tuareg-backward-char 3)
+        (if (looking-at ">>=") ">>="
+          (goto-char pos)
+          kwop)))
      ((not (string= kwop ":"))
       kwop)
      ;; If we get this far, we know we're looking at a colon.
@@ -2154,6 +2161,8 @@ Returns t iff skipped to indentation."
                (string= (car keyword-->-match) "let"))
            (goto-char (cdr keyword-->-match))
            (+ (current-column) tuareg-val-indent))
+          ((string= (car keyword-->-match) ">>=")
+           (tuareg-find-semi-colon-match))
           (t (tuareg-paren-or-indentation-indent)))))
 
 (defun tuareg-compute-keyword-indent (kwop leading-operator)
