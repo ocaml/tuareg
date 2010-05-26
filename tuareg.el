@@ -2452,9 +2452,9 @@ Returns t iff skipped to indentation."
                        tuareg-default-indent)
                       (t (goto-char start-pos)
                          (beginning-of-line)
-                         (+ tuareg-type-indent
-                            (if (looking-at "[ \t]*[\[|]")
-                                0 tuareg-default-indent)))))
+                         (+ (tuareg-add-default-indent
+                             (looking-at "[ \t]*[\[|]"))
+                            tuareg-type-indent))))
                ((looking-at tuareg-=-indent-regexp-1)
                 (let ((matched-string (tuareg-match-string 0)))
                   ;; sds: why was it here?! (tuareg-back-to-paren-or-indentation)
@@ -2535,7 +2535,7 @@ Returns t iff skipped to indentation."
      (when (looking-at (tuareg-give-extra-unindent-regexp))
        (tuareg-back-to-paren-or-indentation))
      (+ (tuareg-assoc-indent matching-kwop t)
-        (if (looking-at "|") tuareg-default-indent 0)
+        (tuareg-add-default-indent (not (looking-at "|")))
         (current-column)
         (if (or (string= matching-kwop "type")
                 (string= matching-kwop "["))
@@ -2636,8 +2636,7 @@ Returns t iff skipped to indentation."
              (tuareg-paren-or-indentation-column)))
           ((string= kwop "in")
            (+ (current-column)
-              (if (string= matching-kwop "let")
-                  0 tuareg-default-indent)))
+              (tuareg-add-default-indent (string= matching-kwop "let"))))
           ((not (string= kwop "and")) ; pretty general case
            (tuareg-compute-kwop-indent-general kwop matching-kwop))
           ((string= matching-kwop "with")
