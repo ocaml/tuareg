@@ -1606,6 +1606,11 @@ Gathered here for memoization and dynamic reconfiguration purposes."
             (tuareg-ro "val" "let" "method" "module" "type" "class" "when"
                        "if" "in" "do" "done" "end" "where"))))
 
+(defun tuareg-strip-trailing-whitespace (string)
+  (if (string-match "[ \t]*\\'" string)
+      (substring string 0 (match-beginning 0))
+    string))
+
 (defun tuareg-find-kwop (kr &optional do-not-skip-regexp)
   "Look back for a keyword or operator matching KR (short for kwop regexp).
 Skips blocks etc...
@@ -1619,7 +1624,9 @@ If found, return the actual text of the keyword or operator."
                        kr)))
     (while (and (not found)
                 (re-search-backward kwop-regexp (point-min) t)
-                (setq kwop (tuareg-match-string 0)))
+                (setq kwop (tuareg-strip-trailing-whitespace
+                            ;; for trailing blanks after a semicolon
+                            (tuareg-match-string 0))))
       (cond
        ((tuareg-in-literal-or-comment-p)
         (tuareg-beginning-of-literal-or-comment-fast))
