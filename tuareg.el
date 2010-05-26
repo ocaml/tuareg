@@ -2173,16 +2173,18 @@ Returns t iff skipped to indentation."
          (kwop-pos (point)))
     (forward-char (length kwop))
     (tuareg-skip-blank-and-comments)
-    (if (or (not captive=)
-            (/= (point) start-pos)) ; code between  paren and kwop
-        (tuareg-paren-or-indentation-indent)
-      (goto-char kwop-pos)
-      (when (string= kwop "=")
-        (setq kwop (tuareg-find-=-match)))
-      (+ tuareg-default-indent
-         (if (assoc kwop tuareg-leading-kwop-alist)
-             (tuareg-compute-kwop-indent kwop)
-           (current-column))))))
+    (cond ((or (not captive=)
+               (/= (point) start-pos)) ; code between paren and kwop
+           (goto-char start-pos)
+           (tuareg-paren-or-indentation-indent))
+          (t
+           (goto-char kwop-pos)
+           (when (string= kwop "=")
+             (setq kwop (tuareg-find-=-match)))
+           (+ tuareg-default-indent
+              (if (assoc kwop tuareg-leading-kwop-alist)
+                  (tuareg-compute-kwop-indent kwop)
+                  (current-column)))))))
 
 (defun tuareg-indent-from-paren (leading-operator start-pos)
   (cond
@@ -2518,7 +2520,8 @@ Returns t iff skipped to indentation."
   (let ((looking-at-paren (char-equal ?\( (char-after))) (start-pos (point)))
     (when (or looking-at-paren
               (looking-at (tuareg-no-code-after "\\(\{\\(.*with[ \t]*\\([[:upper:]].*\\.\\)?\\)?\\|\\[\\)")))
-      (if (tuareg-in-indentation-p)
+      (if (or (tuareg-in-indentation-p)
+              (save-excursion (string= ":" (tuareg-find-meaningful-word))))
           (tuareg-back-to-paren-or-indentation)
         (tuareg-indent-from-previous-kwop))
       (when looking-at-paren
