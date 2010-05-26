@@ -1261,8 +1261,7 @@ fragment. The erroneous fragment is also temporarily highlighted if
 possible."
  (when (eq major-mode 'tuareg-mode)
    (let ((beg nil) (end nil))
-     (save-excursion
-       (set-buffer compilation-last-buffer)
+     (with-current-buffer compilation-last-buffer
        (save-excursion
          (goto-char (window-point (get-buffer-window (current-buffer) t)))
          (when (looking-at tuareg-error-chars-regexp)
@@ -3399,8 +3398,7 @@ current phrase else insert a newline and indent."
 (defun tuareg-interactive-next-error-source ()
   (interactive)
   (let ((error-pos) (beg 0) (end 0))
-    (save-excursion
-      (set-buffer tuareg-interactive-buffer-name)
+    (with-current-buffer tuareg-interactive-buffer-name
       (goto-char tuareg-interactive-last-phrase-pos-in-toplevel)
       (setq error-pos
             (re-search-forward tuareg-interactive-toplevel-error-regexp
@@ -3436,15 +3434,13 @@ current phrase else insert a newline and indent."
 (defun tuareg-interrupt-caml ()
   (interactive)
   (when (comint-check-proc tuareg-interactive-buffer-name)
-    (save-excursion
-      (set-buffer tuareg-interactive-buffer-name)
+    (with-current-buffer tuareg-interactive-buffer-name
       (comint-interrupt-subjob))))
 
 (defun tuareg-kill-caml ()
   (interactive)
   (when (comint-check-proc tuareg-interactive-buffer-name)
-    (save-excursion
-      (set-buffer tuareg-interactive-buffer-name)
+    (with-current-buffer tuareg-interactive-buffer-name
       (comint-kill-subjob))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -3625,8 +3621,7 @@ Short cuts for interaction within the toplevel:
       ;; List *.ml and *.mli files
       (with-output-to-temp-buffer buf-name
         (buffer-disable-undo standard-output)
-        (save-excursion
-          (set-buffer buf-name)
+        (with-current-buffer buf-name
           (kill-all-local-variables)
           (make-local-variable 'tuareg-library-path)
           (setq tuareg-library-path dir)
