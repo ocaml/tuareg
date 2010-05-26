@@ -1942,8 +1942,8 @@ Returns t iff skipped to indentation."
 ;		(tuareg-back-to-paren-or-indentation)))
              (t (back-to-indentation) t)))
       (cond
-       ((looking-at "|[^|]")
-        (re-search-forward "|[^|][ \t]*") nil)
+    ;   ((looking-at "|[^|]")
+    ;    (re-search-forward "|[^|][ \t]*") nil)
        ((or (string= kwop "in") (string= kwop "do"))
         (tuareg-find-in-match)
         (tuareg-back-to-paren-or-indentation)
@@ -2259,6 +2259,7 @@ Returns t iff skipped to indentation."
                          (looking-at (tuareg-give-extra-unindent-regexp)))
                 (tuareg-back-to-paren-or-indentation))
               (- (+ (tuareg-assoc-indent matching-kwop t)
+                    (if (looking-at "|") tuareg-default-indent 0)
                     (current-column))
                  (if (or (string= matching-kwop "type")
                          (string= matching-kwop "["))
