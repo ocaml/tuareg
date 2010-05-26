@@ -1692,7 +1692,9 @@ If found, return the actual text of the keyword or operator."
     (cond
      ((string= kwop "if")
       (let ((pos (point)))
-        (if (string= "else" (tuareg-find-meaningful-word)) "else"
+        (if (and (not (tuareg-in-indentation-p))
+                 (string= "else" (tuareg-find-meaningful-word)))
+            "else"
           (goto-char pos)
           kwop)))
      (t
