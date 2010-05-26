@@ -1463,7 +1463,7 @@ Gathered here for memoization and dynamic reconfiguration purposes."
      "\\<\\(and\\|match\\|begin\\|else\\|exception\\|then\\|try\\|with\\|or\\|fun\\|function\\|let\\|do\\)\\>\\|->\\|[[{(]"))
   (defconst tuareg-find-with-match-regexp
     (tuareg-make-find-kwop-regexp
-     "\\<\\(match\\|try\\|module\\|begin\\|with\\)\\>\\|[[{(]"))
+     "\\<\\(match\\|try\\|module\\|begin\\|with\\|type\\)\\>\\|[[{(]"))
   (defconst tuareg-find-in-match-regexp
     (tuareg-make-find-kwop-regexp "\\<let\\|open\\>"))
   (defconst tuareg-find-then-match-regexp
