@@ -2135,6 +2135,9 @@ Returns t iff skipped to indentation."
            (+ (current-column)
               tuareg-default-indent
               (tuareg-assoc-indent kwop t))))
+        ((string= kwop "try")
+         (forward-char 3) (skip-syntax-forward "\s ")
+         (+ (current-column) tuareg-default-indent))
         (t (if (tuareg-in-indentation-p)
                (+ (current-column)
                   (tuareg-assoc-indent kwop t))
