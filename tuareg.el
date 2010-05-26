@@ -1,6 +1,6 @@
-;;; tuareg.el --- Caml mode for (X)Emacs.   -*- coding: latin-1 -*-
+;;; tuareg.el --- Caml mode for (X)Emacs.
 
-;;        Copyright © 1997-2006 Albert Cohen, all rights reserved.
+;;        Copyright (C) 1997-2006 Albert Cohen, all rights reserved.
 ;;        Copyright (C) 2009-2010 Jane Street Holding, LLC.
 ;;        Licensed under the GNU General Public License.
 
@@ -22,7 +22,7 @@
 (require 'easymenu)
 
 (defconst tuareg-mode-version "Tuareg Version 1.99.1"
-  "        Copyright © 1997-2006 Albert Cohen, all rights reserved.
+  "         Copyright (C) 1997-2006 Albert Cohen, all rights reserved.
          Copyright (C) 2009-2010 Jane Street Holding, LLC.
          Copying is covered by the GNU General Public License.
 
@@ -905,12 +905,6 @@ Regexp match data 0 points to the chars."
         ))))
   ) ;; End of (unless tuareg-use-syntax-ppss
 
-;; By Stefan Monnier: redesigned font-lock installation and use char classes
-
-(defconst tuareg-use-char-classes (string-match "[[:alpha:]]" "x"))
-(defconst tuareg-lower (if tuareg-use-char-classes "[:lower:]" "a-z¿-ÿ"))
-(defconst tuareg-alpha (if tuareg-use-char-classes "[:alpha:]" "a-zA-Z¿-ÿ"))
-
 (defconst tuareg-font-lock-syntactic-keywords
   ;; Char constants start with ' but ' can also appear in identifiers.
   ;; Beware not to match things like '*)hel' or '"hel' since the first '
@@ -929,8 +923,7 @@ Regexp match data 0 points to the chars."
         font-lock-comment-face))))
 
 ;; Initially empty, set in `tuareg-install-font-lock'
-(defvar tuareg-font-lock-keywords
-  ()
+(defvar tuareg-font-lock-keywords ()
   "Font-Lock patterns for Tuareg mode.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1160,12 +1153,12 @@ Short cuts for interactions with the toplevel:
                0 'font-lock-keyword-face nil nil)
          (list "[][;,()|{}]\\|[@^!:*=<>&/%+~?#---]\\.?\\|\\.\\.\\.*\\|\\<\\(asr\\|asl\\|lsr\\|lsl\\|l?or\\|l?and\\|lxor\\|l?not\\|mod\\|of\\|ref\\|fby\\|pre\\|last\\|at\\)\\>"
                0 'tuareg-font-lock-operator-face nil nil)
-         (list (concat "\\<\\(\\(method\\([ \t\n]+\\(private\\|virtual\\)\\)?\\)\\([ \t\n]+virtual\\)?\\|val\\([ \t\n]+mutable\\)?\\|external\\|and\\|class\\|let\\([ \t\n]+\\(rec\\|clock\\|node\\|static\\)\\)?\\)\\>[ \t\n]*\\(['_" tuareg-lower "]\\(\\w\\|[._]\\)*\\)\\>[ \t\n]*\\(\\(\\w\\|[()_?~.'*:--->]\\)+\\|=[ \t\n]*fun\\(ction\\)?\\>\\)")
+         (list "\\<\\(\\(method\\([ \t\n]+\\(private\\|virtual\\)\\)?\\)\\([ \t\n]+virtual\\)?\\|val\\([ \t\n]+mutable\\)?\\|external\\|and\\|class\\|let\\([ \t\n]+\\(rec\\|clock\\|node\\|static\\)\\)?\\)\\>[ \t\n]*\\(['_[:lower:]]\\(\\w\\|[._]\\)*\\)\\>[ \t\n]*\\(\\(\\w\\|[()_?~.'*:--->]\\)+\\|=[ \t\n]*fun\\(ction\\)?\\>\\)"
                9 'font-lock-function-name-face 'keep nil))
       (list
        (list "[][;,()|{}]\\|[@^!:*=<>&/%+~?#---]\\.?\\|\\.\\.\\.*\\|\\<\\(asr\\|asl\\|lsr\\|lsl\\|l?or\\|l?and\\|lxor\\|l?not\\|mod\\|of\\|ref\\)\\>"
              0 'tuareg-font-lock-operator-face nil nil)
-       (list (concat "\\<\\(\\(method\\([ \t\n]+\\(private\\|virtual\\)\\)?\\)\\([ \t\n]+virtual\\)?\\|val\\([ \t\n]+mutable\\)?\\|external\\|and\\|class\\|let\\([ \t\n]+rec\\)?\\)\\>[ \t\n]*\\(['_" tuareg-lower "]\\(\\w\\|[._]\\)*\\)\\>[ \t\n]*\\(\\(\\w\\|[()_?~.'*:--->]\\)+\\|=[ \t\n]*fun\\(ction\\)?\\>\\)")
+       (list "\\<\\(\\(method\\([ \t\n]+\\(private\\|virtual\\)\\)?\\)\\([ \t\n]+virtual\\)?\\|val\\([ \t\n]+mutable\\)?\\|external\\|and\\|class\\|let\\([ \t\n]+rec\\)?\\)\\>[ \t\n]*\\(['_[:lower:]]\\(\\w\\|[._]\\)*\\)\\>[ \t\n]*\\(\\(\\w\\|[()_?~.'*:--->]\\)+\\|=[ \t\n]*fun\\(ction\\)?\\>\\)"
              8 'font-lock-function-name-face 'keep nil)))
     (list
      (list "\\<method\\([ \t\n]+\\(private\\|virtual\\)\\)?\\>[ \t\n]*\\(\\(\\w\\|[_,?~.]\\)*\\)"
@@ -1196,9 +1189,9 @@ Short cuts for interactions with the toplevel:
            1 'font-lock-type-face 'keep nil)
      (list "\\<\\([A-Z]\\w*\\>\\)[ \t]*\\."
            1 'font-lock-type-face 'keep nil)
-     (list (concat "\\<\\([?~]?[_" tuareg-alpha "]\\w*\\)[ \t\n]*:[^:>=]")
+     (list "\\<\\([?~]?[_[:alpha:]]\\w*\\)[ \t\n]*:[^:>=]"
            1 'font-lock-variable-name-face 'keep nil)
-     (list (concat "\\<exception\\>[ \t\n]*\\(\\<[_" tuareg-alpha "]\\w*\\>\\)")
+     (list "\\<exception\\>[ \t\n]*\\(\\<[_[:alpha:]]\\w*\\>\\)"
            1 'font-lock-variable-name-face 'keep nil)
      (list "^#\\w+\\>"
            0 'font-lock-preprocessor-face t nil))
@@ -1501,7 +1494,7 @@ For synchronous programming.")
        (char-equal ?> (char-before (1- pos)))))
 
 (defconst tuareg-meaningful-word-regexp
-  (concat "[^ \t\n_0-9" tuareg-alpha "]\\|\\<\\(\\w\\|_\\)+\\>\\|\\*)"))
+  "[^ \t\n_[:alnum:]]\\|\\<\\(\\w\\|_\\)+\\>\\|\\*)")
 (defun tuareg-find-meaningful-word ()
   "Look back for a word, skipping comments and blanks.
 Returns the actual text of the word, if found."
@@ -3736,8 +3729,7 @@ Short cuts for interaction within the toplevel:
   (tuareg-ro "and" "val" "type" "module" "class" "exception" "let")
   "Regexp matching definition phrases.")
 
-(defconst tuareg--id-regexp
-  (concat "[" tuareg-alpha "][0-9_'" tuareg-alpha "]*"))
+(defconst tuareg--id-regexp "[[:alpha:]][_'[:alnum:]]*")
 
 (defconst tuareg-definitions-bind-skip-regexp
   (concat (tuareg-ro "rec" "type" "virtual") "\\|'"
