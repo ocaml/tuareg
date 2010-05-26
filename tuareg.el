@@ -2552,7 +2552,9 @@ Returns t iff skipped to indentation."
           (t (tuareg-paren-or-indentation-column)))))
 
 (defun tuareg-indent-to-code (match)
-  (forward-char (length match))
+  (if (string= match "(")
+    (search-forward "->")
+    (forward-char (length match)))
   (re-search-forward "[^ \t\n\r]")
   (while (tuareg-in-comment-p)
     (while (tuareg-in-comment-p) (re-search-forward "[^ \t\n\r]"))
