@@ -1187,7 +1187,7 @@ Short cuts for interactions with the toplevel:
   (when (and (boundp 'font-lock-fontify-region-function)
              (not tuareg-use-syntax-ppss))
   (make-local-variable 'font-lock-fontify-region-function)
-      (setq font-lock-fontify-region-function 'tuareg-fontify-region)))
+  (setq font-lock-fontify-region-function 'tuareg-fontify-region)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               Error processing
