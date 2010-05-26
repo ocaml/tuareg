@@ -1550,8 +1550,7 @@ Returns the actual text of the word, if found."
 (defconst tuareg-find-and-match-regexp
   (concat (tuareg-ro "do" "done" "else" "end" "in" "then" "down" "downto"
                      "for" "while" "do" "if" "begin" "sig" "struct" "class"
-                     "rule" "exception" "let" "in" "type" "val" "module"
-                     "where" "reset")
+                     "rule" "exception" "let" "in" "type" "val" "module")
           "\\|[][(){}]\\|\\*)"))
 (defconst tuareg-find-phrase-beginning-regexp
   (concat (tuareg-ro "end" "type" "module" "sig" "struct" "class"
@@ -1594,7 +1593,7 @@ Gathered here for memoization and dynamic reconfiguration purposes."
    tuareg-find-=-match-regexp
     (tuareg-make-find-kwop-regexp
      (concat (tuareg-ro "val" "let" "method" "module" "type" "class" "when"
-                        "if" "in" "do" "where")
+                        "if" "in" "do")
              "\\|="))
    tuareg-find-pipe-match-regexp
     (tuareg-make-find-kwop-regexp (tuareg-give-match-pipe-kwop-regexp))
@@ -1627,7 +1626,7 @@ Gathered here for memoization and dynamic reconfiguration purposes."
    tuareg-find-monadic-match-regexp
     (concat tuareg-block-regexp "\\|\\([;=]\\)\\|\\(->\\)\\|"
             (tuareg-ro "val" "let" "method" "module" "type" "class" "when"
-                       "if" "in" "do" "done" "end" "where"))))
+                       "if" "in" "do" "done" "end"))))
 
 (defun tuareg-strip-trailing-whitespace (string)
   (if (string-match "[ \t]*\\'" string)
@@ -1979,7 +1978,7 @@ If found, return the actual text of the keyword or operator."
 (defconst tuareg-phrase-regexp-1 (tuareg-ro "module" "type"))
 (defconst tuareg-phrase-regexp-2 (tuareg-ro "and" "let" "module" "with"))
 (defconst tuareg-phrase-regexp-3
-  (tuareg-ro "and" "end" "every" "in" "where" "with"))
+  (tuareg-ro "and" "end" "every" "in" "with"))
 (defun tuareg-find-phrase-indentation (&optional phrase-break)
   (if (and (looking-at tuareg-phrase-regexp-1) (> (point) (point-min))
            (save-excursion
@@ -2069,7 +2068,7 @@ If found, return the actual text of the keyword or operator."
             (t (current-column))))))
 
 (defconst tuareg-paren-or-indentation-stop-regexp
-  (tuareg-ro "and" "do" "in" "where" "with"))
+  (tuareg-ro "and" "do" "in" "with"))
 (defun tuareg-back-to-paren-or-indentation ()
   "Search backwards for the first open paren in line, or skip to indentation.
 Returns t iff skipped to indentation."
