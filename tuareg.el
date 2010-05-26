@@ -2103,7 +2103,7 @@ Returns t iff skipped to indentation."
       (tuareg-back-to-paren-or-indentation)
       (if (save-excursion (goto-char match-end-point)
                           (looking-at "[ \t]*\\((\\*.*\\)?$"))
-          (+ (tuareg-add-default-indent (or leading-operator kwop))
+          (+ (tuareg-add-default-indent leading-operator)
              (current-column))
         (current-column))))))
 
