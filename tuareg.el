@@ -687,19 +687,6 @@ and `tuareg-xemacs-w3-manual' (XEmacs only)."
                 (char-equal ?\; (char-after (1+ (point)))))
            (char-equal ?\; (preceding-char)))))
 
-(defun tuareg-assoc-indent (kwop &optional look-for-let-or-and)
-  "Return relative indentation of the keyword given in argument."
-  (let ((ind (or (symbol-value (cdr (assoc kwop tuareg-keyword-alist)))
-                 tuareg-default-indent))
-        (looking-let-or-and (and look-for-let-or-and
-                                 (looking-at "\\<\\(let\\|and\\)\\>"))))
-    (if (string-match (tuareg-give-extra-unindent-regexp) kwop)
-        (+ (if (and tuareg-let-always-indent
-                    looking-let-or-and (< ind tuareg-let-indent))
-               tuareg-let-indent ind)
-           tuareg-|-extra-unindent)
-      ind)))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                           Font-lock in Emacs
 
@@ -795,6 +782,11 @@ Regexp match data 0 points to the chars."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                  Font-Lock
 
+;; XEmacs and Emacs have different documentation faces...
+(defvar tuareg-doc-face
+  (if (facep 'font-lock-doc-face)
+      'font-lock-doc-face 'font-lock-doc-string-face))
+
 (unless tuareg-use-syntax-ppss
 
   (defun tuareg-fontify-buffer ()
@@ -848,11 +840,6 @@ Regexp match data 0 points to the chars."
             (set-buffer-modified-p nil)))          ; too seriously...
 
         (tuareg-restore-syntax))))
-
-  ;; XEmacs and Emacs have different documentation faces...
-  (defvar tuareg-doc-face (if (facep 'font-lock-doc-face)
-                              'font-lock-doc-face
-                            'font-lock-doc-string-face))
   ) ;; End of (unless tuareg-use-syntax-ppss
 
 ;; By Stefan Monnier: redesigned font-lock installation and use char classes
@@ -986,12 +973,12 @@ Regexp match data 0 points to the chars."
 (defun tuareg-define-abbrev (keyword)
   (define-abbrev tuareg-mode-abbrev-table keyword keyword 'tuareg-abbrev-hook))
 (if tuareg-mode-abbrev-table ()
-  (setq tuareg-mode-abbrev-table (make-abbrev-table))
-  (mapcar 'tuareg-define-abbrev
-          '("module" "class" "functor" "object" "type" "val" "inherit"
-            "include" "virtual" "constraint" "exception" "external" "open"
-            "method" "and" "initializer" "to" "downto" "do" "done" "else"
-            "begin" "end" "let" "in" "then" "with"))
+    (setq tuareg-mode-abbrev-table (make-abbrev-table))
+  (mapc 'tuareg-define-abbrev
+        '("module" "class" "functor" "object" "type" "val" "inherit"
+          "include" "virtual" "constraint" "exception" "external" "open"
+          "method" "and" "initializer" "to" "downto" "do" "done" "else"
+          "begin" "end" "let" "in" "then" "with"))
   (setq abbrevs-changed nil))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1432,6 +1419,19 @@ For synchronous programming.")
     ("and" . tuareg-find-and-match))
   "Association list used in Tuareg mode for skipping back over nested blocks.")
 
+(defun tuareg-assoc-indent (kwop &optional look-for-let-or-and)
+  "Return relative indentation of the keyword given in argument."
+  (let ((ind (or (symbol-value (cdr (assoc kwop tuareg-keyword-alist)))
+                 tuareg-default-indent))
+        (looking-let-or-and (and look-for-let-or-and
+                                 (looking-at "\\<\\(let\\|and\\)\\>"))))
+    (if (string-match (tuareg-give-extra-unindent-regexp) kwop)
+        (+ (if (and tuareg-let-always-indent
+                    looking-let-or-and (< ind tuareg-let-indent))
+               tuareg-let-indent ind)
+           tuareg-|-extra-unindent)
+      ind)))
+
 (defun tuareg-find-meaningful-word ()
   "Look back for a word, skipping comments and blanks.
 Returns the actual text of the word, if found."
@@ -1752,7 +1752,7 @@ If found, return the actual text of the keyword or operator."
 
 (defun tuareg-find-semi-colon-match (&optional leading-semi-colon)
   (tuareg-find-kwop tuareg-find-semi-colon-match-regexp
-                         "\\<\\(in\\|end\\|and\\|do\\|with\\)\\>")
+                    "\\<\\(in\\|end\\|and\\|do\\|with\\)\\>")
   ;; We don't need to find the keyword matching `and' since we know it's `let'!
   (cond
    ((looking-at ";[ \t]*\\((\\*\\|$\\)")
@@ -3013,6 +3013,27 @@ or indent all lines in the current phrase."
                        (+ comint-last-input-start end)
                        'face 'tuareg-font-lock-error-face))))))))))))
 
+(easy-menu-define
+  tuareg-interactive-mode-menu tuareg-interactive-mode-map
+  "Tuareg Interactive Mode Menu."
+  '("Tuareg"
+    ("Interactive Mode"
+     ["Run Caml Toplevel" tuareg-run-caml t]
+     ["Interrupt Caml Toplevel" tuareg-interrupt-caml
+      :active (comint-check-proc tuareg-interactive-buffer-name)]
+     ["Kill Caml Toplevel" tuareg-kill-caml
+      :active (comint-check-proc tuareg-interactive-buffer-name)]
+     ["Evaluate Region" tuareg-eval-region :active (region-active-p)]
+     ["Evaluate Phrase" tuareg-eval-phrase t]
+     ["Evaluate Buffer" tuareg-eval-buffer t])
+    "---"
+    ["Customize Tuareg Mode..." (customize-group 'tuareg) t]
+    ("Tuareg Options" ["Dummy" nil t])
+    ("Tuareg Interactive Options" ["Dummy" nil t])
+    "---"
+    ["About" tuareg-about t]
+    ["Help" tuareg-interactive-help t]))
+
 (define-derived-mode tuareg-interactive-mode comint-mode "Tuareg-Interactive"
   "Major mode for interacting with a Caml process.
 Runs a Caml toplevel as a subprocess of Emacs, with I/O through an
@@ -3257,6 +3278,10 @@ Short cuts for interaction within the toplevel:
   (interactive)
   (describe-function 'tuareg-interactive-mode))
 
+(defvar tuareg-definitions-menu (list ["Scan..." tuareg-list-definitions t])
+  "Initial content of the definitions menu.")
+(make-variable-buffer-local 'tuareg-definitions-menu)
+
 (defvar tuareg-definitions-menu-last-buffer nil)
 (defvar tuareg-definitions-keymaps nil)
 
@@ -3327,27 +3352,6 @@ Short cuts for interaction within the toplevel:
             (cdr (easy-menu-create-menu
                   "Definitions" tuareg-definitions-menu)))
       (setq tuareg-definitions-menu-last-buffer nil))))
-
-(easy-menu-define
-  tuareg-interactive-mode-menu tuareg-interactive-mode-map
-  "Tuareg Interactive Mode Menu."
-  '("Tuareg"
-    ("Interactive Mode"
-     ["Run Caml Toplevel" tuareg-run-caml t]
-     ["Interrupt Caml Toplevel" tuareg-interrupt-caml
-      :active (comint-check-proc tuareg-interactive-buffer-name)]
-     ["Kill Caml Toplevel" tuareg-kill-caml
-      :active (comint-check-proc tuareg-interactive-buffer-name)]
-     ["Evaluate Region" tuareg-eval-region :active (region-active-p)]
-     ["Evaluate Phrase" tuareg-eval-phrase t]
-     ["Evaluate Buffer" tuareg-eval-buffer t])
-    "---"
-    ["Customize Tuareg Mode..." (customize-group 'tuareg) t]
-    ("Tuareg Options" ["Dummy" nil t])
-    ("Tuareg Interactive Options" ["Dummy" nil t])
-    "---"
-    ["About" tuareg-about t]
-    ["Help" tuareg-interactive-help t]))
 
 (defun tuareg-update-definitions-menu ()
   (when (eq major-mode 'tuareg-mode)
@@ -3426,6 +3430,13 @@ Short cuts for interaction within the toplevel:
 
 ;; From M. Quercia
 
+(defvar tuareg-library-mode-map
+  (let ((map (make-keymap)))
+    (suppress-keymap map)
+    (define-key map [return] 'tuareg-library-find-file)
+    (define-key map [mouse-2] 'tuareg-library-mouse-find-file)
+    map))
+
 (defun tuareg-browse-library()
   "Browse the Caml library."
   (interactive)
@@ -3466,13 +3477,6 @@ Short cuts for interaction within the toplevel:
           (use-local-map tuareg-library-mode-map)
           (setq buffer-read-only t))))))
 
-(defvar tuareg-library-mode-map
-  (let ((map (make-keymap)))
-    (suppress-keymap map)
-    (define-key map [return] 'tuareg-library-find-file)
-    (define-key map [mouse-2] 'tuareg-library-mouse-find-file)
-    map))
-
 (defun tuareg-library-find-file ()
   "Load the file whose name is near point."
   (interactive)
@@ -3506,10 +3510,6 @@ Short cuts for interaction within the toplevel:
   (concat "\\<\\(rec\\|type\\|virtual\\)\\>\\|'[" tuareg-alpha "][0-9_'"
           tuareg-alpha "]*\\|('.*)")
   "Regexp matching stuff to ignore after a binding keyword.")
-
-(defvar tuareg-definitions-menu (list ["Scan..." tuareg-list-definitions t])
-  "Initial content of the definitions menu.")
-(make-variable-buffer-local 'tuareg-definitions-menu)
 
 (eval-when-compile
   (autoload 'line-number "xemacs"))
@@ -3577,17 +3577,16 @@ jump via the definitions menu."
           (message "Parse error when scanning definitions: line %s."
                    (tuareg-line-number))
         ;; Sort and build lists
-        (mapcar (lambda (pair)
-                  (when (cdr pair)
-                    (setq menu
-                          (append (tuareg-split-long-list
-                                   (car pair) (tuareg-sort-definitions (cdr pair)))
-                                  menu))))
-                (list (cons "Miscellaneous" misc-list)
-                      (cons "Values" value-list)
-                      (cons "Classes" class-list)
-                      (cons "Types" type-list)
-                      (cons "Modules" module-list)))
+        (dolist (pair (list (cons "Miscellaneous" misc-list)
+                            (cons "Values" value-list)
+                            (cons "Classes" class-list)
+                            (cons "Types" type-list)
+                            (cons "Modules" module-list)))
+          (when (cdr pair)
+            (setq menu
+                  (append (tuareg-split-long-list
+                           (car pair) (tuareg-sort-definitions (cdr pair)))
+                          menu))))
         ;; Update definitions menu
         (setq tuareg-definitions-menu
               (append menu (list "---"
