@@ -1626,7 +1626,15 @@ If found, return the actual text of the keyword or operator."
     (if (looking-at "\\[|") "[|" kwop)))
 
 (defun tuareg-find-monadic-match ()
-  (tuareg-find-kwop tuareg-find-monadic-match-regexp))
+  (let (pos kwop)
+    (while (or (null kwop)
+               (and (string= kwop "=")
+                    (char-equal ?> (char-after (- pos 1)))
+                    (char-equal ?> (char-after (- pos 2)))))
+      (when kwop (tuareg-backward-char 2))
+      (setq kwop (tuareg-find-kwop tuareg-find-monadic-match-regexp)
+            pos (point)))
+    kwop))
 
 (defun tuareg-find-with-match ()
   (tuareg-find-kwop tuareg-find-with-match-regexp))
