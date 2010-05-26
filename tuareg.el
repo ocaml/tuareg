@@ -1928,6 +1928,8 @@ If found, return the actual text of the keyword or operator."
 
 (defconst tuareg-semicolon-match-stop-regexp
   (tuareg-ro "and" "do" "end" "in" "with"))
+(defconst tuareg-no-code-after-paren-regexp
+  (tuareg-no-code-after "[[{(][|<]?"))
 (defun tuareg-semicolon-indent-kwop-point (&optional leading-semi-colon)
   ;; return (kwop kwop-point indentation)
   (let ((kwop (tuareg-find-kwop tuareg-find-semicolon-match-regexp
@@ -1945,7 +1947,7 @@ If found, return the actual text of the keyword or operator."
         (current-column))
        ((and leading-semi-colon
              (looking-at "\\((\\|\\[[<|]?\\|{<?\\)[ \t]*[^ \t\n]")
-             (not (looking-at (tuareg-no-code-after "[[{(][|<]?"))))
+             (not (looking-at tuareg-no-code-after-paren-regexp)))
         (current-column))
        ;; ((looking-at (tuareg-no-code-after "\\((\\|\\[[<|]?\\|{<?\\)"))
        ;;  (+ (current-column) tuareg-default-indent))
@@ -2435,7 +2437,8 @@ Returns t iff skipped to indentation."
   (tuareg-ro "val" "let" "method" "module" "class" "when" "for" "if" "do"))
 
 (defun tuareg-compute-=-indent (start-pos)
-  (let ((current-column-module-type nil) (kwop1 (tuareg-find-=-match)))
+  (let ((current-column-module-type nil) (kwop1 (tuareg-find-=-match))
+        (next-pos (point)))
     (+ (save-excursion
          (tuareg-reset-and-kwop kwop1)
          (cond ((string= kwop1 "type")
@@ -2462,12 +2465,15 @@ Returns t iff skipped to indentation."
                 (setq current-column-module-type (current-column))
                 (+ (tuareg-assoc-indent "object")
                    tuareg-default-indent))
+               ((looking-at tuareg-no-code-after-paren-regexp)
+                (setq current-column-module-type
+                      (tuareg-indent-from-paren nil next-pos))
+                tuareg-default-indent)
                (t (setq current-column-module-type
                         (tuareg-paren-or-indentation-indent))
                   tuareg-default-indent)))
-       (if current-column-module-type
-           current-column-module-type
-         (current-column)))))
+       (or current-column-module-type
+           (current-column)))))
 
 (defun tuareg-indent-after-next-char ()
   (forward-char 1)
