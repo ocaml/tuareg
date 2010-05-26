@@ -2600,11 +2600,10 @@ Returns t iff skipped to indentation."
   (if (string= match "(")
     (search-forward "->")
     (forward-char (length match)))
-  (re-search-forward "[^ \t\n\r]")
+  (skip-syntax-forward "\s-")
   (while (tuareg-in-comment-p)
-    (while (tuareg-in-comment-p) (re-search-forward "[^ \t\n\r]"))
-    (re-search-forward "[^ \t\n\r]"))
-  (backward-char)
+    (while (tuareg-in-comment-p) (skip-syntax-forward "\s-"))
+    (skip-syntax-forward "\s-"))
   (current-column))
 
 (defun tuareg-indent-command (&optional from-leading-star)
@@ -2824,17 +2823,17 @@ by |, insert one |."
       (goto-char (+ (point) (length kwop))))))
 
 (defun tuareg-skip-blank-and-comments ()
-  (skip-chars-forward " \t\n")
+  (skip-syntax-forward "\s-")
   (while (and (not (eobp)) (tuareg-in-comment-p)
               (search-forward "*)" nil t))
-    (skip-chars-forward " \t\n")))
+    (skip-syntax-forward "\s-")))
 
 (defun tuareg-skip-back-blank-and-comments ()
-  (skip-chars-backward " \t\n")
+  (skip-syntax-backward "\s-")
   (while (save-excursion (tuareg-backward-char)
                          (and (> (point) (point-min)) (tuareg-in-comment-p)))
     (tuareg-backward-char)
-    (tuareg-beginning-of-literal-or-comment) (skip-chars-backward " \t\n")))
+    (tuareg-beginning-of-literal-or-comment) (skip-syntax-backward "\s-")))
 
 (defun tuareg-find-phrase-beginning (&optional stop-at-and)
   "Find `real' phrase beginning and return point."
@@ -2886,7 +2885,7 @@ by |, insert one |."
 (defun tuareg-imenu-extract-index-name ()
   "The default value for `imenu-extract-index-name-function'."
   (forward-sexp 1)
-  (skip-syntax-forward "\s ")
+  (skip-syntax-forward "\s-")
   (buffer-substring-no-properties (point) (scan-sexps (point) 1)))
 
 (defun tuareg-search-forward-end ()
