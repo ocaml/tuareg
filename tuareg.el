@@ -1605,7 +1605,7 @@ Gathered here for memoization and dynamic reconfiguration purposes."
      (concat (tuareg-ro "external" "type" "val" "method" "let" "with" "fun"
                         "function" "functor" "class" "automaton" "present"
                         "parser")
-             "\\|[|;]"))
+             "\\|[|;:]"))
    tuareg-find-semicolon-match-regexp
     (tuareg-make-find-kwop-regexp
      (concat ";" tuareg-no-more-code-this-line-regexp "\\|->\\|"
@@ -1619,7 +1619,7 @@ Gathered here for memoization and dynamic reconfiguration purposes."
     (concat (tuareg-give-matching-keyword-regexp) "\\|\\<class\\>")
    tuareg-compute-argument-indent-regexp
     (tuareg-make-find-kwop-regexp
-     (concat (tuareg-give-keyword-regexp) "\\|="))
+     (concat (tuareg-give-keyword-regexp) "\\|[=:]"))
    tuareg-compute-normal-indent-regexp
     (concat tuareg-compute-argument-indent-regexp "\\|^.[ \t]*")
    tuareg-find-module-regexp
@@ -2234,9 +2234,12 @@ Returns t iff skipped to indentation."
            (+ (current-column) tuareg-default-indent))
           ((string= kwop ":")
            (goto-char pos)
-           (if (not (looking-at "\\<class\\>"))
-               (tuareg-find-arrow-match)) ; matching `val' or `let'
-           (+ (current-column) tuareg-val-indent))
+           (if (or (looking-at "\\<class\\>")
+                   (and (setq kwop (tuareg-find-arrow-match))
+                        (or (string= kwop "val") (string= kwop "let"))))
+               (+ (current-column) tuareg-val-indent)
+             (goto-char pos)
+             (tuareg-compute-colon-indent)))
           ((or (string= kwop "val")
                (string= kwop "let"))
            (goto-char pos)
@@ -2245,6 +2248,14 @@ Returns t iff skipped to indentation."
            (goto-char pos)
            (+ (current-column) tuareg-type-indent
               tuareg-default-indent))
+          ((string= kwop "(")
+           (goto-char pos)
+           (forward-char 1)     ; skip "("
+           (tuareg-skip-blank-and-comments)
+           (current-column))
+          ;; ((string= kwop "{") ; ?????
+          ;;  (tuareg-back-to-paren-or-indentation)
+          ;;  (current-column))
           ((tuareg-monadic-operator-p kwop)
            ;; find the last ">>=" or ">>>"
            ;; (goto-char pos)
@@ -2381,6 +2392,14 @@ Returns t iff skipped to indentation."
            current-column-module-type
          (current-column)))))
 
+(defun tuareg-compute-colon-indent ()
+  (cond ((looking-at (tuareg-no-code-after ":"))
+         (tuareg-back-to-paren-or-indentation)
+         (+ (current-column) tuareg-default-indent))
+        (t (forward-char 1)     ; skip ":"
+           (tuareg-skip-blank-and-comments)
+           (current-column))))
+
 (defun tuareg-compute-normal-indent ()
   (let ((leading-operator (looking-at tuareg-operator-regexp)))
     (beginning-of-line)
@@ -2436,6 +2455,8 @@ Returns t iff skipped to indentation."
             (tuareg-compute-keyword-indent kwop leading-operator))
            ((and (string= kwop "=") (not (tuareg-false-=-p)))
             (tuareg-compute-=-indent start-pos))
+           ((string= kwop ":")
+            (tuareg-compute-colon-indent))
            (nil 0)
            (t (tuareg-compute-argument-indent leading-operator))))))))
 
