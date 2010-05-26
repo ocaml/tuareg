@@ -1478,7 +1478,7 @@ For synchronous programming.")
     ("and" . tuareg-find-and-match))
   "Association list used in Tuareg mode for skipping back over nested blocks.")
 
-(defconst tuareg-binding-regexp (tuareg-ro "let" "and"))
+(defconst tuareg-binding-regexp "\\(\\<and\\>\\|(*\\<let\\>\\)")
 
 (defun tuareg-assoc-indent (kwop &optional look-for-let-or-and)
   "Return relative indentation of the keyword given in argument."
