@@ -2477,8 +2477,7 @@ Returns t iff skipped to indentation."
                         (tuareg-false-=-p))
                    (and (looking-at tuareg-no-code-this-line-regexp)
                         (not (= (point) (point-min)))))
-          (setq kwop (tuareg-find-kwop tuareg-compute-normal-indent-regexp
-                                       (tuareg-give-keyword-regexp)))
+          (setq kwop (tuareg-find-argument-kwop leading-operator))
           (tuareg-reset-and-kwop kwop))
         (cond
           ((not kwop) (current-column))
