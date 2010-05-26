@@ -1305,8 +1305,10 @@ possible."
           "\\|\\[" tuareg-no-more-code-this-line-regexp "\\)")
   "Regexp for keywords needing extra indentation to compensate for case matches.")
 
+(defconst tuareg-ls3-extras (concat "\\|" (tuareg-ro "automaton" "present")))
+
 (defconst tuareg-extra-unindent-regexp-ls3
-  (concat tuareg-extra-unindent-regexp "\\|" (tuareg-ro "automaton" "present"))
+  (concat tuareg-extra-unindent-regexp tuareg-ls3-extras)
   "Regexp for keywords needing extra indentation to compensate for case matches.")
 
 (defun tuareg-give-extra-unindent-regexp ()
@@ -1343,7 +1345,7 @@ For synchronous programming.")
   "Regexp for keywords supporting case match.")
 
 (defconst tuareg-match-pipe-kwop-regexp-ls3
-  (concat tuareg-match-pipe-kwop-regexp "\\|" (tuareg-ro "automaton" "present"))
+  (concat tuareg-match-pipe-kwop-regexp tuareg-ls3-extras)
   "Regexp for keywords supporting case match.
 For synchronous programming.")
 
@@ -1600,8 +1602,7 @@ Gathered here for memoization and dynamic reconfiguration purposes."
    tuareg-find-arrow-match-regexp
     (tuareg-make-find-kwop-regexp
      (concat (tuareg-ro "external" "type" "val" "method" "let" "with" "fun"
-                        "function" "functor" "class" "automaton" "present"
-                        "parser")
+                        "function" "functor" "class" "parser")
              "\\|[|;]"))
    tuareg-find-semicolon-match-regexp
     (tuareg-make-find-kwop-regexp
@@ -1717,6 +1718,13 @@ If found, return the actual text of the keyword or operator."
       (tuareg-find-in-match))
      (t
       kwop))))
+
+(defconst tuareg-find-arrow-match-regexp-ls3
+  (concat tuareg-find-arrow-match-regexp tuareg-ls3-extras))
+(defun tuareg-give-find-arrow-match-regexp ()
+  (if (tuareg-editing-ls3)
+      tuareg-find-arrow-match-regexp-ls3
+    tuareg-find-arrow-match-regexp))
 
 (defconst tuareg-find-then-match-skip-regexp-ls3
   (regexp-opt '("->" "unless" "until") t))
@@ -1846,10 +1854,10 @@ If found, return the actual text of the keyword or operator."
     (tuareg-find-=-match)
     (looking-at tuareg-captive-regexp)))
 
-(defconst tuareg-pipe-stop-regexp-ls3
-  (concat (tuareg-ro "and" "with" "automaton" "present") "\\||"))
 (defconst tuareg-pipe-stop-regexp
   (concat (tuareg-ro "and" "with") "\\||"))
+(defconst tuareg-pipe-stop-regexp-ls3
+  (concat tuareg-pipe-stop-regexp tuareg-ls3-extras))
 (defun tuareg-give-pipe-stop-regexp ()
   (if (tuareg-editing-ls3)
       tuareg-pipe-stop-regexp-ls3
@@ -1892,7 +1900,8 @@ If found, return the actual text of the keyword or operator."
       kwop))))
 
 (defun tuareg-find-arrow-match ()
-  (let ((kwop (tuareg-find-kwop tuareg-find-arrow-match-regexp "\\<with\\>")))
+  (let ((kwop (tuareg-find-kwop (tuareg-give-find-arrow-match-regexp)
+                                "\\<with\\>")))
     (cond
      ((string= kwop "|")
       (if (tuareg-in-indentation-p)
@@ -2615,6 +2624,7 @@ Returns t iff skipped to indentation."
           ((or (and (string= kwop "and")
                     (string= matching-kwop "reset"))
                (and (string= kwop "end")
+                    (tuareg-editing-ls3)
                     (or (string= matching-kwop "match")
                         (string= matching-kwop "automaton")
                         (string= matching-kwop "present"))))
