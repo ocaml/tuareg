@@ -37,9 +37,11 @@
                            (if file
                                (file-name-directory file)
                                default-directory)))
-                      (condition-case nil
-                          (call-process "hg" nil t nil "id" "-i" "--debug")
-                        (error (insert "unknown\n")))))
+                      (cond ((file-directory-p ".hg")
+                             (call-process "hg" nil t nil "id" "-i" "--debug"))
+                            ((file-directory-p ".svn")
+                             (shell-command "svn info | grep Revision: | sed 's/Revision: //'" t))
+                            (t (insert "unknown\n")))))
                 (buffer-substring-no-properties
                  (point-min) (1- (point-max))))))
           ")")
