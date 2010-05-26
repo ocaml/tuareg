@@ -2164,10 +2164,15 @@ Returns t iff skipped to indentation."
   (tuareg-skip-blank-and-comments)
   (tuareg-back-to-paren-or-indentation))
 
+(defun tuareg-find-argument-kwop (leading-operator)
+  (tuareg-find-kwop (if leading-operator
+                      tuareg-compute-argument-indent-regexp
+                      tuareg-compute-normal-indent-regexp)
+                    (tuareg-give-keyword-regexp)))
+
 (defun tuareg-compute-argument-indent (leading-operator)
   (let* ((old-point (line-beginning-position))
-         (kwop (tuareg-find-kwop tuareg-compute-argument-indent-regexp
-                                 (tuareg-give-keyword-regexp)))
+         (kwop (tuareg-find-argument-kwop leading-operator))
          (match-end-point (+ (point) (length kwop)))) ; match-end is invalid!
     (cond
      ((and (string= kwop "->")
@@ -2221,7 +2226,7 @@ Returns t iff skipped to indentation."
                         (or (string= kwop "val") (string= kwop "let"))))
                (+ (current-column) tuareg-val-indent)
              (goto-char pos)
-             (tuareg-compute-colon-indent)))
+             (tuareg-compute-colon-indent 'tuareg-compute-arrow-indent)))
           ((or (string= kwop "val")
                (string= kwop "let"))
            (goto-char pos)
@@ -2232,9 +2237,7 @@ Returns t iff skipped to indentation."
               tuareg-default-indent))
           ((string= kwop "(")
            (goto-char pos)
-           (forward-char 1)     ; skip "("
-           (tuareg-skip-blank-and-comments)
-           (current-column))
+           (tuareg-indent-after-next-char))
           ;; ((string= kwop "{") ; ?????
           ;;  (tuareg-back-to-paren-or-indentation)
           ;;  (current-column))
@@ -2374,24 +2377,31 @@ Returns t iff skipped to indentation."
            current-column-module-type
          (current-column)))))
 
-(defun tuareg-compute-colon-indent ()
+(defun tuareg-indent-after-next-char ()
+  (forward-char 1)
+  (tuareg-skip-blank-and-comments)
+  (current-column))
+
+(defun tuareg-compute-colon-indent (leading-operator)
   (cond ((looking-at (tuareg-no-code-after ":"))
          (tuareg-back-to-paren-or-indentation)
          (+ (current-column) tuareg-default-indent))
-        (t (forward-char 1)     ; skip ":"
-           (tuareg-skip-blank-and-comments)
-           (current-column))))
+        (leading-operator
+         (let* ((start-pos (point))
+                (kwop (tuareg-find-argument-kwop t)))
+           (cond ((string= kwop "->") (current-column))
+                 ((string= kwop ":") (tuareg-compute-colon-indent t))
+                 ((string= kwop "{") (goto-char start-pos)
+                  (tuareg-indent-after-next-char))
+                 (t (tuareg-compute-normal-indent)))))
+        (t (tuareg-indent-after-next-char))))
 
 (defun tuareg-compute-normal-indent ()
   (let ((leading-operator (looking-at tuareg-operator-regexp)))
     (beginning-of-line)
     (save-excursion
       (let ((start-pos (point))
-            (kwop (tuareg-find-kwop
-                   (if leading-operator
-                       tuareg-compute-argument-indent-regexp
-                     tuareg-compute-normal-indent-regexp)
-                   (tuareg-give-keyword-regexp))))
+            (kwop (tuareg-find-argument-kwop leading-operator)))
         (tuareg-reset-and-kwop kwop)
         (while (or (and (string= kwop "=")
                         (tuareg-false-=-p))
@@ -2438,7 +2448,7 @@ Returns t iff skipped to indentation."
            ((and (string= kwop "=") (not (tuareg-false-=-p)))
             (tuareg-compute-=-indent start-pos))
            ((string= kwop ":")
-            (tuareg-compute-colon-indent))
+            (tuareg-compute-colon-indent leading-operator))
            (nil 0)
            (t (tuareg-compute-argument-indent leading-operator))))))))
 
