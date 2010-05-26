@@ -2186,13 +2186,26 @@ Returns t iff skipped to indentation."
                   (tuareg-compute-kwop-indent kwop)
                   (current-column)))))))
 
+(defun tuareg-find-colon-typespec (start-pos)
+  (let* ((old-pos (point))
+         (new-pos (search-forward ":" start-pos t)))
+    (when new-pos
+      (backward-char 1)
+      (skip-syntax-backward "\s-")
+      (skip-syntax-backward "\sw")
+      (skip-syntax-backward "\w-")
+      (let ((char (char-before)))
+        (cond ((or (char-equal char ??) (char-equal char ?~))
+               (goto-char old-pos) nil)
+              (t (goto-char new-pos) t))))))
+
 (defun tuareg-indent-from-paren (leading-operator start-pos)
   (cond
    ((looking-at (tuareg-no-code-after "\\(\\(\\.<\\|(\\|\\[[<|]?\\|{<?\\)\\)"))
     (cond ((tuareg-in-indentation-p)
            (+ tuareg-default-indent
               (current-column)))
-          ((search-forward ":" start-pos t)
+          ((tuareg-find-colon-typespec start-pos)
            (if (looking-at tuareg-no-code-this-line-regexp)
                (tuareg-paren-or-indentation-indent)
              (tuareg-skip-blank-and-comments)
