@@ -519,6 +519,10 @@ and `tuareg-xemacs-w3-manual' (XEmacs only)."
 
 (if tuareg-use-syntax-ppss
     (progn
+      ;; avoid compilation warnings
+      (defun tuareg-in-literal-or-comment () (error "tuareg uses PPSS"))
+      (defun tuareg-fontify (beg end) (error "tuareg uses PPSS"))
+
       (defun tuareg-in-literal-p ()
         "Returns non-nil if point is inside a Caml literal."
         (nth 3 (syntax-ppss)))
