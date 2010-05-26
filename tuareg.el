@@ -766,8 +766,10 @@ alignment and can thus lead to surprises."
            (">=" . ,(make-char 'symbol 179))
            ("<>" . ,(make-char 'symbol 185))
            ("==" . ,(make-char 'symbol 186))
+           ("<=>" . ,(make-char 'symbol 219))
            (":=" . ,(make-char 'symbol 220))
            ("=>" . ,(make-char 'symbol 222))
+           ("infinity" . ,(make-char 'symbol 165))
            ;; Some greek letters for type parameters.
            ("'a" . ,(make-char 'symbol 97))
            ("'b" . ,(make-char 'symbol 98))
@@ -788,7 +790,9 @@ alignment and can thus lead to surprises."
            (">=" . ,(decode-char 'ucs 8805))
            ("<>" . ,(decode-char 'ucs 8800))
            ("==" . ,(decode-char 'ucs 8801))
+           ("<=>" . ,(decode-char 'ucs 8660))
            (":=" . ,(decode-char 'ucs 8656))
+           ("infinity" . ,(decode-char 'ucs 8734))
            ;; Some greek letters for type parameters.
            ("'a" . ,(decode-char 'ucs 945))
            ("'b" . ,(decode-char 'ucs 946))
