@@ -391,7 +391,7 @@ and `tuareg-xemacs-w3-manual' (XEmacs only)."
 ;; (make-variable-buffer-local 'tuareg-interactive-program)
 
 ;; Backtrack to custom parsing and caching by default, until stable
-(defconst tuareg-use-syntax-ppss nil ; (fboundp 'syntax-ppss)
+(defconst tuareg-use-syntax-ppss (fboundp 'syntax-ppss)
   "*If nil, use our own parsing and caching.")
 
 (defgroup tuareg-faces nil
