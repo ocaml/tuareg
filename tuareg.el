@@ -801,10 +801,9 @@ Regexp match data 0 points to the chars."
   ;; Check that the chars should really be composed into a symbol.
   (let* ((mbegin (match-beginning 0))
          (mend (match-end 0))
-         (syntaxes (if (eq (char-syntax (char-after mbegin)) ?w)
-                       '(?w) '(?. ?\\))))
-    (if (or (memq (char-syntax (or (char-before mbegin) ?\ )) syntaxes)
-            (memq (char-syntax (or (char-after mend) ?\ )) syntaxes)
+         (syntax (char-syntax (char-after mbegin))))
+    (if (or (eq (char-syntax (or (char-before mbegin) ?\ )) syntax)
+            (eq (char-syntax (or (char-after mend) ?\ )) syntax)
             (memq (get-text-property mbegin 'face)
                   '(tuareg-doc-face font-lock-string-face
                     font-lock-comment-face)))
