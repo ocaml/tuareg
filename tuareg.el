@@ -1662,13 +1662,10 @@ If found, return the actual text of the keyword or operator."
   (let ((kwop (tuareg-find-kwop tuareg-find-then-match-regexp "\\(->\\|unless\\|until\\)")))
     (cond
      ((string= kwop "if")
-      (if (save-excursion
-           (tuareg-find-meaningful-word)
-           (looking-at "\\<else\\>"))
-          (progn
-            (tuareg-find-meaningful-word)
-            "else")
-        kwop))
+      (let ((pos (point)))
+        (if (string= "else" (tuareg-find-meaningful-word)) "else"
+          (goto-char pos)
+          kwop)))
      (t
       kwop))))
 
@@ -1978,8 +1975,7 @@ If found, return the actual text of the keyword or operator."
                   (tuareg-looking-at-false-module))
               (if looking-at-and
                   (current-column)
-                (tuareg-find-meaningful-word)
-                (if (looking-at "\\<and\\>")
+                (if (string= "and" (tuareg-find-meaningful-word))
                     (progn
                       (tuareg-find-and-match)
                       (tuareg-find-phrase-indentation phrase-break))
