@@ -1261,13 +1261,20 @@ possible."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               Indentation stuff
 
-(defconst tuareg-no-more-code-this-line "[ \t]*\\((\\*\\|$\\)"
-  "Regexp matching lines which have no more code:
- blanks + (maybe) comment start.")
+(eval-and-compile
+  (defconst tuareg-no-more-code-this-line-regexp "[ \t]*\\((\\*\\|$\\)"
+    "Regexp matching lines which have no more code:
+ blanks + (maybe) comment start."))
+
+(defmacro tuareg-no-code-after (rex)
+  `(eval-when-compile (concat ,rex tuareg-no-more-code-this-line-regexp)))
+
+(defconst tuareg-no-code-this-line-regexp
+  (concat "^" tuareg-no-more-code-this-line-regexp))
 
 (defconst tuareg-extra-unindent-regexp
   (concat "\\(\\<\\(with\\|function\\|type\\|parser?\\)\\>\\|\\["
-          tuareg-no-more-code-this-line "\\)")
+          tuareg-no-more-code-this-line-regexp "\\)")
   "Regexp for keywords needing extra indentation to compensate for case matches.")
 
 (defconst tuareg-extra-unindent-regexp-ls3
@@ -1480,7 +1487,7 @@ Gathered here for memoization and dynamic reconfiguration purposes."
     (tuareg-make-find-kwop-regexp "\\<\\(external\\|type\\|val\\|method\\|let\\|with\\|fun\\(ction\\|ctor\\)?\\|class\\|automaton\\|present\\|parser\\)\\>\\|[|;]"))
   (defconst tuareg-find-semi-colon-match-regexp
     (tuareg-make-find-kwop-regexp
-     (concat ";" tuareg-no-more-code-this-line
+     (concat ";" tuareg-no-more-code-this-line-regexp
              "\\|->\\|\\<\\(let\\|method\\|with\\|try\\|initializer\\)\\>")))
   (defconst tuareg-find-phrase-indentation-regexp
     (tuareg-make-find-kwop-regexp
@@ -1712,7 +1719,7 @@ If found, return the actual text of the keyword or operator."
       kwop)
      ((string= kwop "|") (tuareg-find-|-match))
      ((and (string= kwop "=")
-           (or (looking-at "=[ \t]*\\((\\*\\|$\\)")
+           (or (looking-at (tuareg-no-code-after "="))
                (tuareg-false-=-p)
                (not (string= (save-excursion (tuareg-find-=-match))
                              "type"))))
@@ -1756,20 +1763,20 @@ If found, return the actual text of the keyword or operator."
                     "\\<\\(in\\|end\\|and\\|do\\|with\\)\\>")
   ;; We don't need to find the keyword matching `and' since we know it's `let'!
   (cond
-   ((looking-at ";[ \t]*\\((\\*\\|$\\)")
+   ((looking-at (tuareg-no-code-after ";"))
     (forward-line 1)
     (while (or (tuareg-in-comment-p)
-               (looking-at "^[ \t]*\\((\\*\\|$\\)"))
+               (looking-at tuareg-no-code-this-line-regexp))
       (forward-line 1))
     (back-to-indentation)
     (current-column))
    ((and leading-semi-colon
          (looking-at "\\((\\|\\[[<|]?\\|{<?\\)[ \t]*[^ \t\n]")
-         (not (looking-at "[[{(][|<]?[ \t]*\\((\\*\\|$\\)")))
+         (not (looking-at (tuareg-no-code-after "[[{(][|<]?"))))
     (current-column))
-;   ((looking-at "\\((\\|\\[[<|]?\\|{<?\\)[ \t]*\\((\\*\\|$\\)")
+;   ((looking-at (tuareg-no-code-after "\\((\\|\\[[<|]?\\|{<?\\)"))
 ;    (+ (current-column) tuareg-default-indent))
-   ((looking-at "\\<begin\\>\\|\\((\\|\\[[<|]?\\|{<?\\)[ \t]*\\((\\*\\|$\\)")
+   ((looking-at (tuareg-no-code-after "\\<begin\\>\\|\\((\\|\\[[<|]?\\|{<?\\)"))
     (if (tuareg-in-indentation-p)
         (+ (current-column) tuareg-default-indent)
       (tuareg-back-to-paren-or-indentation)
@@ -1777,7 +1784,7 @@ If found, return the actual text of the keyword or operator."
    ((looking-at "\\(\\.<\\|(\\|\\[[<|]?\\|{<?\\)") ; paren with subsequent text
     (tuareg-search-forward-paren)
     (current-column))
-   ((looking-at "\\<method\\>[ \t]*\\((\\*\\|$\\)")
+   ((looking-at (tuareg-no-code-after "\\<method\\>"))
     (tuareg-back-to-paren-or-indentation)
     (+ (current-column) tuareg-method-indent))
    ((looking-at "->")
@@ -1985,10 +1992,10 @@ Returns t iff skipped to indentation."
 
 (defun tuareg-indent-from-paren (&optional leading-operator)
   (cond
-;   ((looking-at "\\(\\.<\\|(\\|\\[[<|]?\\|{<?\\)[ \t]*\\((\\*\\|$\\)")
+;   ((looking-at (tuareg-no-code-after "\\(\\.<\\|(\\|\\[[<|]?\\|{<?\\)"))
 ;    (+ tuareg-default-indent
 ;       (current-column)))
-   ((looking-at "\\(\\(\\.<\\|(\\|\\[[<|]?\\|{<?\\)\\)[ \t]*\\((\\*\\|$\\)")
+   ((looking-at (tuareg-no-code-after "\\(\\(\\.<\\|(\\|\\[[<|]?\\|{<?\\)\\)"))
     (if (tuareg-in-indentation-p)
         (+ tuareg-default-indent
            (current-column))
@@ -2010,7 +2017,7 @@ Returns t iff skipped to indentation."
          (match-end-point (+ (point) (length kwop)))) ; match-end is invalid!
     (cond
      ((and (string= kwop "->")
-           (not (looking-at "->[ \t]*\\((\\*.*\\)?$")))
+           (not (looking-at (tuareg-no-code-after "->"))))
       (let (matching-kwop matching-pos)
         (save-excursion
           (setq matching-kwop (tuareg-find-->-match))
@@ -2041,11 +2048,11 @@ Returns t iff skipped to indentation."
       (forward-line 1)
       (beginning-of-line)
       (while (or (tuareg-in-literal-or-comment-p)
-                 (looking-at "^[ \t]*\\((\\*.*\\)?$"))
+                 (looking-at tuareg-no-code-this-line-regexp))
         (forward-line 1))
       (tuareg-back-to-paren-or-indentation)
       (if (save-excursion (goto-char match-end-point)
-                          (looking-at "[ \t]*\\((\\*.*\\)?$"))
+                          (looking-at tuareg-no-more-code-this-line-regexp))
           (+ (tuareg-add-default-indent
               (or leading-operator (string= kwop "{")))
              (current-column))
@@ -2073,12 +2080,12 @@ Returns t iff skipped to indentation."
 
 (defun tuareg-compute-keyword-indent (kwop leading-operator)
   (cond ((string= kwop ";")
-         (if (looking-at ";[ \t]*\\((\\*\\|$\\)")
+         (if (looking-at (tuareg-no-code-after ";"))
              (tuareg-find-semi-colon-match)
            (tuareg-back-to-paren-or-indentation)
            (+ (current-column) tuareg-default-indent)))
         ((string= kwop ",")
-         (if (looking-at ",[ \t]*\\((\\*\\|$\\)")
+         (if (looking-at (tuareg-no-code-after ","))
              (let ((mkwop (tuareg-find-,-match)))
                (cond ((or (string= mkwop "[")
                           (string= mkwop "{")
@@ -2099,7 +2106,7 @@ Returns t iff skipped to indentation."
            (tuareg-back-to-paren-or-indentation)
            (+ (current-column) tuareg-default-indent)))
         ((looking-at "\\<begin\\>\\|->")
-         (if (looking-at "\\(\\<begin\\>\\|->\\)[ \t]*\\((\\*\\|$\\)")
+         (if (looking-at (tuareg-no-code-after "\\(\\<begin\\>\\|->\\)"))
              (tuareg-indent-from-paren leading-operator)
            (+ tuareg-default-indent (tuareg-indent-from-paren leading-operator))))
         ((or (string= kwop "let") (string= kwop "and"))
@@ -2127,7 +2134,7 @@ Returns t iff skipped to indentation."
          (+ (current-column)
             (tuareg-assoc-indent kwop t)))
         ((string= kwop "in")
-         (when (looking-at "\\<in\\>[ \t]*\\((\\*\\|$\\)")
+         (when (looking-at (tuareg-no-code-after "\\<in\\>"))
            (tuareg-find-in-match))
          (+ (current-column)
             tuareg-in-indent))
@@ -2142,7 +2149,7 @@ Returns t iff skipped to indentation."
               (tuareg-assoc-indent kwop t))))
         ((string= kwop "try")
          (forward-char 3)
-         (if (looking-at tuareg-no-more-code-this-line)
+         (if (looking-at tuareg-no-more-code-this-line-regexp)
              (+ (current-column) -3 tuareg-default-indent)
            (skip-syntax-forward "\s ")
            (+ (current-column) tuareg-default-indent)))
@@ -2166,7 +2173,7 @@ Returns t iff skipped to indentation."
         (tuareg-reset-and-kwop kwop)
         (while (or (and (string= kwop "=")
                         (tuareg-false-=-p))
-                   (and (looking-at "^[ \t]*\\((\\*.*\\)?$")
+                   (and (looking-at tuareg-no-code-this-line-regexp)
                         (not (= (point) (point-min)))))
           (setq kwop (tuareg-find-kwop tuareg-compute-normal-indent-regexp
                                        (tuareg-give-keyword-regexp)))
@@ -2191,12 +2198,12 @@ Returns t iff skipped to indentation."
             (cond ((looking-at "{ *[A-Z]")
                    (forward-char 1) (skip-syntax-forward "\s ")
                    (current-column))
-                  ((looking-at "[[{(][<|]?[ \t]*\\((\\*\\|$\\)")
+                  ((looking-at (tuareg-no-code-after "[[{(][<|]?"))
                    (tuareg-indent-from-paren leading-operator))
                   (t (+ tuareg-default-indent
                         (tuareg-indent-from-paren leading-operator)))))
            ((looking-at "\\.<")
-            (if (looking-at "\\.<[ \t]*\\((\\*\\|$\\)")
+            (if (looking-at (tuareg-no-code-after "\\.<"))
                 (tuareg-indent-from-paren leading-operator)
               (+ tuareg-default-indent (tuareg-indent-from-paren leading-operator))))
            ((looking-at "->")
