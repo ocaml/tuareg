@@ -868,8 +868,7 @@ Regexp match data 0 points to the chars."
         (let ((case-fold-search nil)
               (modified (buffer-modified-p))) ; Emacs hack (see below)
           (goto-char begin)
-          (beginning-of-line)
-          (setq begin (point))
+          (setq begin (line-beginning-position))
           (goto-char (1- end))
           (end-of-line)
           ;; Dirty hack to trick `font-lock-default-unfontify-region'
@@ -2179,7 +2178,7 @@ Returns t iff skipped to indentation."
   (tuareg-back-to-paren-or-indentation))
 
 (defun tuareg-compute-argument-indent (leading-operator)
-  (let* ((old-point (save-excursion (beginning-of-line) (point)))
+  (let* ((old-point (line-beginning-position))
          (kwop (tuareg-find-kwop tuareg-compute-argument-indent-regexp
                                  (tuareg-give-keyword-regexp)))
          (match-end-point (+ (point) (length kwop)))) ; match-end is invalid!
@@ -2729,7 +2728,7 @@ by |, insert one |."
 (defun tuareg-abbrev-hook ()
   "If inserting a leading keyword at beginning of line, reindent the line."
   (unless (tuareg-in-literal-or-comment-p)
-    (let* ((bol (save-excursion (beginning-of-line) (point)))
+    (let* ((bol (line-beginning-position))
            (kw (save-excursion
                  (and (re-search-backward "^[ \t]*\\(\\w\\|_\\)+\\=" bol t)
                       (tuareg-match-string 1)))))
@@ -2928,7 +2927,7 @@ module/class are considered enclosed in this module/class."
               (progn
                 (setq stop (save-excursion
                              (goto-char (nth 1 inside-module-or-class))
-                             (beginning-of-line) (point)))
+                             (line-beginning-position)))
                 (if (< stop end) (setq stop (point-max))))
             (setq stop (point-max)))
           (save-restriction
@@ -2943,8 +2942,7 @@ module/class are considered enclosed in this module/class."
                   (message "Looking for enclosing phrase...")))
               (setq end (point))
               (tuareg-skip-to-end-of-phrase)
-              (beginning-of-line)
-              (narrow-to-region (point) (point-max))
+              (narrow-to-region (line-beginning-position) (point-max))
               (goto-char end)
               (setq lines-left (forward-line 1)))))
         (when (>= cpt 8) (message "Looking for enclosing phrase... done."))
@@ -3003,9 +3001,7 @@ or indent all lines in the current phrase."
                            (point)))
                (endpoint (save-excursion
                            (re-search-forward "^[ \t]*$" coepoint 'end)
-                           (beginning-of-line)
-                           (forward-line 1)
-                           (point)))
+                           (line-beginning-position 2)))
                (leading-star (tuareg-leading-star-p)))
           (goto-char begpoint)
           (while (and leading-star
