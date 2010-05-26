@@ -17,7 +17,7 @@
 
 ;;; Code:
 
-(require 'cl)
+(eval-when-compile (require 'cl))
 (require 'easymenu)
 
 (defconst tuareg-mode-version "Tuareg Version 1.46.2"
