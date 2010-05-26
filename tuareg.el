@@ -1939,7 +1939,7 @@ If found, return the actual text of the keyword or operator."
        ((looking-at (tuareg-no-code-after "\\<begin\\>\\|\\((\\|\\[[<|]?\\|{<?\\)"))
         (if (tuareg-in-indentation-p)
             (+ (current-column) tuareg-default-indent)
-          (tuareg-paren-or-indentation-indent)))
+          (tuareg-indent-from-previous-kwop)))
        ((looking-at "\\(\\.<\\|(\\|\\[[<|]?\\|{<?\\)") ; paren with subsequent text
         (tuareg-search-forward-paren)
         (current-column))
@@ -2159,6 +2159,24 @@ Returns t iff skipped to indentation."
 (defun tuareg-find-module ()
   (tuareg-find-kwop tuareg-find-module-regexp))
 
+(defun tuareg-indent-from-previous-kwop ()
+  (let* ((start-pos (point))
+         (kwop (tuareg-find-argument-kwop t))
+         (captive= (and (string= kwop "=") (tuareg-captive-=)))
+         (kwop-pos (point)))
+    (forward-char (length kwop))
+    (tuareg-skip-blank-and-comments)
+    (if (or (not captive=)
+            (/= (point) start-pos)) ; code between  paren and kwop
+        (tuareg-paren-or-indentation-indent)
+      (goto-char kwop-pos)
+      (when (string= kwop "=")
+        (setq kwop (tuareg-find-=-match)))
+      (+ tuareg-default-indent
+         (if (assoc kwop tuareg-leading-kwop-alist)
+             (tuareg-compute-kwop-indent kwop)
+           (current-column))))))
+
 (defun tuareg-indent-from-paren (leading-operator start-pos)
   (cond
    ((looking-at (tuareg-no-code-after "\\(\\(\\.<\\|(\\|\\[[<|]?\\|{<?\\)\\)"))
@@ -2170,7 +2188,7 @@ Returns t iff skipped to indentation."
                (tuareg-paren-or-indentation-indent)
              (tuareg-skip-blank-and-comments)
              (current-column)))
-          (t (tuareg-paren-or-indentation-indent))))
+          (t (tuareg-indent-from-previous-kwop))))
    ((looking-at "\\<begin\\>")
     (tuareg-paren-or-indentation-indent))
    ((looking-at "([ \t]*\\(\\w\\)")
@@ -2488,7 +2506,9 @@ Returns t iff skipped to indentation."
   (unless paren-match-p
     (tuareg-search-forward-paren))
   (when (looking-at "\\(\(\\|\\(\{\\(.*with\\)?\\|\\[\\)[ \t]*\\(\(\\*\\|$\\)\\)")
-    (tuareg-back-to-paren-or-indentation))
+    (if (tuareg-in-indentation-p)
+        (tuareg-back-to-paren-or-indentation)
+      (tuareg-indent-from-previous-kwop)))
   (current-column))
 
 (defun tuareg-compute-kwop-indent-general (kwop matching-kwop)
