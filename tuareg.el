@@ -781,6 +781,16 @@ Regexp match data 0 points to the chars."
         `((,(regexp-opt (mapcar 'car alist) t)
            (0 (tuareg-font-lock-compose-symbol ',alist))))))))
 
+(defmacro tuareg-with-internal-syntax (&rest body)
+  `(progn
+     ;; Switch to a modified internal syntax.
+     (modify-syntax-entry ?. "w" tuareg-mode-syntax-table)
+     (modify-syntax-entry ?_ "w" tuareg-mode-syntax-table)
+     (unwind-protect (progn ,@body)
+       ;; Switch back to the interactive syntax.
+       (modify-syntax-entry ?. "." tuareg-mode-syntax-table)
+       (modify-syntax-entry ?_ "_" tuareg-mode-syntax-table))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                  Font-Lock
 
@@ -802,7 +812,7 @@ Regexp match data 0 points to the chars."
   (defun tuareg-fontify (begin end)
     (when (eq major-mode 'tuareg-mode)
       (save-excursion
-        (tuareg-modify-syntax)
+       (tuareg-with-internal-syntax
 
         (let ((case-fold-search nil)
               (modified (buffer-modified-p))) ; Emacs hack (see below)
@@ -840,8 +850,7 @@ Regexp match data 0 points to the chars."
                                (caar tuareg-cache-local) begin)))))
           (unless (or tuareg-with-xemacs modified) ; properties taken
             (set-buffer-modified-p nil)))          ; too seriously...
-
-        (tuareg-restore-syntax))))
+        ))))
   ) ;; End of (unless tuareg-use-syntax-ppss
 
 ;; By Stefan Monnier: redesigned font-lock installation and use char classes
@@ -959,16 +968,6 @@ Regexp match data 0 points to the chars."
     ,@(unless tuareg-use-syntax-ppss
         '((?\" . ".") (?\( . ".") (?\) . ".") (?* . "."))))
   "Syntax changes for Font-Lock.")
-
-(defun tuareg-modify-syntax ()
-  "Switch to modified internal syntax."
-  (modify-syntax-entry ?. "w" tuareg-mode-syntax-table)
-  (modify-syntax-entry ?_ "w" tuareg-mode-syntax-table))
-
-(defun tuareg-restore-syntax ()
-  "Switch back to interactive syntax."
-  (modify-syntax-entry ?. "." tuareg-mode-syntax-table)
-  (modify-syntax-entry ?_ "_" tuareg-mode-syntax-table))
 
 (defvar tuareg-mode-abbrev-table ()
   "Abbrev table used for Tuareg mode buffers.")
@@ -2346,12 +2345,11 @@ Compute new indentation based on Caml syntax."
   (unless from-leading-star
     (tuareg-auto-fill-insert-leading-star))
   (let ((case-fold-search nil))
-    (tuareg-modify-syntax)
+   (tuareg-with-internal-syntax
     (save-excursion
       (back-to-indentation)
       (indent-line-to (max 0 (tuareg-compute-indent))))
-    (when (tuareg-in-indentation-p) (back-to-indentation))
-    (tuareg-restore-syntax)))
+    (when (tuareg-in-indentation-p) (back-to-indentation)))))
 
 (defun tuareg-compute-indent ()
   (save-excursion
@@ -2701,7 +2699,7 @@ module/class are considered enclosed in this module/class."
 (defun tuareg-discover-phrase (&optional quiet stop-at-and)
   (end-of-line)
   (let ((end (point)) (case-fold-search nil))
-    (tuareg-modify-syntax)
+   (tuareg-with-internal-syntax
     (tuareg-find-phrase-beginning stop-at-and)
     (when (> (point) end) (setq end (point)))
     (save-excursion
@@ -2738,8 +2736,7 @@ module/class are considered enclosed in this module/class."
         (when (>= cpt 8) (message "Looking for enclosing phrase... done."))
         (save-excursion (tuareg-skip-blank-and-comments) (setq end (point)))
         (tuareg-skip-back-blank-and-comments)
-        (tuareg-restore-syntax)
-        (list begin (point) end)))))
+        (list begin (point) end))))))
 
 (defun tuareg-mark-phrase ()
   "Put mark at end of this Caml phrase, point at beginning.
