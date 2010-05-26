@@ -2264,8 +2264,11 @@ Returns t iff skipped to indentation."
            ;; (see example in sample.ml)
            ;; the problem is that we cannot skip an expression backwards.
            ;; workaround: wrap code in parens
-           (tuareg-find-semicolon-match)
-           )
+           (destructuring-bind (indent kwop point)
+               (tuareg-semicolon-indent-kwop-point)
+             (- indent
+                (if (string= kwop "in")
+                    tuareg-in-indent 0))))
           (t (tuareg-paren-or-indentation-indent)))))
 
 (defun tuareg-compute-keyword-indent (kwop leading-operator)
