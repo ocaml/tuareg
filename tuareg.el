@@ -154,7 +154,7 @@ if it has to."
   :set '(lambda (var val)
           (setq tuareg-support-metaocaml val)
           (when (boundp 'tuareg-font-lock-keywords)
-            (tuareg-make-indentation-rexexps)
+            (tuareg-make-indentation-regexps)
             (tuareg-install-font-lock))))
 
 (defcustom tuareg-let-always-indent t
@@ -1065,7 +1065,7 @@ Short cuts for interactions with the toplevel:
   (tuareg-build-menu)
 
   ;; Initialize indentation regexps
-  (tuareg-make-indentation-rexexps)
+  (tuareg-make-indentation-regexps)
 
   (make-local-variable 'paragraph-start)
   (setq paragraph-start (concat "^[ \t]*$\\|\\*)$\\|" page-delimiter))
@@ -1454,7 +1454,7 @@ Returns the actual text of the word, if found."
   "Make a custom indentation regexp."
   (concat (tuareg-give-find-kwop-regexp) "\\|" kwop-regexp))
 
-(defun tuareg-make-indentation-rexexps ()
+(defun tuareg-make-indentation-regexps ()
   "Initialisation of specific indentation regexp.
 Gathered here for memoization and dynamic reconfiguration purposes."
   ;; Dynamic regexps (for language changes)
