@@ -1630,7 +1630,7 @@ Gathered here for memoization and dynamic reconfiguration purposes."
    tuareg-find-pipe-bang-match-regexp
     (concat tuareg-find-=-match-regexp "\\|->\\|\\<try\\>")
    tuareg-find-monadic-match-regexp
-    (concat tuareg-block-regexp "\\|\\([;=]\\)\\|"
+    (concat tuareg-block-regexp "\\|\\([;=]\\)\\|\\(->\\)\\|"
             (tuareg-ro "val" "let" "method" "module" "type" "class" "when"
                        "if" "in" "do" "done" "end" "where"))))
 
@@ -1684,12 +1684,19 @@ If found, return the actual text of the keyword or operator."
   (and (or (string= ">>=" word) (string= ">>|" word) (string= ">>>" word))
        word))
 
+(defun tuareg-ignorable-arrow-p ()
+  (save-excursion
+    (or (tuareg-monadic-operator-p (tuareg-find-arrow-match))
+        (looking-at (tuareg-give-extra-unindent-regexp)))))
+
 (defun tuareg-find-monadic-match ()
   (let (kwop)
     (while (or (null kwop)
                (and (string= kwop "=") (tuareg-in-monadic-op-p)))
       (when kwop (tuareg-backward-char 2))
-      (setq kwop (tuareg-find-kwop tuareg-find-monadic-match-regexp)))
+      (setq kwop (tuareg-find-kwop tuareg-find-monadic-match-regexp))
+      (when (and (string= kwop "->") (tuareg-ignorable-arrow-p))
+        (setq kwop nil)))
     kwop))
 
 (defun tuareg-find-with-match ()
