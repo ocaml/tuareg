@@ -1281,8 +1281,9 @@ possible."
   (concat "^" tuareg-no-more-code-this-line-regexp))
 
 (defconst tuareg-extra-unindent-regexp
-  (concat "\\(\\<\\(with\\|function\\|type\\|parser?\\)\\>\\|\\["
-          tuareg-no-more-code-this-line-regexp "\\)")
+  (concat "\\(\\<"
+          (regexp-opt '("with" "fun" "function" "type" "parse" "parser") t)
+          "\\>\\|\\[" tuareg-no-more-code-this-line-regexp "\\)")
   "Regexp for keywords needing extra indentation to compensate for case matches.")
 
 (defconst tuareg-extra-unindent-regexp-ls3
