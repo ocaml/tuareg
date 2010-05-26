@@ -2505,9 +2505,12 @@ Returns t iff skipped to indentation."
   (unless paren-match-p
     (tuareg-search-forward-paren))
   (when (looking-at "\\(\(\\|\\(\{\\(.*with\\)?\\|\\[\\)[ \t]*\\(\(\\*\\|$\\)\\)")
-    (if (tuareg-in-indentation-p)
-        (tuareg-back-to-paren-or-indentation)
-      (tuareg-indent-from-previous-kwop)))
+    (let ((looking-at (char-after)) (start-pos (point)))
+      (if (tuareg-in-indentation-p)
+          (tuareg-back-to-paren-or-indentation)
+        (tuareg-indent-from-previous-kwop))
+      (when (char-equal looking-at ?\()
+        (skip-chars-forward "( \t" start-pos))))
   (current-column))
 
 (defun tuareg-compute-kwop-indent-general (kwop matching-kwop)
