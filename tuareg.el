@@ -2481,6 +2481,10 @@ Returns t iff skipped to indentation."
   (tuareg-skip-blank-and-comments)
   (current-column))
 
+(defconst tuareg-definitions-regexp
+  (tuareg-ro "and" "val" "type" "module" "class" "exception" "let")
+  "Regexp matching definition phrases.")
+
 (defun tuareg-compute-normal-indent ()
   (let ((leading-operator (looking-at tuareg-operator-regexp)))
     (beginning-of-line)
@@ -2520,7 +2524,12 @@ Returns t iff skipped to indentation."
            (tuareg-compute-arrow-indent start-pos))
           ((looking-at (tuareg-give-keyword-regexp))
            (tuareg-compute-keyword-indent kwop leading-operator start-pos))
-          ((and (string= kwop "=") (not (tuareg-false-=-p)))
+          ((and (string= kwop "=") (not (tuareg-false-=-p))
+                (or (null leading-operator)
+                    ;; defining "=", not testing for equality
+                    (string-match tuareg-definitions-regexp
+                                  (save-excursion
+                                    (tuareg-find-argument-kwop-clean t)))))
            (tuareg-compute-=-indent start-pos))
           (nil 0)
           (t (tuareg-compute-argument-indent leading-operator)))))))
@@ -3815,10 +3824,6 @@ Short cuts for interaction within the toplevel:
 ;;                             Definitions List
 
 ;; Designed from original code by M. Quercia
-
-(defconst tuareg-definitions-regexp
-  (tuareg-ro "and" "val" "type" "module" "class" "exception" "let")
-  "Regexp matching definition phrases.")
 
 (defconst tuareg--id-regexp "[[:alpha:]][_'[:alnum:]]*")
 
