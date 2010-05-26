@@ -2314,7 +2314,7 @@ Compute new indentation based on Caml syntax."
     (tuareg-modify-syntax)
     (save-excursion
       (back-to-indentation)
-      (indent-line-to (tuareg-compute-indent)))
+      (indent-line-to (max 0 (tuareg-compute-indent))))
     (if (tuareg-in-indentation-p) (back-to-indentation))
     (tuareg-restore-syntax)))
 
