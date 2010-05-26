@@ -1149,7 +1149,6 @@ Short cuts for interactions with the toplevel:
   (make-local-variable 'indent-line-function)
   (setq indent-line-function 'tuareg-indent-command)
   (unless tuareg-use-syntax-ppss
-    (make-local-hook 'before-change-functions)
     (add-hook 'before-change-functions 'tuareg-before-change-function nil t))
   (make-local-variable 'normal-auto-fill-function)
   (setq normal-auto-fill-function 'tuareg-auto-fill-function)
@@ -3108,10 +3107,8 @@ Short cuts for interactions with the toplevel:
       (font-lock-mode 1))
   (add-hook 'comint-output-filter-functions 'tuareg-interactive-filter)
   (when (boundp 'after-change-functions)
-    (make-local-hook 'after-change-functions)
     (remove-hook 'after-change-functions 'font-lock-after-change-function t))
   (when (boundp 'pre-idle-hook)
-    (make-local-hook 'pre-idle-hook)
     (remove-hook 'pre-idle-hook 'font-lock-pre-idle-hook t))
   (setq comint-prompt-regexp "^#  *")
   (setq comint-process-echoes nil)
