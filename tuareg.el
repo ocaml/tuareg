@@ -951,7 +951,7 @@ Regexp match data 0 points to the chars."
 
 (defvar tuareg-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "|" 'tuareg-electric)
+    (define-key map "|" 'tuareg-electric-pipe)
     (define-key map ")" 'tuareg-electric-rp)
     (define-key map "}" 'tuareg-electric-rc)
     (define-key map "]" 'tuareg-electric-rb)
@@ -2722,7 +2722,7 @@ Compute new indentation based on Caml syntax."
       (goto-char split-mark)
       (set-marker split-mark nil))))
 
-(defun tuareg-electric ()
+(defun tuareg-electric-pipe ()
   "If inserting a | operator at beginning of line, reindent the line."
   (interactive "*")
   (let ((electric (and tuareg-electric-indent
@@ -3255,7 +3255,7 @@ or indent all lines in the current phrase."
 
 (defvar tuareg-interactive-mode-map
   (let ((map (copy-keymap comint-mode-map)))
-    (define-key map "|" 'tuareg-electric)
+    (define-key map "|" 'tuareg-electric-pipe)
     (define-key map ")" 'tuareg-electric-rp)
     (define-key map "}" 'tuareg-electric-rc)
     (define-key map "]" 'tuareg-electric-rb)
