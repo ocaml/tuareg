@@ -1509,7 +1509,7 @@ Returns the actual text of the word, if found."
                 (re-search-backward tuareg-meaningful-word-regexp
                                     (point-min) t))
       (setq kwop (tuareg-match-string 0))
-      (cond ((and (or (string= kwop "|") (string= kwop "="))
+      (cond ((and (or (string= kwop "|") (string= kwop "=") (string= kwop ">"))
                   (tuareg-in-monadic-op-p))
              (backward-char 2)
              (setq kwop (concat ">>" kwop)))
