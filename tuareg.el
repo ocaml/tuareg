@@ -2567,23 +2567,21 @@ Returns t iff skipped to indentation."
 
 (defun tuareg-compute-kwop-indent-general (kwop matching-kwop)
   (let* ((looking-at-matching (looking-at matching-kwop))
-         (skipped (skip-chars-backward "(")))
-    (if (tuareg-in-indentation-p)
-        (+ (current-column)
-           (if (and (string= kwop "then")
-                    (not looking-at-matching))
-               tuareg-default-indent 0))
-      (let ((back (tuareg-back-to-paren-or-indentation)))
-        (+ (current-column)
-           (if (or (string= matching-kwop "struct")
-                   (string= matching-kwop "object")
-                   (string= matching-kwop "with")
-                   ;; (and (string= matching-kwop "try")
-                   ;;      (/= 0 skipped)
-                   ;;      (not back))
-                   (string= kwop "end"))
-               0
-             tuareg-default-indent))))))
+         (extra-unindent        ; non-paren code before matching-kwop
+          (unless (save-excursion
+                    (skip-chars-backward "( \t" (line-beginning-position))
+                    (bolp))
+            (tuareg-back-to-paren-or-indentation)
+            t)))
+    (+ (current-column)
+       (tuareg-add-default-indent
+        (if extra-unindent
+            (or (string= matching-kwop "struct")
+                (string= matching-kwop "object")
+                (string= matching-kwop "with")
+                (string= kwop "end"))
+            (or (not (string= kwop "then"))
+                looking-at-matching))))))
 
 (defun tuareg-compute-kwop-indent (kwop)
   (when (string= kwop "rec")
