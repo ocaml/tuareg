@@ -1092,6 +1092,10 @@ Short cuts for interactions with the toplevel:
   (make-local-variable 'normal-auto-fill-function)
   (setq normal-auto-fill-function 'tuareg-auto-fill-function)
 
+  (when (featurep 'imenu)
+    (setq imenu-prev-index-position-function 'tuareg-imenu-prev-index-position
+          imenu-extract-index-name-function 'tuareg-imenu-extract-index-name))
+
   ;; Hooks for tuareg-mode, use them for tuareg-mode configuration
   (tuareg-install-font-lock)
   (run-hooks 'tuareg-mode-hook)
@@ -2588,7 +2592,7 @@ by |, insert one |."
   (tuareg-skip-blank-and-comments)
   (end-of-line)
   (tuareg-skip-to-end-of-phrase)
-  (let ((old-point (point)))
+  (let ((old-point (point)) (pt (point)))
     (if stop-at-and
         (tuareg-find-kwop tuareg-find-phrase-beginning-and-regexp "and")
       (tuareg-find-kwop tuareg-find-phrase-beginning-regexp))
@@ -2606,6 +2610,9 @@ by |, insert one |."
                          (tuareg-looking-at-false-sig-struct))
                     (and (looking-at "\\<type\\>")
                          (tuareg-looking-at-false-type))))
+      (when (= pt (point))
+        (error "tuareg-find-phrase-beginning: inf loop at %d" pt))
+      (setq pt (point))
       (if (looking-at "\\<end\\>")
           (tuareg-find-match)
         (unless (bolp) (tuareg-backward-char))
@@ -2617,6 +2624,20 @@ by |, insert one |."
       (end-of-line) (tuareg-skip-blank-and-comments))
     (back-to-indentation)
     (point)))
+
+(defun tuareg-imenu-prev-index-position ()
+  "The default value for `imenu-prev-index-position-function'."
+  (let ((pos (point)) ret)
+    (while (and (<= 0 pos)
+                (<= pos (setq ret (tuareg-find-phrase-beginning t))))
+      (setq pos (goto-char (1- pos))))
+    (and (<= 0 pos) ret)))
+
+(defun tuareg-imenu-extract-index-name ()
+  "The default value for `imenu-extract-index-name-function'."
+  (forward-sexp 1)
+  (skip-syntax-forward "\s ")
+  (buffer-substring-no-properties (point) (scan-sexps (point) 1)))
 
 (defun tuareg-search-forward-end ()
   (let ((begin (point)) (current -1) (found) (move t))
