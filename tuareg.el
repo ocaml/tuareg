@@ -711,7 +711,7 @@ alignment and can thus lead to surprises."
   :group 'tuareg :type 'boolean)
 
 (defvar tuareg-font-lock-symbols-alist
-  (append
+  (nconc
    ;; The symbols can come from a JIS0208 font.
    (and (fboundp 'make-char) (fboundp 'charsetp) (charsetp 'japanese-jisx0208)
         (list (cons "fun" (make-char 'japanese-jisx0208 38 75))
@@ -1152,7 +1152,7 @@ Short cuts for interactions with the toplevel:
 (defun tuareg-install-font-lock (&optional no-sym-lock)
   (setq
    tuareg-font-lock-keywords
-   (append
+   (nconc
     (if (tuareg-editing-ls3)
         (list
          (list "\\<\\(let[ \t\n]+\\(clock\\|node\\|static\\)\\|present\\|automaton\\|where\\|match\\|with\\|do\\|done\\|unless\\|until\\|reset\\|every\\)\\>"
