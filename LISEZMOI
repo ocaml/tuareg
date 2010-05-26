@@ -59,7 +59,7 @@ CONFIGURATION MANUELLE :
   (autoload 'camldebug "camldebug" "Run the Caml debugger" t)
 
   Le mode majeur Tuareg est chargé automatiquement lorsqu'on visite un
-  fichier avec l'extension .ml, .mli, .mly, .mll, .mlp... ou
+  fichier avec l'extension .ml, .mli, .mly, .mll, et .mlp ou
   manuellement en tapant M-x tuareg-mode.  Cela permet à Emacs de
   reconnaître correctement la syntaxe Caml.
 

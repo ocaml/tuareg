@@ -53,7 +53,7 @@ MANUAL CONFIGURATION:
   (autoload 'camldebug "camldebug" "Run the Caml debugger" t)
 
   The Tuareg major mode is triggered by visiting a file with extension
-  .ml, .mli, .mly, .mll, .mlp... or manually by M-x tuareg-mode. It
+  .ml, .mli, .mly, .mll, and .mlp or manually by M-x tuareg-mode. It
   gives you the correct syntax table for the Caml language.
 
 USAGE:
