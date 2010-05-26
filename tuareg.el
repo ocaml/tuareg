@@ -2219,6 +2219,10 @@ Returns t iff skipped to indentation."
            (goto-char (cdr keyword-arrow-match))
            (+ (current-column) tuareg-val-indent))
           ((string= (car keyword-arrow-match) ">>=")
+           ;; this is not perfect, in particular, inside match.
+           ;; (see example in sample.ml)
+           ;; the problem is that we cannot skip an expression backwards.
+           ;; workaround: wrap code in parens
            (tuareg-find-semicolon-match))
           (t (tuareg-paren-or-indentation-indent)))))
 
