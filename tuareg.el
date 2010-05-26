@@ -1319,8 +1319,13 @@ possible."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               Indentation stuff
 
+(defconst tuareg-no-more-code-this-line "[ \t]*\\((\\*\\|$\\)"
+  "Regexp matching lines which have no more code:
+ blanks + (maybe) comment start.")
+
 (defconst tuareg-extra-unindent-regexp
-  "\\(\\<\\(with\\|function\\|type\\|parser?\\)\\>\\|\\[[ \t]*\\((\\*\\|$\\)\\)"
+  (concat "\\(\\<\\(with\\|function\\|type\\|parser?\\)\\>\\|\\["
+          tuareg-no-more-code-this-line "\\)")
   "Regexp for keywords needing extra indentation to compensate for case matches.")
 
 (defconst tuareg-extra-unindent-regexp-ls3
@@ -1519,7 +1524,9 @@ Gathered here for memoization and dynamic reconfiguration purposes."
   (defconst tuareg-find-->-match-regexp
     (tuareg-make-find-kwop-regexp "\\<\\(external\\|type\\|val\\|method\\|let\\|with\\|fun\\(ction\\|ctor\\)?\\|class\\|automaton\\|present\\|parser\\)\\>\\|[|;]"))
   (defconst tuareg-find-semi-colon-match-regexp
-    (tuareg-make-find-kwop-regexp ";[ \t]*\\((\\*\\|$\\)\\|->\\|\\<\\(let\\|method\\|with\\|try\\|initializer\\)\\>"))
+    (tuareg-make-find-kwop-regexp
+     (concat ";" tuareg-no-more-code-this-line
+             "\\|->\\|\\<\\(let\\|method\\|with\\|try\\|initializer\\)\\>")))
   (defconst tuareg-find-phrase-indentation-regexp
     (tuareg-make-find-kwop-regexp
      (concat tuareg-governing-phrase-regexp "\\|\\<\\(and\\|every\\)\\>")))
