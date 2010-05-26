@@ -24,7 +24,9 @@
 (defconst tuareg-mode-version
   (concat "Tuareg Version 1.99.2 ("
           (eval-when-compile
-            (let ((file (or byte-compile-current-file load-file-name)))
+            (let ((file (or (and (boundp 'byte-compile-current-file)
+                                 byte-compile-current-file)
+                            load-file-name)))
               (when file
                 (setq file (expand-file-name "version"
                                              (file-name-directory file))))
