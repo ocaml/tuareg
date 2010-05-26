@@ -490,11 +490,11 @@ and `tuareg-xemacs-w3-manual' (XEmacs only)."
 (defun tuareg-auto-fill-function ()
   (if (tuareg-in-literal-p) ()
     (let ((leading-star
-           (if (not (char-equal ?\n last-command-char))
+           (if (not (char-equal ?\n last-command-event))
                (tuareg-auto-fill-insert-leading-star)
              nil)))
       (do-auto-fill)
-      (if (not (char-equal ?\n last-command-char))
+      (if (not (char-equal ?\n last-command-event))
           (tuareg-auto-fill-insert-leading-star leading-star)))))
 
 (defun tuareg-forward-char (&optional step)
