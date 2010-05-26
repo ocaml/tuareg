@@ -3318,13 +3318,13 @@ Short cuts for interaction within the toplevel:
   ;; Save and update definitions menu
   (if tuareg-with-xemacs
       (add-hook 'activate-menubar-hook 'tuareg-update-definitions-menu)
-    (when (functionp 'easy-menu-create-keymaps)
+    (when (functionp 'easy-menu-create-menu)
       ;; Patch for Emacs
       (add-hook 'menu-bar-update-hook
                 'tuareg-with-emacs-update-definitions-menu)
       (make-local-variable 'tuareg-definitions-keymaps)
       (setq tuareg-definitions-keymaps
-            (cdr (easy-menu-create-keymaps
+            (cdr (easy-menu-create-menu
                   "Definitions" tuareg-definitions-menu)))
       (setq tuareg-definitions-menu-last-buffer nil))))
 
@@ -3590,10 +3590,10 @@ jump via the definitions menu."
               (append menu (list "---"
                                  ["Rescan..." tuareg-list-definitions t])))
         (unless (or tuareg-with-xemacs
-                    (not (functionp 'easy-menu-create-keymaps)))
+                    (not (functionp 'easy-menu-create-menu)))
           ;; Patch for Emacs
           (setq tuareg-definitions-keymaps
-                (cdr (easy-menu-create-keymaps
+                (cdr (easy-menu-create-menu
                       "Definitions" tuareg-definitions-menu)))
           (setq tuareg-definitions-menu-last-buffer nil))
         (message "Searching definitions... done"))))
