@@ -2610,7 +2610,7 @@ Compute new indentation based on Caml syntax."
       (tuareg-find-semicolon-match t))
      ((looking-at "|!")
       (tuareg-indent-to-code (tuareg-find-pipe-bang-match)))
-     ((or (looking-at ">>=") (looking-at ">>>") (looking-at ">>|"))
+     ((looking-at ">>[=>|]")
       (tuareg-indent-to-code (tuareg-find-monadic-match)))
      ((or (looking-at "%\\|;;")
           (and tuareg-support-camllight (looking-at "#"))
