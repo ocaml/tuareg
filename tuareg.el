@@ -1622,7 +1622,7 @@ Gathered here for memoization and dynamic reconfiguration purposes."
    tuareg-find-module-regexp
     (tuareg-make-find-kwop-regexp "\\<module\\>")
    tuareg-find-pipe-bang-match-regexp
-    (concat tuareg-find-=-match-regexp "\\|->\\|\\<try\\>")
+    (concat tuareg-find-comma-match-regexp "\\|=")
    tuareg-find-monadic-match-regexp
     (concat tuareg-block-regexp "\\|\\([;=]\\)\\|\\(->\\)\\|"
             (tuareg-ro "val" "let" "method" "module" "type" "class" "when"
@@ -1633,19 +1633,19 @@ Gathered here for memoization and dynamic reconfiguration purposes."
       (substring string 0 (match-beginning 0))
     string))
 
-(defun tuareg-find-kwop (kr &optional do-not-skip-regexp may-terminate-early)
+(defun tuareg-find-kwop-pos (kr do-not-skip-regexp may-terminate-early)
   "Look back for a keyword or operator matching KR (short for kwop regexp).
 Skips blocks etc...
 
 Ignore occurences inside literals and comments.
 If found, return the actual text of the keyword or operator."
   (let ((found nil)
-        (kwop nil)
+        (kwop nil) pos
         (kwop-regexp (if tuareg-support-metaocaml
                          (concat kr "\\|\\.<\\|>\\.")
                        kr)))
     (while (and (not found)
-                (re-search-backward kwop-regexp (point-min) t)
+                (setq pos (re-search-backward kwop-regexp (point-min) t))
                 (setq kwop (tuareg-strip-trailing-whitespace
                             ;; for trailing blanks after a semicolon
                             (tuareg-match-string 0))))
@@ -1666,7 +1666,10 @@ If found, return the actual text of the keyword or operator."
             (setq found t))))
        (t
         (setq found t))))
-    (if found kwop (goto-char (point-min)) nil)))
+    (if found (list kwop pos) (goto-char (point-min)) nil)))
+
+(defun tuareg-find-kwop (kr &optional do-not-skip-regexp)
+  (car (tuareg-find-kwop-pos kr do-not-skip-regexp nil)))
 
 (defun tuareg-find-match ()
   (let ((kwop (tuareg-find-kwop (tuareg-give-find-kwop-regexp))))
@@ -1676,10 +1679,13 @@ If found, return the actual text of the keyword or operator."
     kwop))
 
 (defun tuareg-find-comma-match ()
-  (tuareg-find-kwop tuareg-find-comma-match-regexp nil t))
+  (car (tuareg-find-kwop-pos tuareg-find-comma-match-regexp nil t)))
 
 (defun tuareg-find-pipe-bang-match ()
-  (let ((kwop (tuareg-find-kwop tuareg-find-pipe-bang-match-regexp)))
+  (destructuring-bind (kwop pos)
+      (tuareg-find-kwop-pos tuareg-find-pipe-bang-match-regexp nil t)
+    ;; when matched "if ... then", kwop is "then" but point is at "if"
+    (goto-char pos)   ; go back to kwop for tuareg-indent-to-code
     (if (looking-at "\\[|") "[|" kwop)))
 
 (defun tuareg-monadic-operator-p (word)
@@ -2596,14 +2602,14 @@ Returns t iff skipped to indentation."
            (current-column))
           (t (tuareg-paren-or-indentation-column)))))
 
-(defun tuareg-indent-to-code (match)
-  (if (string= match "(")
-    (search-forward "->")
+(defun tuareg-indent-to-code (beg-pos match)
+  (unless (and (string= match "(")
+               (search-forward "->" beg-pos t))
     (forward-char (length match)))
-  (skip-syntax-forward "\s-")
+  (skip-syntax-forward "\s-" beg-pos)
   (while (tuareg-in-comment-p)
-    (while (tuareg-in-comment-p) (skip-syntax-forward "\s-"))
-    (skip-syntax-forward "\s-"))
+    (while (tuareg-in-comment-p) (skip-syntax-forward "\s-" beg-pos))
+    (skip-syntax-forward "\s-" beg-pos))
   (current-column))
 
 (defun tuareg-indent-command (&optional from-leading-star)
@@ -2672,9 +2678,11 @@ Compute new indentation based on Caml syntax."
      ((looking-at ";")
       (tuareg-find-semicolon-match t))
      ((looking-at "|!")
-      (tuareg-indent-to-code (tuareg-find-pipe-bang-match)))
+      (tuareg-indent-to-code (line-beginning-position)
+                             (tuareg-find-pipe-bang-match)))
      ((looking-at ">>[=>|]")
-      (tuareg-indent-to-code (tuareg-find-monadic-match)))
+      (tuareg-indent-to-code (line-beginning-position)
+                             (tuareg-find-monadic-match)))
      ((or (looking-at "%\\|;;")
           (and tuareg-support-camllight (looking-at "#"))
           (looking-at tuareg-top-level-command-regexp))
