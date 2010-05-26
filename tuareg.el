@@ -493,6 +493,8 @@ and `tuareg-xemacs-w3-manual' (XEmacs only)."
       (unless (char-equal ?\n last-command-event)
         (tuareg-auto-fill-insert-leading-star leading-star)))))
 
+;; these two functions are different from the standard
+;; in that they do NOT signal errors beginning-of-buffer and end-of-buffer
 (defun tuareg-forward-char (&optional step)
   (if step (goto-char (+ (point) step))
     (goto-char (1+ (point)))))
