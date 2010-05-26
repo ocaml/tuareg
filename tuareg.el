@@ -2211,9 +2211,7 @@ Returns t iff skipped to indentation."
               (+ (current-column)
                  tuareg-in-indent))
              ((string-match (tuareg-give-matching-kwop-regexp) kwop)
-              (if (string= kwop "and")
-                  (tuareg-find-and-match)
-                (funcall (cdr (assoc kwop tuareg-leading-kwop-alist))))
+              (funcall (cdr (assoc kwop tuareg-leading-kwop-alist)))
               (if (tuareg-in-indentation-p)
                   (+ (current-column)
                      (tuareg-assoc-indent kwop t))
@@ -2281,10 +2279,7 @@ Returns t iff skipped to indentation."
          (paren-match-p (looking-at "[|>]?[]})]\\|>\\."))
          (need-not-back-kwop (string= kwop "and"))
          (real-| (looking-at "|\\([^|]\\|$\\)"))
-         (matching-kwop
-          (if (string= kwop "and")
-              (tuareg-find-and-match)
-              (funcall (cdr (assoc kwop tuareg-leading-kwop-alist)))))
+         (matching-kwop (funcall (cdr (assoc kwop tuareg-leading-kwop-alist))))
          (match-|-kwop-p
           (and matching-kwop
                (looking-at (tuareg-give-match-|-kwop-regexp)))))
@@ -2301,8 +2296,7 @@ Returns t iff skipped to indentation."
              (match-|-kwop-p
               (unless need-not-back-kwop
                 (tuareg-back-to-paren-or-indentation))
-              (- (+ (tuareg-assoc-indent
-                     matching-kwop t)
+              (- (+ (tuareg-assoc-indent matching-kwop t)
                     (current-column))
                  (if (string= matching-kwop "type")
                      0
