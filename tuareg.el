@@ -2147,6 +2147,9 @@ Returns t iff skipped to indentation."
       (tuareg-paren-or-indentation-indent)))
    ((looking-at "\\<begin\\>")
     (tuareg-paren-or-indentation-indent))
+   ((looking-at "([ \t]*\\(\\w\\)")
+    (goto-char (match-beginning 1))
+    (current-column))
    (t
     (+ (tuareg-add-default-indent leading-operator)
        (current-column)))))
