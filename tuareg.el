@@ -1488,7 +1488,7 @@ For synchronous programming.")
         (looking-let-or-and (and look-for-let-or-and
                                  (looking-at tuareg-binding-regexp))))
     (if (string-match (tuareg-give-extra-unindent-regexp) kwop)
-        (+ (if (and tuareg-let-always-indent
+        (- (if (and tuareg-let-always-indent
                     looking-let-or-and (< ind tuareg-let-indent))
                tuareg-let-indent ind)
            tuareg-pipe-extra-unindent)
@@ -2171,6 +2171,13 @@ Returns t iff skipped to indentation."
     (+ (tuareg-add-default-indent leading-operator)
        (current-column)))))
 
+(defun tuareg-skip-to-next-form (old-point)
+  (while (and (not (looking-at tuareg-no-more-code-this-line-regexp))
+              (< (point) old-point)) ; do not go beyond old-point
+    (forward-sexp 1))
+  (tuareg-skip-blank-and-comments)
+  (tuareg-back-to-paren-or-indentation))
+
 (defun tuareg-compute-argument-indent (leading-operator)
   (let* ((old-point (save-excursion (beginning-of-line) (point)))
          (kwop (tuareg-find-kwop tuareg-compute-argument-indent-regexp
@@ -2193,7 +2200,9 @@ Returns t iff skipped to indentation."
          ((string= matching-kwop "|")
           (goto-char matching-pos)
           (+ (tuareg-add-default-indent leading-operator)
-             (current-column) tuareg-pipe-extra-unindent tuareg-default-indent))
+             (current-column)
+             (- tuareg-pipe-extra-unindent)
+             tuareg-default-indent))
          (t
           (+ (tuareg-paren-or-indentation-column)
              (tuareg-add-default-indent leading-operator))))))
@@ -2205,11 +2214,7 @@ Returns t iff skipped to indentation."
          (current-column)))
      (t
       (goto-char match-end-point) ; skip kwop == (forward-char (length kwop))
-      (while (and (not (looking-at tuareg-no-more-code-this-line-regexp))
-                  (< (point) old-point)) ; do not go beyond old-point
-        (forward-sexp 1))
-      (tuareg-skip-blank-and-comments)
-      (tuareg-back-to-paren-or-indentation)
+      (tuareg-skip-to-next-form old-point)
       (if (save-excursion (goto-char match-end-point)
                           (looking-at tuareg-no-more-code-this-line-regexp))
           (+ (tuareg-add-default-indent
@@ -2217,7 +2222,7 @@ Returns t iff skipped to indentation."
              (current-column))
         (current-column))))))
 
-(defun tuareg-compute-arrow-indent ()
+(defun tuareg-compute-arrow-indent (start-pos)
   (let ((keyword-arrow-match
          (save-excursion (cons (tuareg-find-arrow-match) (point)))))
     (cond ((string= (car keyword-arrow-match) "|")
@@ -2229,10 +2234,13 @@ Returns t iff skipped to indentation."
                (tuareg-find-arrow-match)) ; matching `val' or `let'
            (+ (current-column) tuareg-val-indent))
           ((or (string= (car keyword-arrow-match) "val")
-               (string= (car keyword-arrow-match) "type")
                (string= (car keyword-arrow-match) "let"))
            (goto-char (cdr keyword-arrow-match))
            (+ (current-column) tuareg-val-indent))
+          ((string= (car keyword-arrow-match) "type")
+           (goto-char (cdr keyword-arrow-match))
+           (+ (current-column) tuareg-type-indent
+              tuareg-default-indent))
           ((tuareg-monadic-operator-p (car keyword-arrow-match))
            ;; find the last ">>=" or ">>>"
            ;; (goto-char (cdr keyword-arrow-match))
@@ -2416,7 +2424,7 @@ Returns t iff skipped to indentation."
               (+ tuareg-default-indent
                  (tuareg-indent-from-paren leading-operator))))
            ((looking-at "->")
-            (tuareg-compute-arrow-indent))
+            (tuareg-compute-arrow-indent start-pos))
            ((looking-at (tuareg-give-keyword-regexp))
             (tuareg-compute-keyword-indent kwop leading-operator))
            ((and (string= kwop "=") (not (tuareg-false-=-p)))
@@ -2437,9 +2445,9 @@ Returns t iff skipped to indentation."
           (looking-at (tuareg-give-match-pipe-kwop-regexp)))
      (when (looking-at (tuareg-give-extra-unindent-regexp))
        (tuareg-back-to-paren-or-indentation))
-     (- (+ (tuareg-assoc-indent matching-kwop t)
-           (if (looking-at "|") tuareg-default-indent 0)
-           (current-column))
+     (+ (tuareg-assoc-indent matching-kwop t)
+        (if (looking-at "|") tuareg-default-indent 0)
+        (current-column)
         (if (or (string= matching-kwop "type")
                 (string= matching-kwop "["))
             0
