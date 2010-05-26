@@ -1634,7 +1634,7 @@ Gathered here for memoization and dynamic reconfiguration purposes."
    tuareg-find-monadic-match-regexp
     (concat tuareg-block-regexp "\\|\\([;=]\\)\\|"
             (tuareg-ro "val" "let" "method" "module" "type" "class" "when"
-                       "if" "in" "do" "where"))))
+                       "if" "in" "do" "done" "end" "where"))))
 
 (defun tuareg-find-kwop (kr &optional do-not-skip-regexp)
   "Look back for a keyword or operator matching KR (short for kwop regexp).
