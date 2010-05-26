@@ -390,7 +390,6 @@ and `tuareg-xemacs-w3-manual' (XEmacs only)."
 ;;   (e.g., ocaml vs. metaocaml buffers)
 ;; (make-variable-buffer-local 'tuareg-interactive-program)
 
-;; Backtrack to custom parsing and caching by default, until stable
 (defconst tuareg-use-syntax-ppss (fboundp 'syntax-ppss)
   "*If nil, use our own parsing and caching.")
 
@@ -524,8 +523,9 @@ and `tuareg-xemacs-w3-manual' (XEmacs only)."
         "Returns non-nil if point is inside a Caml literal."
         (nth 3 (syntax-ppss)))
       (defun tuareg-in-comment-p ()
-        "Returns non-nil if point is inside a Caml comment."
-        (nth 4 (syntax-ppss)))
+        "Returns non-nil if point is inside or right before a Caml comment."
+        (or (nth 4 (syntax-ppss))
+            (looking-at "[ \t]*(\\*")))
       (defun tuareg-in-literal-or-comment-p ()
         "Returns non-nil if point is inside a Caml literal or comment."
         (nth 8 (syntax-ppss)))
