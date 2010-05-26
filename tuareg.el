@@ -1535,7 +1535,6 @@ Returns the actual text of the word, if found."
 (defvar tuareg-find-comma-match-regexp nil)
 (defvar tuareg-find-with-match-regexp nil)
 (defvar tuareg-find-in-match-regexp nil)
-(defvar tuareg-find-then-match-regexp nil)
 (defvar tuareg-find-else-match-regexp nil)
 (defvar tuareg-find-do-match-regexp nil)
 (defvar tuareg-find-=-match-regexp nil)
@@ -1594,8 +1593,6 @@ Gathered here for memoization and dynamic reconfiguration purposes."
              "\\|[[{(]"))
    tuareg-find-in-match-regexp
     (tuareg-make-find-kwop-regexp (tuareg-ro "let" "open"))
-   tuareg-find-then-match-regexp
-    (tuareg-make-find-kwop-regexp (regexp-opt '("->" "unless" "until") t))
    tuareg-find-else-match-regexp
     (tuareg-make-find-kwop-regexp ";")
    tuareg-find-do-match-regexp
@@ -1703,10 +1700,19 @@ If found, return the actual text of the keyword or operator."
      (t
       kwop))))
 
-(defvar tuareg-find-then-match-skip-regexp "\\(->\\|unless\\|until\\)")
+(defconst tuareg-find-then-match-skip-regexp-ls3
+  (regexp-opt '("->" "unless" "until") t))
+(defconst tuareg-find-then-match-regexp-ls3
+  (tuareg-make-find-kwop-regexp tuareg-find-then-match-skip-regexp-ls3))
+(defconst tuareg-find-then-match-regexp
+  (tuareg-make-find-kwop-regexp "\\(->\\)"))
+(defun tuareg-find-then-kwop ()
+  (let ((ls3 (tuareg-editing-ls3)))
+    (tuareg-find-kwop
+     (if ls3 tuareg-find-then-match-regexp-ls3 tuareg-find-then-match-regexp)
+     (if ls3 tuareg-find-then-match-regexp-ls3 "\\(->\\)"))))
 (defun tuareg-find-then-match ()
-  (let ((kwop (tuareg-find-kwop tuareg-find-then-match-regexp
-                                tuareg-find-then-match-skip-regexp)))
+  (let ((kwop (tuareg-find-then-kwop)))
     (cond ((string= kwop "if")
            (let ((back (point)))
              (tuareg-back-to-paren-or-indentation)
@@ -1717,8 +1723,7 @@ If found, return the actual text of the keyword or operator."
           (t kwop))))
 
 (defun tuareg-find-then-else-match ()
-  (let ((kwop (tuareg-find-kwop tuareg-find-then-match-regexp
-                                tuareg-find-then-match-skip-regexp)))
+  (let ((kwop (tuareg-find-then-kwop)))
     (cond
      ((string= kwop "if")
       (let ((pos (point)))
