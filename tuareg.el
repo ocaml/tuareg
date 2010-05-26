@@ -2277,7 +2277,7 @@ Returns t iff skipped to indentation."
     (setq kwop "and"))
   (let* ((old-point (point))
          (paren-match-p (looking-at "[|>]?[]})]\\|>\\."))
-         (need-not-back-kwop (string= kwop "and"))
+         (need-back-kwop (not (string= kwop "and")))
          (real-| (looking-at "|\\([^|]\\|$\\)"))
          (matching-kwop (funcall (cdr (assoc kwop tuareg-leading-kwop-alist))))
          (match-|-kwop-p
@@ -2286,7 +2286,7 @@ Returns t iff skipped to indentation."
     (cond ((and (string= kwop "|") real-|)
            (cond
              ((string= matching-kwop "|")
-              (unless need-not-back-kwop
+              (when need-back-kwop
                 (tuareg-back-to-paren-or-indentation))
               (current-column))
              ((and (string= matching-kwop "=")
@@ -2294,8 +2294,9 @@ Returns t iff skipped to indentation."
               (re-search-forward "=[ \t]*")
               (current-column))
              (match-|-kwop-p
-              (unless (or need-not-back-kwop
-                          (not (looking-at "\[[ \t]*\\((\\*\\|$\\)")))
+              (when (or need-back-kwop
+                        (string-match (tuareg-give-extra-unindent-regexp)
+                                      matching-kwop))
                 (tuareg-back-to-paren-or-indentation))
               (+ (+ (tuareg-assoc-indent matching-kwop t)
                     (current-column))
@@ -2343,7 +2344,7 @@ Returns t iff skipped to indentation."
                (current-column)
              (tuareg-back-to-paren-or-indentation)
              (current-column)))
-          ((not need-not-back-kwop) ; pretty general case
+          (need-back-kwop ; pretty general case
            (if (tuareg-in-indentation-p)
                (+ (current-column)
                   (if (and (string= kwop "then")
