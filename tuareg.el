@@ -1793,7 +1793,6 @@ If found, return the actual text of the keyword or operator."
     (tuareg-find-semi-colon-match))
    ((looking-at "\\<in\\>")
     (tuareg-find-in-match)
-    (tuareg-back-to-paren-or-indentation)
     (+ (current-column) tuareg-in-indent))
    ((looking-at "\\<where\\>")
     (tuareg-find-in-match)
