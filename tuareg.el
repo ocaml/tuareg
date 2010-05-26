@@ -258,17 +258,11 @@ for `type' as well. For example, setting them to 0 (and leaving
   "*How many spaces to indent from a `let' keyword."
   :group 'tuareg :type 'integer)
 
-(defcustom tuareg-in-indent tuareg-default-indent
+(defcustom tuareg-in-indent 0 ; tuareg-default-indent
   "*How many spaces to indent from a `in' keyword.
-A lot of people like formatting `let' ... `in' expressions whithout
-indentation:
-        let x = 0 in
-        blah x
-Set this variable to 0 to get this behaviour.
-However, nested declarations are always correctly handled:
-        let x = 0 in                             let x = 0
-        let y = 0 in              or             in let y = 0
-        let z = 0 ...                            in let z = 0 ..."
+Upstream <http://caml.inria.fr/resources/doc/guides/guidelines.en.html>
+recommends 0, and this is what we default to since 2.0.1
+instead of the historical `tuareg-default-indent'."
   :group 'tuareg :type 'integer)
 
 (defcustom tuareg-match-indent tuareg-default-indent
