@@ -2168,7 +2168,7 @@ Returns t iff skipped to indentation."
 
 (defun tuareg-indent-from-previous-kwop ()
   (let* ((start-pos (point))
-         (kwop (tuareg-find-argument-kwop t))
+         (kwop (tuareg-find-argument-kwop-non-blank t))
          (captive= (and (string= kwop "=") (tuareg-captive-=)))
          (kwop-pos (point)))
     (forward-char (length kwop))
@@ -2233,9 +2233,15 @@ Returns t iff skipped to indentation."
                       tuareg-compute-normal-indent-regexp)
                     (tuareg-give-keyword-regexp)))
 
+(defun tuareg-find-argument-kwop-non-blank (leading-operator)
+  (let ((kwop "") (point (1+ (point))))
+    (while (and (> point (point)) (string= "" kwop))
+      (setq point (point) kwop (tuareg-find-argument-kwop leading-operator)))
+    kwop))
+
 (defun tuareg-compute-argument-indent (leading-operator)
   (let* ((old-point (line-beginning-position))
-         (kwop (tuareg-find-argument-kwop leading-operator))
+         (kwop (tuareg-find-argument-kwop-non-blank leading-operator))
          (match-end-point (+ (point) (length kwop)))) ; match-end is invalid!
     (cond
      ((and (string= kwop "->")
