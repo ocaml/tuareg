@@ -1611,12 +1611,7 @@ If found, return the actual text of the keyword or operator."
   (tuareg-find-kwop tuareg-find-monadic-match-regexp))
 
 (defun tuareg-find-with-match ()
-  (let ((kwop (tuareg-find-kwop tuareg-find-with-match-regexp
-                                "\\<with\\>")))
-    (when (string= kwop "with")
-      (tuareg-find-with-match)
-      (tuareg-find-with-match))
-    kwop))
+  (tuareg-find-kwop tuareg-find-with-match-regexp))
 
 (defun tuareg-find-in-match ()
   (let ((kwop (tuareg-find-kwop tuareg-find-in-match-regexp "\\<and\\>")))
