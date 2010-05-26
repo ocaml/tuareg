@@ -2442,9 +2442,8 @@ Returns t iff skipped to indentation."
                   (current-column))
                  ((looking-at (tuareg-no-code-after "[[{(][<|]?"))
                   (tuareg-indent-from-paren leading-operator start-pos))
-                 ((and leading-operator (looking-at "([ \t]*\\(\\w\\|([^*]\\)"))
-                  (goto-char (match-beginning 1))
-                  (current-column))
+                 ((and leading-operator (string= kwop "("))
+                  (tuareg-indent-after-next-char))
                  (t (+ tuareg-default-indent
                        (tuareg-indent-from-paren leading-operator start-pos)))))
           ((looking-at "\\.<")
