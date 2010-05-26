@@ -2301,9 +2301,10 @@ Returns t iff skipped to indentation."
                 (tuareg-back-to-paren-or-indentation))
               (+ (+ (tuareg-assoc-indent matching-kwop t)
                     (current-column))
-                 (if (string= matching-kwop "type")
-                     0
-                     tuareg-|-extra-unindent)))
+                 (if (or (string= matching-kwop "type")
+                         (string= matching-kwop "["))
+                     tuareg-|-extra-unindent
+                     (- tuareg-|-extra-unindent))))
              (t
               (goto-char old-point)
               (tuareg-compute-normal-indent))))
