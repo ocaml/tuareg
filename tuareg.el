@@ -1850,6 +1850,10 @@ If found, return the actual text of the keyword or operator."
     (tuareg-back-to-paren-or-indentation)
     (+ (current-column) tuareg-default-indent))))
 
+(defmacro tuareg-reset-and-kwop (kwop)
+  `(when (and ,kwop (string= ,kwop "and"))
+     (setq ,kwop (tuareg-find-and-match))))
+
 (defun tuareg-find-phrase-indentation (&optional phrase-break)
   (if (and (looking-at "\\<\\(type\\|module\\)\\>") (> (point) (point-min))
            (save-excursion
@@ -1866,8 +1870,7 @@ If found, return the actual text of the keyword or operator."
                    tuareg-find-phrase-indentation-regexp)
                  "\\<\\(end\\|and\\|with\\|in\\|where\\|every\\)\\>"))
           (tmpkwop nil) (curr nil))
-      (if (and kwop (string= kwop "and"))
-          (setq kwop (tuareg-find-and-match)))
+      (tuareg-reset-and-kwop kwop)
       (if (not kwop) (current-column)
         (cond
          ((string= kwop "every")
@@ -1897,8 +1900,7 @@ If found, return the actual text of the keyword or operator."
          ((and (string= kwop "in")
                (not (save-excursion
                       (setq tmpkwop (tuareg-find-in-match))
-                      (if (string= tmpkwop "and")
-                          (setq tmpkwop (tuareg-find-and-match)))
+                      (tuareg-reset-and-kwop tmpkwop)
                       (setq curr (point))
                       (and (string= tmpkwop "let")
                            (not (tuareg-looking-at-internal-let))))))
@@ -2100,15 +2102,14 @@ Returns t iff skipped to indentation."
                        tuareg-compute-argument-indent-regexp
                      tuareg-compute-normal-indent-regexp)
                    (tuareg-give-keyword-regexp))))
-        (when (string= kwop "and")
-          (setq kwop (tuareg-find-and-match)))
+        (tuareg-reset-and-kwop kwop)
         (while (or (and (string= kwop "=")
                         (tuareg-false-=-p))
                    (and (looking-at "^[ \t]*\\((\\*.*\\)?$")
                         (not (= (point) (point-min)))))
           (setq kwop (tuareg-find-kwop tuareg-compute-normal-indent-regexp
                                        (tuareg-give-keyword-regexp)))
-          (when (string= kwop "and") (setq kwop (tuareg-find-and-match))))
+          (tuareg-reset-and-kwop kwop))
         (if (not kwop)
             (current-column)
           (cond
@@ -2237,8 +2238,7 @@ Returns t iff skipped to indentation."
               (+
                (let ((kwop1 (tuareg-find-=-match)))
                  (save-excursion
-                   (when (string= kwop1 "and")
-                     (setq kwop1 (tuareg-find-and-match)))
+                   (tuareg-reset-and-kwop kwop1)
                    (cond
                      ((string= kwop1 "type")
                       (tuareg-find-meaningful-word)
@@ -2677,7 +2677,7 @@ by |, insert one |."
 (defun tuareg-inside-module-or-class-find-kwop ()
   (let ((kwop (tuareg-find-kwop tuareg-inside-module-or-class-regexp
                                 "\\<\\(and\\|end\\)\\>")))
-    (when (string= kwop "and") (setq kwop (tuareg-find-and-match)))
+    (tuareg-reset-and-kwop kwop)
     (when (string= kwop "with") (setq kwop nil))
     (if (string= kwop "end")
         (progn
@@ -3572,9 +3572,7 @@ jump via the definitions menu."
       (while (and (< (point) (point-max)) (not scan-error))
         (when (looking-at tuareg-definitions-regexp)
           (setq kw (tuareg-match-string 0))
-          (when (string= kw "and")
-            (setq kw (save-match-data
-                       (save-excursion (tuareg-find-and-match)))))
+          (save-match-data (tuareg-reset-and-kwop kw))
           (when (or (string= kw "exception") (string= kw "val"))
             (setq kw "let"))
           ;; Skip optional elements
