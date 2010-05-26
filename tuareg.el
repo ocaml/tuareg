@@ -1587,14 +1587,14 @@ If found, return the actual text of the keyword or operator."
 
 (defun tuareg-find-then-match ()
   (let ((kwop (tuareg-find-kwop tuareg-find-then-match-regexp "\\(->\\|unless\\|until\\)")))
-    (cond
-     ((string= kwop "if")
-      (tuareg-back-to-paren-or-indentation)
-      (if (looking-at "else[ \t]*\\((\\*.*\\*)\\)*[ \t]*if")
-          "else if"
-          kwop))
-     (t
-      kwop))))
+    (cond ((string= kwop "if")
+           (let ((back (point)))
+             (tuareg-back-to-paren-or-indentation)
+             (if (looking-at "else[ \t]*\\((\\*.*\\*)\\)*[ \t]*if")
+                 "else if"
+               (goto-char back)
+               kwop)))
+          (t kwop))))
 
 (defun tuareg-find-then-else-match ()
   (let ((kwop (tuareg-find-kwop tuareg-find-then-match-regexp "\\(->\\|unless\\|until\\)")))
