@@ -3510,24 +3510,17 @@ Short cuts for interaction within the toplevel:
           tuareg-alpha "]*\\|('.*)")
   "Regexp matching stuff to ignore after a binding keyword.")
 
-(eval-when-compile
-  (autoload 'line-number "xemacs"))
-(defun tuareg-line-number ()
-  (if (fboundp 'count-lines)
-      (1+ (count-lines 1 (point)))
-      (line-number)))
-
 (defun tuareg-list-definitions ()
   "Parse the buffer and gather toplevel definitions for quick
 jump via the definitions menu."
   (interactive)
   (message "Searching definitions...")
   (save-excursion
-    (let ((cpt 0) (kw) (menu) (scan-error)
+    (let ((cpt 0) (kw) (menu)
           (value-list) (type-list) (module-list) (class-list) (misc-list))
       (goto-char (point-min))
       (tuareg-skip-blank-and-comments)
-      (while (and (< (point) (point-max)) (not scan-error))
+      (while (and (< (point) (point-max)))
         (when (looking-at tuareg-definitions-regexp)
           (setq kw (tuareg-match-string 0))
           (save-match-data (tuareg-reset-and-kwop kw))
@@ -3560,44 +3553,39 @@ jump via the definitions menu."
                     (t (setq misc-list (cons ref misc-list)))))))
         ;; Skip to next phrase or next top-level `and'
         (tuareg-forward-char)
-        (let ((old-point (point)) (last-and))
-          (tuareg-next-phrase t t)
-          (setq last-and (point))
-          (if (< last-and old-point)
-              (setq scan-error t)
-            (save-excursion
-              (while (and (re-search-backward "\\<and\\>" old-point t)
-                          (not (tuareg-in-literal-or-comment-p))
-                          (save-excursion (tuareg-find-and-match)
-                                          (>= old-point (point))))
-                (setq last-and (point)))))
+        (let ((old-point (point))
+              (last-and (progn (tuareg-next-phrase t t) (point))))
+          (when (< last-and old-point) (error "scan error"))
+          (save-excursion
+            (while (and (re-search-backward "\\<and\\>" old-point t)
+                        (not (tuareg-in-literal-or-comment-p))
+                        (save-excursion (tuareg-find-and-match)
+                                        (>= old-point (point))))
+              (setq last-and (point))))
           (goto-char last-and)))
-      (if scan-error
-          (message "Parse error when scanning definitions: line %s."
-                   (tuareg-line-number))
-        ;; Sort and build lists
-        (dolist (pair (list (cons "Miscellaneous" misc-list)
-                            (cons "Values" value-list)
-                            (cons "Classes" class-list)
-                            (cons "Types" type-list)
-                            (cons "Modules" module-list)))
-          (when (cdr pair)
-            (setq menu
-                  (append (tuareg-split-long-list
-                           (car pair) (tuareg-sort-definitions (cdr pair)))
-                          menu))))
-        ;; Update definitions menu
-        (setq tuareg-definitions-menu
-              (append menu (list "---"
-                                 ["Rescan..." tuareg-list-definitions t])))
-        (unless (or tuareg-with-xemacs
-                    (not (functionp 'easy-menu-create-menu)))
-          ;; Patch for Emacs
-          (setq tuareg-definitions-keymaps
-                (cdr (easy-menu-create-menu
-                      "Definitions" tuareg-definitions-menu)))
-          (setq tuareg-definitions-menu-last-buffer nil))
-        (message "Searching definitions... done"))))
+      ;; Sort and build lists
+      (dolist (pair (list (cons "Miscellaneous" misc-list)
+                          (cons "Values" value-list)
+                          (cons "Classes" class-list)
+                          (cons "Types" type-list)
+                          (cons "Modules" module-list)))
+        (when (cdr pair)
+          (setq menu
+                (append (tuareg-split-long-list
+                         (car pair) (tuareg-sort-definitions (cdr pair)))
+                        menu))))
+      ;; Update definitions menu
+      (setq tuareg-definitions-menu
+            (append menu (list "---"
+                               ["Rescan..." tuareg-list-definitions t])))
+      (unless (or tuareg-with-xemacs
+                  (not (functionp 'easy-menu-create-menu)))
+        ;; Patch for Emacs
+        (setq tuareg-definitions-keymaps
+              (cdr (easy-menu-create-menu
+                    "Definitions" tuareg-definitions-menu)))
+        (setq tuareg-definitions-menu-last-buffer nil))
+      (message "Searching definitions... done")))
   (tuareg-update-definitions-menu))
 
 (defun tuareg-goto (pos)
