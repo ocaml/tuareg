@@ -39,13 +39,13 @@ clean :
 
 VERSION_FILE = version
 
-ifneq ($(realpath .hg), "")
+ifneq ($(realpath .hg),)
 POST_INSTALL_HOOK = $(RM) $(VERSION_FILE)
 MAKE_VERSION_FILE = hg id -i | fgrep -v '+' >/dev/null || \
 	(echo 'uncommitted changes' >&2; exit 1); \
 	hg id -i --debug > $(VERSION_FILE)
 else
-ifneq ($(realpath .svn), "")
+ifneq ($(realpath .svn),)
 POST_INSTALL_HOOK = $(RM) $(VERSION_FILE)
 MAKE_VERSION_FILE = svn info | grep Revision: | sed 's/Revision: //' > $(VERSION_FILE)
 else
@@ -87,7 +87,8 @@ $(DIST_NAME).tgz $(DIST_NAME).zip : $(DIST_FILES)
 	for f in $(DIST_FILES); do $(LN) $$f $(DIST_NAME); done
 	tar cvfz $(DIST_NAME).tgz $(DIST_NAME)
 	zip -9vr $(DIST_NAME).zip $(DIST_NAME)
-	$(RM) $(DIST_NAME) $(VERSION_FILE)
+	$(RM) $(DIST_NAME)
+	$(POST_INSTALL_HOOK)
 
 distrib : $(DIST_NAME).tgz
 
