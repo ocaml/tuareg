@@ -1128,76 +1128,56 @@ Short cuts for interactions with the toplevel:
 (defun tuareg-install-font-lock ()
   (setq
    tuareg-font-lock-keywords
-   (nconc
-    (if (tuareg-editing-ls3)
-        (list
-         (list "\\<\\(let[ \t\n]+\\(clock\\|node\\|static\\)\\|present\\|automaton\\|where\\|match\\|with\\|do\\|done\\|unless\\|until\\|reset\\|every\\)\\>"
-               0 'tuareg-font-lock-governing-face nil nil))
-      ())
-    (list
-     (list "\\<\\(external\\|open\\|include\\|rule\\|s\\(ig\\|truct\\)\\|module\\|functor\\|with[ \t\n]+\\(type\\|module\\)\\|val\\|type\\|method\\|virtual\\|constraint\\|class\\|in\\|inherit\\|initializer\\|let\\|rec\\|object\\|and\\|begin\\|end\\)\\>"
-           0 'tuareg-font-lock-governing-face nil nil))
-    (if tuareg-support-metaocaml
-        (list
-         (list "\\.<\\|>\\.\\|\\.~\\|\\.!"
-               0 'tuareg-font-lock-multistage-face nil nil))
-      ())
-    (list
-     (list "\\<\\(false\\|true\\)\\>"
-           0 'font-lock-constant-face nil nil)
-     (list "\\<\\(as\\|do\\(ne\\|wnto\\)?\\|else\\|for\\|if\\|mutable\\|new\\|p\\(arser\\|rivate\\)\\|t\\(hen\\|o\\|ry\\)\\|wh\\(en\\|ile\\)\\|match\\|with\\|lazy\\|exception\\|raise\\|failwith[f]?\\|exit\\|assert\\|fun\\(ction\\)?\\)\\>"
-           0 'font-lock-keyword-face nil nil))
-    (if (tuareg-editing-ls3)
-        (list
-         (list "\\<\\(merge\\|when\\|emit\\|period\\)\\>"
-               0 'font-lock-keyword-face nil nil)
-         (list "[][;,()|{}]\\|[@^!:*=<>&/%+~?#---]\\.?\\|\\.\\.\\.*\\|\\<\\(asr\\|asl\\|lsr\\|lsl\\|l?or\\|l?and\\|lxor\\|l?not\\|mod\\|of\\|ref\\|fby\\|pre\\|last\\|at\\)\\>"
-               0 'tuareg-font-lock-operator-face nil nil)
-         (list "\\<\\(\\(method\\([ \t\n]+\\(private\\|virtual\\)\\)?\\)\\([ \t\n]+virtual\\)?\\|val\\([ \t\n]+mutable\\)?\\|external\\|and\\|class\\|let\\([ \t\n]+\\(rec\\|clock\\|node\\|static\\)\\)?\\)\\>[ \t\n]*\\(['_[:lower:]]\\(\\w\\|[._]\\)*\\)\\>[ \t\n]*\\(\\(\\w\\|[()_?~.'*:--->]\\)+\\|=[ \t\n]*fun\\(ction\\)?\\>\\)"
-               9 'font-lock-function-name-face 'keep nil))
-      (list
-       (list "[][;,()|{}]\\|[@^!:*=<>&/%+~?#---]\\.?\\|\\.\\.\\.*\\|\\<\\(asr\\|asl\\|lsr\\|lsl\\|l?or\\|l?and\\|lxor\\|l?not\\|mod\\|of\\|ref\\)\\>"
-             0 'tuareg-font-lock-operator-face nil nil)
-       (list "\\<\\(\\(method\\([ \t\n]+\\(private\\|virtual\\)\\)?\\)\\([ \t\n]+virtual\\)?\\|val\\([ \t\n]+mutable\\)?\\|external\\|and\\|class\\|let\\([ \t\n]+rec\\)?\\)\\>[ \t\n]*\\(['_[:lower:]]\\(\\w\\|[._]\\)*\\)\\>[ \t\n]*\\(\\(\\w\\|[()_?~.'*:--->]\\)+\\|=[ \t\n]*fun\\(ction\\)?\\>\\)"
-             8 'font-lock-function-name-face 'keep nil)))
-    (list
-     (list "\\<method\\([ \t\n]+\\(private\\|virtual\\)\\)?\\>[ \t\n]*\\(\\(\\w\\|[_,?~.]\\)*\\)"
-           3 'font-lock-function-name-face 'keep nil)
-     (list "\\<\\(fun\\(ction\\)?\\)\\>[ \t\n]*\\(\\(\\w\\|[_ \t()*,]\\)+\\)"
-           3 'font-lock-variable-name-face 'keep nil))
-    (if (tuareg-editing-ls3)
-        (list
-         (list "\\<\\(reset\\|do\\|val\\([ \t\n]+mutable\\)?\\|external\\|and\\|class\\|let\\([ \t\n]+rec\\)?\\)\\>[ \t\n]*\\(\\(\\w\\|[_,?~.]\\)*\\)"
-               4 'font-lock-variable-name-face 'keep nil)
-         (list "\\<\\(reset\\|do\\|val\\([ \t\n]+mutable\\)?\\|external\\|method\\|and\\|class\\|let\\([ \t\n]+\\(rec\\|clock\\|node\\|static\\)\\)?\\)\\>[ \t\n]*\\(\\(\\w\\|[_,?~.]\\)*\\)\\>\\(\\(\\w\\|[->_ \t,?~.]\\|(\\(\\w\\|[--->_ \t,?~.=]\\)*)\\)*\\)"
-               7 'font-lock-variable-name-face 'keep nil))
-      (list
-       (list "\\<\\(val\\([ \t\n]+mutable\\)?\\|external\\|and\\|class\\|let\\([ \t\n]+rec\\)?\\)\\>[ \t\n]*\\(\\(\\w\\|[_,?~.]\\)*\\)"
-             4 'font-lock-variable-name-face 'keep nil)
-       (list "\\<\\(val\\([ \t\n]+mutable\\)?\\|external\\|method\\|and\\|class\\|let\\([ \t\n]+rec\\)?\\)\\>[ \t\n]*\\(\\(\\w\\|[_,?~.]\\)*\\)\\>\\(\\(\\w\\|[->_ \t,?~.]\\|(\\(\\w\\|[--->_ \t,?~.=]\\)*)\\)*\\)"
-             6 'font-lock-variable-name-face 'keep nil)))
-    (list
-     (list "\\<\\(open\\|\\(class\\([ \t\n]+type\\)?\\)\\([ \t\n]+virtual\\)?\\|inherit\\|include\\|module\\([ \t\n]+\\(type\\|rec\\)\\)?\\|type\\)\\>[ \t\n]*\\(['~?]*\\([_--->.* \t]\\|\\w\\|(['~?]*\\([_--->.,* \t]\\|\\w\\)*)\\)*\\)"
-           7 'font-lock-type-face 'keep nil))
-    (if (tuareg-editing-ls3)
-        (list
-         (list "\\<val\\>[ \t\n]*\\w*[ \t\n]*::[ \t\n]*\\(['~?]*\\([_--->.* \t]\\|\\w\\|(['~?]*\\([_--->.,* \t]\\|\\w\\)*)\\)*\\)"
-               1 'font-lock-type-face 'keep nil))
-      ())
-    (list
-     (list "[^:>=]:[ \t\n]*\\(['~?]*\\([_--->.* \t]\\|\\w\\|(['~?]*\\([_--->.,* \t]\\|\\w\\)*)\\)*\\)"
-           1 'font-lock-type-face 'keep nil)
-     (list "\\<\\([A-Z]\\w*\\>\\)[ \t]*\\."
-           1 'font-lock-type-face 'keep nil)
-     (list "\\<\\([?~]?[_[:alpha:]]\\w*\\)[ \t\n]*:[^:>=]"
-           1 'font-lock-variable-name-face 'keep nil)
-     (list "\\<exception\\>[ \t\n]*\\(\\<[_[:alpha:]]\\w*\\>\\)"
-           1 'font-lock-variable-name-face 'keep nil)
-     (list "^#\\w+\\>"
-           0 'font-lock-preprocessor-face t nil))
-    (if tuareg-font-lock-symbols
-        (tuareg-font-lock-symbols-keywords)
-      ())))
+   `(,@(and (tuareg-editing-ls3)
+            '(("\\<\\(let[ \t\n]+\\(clock\\|node\\|static\\)\\|present\\|automaton\\|where\\|match\\|with\\|do\\|done\\|unless\\|until\\|reset\\|every\\)\\>"
+               0 tuareg-font-lock-governing-face nil nil)))
+     ("\\<\\(external\\|open\\|include\\|rule\\|s\\(ig\\|truct\\)\\|module\\|functor\\|with[ \t\n]+\\(type\\|module\\)\\|val\\|type\\|method\\|virtual\\|constraint\\|class\\|in\\|inherit\\|initializer\\|let\\|rec\\|object\\|and\\|begin\\|end\\)\\>"
+      0 tuareg-font-lock-governing-face nil nil)
+     ,@(and tuareg-support-metaocaml
+            '(("\\.<\\|>\\.\\|\\.~\\|\\.!"
+               0 tuareg-font-lock-multistage-face nil nil)))
+     ("\\<\\(false\\|true\\)\\>" 0 font-lock-constant-face nil nil)
+     ("\\<\\(as\\|do\\(ne\\|wnto\\)?\\|else\\|for\\|if\\|mutable\\|new\\|p\\(arser\\|rivate\\)\\|t\\(hen\\|o\\|ry\\)\\|wh\\(en\\|ile\\)\\|match\\|with\\|lazy\\|exception\\|raise\\|failwith[f]?\\|exit\\|assert\\|fun\\(ction\\)?\\)\\>"
+      0 font-lock-keyword-face nil nil)
+     ,@(if (tuareg-editing-ls3)
+           '(("\\<\\(merge\\|when\\|emit\\|period\\)\\>"
+              0 font-lock-keyword-face nil nil)
+             ("[][;,()|{}]\\|[@^!:*=<>&/%+~?#---]\\.?\\|\\.\\.\\.*\\|\\<\\(asr\\|asl\\|lsr\\|lsl\\|l?or\\|l?and\\|lxor\\|l?not\\|mod\\|of\\|ref\\|fby\\|pre\\|last\\|at\\)\\>"
+              0 tuareg-font-lock-operator-face nil nil)
+             ("\\<\\(\\(method\\([ \t\n]+\\(private\\|virtual\\)\\)?\\)\\([ \t\n]+virtual\\)?\\|val\\([ \t\n]+mutable\\)?\\|external\\|and\\|class\\|let\\([ \t\n]+\\(rec\\|clock\\|node\\|static\\)\\)?\\)\\>[ \t\n]*\\(['_[:lower:]]\\(\\w\\|[._]\\)*\\)\\>[ \t\n]*\\(\\(\\w\\|[()_?~.'*:--->]\\)+\\|=[ \t\n]*fun\\(ction\\)?\\>\\)"
+              9 font-lock-function-name-face keep nil))
+           '(("[][;,()|{}]\\|[@^!:*=<>&/%+~?#---]\\.?\\|\\.\\.\\.*\\|\\<\\(asr\\|asl\\|lsr\\|lsl\\|l?or\\|l?and\\|lxor\\|l?not\\|mod\\|of\\|ref\\)\\>"
+              0 tuareg-font-lock-operator-face nil nil)
+             ("\\<\\(\\(method\\([ \t\n]+\\(private\\|virtual\\)\\)?\\)\\([ \t\n]+virtual\\)?\\|val\\([ \t\n]+mutable\\)?\\|external\\|and\\|class\\|let\\([ \t\n]+rec\\)?\\)\\>[ \t\n]*\\(['_[:lower:]]\\(\\w\\|[._]\\)*\\)\\>[ \t\n]*\\(\\(\\w\\|[()_?~.'*:--->]\\)+\\|=[ \t\n]*fun\\(ction\\)?\\>\\)"
+              8 font-lock-function-name-face keep nil)))
+     ("\\<method\\([ \t\n]+\\(private\\|virtual\\)\\)?\\>[ \t\n]*\\(\\(\\w\\|[_,?~.]\\)*\\)"
+      3 font-lock-function-name-face keep nil)
+     ("\\<\\(fun\\(ction\\)?\\)\\>[ \t\n]*\\(\\(\\w\\|[_ \t()*,]\\)+\\)"
+      3 font-lock-variable-name-face keep nil)
+     ,@(if (tuareg-editing-ls3)
+           '(("\\<\\(reset\\|do\\|val\\([ \t\n]+mutable\\)?\\|external\\|and\\|class\\|let\\([ \t\n]+rec\\)?\\)\\>[ \t\n]*\\(\\(\\w\\|[_,?~.]\\)*\\)"
+              4 font-lock-variable-name-face keep nil)
+             ("\\<\\(reset\\|do\\|val\\([ \t\n]+mutable\\)?\\|external\\|method\\|and\\|class\\|let\\([ \t\n]+\\(rec\\|clock\\|node\\|static\\)\\)?\\)\\>[ \t\n]*\\(\\(\\w\\|[_,?~.]\\)*\\)\\>\\(\\(\\w\\|[->_ \t,?~.]\\|(\\(\\w\\|[--->_ \t,?~.=]\\)*)\\)*\\)"
+              7 font-lock-variable-name-face keep nil))
+           '(("\\<\\(val\\([ \t\n]+mutable\\)?\\|external\\|and\\|class\\|let\\([ \t\n]+rec\\)?\\)\\>[ \t\n]*\\(\\(\\w\\|[_,?~.]\\)*\\)"
+              4 font-lock-variable-name-face keep nil)
+             ("\\<\\(val\\([ \t\n]+mutable\\)?\\|external\\|method\\|and\\|class\\|let\\([ \t\n]+rec\\)?\\)\\>[ \t\n]*\\(\\(\\w\\|[_,?~.]\\)*\\)\\>\\(\\(\\w\\|[->_ \t,?~.]\\|(\\(\\w\\|[--->_ \t,?~.=]\\)*)\\)*\\)"
+              6 font-lock-variable-name-face keep nil)))
+     ( "\\<\\(open\\|\\(class\\([ \t\n]+type\\)?\\)\\([ \t\n]+virtual\\)?\\|inherit\\|include\\|module\\([ \t\n]+\\(type\\|rec\\)\\)?\\|type\\)\\>[ \t\n]*\\(['~?]*\\([_--->.* \t]\\|\\w\\|(['~?]*\\([_--->.,* \t]\\|\\w\\)*)\\)*\\)"
+           7 font-lock-type-face keep nil)
+     ,@(and (tuareg-editing-ls3)
+            '(("\\<val\\>[ \t\n]*\\w*[ \t\n]*::[ \t\n]*\\(['~?]*\\([_--->.* \t]\\|\\w\\|(['~?]*\\([_--->.,* \t]\\|\\w\\)*)\\)*\\)"
+               1 font-lock-type-face keep nil)))
+     ("[^:>=]:[ \t\n]*\\(['~?]*\\([_--->.* \t]\\|\\w\\|(['~?]*\\([_--->.,* \t]\\|\\w\\)*)\\)*\\)"
+      1 font-lock-type-face keep nil)
+     ("\\<\\([A-Z]\\w*\\>\\)[ \t]*\\." 1 font-lock-type-face keep nil)
+     ("\\<\\([?~]?[_[:alpha:]]\\w*\\)[ \t\n]*:[^:>=]"
+      1 font-lock-variable-name-face keep nil)
+     ("\\<exception\\>[ \t\n]*\\(\\<[_[:alpha:]]\\w*\\>\\)"
+      1 font-lock-variable-name-face keep nil)
+     ("^#\\w+\\>" 0 font-lock-preprocessor-face t nil)
+     ,@(and tuareg-font-lock-symbols
+            (tuareg-font-lock-symbols-keywords))))
   (setq font-lock-defaults
         (list*
          'tuareg-font-lock-keywords (not tuareg-use-syntax-ppss) nil
@@ -1213,8 +1193,8 @@ Short cuts for interactions with the toplevel:
               . tuareg-fontify-region)))))
   (when (and (boundp 'font-lock-fontify-region-function)
              (not tuareg-use-syntax-ppss))
-  (make-local-variable 'font-lock-fontify-region-function)
-  (setq font-lock-fontify-region-function 'tuareg-fontify-region)))
+    (make-local-variable 'font-lock-fontify-region-function)
+    (setq font-lock-fontify-region-function 'tuareg-fontify-region)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               Error processing
