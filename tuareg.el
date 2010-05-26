@@ -2254,13 +2254,13 @@ Returns t iff skipped to indentation."
      (t
       (goto-char match-end-point) ; skip kwop == (forward-char (length kwop))
       (tuareg-skip-to-next-form old-point)
-      (if (save-excursion (goto-char match-end-point)
-                          (looking-at tuareg-no-more-code-this-line-regexp))
-          (+ (tuareg-add-default-indent
+      (+ (tuareg-add-default-indent
+          (if (save-excursion (goto-char match-end-point)
+                              (looking-at tuareg-no-more-code-this-line-regexp))
               (or leading-operator (string= kwop "{")
-                  (looking-at (tuareg-no-code-after "[[:upper:]].*\\."))))
-             (current-column))
-        (current-column))))))
+                  (looking-at (tuareg-no-code-after "[[:upper:]].*\\.")))
+            (not (looking-at tuareg-operator-regexp))))
+         (current-column))))))
 
 (defun tuareg-compute-arrow-indent (start-pos)
   (let (kwop pos)
