@@ -2590,8 +2590,8 @@ by |, insert one |."
            (kw (save-excursion
                  (and (re-search-backward "^[ \t]*\\(\\w\\|_\\)+\\=" bol t)
                       (tuareg-match-string 1)))))
-      (when
-          (insert " ")
+      (when kw
+        (insert " ")
         (indent-according-to-mode)
         (backward-delete-char-untabify 1)))))
 
