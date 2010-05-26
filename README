@@ -48,7 +48,7 @@ MANUAL CONFIGURATION:
 
   Add the following lines to your .emacs file:
 
-  (add-to-list 'auto-mode-alist '("\\.ml\\w?" . tuareg-mode))
+  (add-to-list 'auto-mode-alist '("\\.ml[iylp]?" . tuareg-mode))
   (autoload 'tuareg-mode "tuareg" "Major mode for editing Caml code" t)
   (autoload 'camldebug "camldebug" "Run the Caml debugger" t)
 
@@ -140,6 +140,7 @@ THANKS:
 REPORTING:
 
   The official Tuareg home page is located at:
-  <http://www.janestreet.com/ocaml/tuareg.tgz>.
+  <https://forge.ocamlcore.org/projects/tuareg/>.
 
-  Bug reports & patches to: <tuareg@janestreet.com>.
+  Bug reports & patches to: <tuareg@janestreet.com>
+  or use the tracker: <https://forge.ocamlcore.org/tracker/?group_id=43>.
