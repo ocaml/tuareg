@@ -2457,7 +2457,6 @@ Returns t iff skipped to indentation."
                             tuareg-type-indent))))
                ((looking-at tuareg-=-indent-regexp-1)
                 (let ((matched-string (tuareg-match-string 0)))
-                  ;; sds: why was it here?! (tuareg-back-to-paren-or-indentation)
                   (setq current-column-module-type (current-column))
                   (tuareg-assoc-indent matched-string)))
                ((looking-at "\\<object\\>")
