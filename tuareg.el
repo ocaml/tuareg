@@ -1483,6 +1483,13 @@ Returns the actual text of the word, if found."
                 (re-search-backward tuareg-meaningful-word-regexp
                                     (point-min) t))
       (setq kwop (tuareg-match-string 0))
+      (cond ((and (or (string= kwop "|") (string= kwop "="))
+                  (tuareg-in-monadic-op-p))
+             (backward-char 2)
+             (setq kwop (concat ">>" kwop)))
+            ((and (string= kwop ">") (char-equal ?- (char-before)))
+             (backward-char)
+             (setq kwop "->")))
       (when (= pt (point))
         (error "tuareg-find-meaningful-word: inf loop at %d, kwop=%s" pt kwop))
       (setq pt (point))
@@ -1818,9 +1825,7 @@ If found, return the actual text of the keyword or operator."
         (progn (forward-char -1) (tuareg-find-->-match))))
      ((string= kwop "fun")
       (let ((pos (point)))
-        (skip-chars-backward " \t")
-        (tuareg-backward-char 3)
-        (if (looking-at ">>=") ">>="
+        (if (string= ">>=" (tuareg-find-meaningful-word)) ">>="
           (goto-char pos)
           kwop)))
      ((not (string= kwop ":"))
