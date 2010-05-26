@@ -2313,7 +2313,7 @@ Returns t iff skipped to indentation."
                (current-column)
              (unless paren-match-p
                (tuareg-search-forward-paren))
-             (when (looking-at "\\(\\([[{(][<|]?\\|\\.<\\)[ \t]*\\)*\\((\\*\\|$\\)")
+             (when (looking-at "\\(\(\\|[[{][ \t]*\\((\\*\\|$\\)\\)")
                (tuareg-back-to-paren-or-indentation))
              (current-column)))
           ((and (string= kwop "with")
