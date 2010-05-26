@@ -2045,11 +2045,11 @@ Returns t iff skipped to indentation."
       (+ (tuareg-add-default-indent leading-operator)
          (current-column)))
      (t
+      (goto-char match-end-point) ; skip kwop == (forward-char (length kwop))
+      (while (and (not (looking-at tuareg-no-more-code-this-line-regexp))
+                  (< (point) old-point)) ; do not go beyond old-point
+        (forward-sexp 1))
       (forward-line 1)
-      (beginning-of-line)
-      (while (or (tuareg-in-literal-or-comment-p)
-                 (looking-at tuareg-no-code-this-line-regexp))
-        (forward-line 1))
       (tuareg-back-to-paren-or-indentation)
       (if (save-excursion (goto-char match-end-point)
                           (looking-at tuareg-no-more-code-this-line-regexp))
