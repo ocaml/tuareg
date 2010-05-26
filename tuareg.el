@@ -1843,6 +1843,9 @@ If found, return the actual text of the keyword or operator."
     (+ (current-column) tuareg-in-indent))
    ((looking-at "\\<let\\>")
     (+ (current-column) tuareg-let-indent))
+   ((looking-at "\\<try\\>")
+    (forward-char 3) (skip-syntax-forward "\s-")
+    (current-column))
    (t
     (tuareg-back-to-paren-or-indentation)
     (+ (current-column) tuareg-default-indent))))
