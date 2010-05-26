@@ -2255,7 +2255,8 @@ Returns t iff skipped to indentation."
 (defun tuareg-find-argument-kwop-non-blank (leading-operator)
   (let ((kwop "") (point (1+ (point))))
     (while (and (> point (point)) (string= "" kwop))
-      (setq point (point) kwop (tuareg-find-argument-kwop leading-operator)))
+      (setq point (point)
+            kwop (tuareg-find-argument-kwop-clean leading-operator)))
     kwop))
 
 (defun tuareg-compute-argument-indent (leading-operator)
