@@ -2455,7 +2455,10 @@ Compute new indentation based on Caml syntax."
               (current-column)))
            ((not need-not-back-kwop) ; pretty general case
             (if (tuareg-in-indentation-p)
-                (current-column)
+                (+ (current-column)
+                   (if (and (string= kwop "then")
+                            (not (looking-at "matching-kwop")))
+                       tuareg-default-indent 0))
               (let ((back (tuareg-back-to-paren-or-indentation)))
                 (+ (current-column)
                    (if (or (string= matching-kwop "struct")
