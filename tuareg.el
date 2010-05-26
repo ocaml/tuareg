@@ -2294,9 +2294,10 @@ Returns t iff skipped to indentation."
               (re-search-forward "=[ \t]*")
               (current-column))
              (match-|-kwop-p
-              (when (or need-back-kwop
-                        (string-match (tuareg-give-extra-unindent-regexp)
-                                      matching-kwop))
+              (when (and need-back-kwop
+                         (or (looking-at "\[[ \t]*\\((\\*\\|$\\)")
+                             (string-match (tuareg-give-extra-unindent-regexp)
+                                           matching-kwop)))
                 (tuareg-back-to-paren-or-indentation))
               (+ (+ (tuareg-assoc-indent matching-kwop t)
                     (current-column))
