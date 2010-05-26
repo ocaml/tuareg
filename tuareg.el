@@ -390,8 +390,9 @@ and `tuareg-xemacs-w3-manual' (XEmacs only)."
 ;;   (e.g., ocaml vs. metaocaml buffers)
 ;; (make-variable-buffer-local 'tuareg-interactive-program)
 
-(defconst tuareg-use-syntax-ppss (fboundp 'syntax-ppss)
-  "*If nil, use our own parsing and caching.")
+(eval-and-compile
+  (defconst tuareg-use-syntax-ppss (fboundp 'syntax-ppss)
+    "*If nil, use our own parsing and caching."))
 
 (defgroup tuareg-faces nil
   "Special faces for the Tuareg mode."
@@ -517,168 +518,193 @@ and `tuareg-xemacs-w3-manual' (XEmacs only)."
 (make-variable-buffer-local 'tuareg-cache-last-local)
 (defvar tuareg-last-loc (cons nil nil))
 
-(if tuareg-use-syntax-ppss
-    (progn
-      ;; avoid compilation warnings
-      (defun tuareg-in-literal-or-comment () (error "tuareg uses PPSS"))
-      (defun tuareg-fontify (beg end) (error "tuareg uses PPSS"))
+;; PPSS definitions
+(defun tuareg-ppss-in-literal-or-comment () (error "tuareg uses PPSS"))
+(defun tuareg-ppss-fontify (beg end) (error "tuareg uses PPSS"))
+(defun tuareg-ppss-in-literal-p ()
+  "Returns non-nil if point is inside a Caml literal."
+  (nth 3 (syntax-ppss)))
+(defun tuareg-ppss-in-comment-p ()
+  "Returns non-nil if point is inside or right before a Caml comment."
+  (or (nth 4 (syntax-ppss))
+      (looking-at "[ \t]*(\\*")))
+(defun tuareg-ppss-in-literal-or-comment-p ()
+  "Returns non-nil if point is inside a Caml literal or comment."
+  (nth 8 (syntax-ppss)))
+(defun tuareg-ppss-beginning-of-literal-or-comment ()
+  "Skips to the beginning of the current literal or comment (or buffer)."
+  (interactive)
+  (goto-char (or (nth 8 (syntax-ppss)) (point))))
+(defun tuareg-ppss-beginning-of-literal-or-comment-fast ()
+  (goto-char (or (nth 8 (syntax-ppss)) (point-min))))
+;; FIXME: not clear if moving out of a string/comment counts as 1 or no.
+(defalias 'tuareg-backward-up-list 'backward-up-list)
 
-      (defun tuareg-in-literal-p ()
-        "Returns non-nil if point is inside a Caml literal."
-        (nth 3 (syntax-ppss)))
-      (defun tuareg-in-comment-p ()
-        "Returns non-nil if point is inside or right before a Caml comment."
-        (or (nth 4 (syntax-ppss))
-            (looking-at "[ \t]*(\\*")))
-      (defun tuareg-in-literal-or-comment-p ()
-        "Returns non-nil if point is inside a Caml literal or comment."
-        (nth 8 (syntax-ppss)))
-      (defun tuareg-beginning-of-literal-or-comment ()
-        "Skips to the beginning of the current literal or comment (or buffer)."
-        (interactive)
-        (goto-char (or (nth 8 (syntax-ppss)) (point))))
-      (defun tuareg-beginning-of-literal-or-comment-fast ()
-        (goto-char (or (nth 8 (syntax-ppss)) (point-min))))
-      ;; FIXME: not clear if moving out of a string/comment counts as 1 or no.
-      (defalias 'tuareg-backward-up-list 'backward-up-list))
-
-  (defun tuareg-before-change-function (begin end)
-    (setq tuareg-cache-stop
-          (if (save-excursion (beginning-of-line) (= (point) (point-min)))
-              (point-min)
-            (min tuareg-cache-stop (1- begin)))))
-
-  (defun tuareg-in-literal-p ()
-    "Return non-nil if point is inside a Caml literal."
-    (car (tuareg-in-literal-or-comment)))
-  (defun tuareg-in-comment-p ()
-    "Return non-nil if point is inside a Caml comment."
-    (cdr (tuareg-in-literal-or-comment)))
-  (defun tuareg-in-literal-or-comment-p ()
-    "Return non-nil if point is inside a Caml literal or comment."
-    (tuareg-in-literal-or-comment)
-    (or (car tuareg-last-loc) (cdr tuareg-last-loc)))
-  (defun tuareg-in-literal-or-comment ()
-    "Return the pair `((tuareg-in-literal-p) . (tuareg-in-comment-p))'."
-    (if (and (<= (point) tuareg-cache-stop) tuareg-cache)
-        (progn
-          (if (or (not tuareg-cache-local) (not tuareg-cache-last-local)
-                  (and (>= (point) (caar tuareg-cache-last-local))))
-              (setq tuareg-cache-local tuareg-cache))
-          (while (and tuareg-cache-local (< (point) (caar tuareg-cache-local)))
-            (setq tuareg-cache-last-local tuareg-cache-local
-                  tuareg-cache-local (cdr tuareg-cache-local)))
-          (setq tuareg-last-loc
-                (if tuareg-cache-local
-                    (cons (eq (cadar tuareg-cache-local) 'b)
-                          (> (cddar tuareg-cache-local) 0))
+;; non-PPSS definitions
+(defun tuareg-!ppss-in-literal-p ()
+  "Return non-nil if point is inside a Caml literal."
+  (car (tuareg-in-literal-or-comment)))
+(defun tuareg-!ppss-in-comment-p ()
+  "Return non-nil if point is inside a Caml comment."
+  (cdr (tuareg-in-literal-or-comment)))
+(defun tuareg-!ppss-in-literal-or-comment-p ()
+  "Return non-nil if point is inside a Caml literal or comment."
+  (tuareg-in-literal-or-comment)
+  (or (car tuareg-last-loc) (cdr tuareg-last-loc)))
+(defun tuareg-!ppss-in-literal-or-comment ()
+  "Return the pair `((tuareg-in-literal-p) . (tuareg-in-comment-p))'."
+  (if (and (<= (point) tuareg-cache-stop) tuareg-cache)
+      (progn
+        (if (or (not tuareg-cache-local) (not tuareg-cache-last-local)
+                (and (>= (point) (caar tuareg-cache-last-local))))
+            (setq tuareg-cache-local tuareg-cache))
+        (while (and tuareg-cache-local (< (point) (caar tuareg-cache-local)))
+          (setq tuareg-cache-last-local tuareg-cache-local
+                tuareg-cache-local (cdr tuareg-cache-local)))
+        (setq tuareg-last-loc
+              (if tuareg-cache-local
+                  (cons (eq (cadar tuareg-cache-local) 'b)
+                        (> (cddar tuareg-cache-local) 0))
                   (cons nil nil))))
-      (let ((flag t) (op (point)) (mp (min (point) (1- (point-max))))
-            (balance 0) (end-of-comment nil))
-        (while (and tuareg-cache (<= tuareg-cache-stop (caar tuareg-cache)))
-          (setq tuareg-cache (cdr tuareg-cache)))
-        (if tuareg-cache
-            (if (eq (cadar tuareg-cache) 'b)
-                (progn
-                  (setq tuareg-cache-stop (1- (caar tuareg-cache)))
-                  (goto-char tuareg-cache-stop)
-                  (setq balance (cddar tuareg-cache))
-                  (setq tuareg-cache (cdr tuareg-cache)))
-              (setq balance (cddar tuareg-cache))
-              (setq tuareg-cache-stop (caar tuareg-cache))
-              (goto-char tuareg-cache-stop)
-              (skip-chars-forward "("))
+    (let ((flag t) (op (point)) (mp (min (point) (1- (point-max))))
+          (balance 0) (end-of-comment nil))
+      (while (and tuareg-cache (<= tuareg-cache-stop (caar tuareg-cache)))
+        (setq tuareg-cache (cdr tuareg-cache)))
+      (if tuareg-cache
+          (if (eq (cadar tuareg-cache) 'b)
+              (progn
+                (setq tuareg-cache-stop (1- (caar tuareg-cache)))
+                (goto-char tuareg-cache-stop)
+                (setq balance (cddar tuareg-cache))
+                (setq tuareg-cache (cdr tuareg-cache)))
+            (setq balance (cddar tuareg-cache))
+            (setq tuareg-cache-stop (caar tuareg-cache))
+            (goto-char tuareg-cache-stop)
+            (skip-chars-forward "("))
           (goto-char (point-min)))
-        (skip-chars-backward "\\\\*")
-        (while flag
-          (if end-of-comment (setq balance 0 end-of-comment nil))
-          (skip-chars-forward "^\\\\'`\"(\\*")
-          (cond
-           ((looking-at "\\\\")
-            (tuareg-forward-char 2))
-           ((looking-at "'\\([^\n\\']\\|\\\\[^ \t\n][^ \t\n]?[^ \t\n]?\\)'")
-            (setq tuareg-cache (cons (cons (1+ (point)) (cons 'b balance))
-                                     tuareg-cache))
-            (goto-char (match-end 0))
-            (setq tuareg-cache (cons (cons (point) (cons 'e balance))
-                                     tuareg-cache)))
-           ((and
-             tuareg-support-camllight
-             (looking-at "`\\([^\n\\']\\|\\\\[^ \t\n][^ \t\n]?[^ \t\n]?\\)`"))
-            (setq tuareg-cache (cons (cons (1+ (point)) (cons 'b balance))
-                                     tuareg-cache))
-            (goto-char (match-end 0))
-            (setq tuareg-cache (cons (cons (point) (cons 'e balance))
-                                     tuareg-cache)))
-           ((looking-at "\"")
-            (tuareg-forward-char)
-            (setq tuareg-cache (cons (cons (point) (cons 'b balance))
-                                     tuareg-cache))
-            (skip-chars-forward "^\\\\\"")
-            (while (looking-at "\\\\")
-              (tuareg-forward-char 2) (skip-chars-forward "^\\\\\""))
-            (tuareg-forward-char)
-            (setq tuareg-cache (cons (cons (point) (cons 'e balance))
-                                     tuareg-cache)))
-           ((looking-at "(\\*")
-            (setq balance (1+ balance))
-            (setq tuareg-cache (cons (cons (point) (cons nil balance))
-                                     tuareg-cache))
-            (tuareg-forward-char 2))
-           ((looking-at "\\*)")
-            (tuareg-forward-char 2)
-            (if (> balance 1)
-                (progn
-                  (setq balance (1- balance))
-                  (setq tuareg-cache (cons (cons (point) (cons nil balance))
-                                           tuareg-cache)))
-              (setq end-of-comment t)
-              (setq tuareg-cache (cons (cons (point) (cons nil 0))
-                                       tuareg-cache))))
-           (t (tuareg-forward-char)))
-          (setq flag (<= (point) mp)))
-        (setq tuareg-cache-local tuareg-cache
-              tuareg-cache-stop (point))
-        (goto-char op)
-        (if tuareg-cache (tuareg-in-literal-or-comment)
+      (skip-chars-backward "\\\\*")
+      (while flag
+        (if end-of-comment (setq balance 0 end-of-comment nil))
+        (skip-chars-forward "^\\\\'`\"(\\*")
+        (cond
+          ((looking-at "\\\\")
+           (tuareg-forward-char 2))
+          ((looking-at "'\\([^\n\\']\\|\\\\[^ \t\n][^ \t\n]?[^ \t\n]?\\)'")
+           (setq tuareg-cache (cons (cons (1+ (point)) (cons 'b balance))
+                                    tuareg-cache))
+           (goto-char (match-end 0))
+           (setq tuareg-cache (cons (cons (point) (cons 'e balance))
+                                    tuareg-cache)))
+          ((and
+            tuareg-support-camllight
+            (looking-at "`\\([^\n\\']\\|\\\\[^ \t\n][^ \t\n]?[^ \t\n]?\\)`"))
+           (setq tuareg-cache (cons (cons (1+ (point)) (cons 'b balance))
+                                    tuareg-cache))
+           (goto-char (match-end 0))
+           (setq tuareg-cache (cons (cons (point) (cons 'e balance))
+                                    tuareg-cache)))
+          ((looking-at "\"")
+           (tuareg-forward-char)
+           (setq tuareg-cache (cons (cons (point) (cons 'b balance))
+                                    tuareg-cache))
+           (skip-chars-forward "^\\\\\"")
+           (while (looking-at "\\\\")
+             (tuareg-forward-char 2) (skip-chars-forward "^\\\\\""))
+           (tuareg-forward-char)
+           (setq tuareg-cache (cons (cons (point) (cons 'e balance))
+                                    tuareg-cache)))
+          ((looking-at "(\\*")
+           (setq balance (1+ balance))
+           (setq tuareg-cache (cons (cons (point) (cons nil balance))
+                                    tuareg-cache))
+           (tuareg-forward-char 2))
+          ((looking-at "\\*)")
+           (tuareg-forward-char 2)
+           (if (> balance 1)
+               (progn
+                 (setq balance (1- balance))
+                 (setq tuareg-cache (cons (cons (point) (cons nil balance))
+                                          tuareg-cache)))
+               (setq end-of-comment t)
+               (setq tuareg-cache (cons (cons (point) (cons nil 0))
+                                        tuareg-cache))))
+          (t (tuareg-forward-char)))
+        (setq flag (<= (point) mp)))
+      (setq tuareg-cache-local tuareg-cache
+            tuareg-cache-stop (point))
+      (goto-char op)
+      (if tuareg-cache (tuareg-in-literal-or-comment)
           (setq tuareg-last-loc (cons nil nil))
           tuareg-last-loc))))
+(defun tuareg-!ppss-beginning-of-literal-or-comment ()
+  "Skips to the beginning of the current literal or comment (or buffer)."
+  (interactive)
+  (when (tuareg-in-literal-or-comment-p)
+    (tuareg-beginning-of-literal-or-comment-fast)))
 
-  (defun tuareg-beginning-of-literal-or-comment ()
-    "Skips to the beginning of the current literal or comment (or buffer)."
-    (interactive)
-    (when (tuareg-in-literal-or-comment-p)
-      (tuareg-beginning-of-literal-or-comment-fast)))
+(defun tuareg-!ppss-beginning-of-literal-or-comment-fast ()
+  (while (and tuareg-cache-local
+              (or (eq 'b (cadar tuareg-cache-local))
+                  (> (cddar tuareg-cache-local) 0)))
+    (setq tuareg-cache-last-local tuareg-cache-local
+          tuareg-cache-local (cdr tuareg-cache-local)))
+  (if tuareg-cache-last-local
+      (goto-char (caar tuareg-cache-last-local))
+    (goto-char (point-min)))
+  (when (eq 'b (cadar tuareg-cache-last-local)) (tuareg-backward-char)))
 
-  (defun tuareg-beginning-of-literal-or-comment-fast ()
-    (while (and tuareg-cache-local
-                (or (eq 'b (cadar tuareg-cache-local))
-                    (> (cddar tuareg-cache-local) 0)))
-      (setq tuareg-cache-last-local tuareg-cache-local
-            tuareg-cache-local (cdr tuareg-cache-local)))
-    (if tuareg-cache-last-local
-        (goto-char (caar tuareg-cache-last-local))
-      (goto-char (point-min)))
-    (when (eq 'b (cadar tuareg-cache-last-local)) (tuareg-backward-char)))
+(defun tuareg-!ppss-backward-up-list ()
+  "Safe up-list regarding comments, literals and errors."
+  (let ((balance 1) (op (point)) (oc nil))
+    (tuareg-in-literal-or-comment)
+    (while (and (> (point) (point-min)) (> balance 0))
+      (setq oc (if tuareg-cache-local (caar tuareg-cache-local) (point-min)))
+      (condition-case nil (up-list -1) (error (goto-char (point-min))))
+      (if (>= (point) oc) (setq balance (1- balance))
+        (goto-char op)
+        (skip-chars-backward "^[]{}()") (tuareg-backward-char)
+        (if (not (tuareg-in-literal-or-comment-p))
+            (cond
+              ((looking-at "[[{(]")
+               (setq balance (1- balance)))
+              ((looking-at "[]})]")
+               (setq balance (1+ balance))))
+          (tuareg-beginning-of-literal-or-comment-fast)))
+      (setq op (point)))))
 
-  (defun tuareg-backward-up-list ()
-    "Safe up-list regarding comments, literals and errors."
-    (let ((balance 1) (op (point)) (oc nil))
-      (tuareg-in-literal-or-comment)
-      (while (and (> (point) (point-min)) (> balance 0))
-        (setq oc (if tuareg-cache-local (caar tuareg-cache-local) (point-min)))
-        (condition-case nil (up-list -1) (error (goto-char (point-min))))
-        (if (>= (point) oc) (setq balance (1- balance))
-          (goto-char op)
-          (skip-chars-backward "^[]{}()") (tuareg-backward-char)
-          (if (not (tuareg-in-literal-or-comment-p))
-              (cond
-               ((looking-at "[[{(]")
-                (setq balance (1- balance)))
-               ((looking-at "[]})]")
-                (setq balance (1+ balance))))
-            (tuareg-beginning-of-literal-or-comment-fast)))
-        (setq op (point)))))) ;; End of (if tuareg-use-syntax-ppss
+(defalias 'tuareg-in-literal-or-comment
+    (eval-and-compile (if tuareg-use-syntax-ppss
+                          'tuareg-ppss-in-literal-or-comment
+                          'tuareg-!ppss-in-literal-or-comment)))
+(defalias 'tuareg-fontify
+    (eval-and-compile (if tuareg-use-syntax-ppss
+                          'tuareg-ppss-fontify
+                          'tuareg-!ppss-fontify)))
+(defalias 'tuareg-in-literal-p
+    (eval-and-compile (if tuareg-use-syntax-ppss
+                          'tuareg-ppss-in-literal-p
+                          'tuareg-!ppss-in-literal-p)))
+(defalias 'tuareg-in-comment-p
+    (eval-and-compile (if tuareg-use-syntax-ppss
+                          'tuareg-ppss-in-comment-p
+                          'tuareg-!ppss-in-comment-p)))
+(defalias 'tuareg-in-literal-or-comment-p
+    (eval-and-compile (if tuareg-use-syntax-ppss
+                          'tuareg-ppss-in-literal-or-comment-p
+                          'tuareg-!ppss-in-literal-or-comment-p)))
+(defalias 'tuareg-beginning-of-literal-or-comment
+    (eval-and-compile (if tuareg-use-syntax-ppss
+                          'tuareg-ppss-beginning-of-literal-or-comment
+                          'tuareg-!ppss-beginning-of-literal-or-comment)))
+(defalias 'tuareg-beginning-of-literal-or-comment-fast
+    (eval-and-compile (if tuareg-use-syntax-ppss
+                          'tuareg-ppss-beginning-of-literal-or-comment-fast
+                          'tuareg-!ppss-beginning-of-literal-or-comment-fast)))
+(defalias 'tuareg-backward-up-list
+    ;; FIXME: not clear if moving out of a string/comment counts as 1 or no.
+    (eval-and-compile (if tuareg-use-syntax-ppss
+                          'backward-up-list
+                          'tuareg-!ppss-backward-up-list)))
 
 (defun tuareg-false-=-p ()
   "Is the underlying `=' the first/second letter of an operator?"
