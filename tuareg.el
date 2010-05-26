@@ -1633,7 +1633,7 @@ Gathered here for memoization and dynamic reconfiguration purposes."
       (substring string 0 (match-beginning 0))
     string))
 
-(defun tuareg-find-kwop (kr &optional do-not-skip-regexp)
+(defun tuareg-find-kwop (kr &optional do-not-skip-regexp may-terminate-early)
   "Look back for a keyword or operator matching KR (short for kwop regexp).
 Skips blocks etc...
 
@@ -1661,7 +1661,9 @@ If found, return the actual text of the keyword or operator."
             (backward-char)
           (setq found t)))
        ((looking-at (tuareg-give-matching-keyword-regexp))
-        (tuareg-find-leading-kwop-match (tuareg-match-string 0)))
+        (let ((mkwop (tuareg-find-leading-kwop-match (tuareg-match-string 0))))
+          (when (and may-terminate-early (string-match kwop-regexp mkwop))
+            (setq found t))))
        (t
         (setq found t))))
     (if found kwop (goto-char (point-min)) nil)))
@@ -1674,7 +1676,7 @@ If found, return the actual text of the keyword or operator."
     kwop))
 
 (defun tuareg-find-comma-match ()
-  (tuareg-find-kwop tuareg-find-comma-match-regexp))
+  (tuareg-find-kwop tuareg-find-comma-match-regexp nil t))
 
 (defun tuareg-find-pipe-bang-match ()
   (let ((kwop (tuareg-find-kwop tuareg-find-pipe-bang-match-regexp)))
@@ -2332,6 +2334,8 @@ Returns t iff skipped to indentation."
                                (char-equal ?\{ (preceding-char))))
                       (tuareg-backward-char)
                       (tuareg-indent-from-paren t start-pos))
+                     ((and (looking-at "\\<let\\>") (string= mkwop "in"))
+                      (+ (current-column) tuareg-in-indent))
                      (t (+ (tuareg-paren-or-indentation-column)
                            (tuareg-assoc-indent mkwop)))))
            (tuareg-paren-or-indentation-indent)))
