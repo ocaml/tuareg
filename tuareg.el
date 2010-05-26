@@ -881,11 +881,6 @@ Regexp match data 0 points to the chars."
           tuareg-doc-face
         font-lock-comment-face))))
 
-(when (facep 'font-lock-reference-face)
-  (defvar font-lock-constant-face)
-  (if (facep 'font-lock-constant-face) ()
-    (defvar font-lock-constant-face font-lock-reference-face)
-    (copy-face font-lock-reference-face 'font-lock-constant-face)))
 (when (facep 'font-lock-keyword-face)
   (defvar font-lock-preprocessor-face)
   (if (facep 'font-lock-preprocessor-face) ()
