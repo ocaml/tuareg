@@ -2061,15 +2061,14 @@ Returns t iff skipped to indentation."
        (current-column)))))
 
 (defun tuareg-compute-argument-indent (leading-operator)
-  (let ((old-point (save-excursion (beginning-of-line) (point)))
-        (match-end-point) (kwop))
-    (setq kwop (tuareg-find-kwop tuareg-compute-argument-indent-regexp
+  (let* ((old-point (save-excursion (beginning-of-line) (point)))
+         (kwop (tuareg-find-kwop tuareg-compute-argument-indent-regexp
                                  (tuareg-give-keyword-regexp)))
-    (setq match-end-point (+ (point) (length kwop))) ; match-end is invalid!
+         (match-end-point (+ (point) (length kwop)))) ; match-end is invalid!
     (cond
      ((and (string= kwop "->")
            (not (looking-at "->[ \t]*\\((\\*.*\\)?$")))
-      (let* (matching-kwop matching-pos)
+      (let (matching-kwop matching-pos)
         (save-excursion
           (setq matching-kwop (tuareg-find-->-match))
           (setq matching-pos (point)))
