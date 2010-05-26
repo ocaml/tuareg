@@ -2318,8 +2318,42 @@ Returns t iff skipped to indentation."
                 (tuareg-paren-or-indentation-indent))
               (tuareg-assoc-indent kwop t)))))
 
-(defconst tuareg-normal-indent-regexp-1
+(defconst tuareg-=-indent-regexp-1
   (tuareg-ro "val" "let" "method" "module" "class" "when" "for" "if" "do"))
+
+(defun tuareg-compute-=-indent ()
+  (let ((current-column-module-type nil) (kwop1 (tuareg-find-=-match)))
+    (+ (save-excursion
+         (tuareg-reset-and-kwop kwop1)
+         (cond ((string= kwop1 "type")
+                (tuareg-find-meaningful-word)
+                (cond ((looking-at "\\<module\\>")
+                       (setq current-column-module-type (current-column))
+                       tuareg-default-indent)
+                      ((looking-at "\\<\\(with\\|and\\)\\>")
+                       (tuareg-find-with-match)
+                       (setq current-column-module-type (current-column))
+                       tuareg-default-indent)
+                      (t (re-search-forward "\\<type\\>")
+                         (beginning-of-line)
+                         tuareg-type-indent)))
+               ((looking-at tuareg-=-indent-regexp-1)
+                (let ((matched-string (tuareg-match-string 0)))
+                  ;; sds: why was it here?! (tuareg-back-to-paren-or-indentation)
+                  (setq current-column-module-type (current-column))
+                  (tuareg-assoc-indent matched-string)))
+               ((looking-at "\\<object\\>")
+                (tuareg-back-to-paren-or-indentation)
+                (setq current-column-module-type (current-column))
+                (+ (tuareg-assoc-indent "object")
+                   tuareg-default-indent))
+               (t (setq current-column-module-type
+                        (tuareg-paren-or-indentation-indent))
+                  tuareg-default-indent)))
+       (if current-column-module-type
+           current-column-module-type
+         (current-column)))))
+
 (defun tuareg-compute-normal-indent ()
   (let ((leading-operator (looking-at tuareg-operator-regexp)))
     (beginning-of-line)
@@ -2373,41 +2407,7 @@ Returns t iff skipped to indentation."
            ((looking-at (tuareg-give-keyword-regexp))
             (tuareg-compute-keyword-indent kwop leading-operator))
            ((and (string= kwop "=") (not (tuareg-false-=-p)))
-            (let ((current-column-module-type nil))
-              (+
-               (let ((kwop1 (tuareg-find-=-match)))
-                 (save-excursion
-                   (tuareg-reset-and-kwop kwop1)
-                   (cond
-                     ((string= kwop1 "type")
-                      (tuareg-find-meaningful-word)
-                      (cond ((looking-at "\\<module\\>")
-                             (setq current-column-module-type (current-column))
-                             tuareg-default-indent)
-                            ((looking-at "\\<\\(with\\|and\\)\\>")
-                             (tuareg-find-with-match)
-                             (setq current-column-module-type (current-column))
-                             tuareg-default-indent)
-                            (t
-                             (re-search-forward "\\<type\\>")
-                             (beginning-of-line)
-                             tuareg-type-indent)))
-                     ((looking-at tuareg-normal-indent-regexp-1)
-                      (let ((matched-string (tuareg-match-string 0)))
-                        ;; sds: why was it here?! (tuareg-back-to-paren-or-indentation)
-                        (setq current-column-module-type (current-column))
-                        (tuareg-assoc-indent matched-string)))
-                     ((looking-at "\\<object\\>")
-                      (tuareg-back-to-paren-or-indentation)
-                      (setq current-column-module-type (current-column))
-                      (+ (tuareg-assoc-indent "object")
-                         tuareg-default-indent))
-                     (t (setq current-column-module-type
-                              (tuareg-paren-or-indentation-indent))
-                        tuareg-default-indent))))
-               (if current-column-module-type
-                   current-column-module-type
-                 (current-column)))))
+            (tuareg-compute-=-indent))
            (nil 0)
            (t (tuareg-compute-argument-indent leading-operator))))))))
 
