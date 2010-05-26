@@ -1560,9 +1560,7 @@ Returns the actual text of the word, if found."
                      "exception" "open" "let")
           "\\|^#[ \t]*[a-z][_a-z]*\\>\\|;;"))
 (defconst tuareg-find-phrase-beginning-and-regexp
-  (concat (tuareg-ro "and" "end" "type" "module" "sig" "struct" "class"
-                     "exception" "open" "let")
-          "\\|^#[ \t]*[a-z][_a-z]*\\>\\|;;"))
+  (concat "\\<\\(and\\)\\>\\|" tuareg-find-phrase-beginning-regexp))
 (defconst tuareg-back-to-paren-or-indentation-regexp
   "[][(){}]\\|\\.<\\|>\\.\\|\\*)\\|^[ \t]*\\(.\\|\n\\)")
 
