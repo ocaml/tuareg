@@ -1506,7 +1506,7 @@ Gathered here for memoization and dynamic reconfiguration purposes."
   (defconst tuareg-find-|!-match-regexp
     (concat tuareg-find-=-match-regexp "\\|->\\|\\<try\\>"))
   (defconst tuareg-find-monadic-match-regexp
-    (concat tuareg-block-regexp "\\|\\<\\(val\\|let\\|m\\(ethod\\|odule\\)\\|type\\|class\\|when\\|i[fn]\\|do\\|where\\)\\>\\|\\( =\\)"))
+    (concat tuareg-block-regexp "\\|\\<\\(val\\|let\\|m\\(ethod\\|odule\\)\\|type\\|class\\|when\\|i[fn]\\|do\\|where\\)\\>\\|\\([;=]\\)"))
 
   ;; Static regexps (gathered here for better readability)
   (defconst tuareg-find-and-match-regexp
