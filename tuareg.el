@@ -165,7 +165,7 @@ and you want `let x = match ... with' and `match ... with' indent the
 same way."
   :group 'tuareg :type 'boolean)
 
-(defcustom tuareg-|-extra-unindent tuareg-default-indent
+(defcustom tuareg-pipe-extra-unindent tuareg-default-indent
   "*Extra backward indent for Caml lines starting with the `|' operator.
 
 It is NOT the variable controlling the indentation of the `|' itself:
@@ -182,7 +182,7 @@ For exemple, setting this variable to 0 leads to the following indentation:
 To modify the indentation of lines lead by `|' you need to modify the
 indentation variables for `with', `function' and `parse', and possibly
 for `type' as well. For example, setting them to 0 (and leaving
-`tuareg-|-extra-unindent' to its default value) yields:
+`tuareg-pipe-extra-unindent' to its default value) yields:
   match ... with
     X -> ...
   | Y -> ...
@@ -1344,20 +1344,20 @@ For synchronous programming.")
       tuareg-keyword-regexp-ls3
     tuareg-keyword-regexp))
 
-(defconst tuareg-match-|-kwop-regexp
+(defconst tuareg-match-pipe-kwop-regexp
   (concat (tuareg-ro "and" "fun" "function" "type" "with" "parse" "parser")
           "\\|[[({=]\\||[^!]")
   "Regexp for keywords supporting case match.")
 
-(defconst tuareg-match-|-kwop-regexp-ls3
-  (concat tuareg-match-|-kwop-regexp "\\|" (tuareg-ro "automaton" "present"))
+(defconst tuareg-match-pipe-kwop-regexp-ls3
+  (concat tuareg-match-pipe-kwop-regexp "\\|" (tuareg-ro "automaton" "present"))
   "Regexp for keywords supporting case match.
 For synchronous programming.")
 
-(defun tuareg-give-match-|-kwop-regexp ()
+(defun tuareg-give-match-pipe-kwop-regexp ()
   (if (tuareg-editing-ls3)
-      tuareg-match-|-kwop-regexp-ls3
-    tuareg-match-|-kwop-regexp))
+      tuareg-match-pipe-kwop-regexp-ls3
+    tuareg-match-pipe-kwop-regexp))
 
 (defconst tuareg-operator-regexp "[---+*/=<>@^&|]\\|:>\\|::\\|\\<\\(or\\|l\\(and\\|x?or\\|s[lr]\\)\\|as[lr]\\|mod\\)\\>"
   "Regexp for all operators.")
@@ -1454,7 +1454,7 @@ For synchronous programming.")
   "Association list of indentation values based on governing keywords.")
 
 (defconst tuareg-leading-kwop-alist
-  '(("|" . tuareg-find-|-match)
+  '(("|" . tuareg-find-pipe-match)
     ("}" . tuareg-find-match)
     (">}" . tuareg-find-match)
     (">." . tuareg-find-match)
@@ -1490,7 +1490,7 @@ For synchronous programming.")
         (+ (if (and tuareg-let-always-indent
                     looking-let-or-and (< ind tuareg-let-indent))
                tuareg-let-indent ind)
-           tuareg-|-extra-unindent)
+           tuareg-pipe-extra-unindent)
       ind)))
 
 (defun tuareg-in-monadic-op-p (&optional pos)
@@ -1530,23 +1530,23 @@ Returns the actual text of the word, if found."
   (concat (tuareg-give-find-kwop-regexp) "\\|" kwop-regexp))
 
 ;; Dynamic regexps (for language changes, see `tuareg-editing-ls3')
-(defvar tuareg-find-,-match-regexp nil)
+(defvar tuareg-find-comma-match-regexp nil)
 (defvar tuareg-find-with-match-regexp nil)
 (defvar tuareg-find-in-match-regexp nil)
 (defvar tuareg-find-then-match-regexp nil)
 (defvar tuareg-find-else-match-regexp nil)
 (defvar tuareg-find-do-match-regexp nil)
 (defvar tuareg-find-=-match-regexp nil)
-(defvar tuareg-find-|-match-regexp nil)
-(defvar tuareg-find-->-match-regexp nil)
-(defvar tuareg-find-semi-colon-match-regexp nil)
+(defvar tuareg-find-pipe-match-regexp nil)
+(defvar tuareg-find-arrow-match-regexp nil)
+(defvar tuareg-find-semicolon-match-regexp nil)
 (defvar tuareg-find-phrase-indentation-regexp nil)
 (defvar tuareg-find-phrase-indentation-break-regexp nil)
 (defvar tuareg-find-phrase-indentation-class-regexp nil)
 (defvar tuareg-compute-argument-indent-regexp nil)
 (defvar tuareg-compute-normal-indent-regexp nil)
 (defvar tuareg-find-module-regexp nil)
-(defvar tuareg-find-|!-match-regexp nil)
+(defvar tuareg-find-pipe-bang-match-regexp nil)
 (defvar tuareg-find-monadic-match-regexp nil)
 
 ;; Static regexps
@@ -1581,7 +1581,7 @@ Returns the actual text of the word, if found."
   "Initialisation of specific indentation regexp.
 Gathered here for memoization and dynamic reconfiguration purposes."
   (setq
-   tuareg-find-,-match-regexp
+   tuareg-find-comma-match-regexp
     (tuareg-make-find-kwop-regexp
      (concat (tuareg-ro "and" "match" "begin" "else" "exception" "then" "try"
                         "with" "or" "fun" "function" "let" "do")
@@ -1603,15 +1603,15 @@ Gathered here for memoization and dynamic reconfiguration purposes."
      (concat (tuareg-ro "val" "let" "method" "module" "type" "class" "when"
                         "if" "in" "do" "where")
              "\\|="))
-   tuareg-find-|-match-regexp
-    (tuareg-make-find-kwop-regexp (tuareg-give-match-|-kwop-regexp))
-   tuareg-find-->-match-regexp
+   tuareg-find-pipe-match-regexp
+    (tuareg-make-find-kwop-regexp (tuareg-give-match-pipe-kwop-regexp))
+   tuareg-find-arrow-match-regexp
     (tuareg-make-find-kwop-regexp
      (concat (tuareg-ro "external" "type" "val" "method" "let" "with" "fun"
                         "function" "functor" "class" "automaton" "present"
                         "parser")
              "\\|[|;]"))
-   tuareg-find-semi-colon-match-regexp
+   tuareg-find-semicolon-match-regexp
     (tuareg-make-find-kwop-regexp
      (concat ";" tuareg-no-more-code-this-line-regexp "\\|->\\|"
              (tuareg-ro "let" "method" "with" "try" "initializer")))
@@ -1629,7 +1629,7 @@ Gathered here for memoization and dynamic reconfiguration purposes."
     (concat tuareg-compute-argument-indent-regexp "\\|^.[ \t]*")
    tuareg-find-module-regexp
     (tuareg-make-find-kwop-regexp "\\<module\\>")
-   tuareg-find-|!-match-regexp
+   tuareg-find-pipe-bang-match-regexp
     (concat tuareg-find-=-match-regexp "\\|->\\|\\<try\\>")
    tuareg-find-monadic-match-regexp
     (concat tuareg-block-regexp "\\|\\([;=]\\)\\|"
@@ -1675,11 +1675,11 @@ If found, return the actual text of the keyword or operator."
       (tuareg-find-match))
     kwop))
 
-(defun tuareg-find-,-match ()
-  (tuareg-find-kwop tuareg-find-,-match-regexp))
+(defun tuareg-find-comma-match ()
+  (tuareg-find-kwop tuareg-find-comma-match-regexp))
 
-(defun tuareg-find-|!-match ()
-  (let ((kwop (tuareg-find-kwop tuareg-find-|!-match-regexp)))
+(defun tuareg-find-pipe-bang-match ()
+  (let ((kwop (tuareg-find-kwop tuareg-find-pipe-bang-match-regexp)))
     (if (looking-at "\\[|") "[|" kwop)))
 
 (defun tuareg-find-monadic-match ()
@@ -1732,7 +1732,7 @@ If found, return the actual text of the keyword or operator."
      ((string= kwop "then")
       (tuareg-find-then-else-match))
      ((string= kwop ";")
-      (tuareg-find-semi-colon-match)
+      (tuareg-find-semicolon-match)
       (tuareg-find-else-match)))))
 
 (defconst tuareg-do-match-stop-regexp (tuareg-ro "down" "downto"))
@@ -1818,20 +1818,20 @@ If found, return the actual text of the keyword or operator."
     (tuareg-find-=-match)
     (looking-at tuareg-captive-regexp)))
 
-(defconst tuareg-|-stop-regexp-ls3
+(defconst tuareg-pipe-stop-regexp-ls3
   (concat (tuareg-ro "and" "with" "automaton" "present") "\\||"))
-(defconst tuareg-|-stop-regexp
+(defconst tuareg-pipe-stop-regexp
   (concat (tuareg-ro "and" "with") "\\||"))
-(defun tuareg-give-|-stop-regexp ()
+(defun tuareg-give-pipe-stop-regexp ()
   (if (tuareg-editing-ls3)
-      tuareg-|-stop-regexp-ls3
-    tuareg-|-stop-regexp))
+      tuareg-pipe-stop-regexp-ls3
+    tuareg-pipe-stop-regexp))
 
-(defun tuareg-find-|-match ()
+(defun tuareg-find-pipe-match ()
   (let ((kwop
          (let ((k (tuareg-find-kwop
-                   tuareg-find-|-match-regexp
-                   (tuareg-give-|-stop-regexp))))
+                   tuareg-find-pipe-match-regexp
+                   (tuareg-give-pipe-stop-regexp))))
            (if (and k (string-match "|[^!]" k))
                "|" k)))
         (old-point (point)))
@@ -1841,35 +1841,35 @@ If found, return the actual text of the keyword or operator."
       (setq kwop (tuareg-find-and-match))
       (if (not (string= kwop "do"))
           (goto-char old-point)
-        (setq kwop (tuareg-find-->-match)))
+        (setq kwop (tuareg-find-arrow-match)))
       kwop)
      ((and (string= kwop "|")
            (looking-at "|[^|]")
            (tuareg-in-indentation-p))
       kwop)
-     ((string= kwop "|") (tuareg-find-|-match))
+     ((string= kwop "|") (tuareg-find-pipe-match))
      ((and (string= kwop "=")
            (or (looking-at (tuareg-no-code-after "="))
                (tuareg-false-=-p)
                (not (string= (save-excursion (tuareg-find-=-match))
                              "type"))))
-      (tuareg-find-|-match))
+      (tuareg-find-pipe-match))
      ((string= kwop "parse")
       (if (and (tuareg-editing-camllex)
                (save-excursion
                  (string= (tuareg-find-meaningful-word) "=")))
           kwop
-        (tuareg-find-|-match)))
+        (tuareg-find-pipe-match)))
      (t
       kwop))))
 
-(defun tuareg-find-->-match ()
-  (let ((kwop (tuareg-find-kwop tuareg-find-->-match-regexp "\\<with\\>")))
+(defun tuareg-find-arrow-match ()
+  (let ((kwop (tuareg-find-kwop tuareg-find-arrow-match-regexp "\\<with\\>")))
     (cond
      ((string= kwop "|")
       (if (tuareg-in-indentation-p)
           kwop
-        (progn (forward-char -1) (tuareg-find-->-match))))
+        (progn (forward-char -1) (tuareg-find-arrow-match))))
      ((string= kwop "fun")
       (let ((pos (point)))
         (if (string= ">>=" (tuareg-find-meaningful-word)) ">>="
@@ -1881,11 +1881,11 @@ If found, return the actual text of the keyword or operator."
      ((or (char-equal (char-before) ?:)
           (char-equal (char-after (1+ (point))) ?:)
           (char-equal (char-after (1+ (point))) ?>))
-      (tuareg-find-->-match))
+      (tuareg-find-arrow-match))
      ;; Patch by T. Freeman
      (t
       (let ((oldpoint (point))
-            (match (tuareg-find-->-match)))
+            (match (tuareg-find-arrow-match)))
         (if (looking-at ":")
             match
           (progn
@@ -1893,11 +1893,11 @@ If found, return the actual text of the keyword or operator."
             (goto-char oldpoint)
             kwop)))))))
 
-(defconst tuareg-semi-colon-match-stop-regexp
+(defconst tuareg-semicolon-match-stop-regexp
   (tuareg-ro "and" "do" "end" "in" "with"))
-(defun tuareg-find-semi-colon-match (&optional leading-semi-colon)
-  (tuareg-find-kwop tuareg-find-semi-colon-match-regexp
-                    tuareg-semi-colon-match-stop-regexp)
+(defun tuareg-find-semicolon-match (&optional leading-semi-colon)
+  (tuareg-find-kwop tuareg-find-semicolon-match-regexp
+                    tuareg-semicolon-match-stop-regexp)
   ;; We don't need to find the keyword matching `and' since we know it's `let'!
   (cond
    ((looking-at (tuareg-no-code-after ";"))
@@ -1924,14 +1924,14 @@ If found, return the actual text of the keyword or operator."
     (+ (tuareg-paren-or-indentation-column) tuareg-method-indent))
    ((looking-at "->")
     (if (save-excursion
-          (tuareg-find-->-match)
+          (tuareg-find-arrow-match)
           (or (looking-at "\\<fun\\>\\||")
               (looking-at (tuareg-give-extra-unindent-regexp))))
         (tuareg-paren-or-indentation-indent)
-      (tuareg-find-semi-colon-match)))
+      (tuareg-find-semicolon-match)))
    ((looking-at "\\<end\\>")
     (tuareg-find-match)
-    (tuareg-find-semi-colon-match))
+    (tuareg-find-semicolon-match))
    ((looking-at "\\<in\\>")
     (tuareg-find-in-match)
     (+ (current-column) tuareg-in-indent))
@@ -2159,19 +2159,19 @@ Returns t iff skipped to indentation."
            (not (looking-at (tuareg-no-code-after "->"))))
       (let (matching-kwop matching-pos)
         (save-excursion
-          (setq matching-kwop (tuareg-find-->-match))
+          (setq matching-kwop (tuareg-find-arrow-match))
           (setq matching-pos (point)))
         (cond
          ((string= matching-kwop ":")
           (goto-char matching-pos)
-          (tuareg-find-->-match) ; matching `val' or `let'
+          (tuareg-find-arrow-match) ; matching `val' or `let'
           (+ (current-column) tuareg-val-indent))
          ((or (string= matching-kwop "val") (string= matching-kwop "let"))
           (+ (current-column) tuareg-val-indent))
          ((string= matching-kwop "|")
           (goto-char matching-pos)
           (+ (tuareg-add-default-indent leading-operator)
-             (current-column) tuareg-|-extra-unindent tuareg-default-indent))
+             (current-column) tuareg-pipe-extra-unindent tuareg-default-indent))
          (t
           (+ (tuareg-paren-or-indentation-column)
              (tuareg-add-default-indent leading-operator))))))
@@ -2196,34 +2196,34 @@ Returns t iff skipped to indentation."
              (current-column))
         (current-column))))))
 
-(defun tuareg-compute-->-indent ()
-  (let ((keyword-->-match
-         (save-excursion (cons (tuareg-find-->-match) (point)))))
-    (cond ((string= (car keyword-->-match) "|")
-           (tuareg-find-->-match)
+(defun tuareg-compute-arrow-indent ()
+  (let ((keyword-arrow-match
+         (save-excursion (cons (tuareg-find-arrow-match) (point)))))
+    (cond ((string= (car keyword-arrow-match) "|")
+           (tuareg-find-arrow-match)
            (+ (current-column) tuareg-default-indent))
-          ((string= (car keyword-->-match) ":")
-           (goto-char (cdr keyword-->-match))
+          ((string= (car keyword-arrow-match) ":")
+           (goto-char (cdr keyword-arrow-match))
            (if (not (looking-at "\\<class\\>"))
-               (tuareg-find-->-match)) ; matching `val' or `let'
+               (tuareg-find-arrow-match)) ; matching `val' or `let'
            (+ (current-column) tuareg-val-indent))
-          ((or (string= (car keyword-->-match) "val")
-               (string= (car keyword-->-match) "type")
-               (string= (car keyword-->-match) "let"))
-           (goto-char (cdr keyword-->-match))
+          ((or (string= (car keyword-arrow-match) "val")
+               (string= (car keyword-arrow-match) "type")
+               (string= (car keyword-arrow-match) "let"))
+           (goto-char (cdr keyword-arrow-match))
            (+ (current-column) tuareg-val-indent))
-          ((string= (car keyword-->-match) ">>=")
-           (tuareg-find-semi-colon-match))
+          ((string= (car keyword-arrow-match) ">>=")
+           (tuareg-find-semicolon-match))
           (t (tuareg-paren-or-indentation-indent)))))
 
 (defun tuareg-compute-keyword-indent (kwop leading-operator)
   (cond ((string= kwop ";")
          (if (looking-at (tuareg-no-code-after ";"))
-             (tuareg-find-semi-colon-match)
+             (tuareg-find-semicolon-match)
            (tuareg-paren-or-indentation-indent)))
         ((string= kwop ",")
          (if (looking-at (tuareg-no-code-after ","))
-             (let ((mkwop (tuareg-find-,-match)))
+             (let ((mkwop (tuareg-find-comma-match)))
                (cond ((or (string= mkwop "[")
                           (string= mkwop "{")
                           (string= mkwop "("))
@@ -2334,7 +2334,7 @@ Returns t iff skipped to indentation."
                 (tuareg-indent-from-paren leading-operator)
               (+ tuareg-default-indent (tuareg-indent-from-paren leading-operator))))
            ((looking-at "->")
-            (tuareg-compute-->-indent))
+            (tuareg-compute-arrow-indent))
            ((looking-at (tuareg-give-keyword-regexp))
             (tuareg-compute-keyword-indent kwop leading-operator))
            ((and (string= kwop "=") (not (tuareg-false-=-p)))
@@ -2382,12 +2382,12 @@ Returns t iff skipped to indentation."
   (let* ((old-point (point))
          (paren-match-p (looking-at "[|>]?[]})]\\|>\\."))
          (need-back-kwop (not (string= kwop "and")))
-         (real-| (looking-at "|\\([^|]\\|$\\)"))
+         (real-pipe (looking-at "|\\([^|]\\|$\\)"))
          (matching-kwop (funcall (cdr (assoc kwop tuareg-leading-kwop-alist))))
-         (match-|-kwop-p
+         (match-pipe-kwop-p
           (and matching-kwop
-               (looking-at (tuareg-give-match-|-kwop-regexp)))))
-    (cond ((and (string= kwop "|") real-|)
+               (looking-at (tuareg-give-match-pipe-kwop-regexp)))))
+    (cond ((and (string= kwop "|") real-pipe)
            (cond
              ((string= matching-kwop "|")
               (when need-back-kwop
@@ -2397,7 +2397,7 @@ Returns t iff skipped to indentation."
                    (not (tuareg-false-=-p)))
               (re-search-forward "=[ \t]*")
               (current-column))
-             (match-|-kwop-p
+             (match-pipe-kwop-p
               (when (and need-back-kwop
                          (looking-at (tuareg-give-extra-unindent-regexp)))
                 (tuareg-back-to-paren-or-indentation))
@@ -2407,15 +2407,15 @@ Returns t iff skipped to indentation."
                  (if (or (string= matching-kwop "type")
                          (string= matching-kwop "["))
                      0
-                     tuareg-|-extra-unindent)))
+                     tuareg-pipe-extra-unindent)))
              (t
               (goto-char old-point)
               (tuareg-compute-normal-indent))))
-          ((and (string= kwop "|") (not real-|))
+          ((and (string= kwop "|") (not real-pipe))
            (goto-char old-point)
            (tuareg-compute-normal-indent))
           ((looking-at "[[{(][<|]?\\|\\.<")
-           (if (and (string= kwop "|") real-|)
+           (if (and (string= kwop "|") real-pipe)
                (current-column)
              (unless paren-match-p
                (tuareg-search-forward-paren))
@@ -2542,9 +2542,9 @@ Compute new indentation based on Caml syntax."
       (if (string= (tuareg-find-module) "module") (current-column)
         (tuareg-paren-or-indentation-indent)))
      ((looking-at ";")
-      (tuareg-find-semi-colon-match t))
+      (tuareg-find-semicolon-match t))
      ((looking-at "|!")
-      (tuareg-indent-to-code (tuareg-find-|!-match)))
+      (tuareg-indent-to-code (tuareg-find-pipe-bang-match)))
      ((or (looking-at ">>=") (looking-at ">>|"))
       (tuareg-indent-to-code (tuareg-find-monadic-match)))
      ((or (looking-at "%\\|;;")
@@ -2589,8 +2589,8 @@ Compute new indentation based on Caml syntax."
          (not (and (char-equal ?| (preceding-char))
                    (save-excursion
                      (tuareg-backward-char)
-                     (tuareg-find-|-match)
-                     (not (looking-at (tuareg-give-match-|-kwop-regexp))))))
+                     (tuareg-find-pipe-match)
+                     (not (looking-at (tuareg-give-match-pipe-kwop-regexp))))))
          (indent-according-to-mode))))
 
 (defun tuareg-electric-rp ()
@@ -2647,13 +2647,13 @@ Also, if the matching [ is followed by a | and this ] is not preceded
 by |, insert one |."
   (interactive "*")
   (let* ((prec (preceding-char))
-         (look-|-or-bra (and tuareg-electric-close-vector
-                             (not (tuareg-in-literal-or-comment-p))
-                             (not (and (char-equal ?| prec)
-                                       (not (char-equal
-                                             (save-excursion
-                                               (tuareg-backward-char)
-                                               (preceding-char)) ?\[))))))
+         (look-pipe-or-bra (and tuareg-electric-close-vector
+                                (not (tuareg-in-literal-or-comment-p))
+                                (not (and (char-equal ?| prec)
+                                          (not (char-equal
+                                                (save-excursion
+                                                  (tuareg-backward-char)
+                                                  (preceding-char)) ?\[))))))
          (electric (and tuareg-electric-indent
                         (or (tuareg-in-indentation-p)
                             (and (char-equal ?| prec)
@@ -2661,7 +2661,7 @@ by |, insert one |."
                                                  (tuareg-in-indentation-p))))
                         (not (tuareg-in-literal-or-comment-p)))))
     (self-insert-command 1)
-    (when look-|-or-bra
+    (when look-pipe-or-bra
       (save-excursion
         (let ((inserted-char
                (save-excursion
