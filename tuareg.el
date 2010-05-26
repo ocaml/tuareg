@@ -1680,6 +1680,10 @@ If found, return the actual text of the keyword or operator."
   (let ((kwop (tuareg-find-kwop tuareg-find-pipe-bang-match-regexp)))
     (if (looking-at "\\[|") "[|" kwop)))
 
+(defun tuareg-monadic-operator-p (word)
+  (and (or (string= ">>=" word) (string= ">>|" word) (string= ">>>" word))
+       word))
+
 (defun tuareg-find-monadic-match ()
   (let (kwop)
     (while (or (null kwop)
@@ -1881,9 +1885,8 @@ If found, return the actual text of the keyword or operator."
         (progn (forward-char -1) (tuareg-find-arrow-match))))
      ((string= kwop "fun")
       (let ((pos (point)))
-        (if (string= ">>=" (tuareg-find-meaningful-word)) ">>="
-          (goto-char pos)
-          kwop)))
+        (or (tuareg-monadic-operator-p (tuareg-find-meaningful-word))
+            (progn (goto-char pos) kwop))))
      ((not (string= kwop ":"))
       kwop)
      ;; If we get this far, we know we're looking at a colon.
@@ -2223,11 +2226,11 @@ Returns t iff skipped to indentation."
                (string= (car keyword-arrow-match) "let"))
            (goto-char (cdr keyword-arrow-match))
            (+ (current-column) tuareg-val-indent))
-          ((string= (car keyword-arrow-match) ">>=")
-           ;; find the last ">>="
+          ((tuareg-monadic-operator-p (car keyword-arrow-match))
+           ;; find the last ">>=" or ">>>"
            ;; (goto-char (cdr keyword-arrow-match))
            ;; (let ((back (point)))
-           ;;   (while (string= ">>=" (tuareg-find-arrow-match))
+           ;;   (while (tuareg-monadic-operator-p (tuareg-find-arrow-match))
            ;;     (setq back (point)))
            ;;   (goto-char back))
            ;; (if (not (re-search-backward
@@ -2580,7 +2583,7 @@ Compute new indentation based on Caml syntax."
       (tuareg-find-semicolon-match t))
      ((looking-at "|!")
       (tuareg-indent-to-code (tuareg-find-pipe-bang-match)))
-     ((or (looking-at ">>=") (looking-at ">>|"))
+     ((or (looking-at ">>=") (looking-at ">>>") (looking-at ">>|"))
       (tuareg-indent-to-code (tuareg-find-monadic-match)))
      ((or (looking-at "%\\|;;")
           (and tuareg-support-camllight (looking-at "#"))
