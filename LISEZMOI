@@ -1,81 +1,67 @@
 DESCRIPTION :
 
-  Cette archive contient des fichiers permettant de d'assister l'édition du code
-  Caml, de colorer les parties importantes du code, d'exécuter un toplevel Caml
-  et d'exécuter le débogueur Caml avec GNU Emacs/XEmacs. Elle a été conçue pour
-  Objective Caml, mais elle supporte également le code Camllight.
-
+Cette archive contient des fichiers permettant de d'assister l'édition
+du code Caml, de colorer les parties importantes du code, d'exécuter
+un toplevel Caml et d'exécuter le débogueur Caml avec GNU Emacs/XEmacs.
+Elle a été conçue pour Objective Caml, mais elle supporte également le
+code Camllight.
 
 CONTENU :
 
   README             Version anglaise de ce fichier;
   LISEZMOI           Ce fichier;
   HISTORY            Changements par rapport à la version précédente;
-  tuareg.el          Un mode majeur pour éditer du code Caml avec Emacs/XEmacs
+  tuareg.el          Un mode majeur pour éditer du code Caml avec Emacs/XEmacs;
   sym-lock.el        Une extension permettant d'afficher les symboles sous
                      XEmacs;
   camldebug.el       Permet d'exécuter le débogueur Caml sous Emacs;
   append-tuareg.el   Fichier de configuration pour une installation rapide;
   custom-tuareg.el   Exemple de personnalisation de Tuareg.
+  sample.el          Exemples pour vérifier le moteur d'indentation.
 
 INSTALLATION :
 
-  Si vous avez les droits d'écriture sur le répertoire «site-lisp» d'Emacs ou
-  d'XEmacs, il vous suffit d'y copier les fichiers «tuareg.el», «camldebug.el»
-  et «sym-lock.el» (Sym-Lock ne fonctionnant qu'avec XEmacs).
+  Si vous avez les droits d'écriture sur le répertoire « site-lisp »
+  d'Emacs ou d'XEmacs, il vous suffit d'y copier les fichiers
+  « tuareg.el », « camldebug.el » et « sym-lock.el » (Sym-Lock ne
+  fonctionnant qu'avec XEmacs).
 
-  Sinon, choisissez un répertoire, par exemple «toto», et copiez y les trois
-  fichiers «tuareg.el», «camldebug.el» et «sym-lock.el». Ensuite, ajoutez la
-  ligne suivante dans votre «.emacs» en remplaçant «toto» par le chemin complet
-  du répertoire choisi :
+  Sinon, choisissez un répertoire, par exemple « toto », et copiez y
+  les trois fichiers « tuareg.el », « camldebug.el » et
+  « sym-lock.el ».  Ensuite, ajoutez la ligne suivante dans votre
+  « .emacs » en remplaçant « toto » par le chemin complet du
+  répertoire choisi :
 
-  (setq load-path (cons "toto" load-path))
+  (add-to-list 'load-path "toto")
+
+  Alternativement, vous pouvez faire
+
+  $ make install DEST=toto
+
+  ce qui compilera également les fichiers en bytecode.
 
 CONFIGURATION RAPIDE :
 
   Si vous n'êtes pas familier avec Emacs-Lisp, et que voulez utiliser
-  Tuareg sans plus tarder, concaténez (ou copiez) `append-tuareg.el' à
-  votre fichier de configuration `.emacs'. Cela permet à XEmacs de
+  Tuareg sans plus tarder, concaténez (ou copiez) « append-tuareg.el » à
+  votre fichier de configuration « .emacs ».  Cela permet à XEmacs de
   charger automatiquement Tuareg et Sym-Lock.
 
-  Pensez à modifier votre fichier de configuration `.emacs' à la main si vous
-  avez déjà installé Tuareg.
+  Pensez à modifier votre fichier de configuration « .emacs » à la
+  main si vous avez déjà installé Tuareg.
 
 CONFIGURATION MANUELLE :
 
-  Ajoutez les lignes suivantes dans votre fichier `.emacs' :
+  Ajoutez les lignes suivantes dans votre fichier « .emacs » :
 
-  (setq auto-mode-alist (cons '("\\.ml\\w?" . tuareg-mode) auto-mode-alist))
-  (autoload 'tuareg-mode "tuareg" "Mode majeur pour éditer du code Caml" t)
-  (autoload 'camldebug "camldebug" "Exécuter le débogueur Caml" t)
+  (add-to-list 'auto-mode-alist '("\\.ml[iylp]?" . tuareg-mode))
+  (autoload 'tuareg-mode "tuareg" "Major mode for editing Caml code" t)
+  (autoload 'camldebug "camldebug" "Run the Caml debugger" t)
 
-  Le mode majeur Tuareg est chargé automatiquement lorsqu'on visite un fichier
-  avec l'extension .ml, .mli, .mly, .mll, .mlp... ou manuellement en tapant 
-  M-x tuareg-mode. Cela permet à Emacs de reconnaître correctement la
-  syntaxe Caml.
-
-  Si vous utilisez XEmacs, le mode mineur Font-Lock est utilisé conformément à
-  vos paramètres de personnalisation.
-
-  Dans Emacs, vous pouvez utiliser Font-Lock en rajoutant les lignes
-  suivantes à votre fichier de configuration :
-
-  (if (and (boundp 'window-system) window-system)
-      (require 'font-lock))
-
-  Avec XEmacs (et plus généralement, si vous avez des polices de
-  taille variable et si la librairie `atomic-extents' est supportée),
-  vous pouvez aussi utiliser Sym-Lock. Attention : les versions MULE
-  (multilingues) de XEmacs ne permettent pas de combiner plusieurs
-  polices avec des encodages différents sur le même buffer, et ne
-  supportent donc pas Sym-Lock. La configuration de Tuareg avec Sym-Lock
-  est la suivante :
-
-  (if (and (boundp 'window-system) window-system)
-      (if (string-match "XEmacs" emacs-version)
-       	  (if (not (and (boundp 'mule-x-win-initted) mule-x-win-initted))
-              (require 'sym-lock))
-       	  (require 'font-lock)))
+  Le mode majeur Tuareg est chargé automatiquement lorsqu'on visite un
+  fichier avec l'extension .ml, .mli, .mly, .mll, .mlp... ou
+  manuellement en tapant M-x tuareg-mode.  Cela permet à Emacs de
+  reconnaître correctement la syntaxe Caml.
 
 UTILISATION :
 
@@ -119,8 +105,8 @@ PERSONNALISATION
                ... ; votre personnalisation
              ))
 
-  `custom-tuareg.el' est un exemple de personnalisation standard. Vous
-  pouvez le rajouter à votre `.emacs' ou l'utiliser comme un tutoriel.
+  « custom-tuareg.el » est un exemple de personnalisation standard. Vous
+  pouvez le rajouter à votre « .emacs » ou l'utiliser comme un tutoriel.
 
 FONCTIONNALITÉS, BOGUES CONNUS :
 
@@ -156,16 +142,17 @@ REMERCIEMENTS
   Ohad Rodeh, Rauli Ruohonen, Hendrik Tews, Christophe Troestler,
   Joseph Sudish, Mattias Waldau and John Whitley.
 
+  Le mode Tuareg a été développé par Albert Cohen jusqu'à la version 1.45.
+
+  Jane Street a pris en charge le développement du code en partant de
+  la version 1.46 d'Albert Cohen (qu'il a ensuite retirée de son site)
+  et a publié sa première version comme 2.0.
+
 COORDONNÉES :
 
   Le site officiel de Tuareg se trouve à l'adresse :
+  <https://forge.ocamlcore.org/projects/tuareg/>.
 
-  http://www-rocq.inria.fr/~acohen/tuareg
-
-  Vous pouvez signaler vos bogues, envoyer vos suggestions et
-  encouragements, etc. à :
-
-  Albert Cohen
-  Chargé de Recherche - INRIA Futurs
-
-  E-Mail     : Albert.Cohen@inria.fr
+  Vous pouvez signaler vos bogues et envoyer vos suggestions à
+  <tuareg@janestreet.com> ou via le « tracker » :
+  <https://forge.ocamlcore.org/tracker/?group_id=43>.
