@@ -2063,7 +2063,6 @@ Returns t iff skipped to indentation."
          (save-excursion (cons (tuareg-find-->-match) (point)))))
     (cond ((string= (car keyword-->-match) "|")
            (tuareg-find-->-match)
-           (re-search-forward "|[ \t]*")
            (+ (current-column) tuareg-default-indent))
           ((string= (car keyword-->-match) ":")
            (goto-char (cdr keyword-->-match))
