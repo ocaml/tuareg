@@ -1516,7 +1516,7 @@ Gathered here for memoization and dynamic reconfiguration purposes."
   (defconst tuareg-find-|-match-regexp
     (tuareg-make-find-kwop-regexp (tuareg-give-match-|-kwop-regexp)))
   (defconst tuareg-find-->-match-regexp
-    (tuareg-make-find-kwop-regexp "\\<\\(external\\|val\\|method\\|let\\|with\\|fun\\(ction\\|ctor\\)?\\|class\\|automaton\\|present\\|parser\\)\\>\\|[|;]"))
+    (tuareg-make-find-kwop-regexp "\\<\\(external\\|type\\|val\\|method\\|let\\|with\\|fun\\(ction\\|ctor\\)?\\|class\\|automaton\\|present\\|parser\\)\\>\\|[|;]"))
   (defconst tuareg-find-semi-colon-match-regexp
     (tuareg-make-find-kwop-regexp ";[ \t]*\\((\\*\\|$\\)\\|->\\|\\<\\(let\\|method\\|with\\|try\\|initializer\\)\\>"))
   (defconst tuareg-find-phrase-indentation-regexp
@@ -2151,7 +2151,9 @@ Returns t iff skipped to indentation."
                 (if (not (looking-at "\\<class\\>"))
                     (tuareg-find-->-match)) ; matching `val' or `let'
                 (+ (current-column) tuareg-val-indent))
-               ((or (string= (car keyword-->-match) "val") (string= (car keyword-->-match) "let"))
+               ((or (string= (car keyword-->-match) "val")
+                    (string= (car keyword-->-match) "type")
+                    (string= (car keyword-->-match) "let"))
                 (goto-char (cdr keyword-->-match))
                 (+ (current-column) tuareg-val-indent))
                (t (tuareg-back-to-paren-or-indentation)
@@ -2250,8 +2252,7 @@ Returns t iff skipped to indentation."
                             (t
                              (re-search-forward "\\<type\\>")
                              (beginning-of-line)
-                             (+ tuareg-type-indent
-                                tuareg-|-extra-unindent))))
+                             tuareg-type-indent)))
                      ((looking-at "\\<\\(val\\|let\\|m\\(ethod\\|odule\\)\\|class\\|when\\|\\|for\\|if\\|do\\)\\>")
                       (let ((matched-string (tuareg-match-string 0)))
                         (tuareg-back-to-paren-or-indentation)
