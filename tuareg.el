@@ -1689,15 +1689,14 @@ If found, return the actual text of the keyword or operator."
     "\\<\\(and\\|with\\)\\>\\||"))
 
 (defun tuareg-find-|-match ()
-  (let* ((kwop (tuareg-find-kwop
-                tuareg-find-|-match-regexp
-                (tuareg-give-|-stop-regexp)))
-         (old-point (point)))
-    (let ((kwop
-           (if (string-match "|[^!]" kwop)
-               "|"
-             kwop)))
-      (cond
+  (let ((kwop
+         (let ((k (tuareg-find-kwop
+                   tuareg-find-|-match-regexp
+                   (tuareg-give-|-stop-regexp))))
+           (if (and k (string-match "|[^!]" k))
+               "|" k)))
+        (old-point (point)))
+    (cond
      ((string= kwop "and")
       (setq old-point (point))
       (setq kwop (tuareg-find-and-match))
@@ -1723,7 +1722,7 @@ If found, return the actual text of the keyword or operator."
           kwop
         (tuareg-find-|-match)))
      (t
-      kwop)))))
+      kwop))))
 
 (defun tuareg-find-->-match ()
   (let ((kwop (tuareg-find-kwop tuareg-find-->-match-regexp "\\<with\\>")))
