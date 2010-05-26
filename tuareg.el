@@ -65,9 +65,9 @@
 ;;                             Import types and help features
 
 (defvar tuareg-with-caml-mode-p
-  (condition-case nil
-      (and (require 'caml-types) (require 'caml-help))
-    (error nil)))
+  (and (require 'caml-types nil t) (require 'caml-help nil t)))
+(eval-when-compile
+  (autoload 'caml-complete "caml-help"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                       User customizable variables
@@ -3647,11 +3647,11 @@ jump via the definitions menu."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                             Hooks and Exit
 
-(condition-case nil
-    (progn (require 'speedbar)
-           (speedbar-add-supported-extension
-            '(".ml" ".mli" ".mll" ".mly" ".ls")))
-  (error nil))
+(eval-when-compile
+  (autoload 'speedbar-add-supported-extension "speedbar"))
+(when (require 'speedbar nil t)
+  (speedbar-add-supported-extension
+   '(".ml" ".mli" ".mll" ".mly" ".ls")))
 
 (defvar tuareg-load-hook nil
   "This hook is run when Tuareg is loaded in. It is a good place to put
