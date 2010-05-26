@@ -1581,7 +1581,9 @@ If found, return the actual text of the keyword or operator."
     (cond
      ((string= kwop "if")
       (tuareg-back-to-paren-or-indentation)
-      kwop)
+      (if (looking-at "else[ \t]*\\((\\*.*\\*)\\)*[ \t]*if")
+          "else if"
+          kwop))
      (t
       kwop))))
 
