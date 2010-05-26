@@ -55,7 +55,7 @@
       'match-string-no-properties
     'match-string))
 
-(if (not (fboundp 'read-shell-command))
+(or (fboundp 'read-shell-command)
     (defun read-shell-command  (prompt &optional initial-input history)
       "Read a string from the minibuffer, using `shell-command-history'."
       (read-from-minibuffer prompt initial-input nil nil
@@ -2483,15 +2483,15 @@ Compute new indentation based on Caml syntax."
                                tuareg-newline-and-indent
                                activate)
   "Handle multi-line strings in Tuareg mode."
-    (let ((hooked (and (eq major-mode 'tuareg-mode) (tuareg-in-literal-p)))
-          (split-mark))
-      (if (not hooked) nil
-        (setq split-mark (set-marker (make-marker) (point)))
-        (tuareg-split-string))
-      ad-do-it
-      (if (not hooked) nil
-        (goto-char split-mark)
-        (set-marker split-mark nil))))
+  (let ((hooked (and (eq major-mode 'tuareg-mode) (tuareg-in-literal-p)))
+        (split-mark))
+    (when hooked
+      (setq split-mark (set-marker (make-marker) (point)))
+      (tuareg-split-string))
+    ad-do-it
+    (when hooked
+      (goto-char split-mark)
+      (set-marker split-mark nil))))
 
 (defun tuareg-electric ()
   "If inserting a | operator at beginning of line, reindent the line."
@@ -2722,20 +2722,20 @@ by |, insert one |."
                      (> (point) begin)))) ()
         (if (not (looking-at tuareg-inside-module-or-class-opening-full))
             (setq kwop (tuareg-inside-module-or-class-find-kwop)))
-        (if (not kwop) ()
+        (when kwop
           (setq begin (point))
-          (if (not (tuareg-search-forward-end)) ()
+          (when (tuareg-search-forward-end)
             (tuareg-backward-char 3)
-            (if (not (looking-at "\\<end\\>")) ()
+            (when (looking-at "\\<end\\>")
               (tuareg-forward-char 3)
               (setq end (point))
               (setq and-end (point))
               (tuareg-skip-blank-and-comments)
               (while (and and-iter (looking-at "\\<and\\>"))
                 (setq and-end (point))
-                (if (not (tuareg-search-forward-end)) ()
+                (when (tuareg-search-forward-end)
                   (tuareg-backward-char 3)
-                  (if (not (looking-at "\\<end\\>")) ()
+                  (when (looking-at "\\<end\\>")
                     (tuareg-forward-char 3)
                     (setq and-end (point))
                     (tuareg-skip-blank-and-comments)))
@@ -3105,10 +3105,10 @@ Short cuts for interactions with the toplevel:
           tuareg-interactive-error-font-lock)
       (font-lock-mode 1))
   (add-hook 'comint-output-filter-functions 'tuareg-interactive-filter)
-  (if (not (boundp 'after-change-functions)) ()
+  (when (boundp 'after-change-functions)
     (make-local-hook 'after-change-functions)
     (remove-hook 'after-change-functions 'font-lock-after-change-function t))
-  (if (not (boundp 'pre-idle-hook)) ()
+  (when (boundp 'pre-idle-hook)
     (make-local-hook 'pre-idle-hook)
     (remove-hook 'pre-idle-hook 'font-lock-pre-idle-hook t))
   (setq comint-prompt-regexp "^#  *")
@@ -3400,7 +3400,7 @@ Short cuts for interaction within the toplevel:
   ;; Save and update definitions menu
   (if tuareg-with-xemacs
       (add-hook 'activate-menubar-hook 'tuareg-update-definitions-menu)
-    (if (not (functionp 'easy-menu-create-keymaps)) ()
+    (when (functionp 'easy-menu-create-keymaps)
       ;; Patch for Emacs
       (add-hook 'menu-bar-update-hook
                 'tuareg-with-emacs-update-definitions-menu)
