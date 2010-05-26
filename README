@@ -14,6 +14,7 @@ CONTENTS:
   camldebug.el       To run the Caml debugger under Emacs.
   append-tuareg.el   Configuration file for quick installation
   custom-tuareg.el   Tuareg customization example
+  sample.el          Sample file to check the indentation engine.
 
 INSTALL:
 
@@ -26,14 +27,19 @@ INSTALL:
   XEmacs only). Then add the following line to your `.emacs', where
   `foo' is replaced by the appropriate directory FULL PATH:
 
-  (setq load-path (cons "foo" load-path))
+  (add-to-list 'load-path "foo")
+
+  You can also do
+
+  $ make install DEST=foo
+
+  which will also byte-compile the files.
 
 QUICK CONFIGURATION:
 
-  If you are no Emacs-Lisp addict, and would like to use Tuareg
-  NOW, append (or copy) `append-tuareg.el' file to your `.emacs'
-  configuration file. It tells XEmacs to load Tuareg and Sym-Lock
-  automatically.
+  If you are no Emacs-Lisp addict, and would like to use Tuareg NOW, append
+  (or copy) `append-tuareg.el' file to your `.emacs' configuration file.
+  It tells Emacs to load Tuareg and Sym-Lock (for XEmacs) automatically.
 
   Consider updating your `.emacs' configuration file by hand if you
   keep on using Tuareg.
@@ -42,7 +48,7 @@ MANUAL CONFIGURATION:
 
   Add the following lines to your .emacs file:
 
-  (setq auto-mode-alist (cons '("\\.ml\\w?" . tuareg-mode) auto-mode-alist))
+  (add-to-list 'auto-mode-alist '("\\.ml\\w?" . tuareg-mode))
   (autoload 'tuareg-mode "tuareg" "Major mode for editing Caml code" t)
   (autoload 'camldebug "camldebug" "Run the Caml debugger" t)
 
@@ -50,35 +56,12 @@ MANUAL CONFIGURATION:
   .ml, .mli, .mly, .mll, .mlp... or manually by M-x tuareg-mode. It
   gives you the correct syntax table for the Caml language.
 
-  If you use XEmacs, the Font-Lock minor-mode is used accordingly to
-  your customization options.
-
-  Within Emacs, you may want to use Font-Lock in addding the following
-  lines to the configuration file:
-
-  (if (and (boundp 'window-system) window-system)
-      (require 'font-lock))
-
-  Within XEmacs (more generally, if you have variable-sized fonts and
-  `atomic-extents' library supported) you may also want to use
-  Sym-Lock Warning: MULE (multilingual) versions of XEmacs do not
-  support multiple font encodings in a single buffer, which is
-  required by Sym-Lock. Configuring Tuareg with Sym-Lock is done as
-  follows:
-
-  (if (and (boundp 'window-system) window-system)
-      (when (string-match "XEmacs" emacs-version)
-       	  (if (not (and (boundp 'mule-x-win-initted) mule-x-win-initted))
-              (require 'sym-lock))
-       	  (require 'font-lock)))
-
 USAGE:
 
-  Tuareg allows you to run batch Caml compilations from Emacs (using
-  M-x compile) and browse the errors (C-x `). Typing C-x ` sets the
-  point at the beginning of the erroneous program fragment, and the
-  mark at the end. Under Emacs, the program fragment is temporarily
-  hilighted.
+  Tuareg allows you to run batch Caml compilations from Emacs (using M-x
+  compile) and browse the errors (C-x `). Typing C-x ` sets the point at
+  the beginning of the erroneous program fragment, and the mark at the end.
+  Under Emacs, the program fragment is temporarily hilighted.
 
   M-x tuareg-run-caml starts a Caml toplevel with input and output in
   an Emacs buffer named `*caml-toplevel*. This gives you the full
@@ -88,8 +71,8 @@ USAGE:
   used for customization.
 
   Typing C-c C-e in a buffer in Caml mode sends the current phrase
-  (containing the point) to the Caml toplevel, and evaluates it. If
-  you type one of these commands before M-x tuareg-run-caml, the
+  (containing the point) to the Caml toplevel, and evaluates it.
+  If you type one of these commands before M-x tuareg-run-caml, the
   toplevel will be started automatically.
 
   M-x camldebug FILE starts the Caml debugger camldebug on the
@@ -106,9 +89,10 @@ CUSTOMIZATION
 
   You may also customize the appearance of Caml code by twiddling the
   variables listed at the start of tuareg.el (preferably using
-  `tuareg-mode-hook', you should not patch the file directly). You
-  should then add to your configuration file something like: (add-hook
-  'tuareg-mode-hook '(lambda () ... ; your customization code ))
+  `tuareg-mode-hook', you should not patch the file directly).
+  You should then add to your configuration file something like:
+  (add-hook 'tuareg-mode-hook
+    '(lambda () ... ; your customization code ))
 
   `custom-tuareg.el' is a sample customization file for standard
   changes. You can append it to your `.emacs' or use it as a tutorial.
@@ -132,7 +116,7 @@ THANKS:
   should say), especially for Tuareg interactive mode, and browser
   capacities.
 
-  Denis Barthou, Pierre Boulet, Jean-Christophe Filliatre and Rémi
+  Denis Barthou, Pierre Boulet, Jean-Christophe Filliatre and RÃ©mi
   Vanicat for intensive testing, useful suggestions, and help.
 
   Ralf Treinen for maintaining the Debian GNU/Linux package.
@@ -141,23 +125,21 @@ THANKS:
   patches. Nothing would have improved since version 0.9.2 without
   their help. Special thanks to Eli Barzilay, Josh Berdine, Christian
   Boos, Carsten Clasohm, Yann Coscoy, Prakash Countcham, Alvarado
-  Cuihtlauac, Erwan David, Gilles Défourneaux, Philippe Esperet,
+  Cuihtlauac, Erwan David, Gilles DÃ©fourneaux, Philippe Esperet,
   Gilles Falcon, Tim Freeman, Alain Frisch, Christian Lindig, Claude
-  Marché, Charles Martin, Dave Mason, Stefan Monnier, Toby Moth,
+  MarchÃ©, Charles Martin, Dave Mason, Stefan Monnier, Toby Moth,
   Jean-Yves Moyen, Alex Ott, Christopher Quinn, Ohad Rodeh, Rauli
   Ruohonen, Hendrik Tews, Christophe Troestler, Joseph Sudish, Mattias
   Waldau and John Whitley.
 
+  Tuareg mode have been maintained by Albert Cohen until version 1.45.
+
+  Jane Street took over maintenance based on Albert Cohen's version 1.46
+  (later retracted by him), and released its first version as 2.0.
+
 REPORTING:
 
   The official Tuareg home page is located at:
+  <http://www.janestreet.com/ocaml/tuareg.tgz>.
 
-  http://www-rocq.inria.fr/~acohen/tuareg
-
-  Bug reports, suggestions, donations etc. to:
-
-  Albert Cohen
-  Research Scientist - INRIA Rocquencourt
-
-  E-Mail     : Albert.Cohen@inria.fr
-  WWW        : http://www-rocq.inria.fr/~acohen
+  Bug reports & patches to: <tuareg@janestreet.com>.

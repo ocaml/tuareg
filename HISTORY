@@ -6,7 +6,7 @@ First version -
         and Jerome Vouillon <Jerome.Vouillon@ens.fr>, 1993.
 Compilation interface -
         By Ian Zimmerman <itz@rahul.net>, 1996;
-        Copyright © 1996 Ian Zimmerman, all rights reserved.
+        Copyright (C) 1996 Ian Zimmerman, all rights reserved.
 First Font-Lock and XEmacs support -
         By Pierre Boulet <Pierre.Boulet@ens-lyon.fr>, 1996.
 First OCaml and OLabl version -
@@ -67,12 +67,12 @@ Tuareg Mode history:
 	of Michel Quercia. Bug removal in phrase detection and comment
 	indentation (paragraph and lines).
 1.36  - January 22 1999 -
-	Navigation support for OCaml manual, library, and buffer-dependent 
+	Navigation support for OCaml manual, library, and buffer-dependent
 	definitions (adapted from original code by Michel Quercia). New
-	commands, and next-error in toplevel by Claude Marché.
+	commands, and next-error in toplevel by Claude MarchÃ©.
 1.37  - May 18 2000 -
 	Many improvements and extended support for OCaml 3.00 (like label
-	hiliting). Improved FSF Emacs compatibility thanks to Rémi Vanicat.
+	hiliting). Improved FSF Emacs compatibility thanks to RÃ©mi Vanicat.
 	Corrected bugs in string/comment recognition (the last ones?).
 1.38  - September 19 2000 -
 	Standard Customization interface, removal of most non-standard
@@ -97,7 +97,45 @@ Tuareg Mode history:
 1.44  - December 29 2004 -
 	Major fontification improvements, largely by Stefan Monnier.
 	Many bug fixes related with the improvements in 1.42 and 1.43.
-1.45  - Planned for release in March 2005 -
+1.45  - March 28 2005 -
 	New symbol fontification, compatible with FSF Emacs, by
         Stefan Monnier. Initiation of a migration of the syntax cache to
         PPSS for comments and string.
+1.46  - May 21 2006 -
+	Integration of more language variants. A future version will
+	modularize this support, to improve flexibility and minimize
+	interference risks. Plus various bug fixes and new features.
+
+Changes made by Sam Steingold
+
+* 2010-02-09
+
+== Many indentation fixes.
+
+== Code cleaned up and updated to the modern Emacs Lisp;
+   compilation warnings eliminated.
+
+* 2010-03-10
+
+== Treat ">>>" just like ">>=" for indentation purposes.
+
+== `Jane style' indentation of `type' statements now requires
+   `tuareg-type-indent'=0.
+
+== `until' & `unless' are only special in ls3, not general ocaml.
+
+== Other indentation fixes.
+
+* 2010-04-20 (1.99.2)
+
+== Many indentation fixes.
+
+== Better regression testing.
+
+== Restore reasonable behavior without Jane custom settings.
+
+* 2010-05-03 (2.0)
+
+== Many indentation fixes.
+
+== Prepare the first official release from Jane Street.

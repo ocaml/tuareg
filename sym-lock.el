@@ -2,7 +2,7 @@
 ;; sym-lock.el - Extension of Font-Lock mode for symbol fontification.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;        Copyright © 1997-2004 Albert Cohen, all rights reserved.
+;;        Copyright (C) 1997-2004 Albert Cohen, all rights reserved.
 ;;         Copying is covered by the GNU General Public License.
 ;;
 ;;    This program is free software; you can redistribute it and/or modify
@@ -17,7 +17,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                 History
-;; 
+;;
 ;; first prototype by wg <wg@cs.tu-berlin.de> 5-96
 ;; tweaked by Steve Dunham <dunham@gdl.msu.edu> 5-96
 ;; rewritten and enhanced by Albert Cohen <Albert.Cohen@inria.fr> 3-97
@@ -36,7 +36,7 @@
 
 (require 'cl)
 (require 'font-lock)
-(require 'atomic-extents)
+;; (require 'atomic-extents)
 
 (defvar sym-lock-sym-count 0
   "Counter for internal symbols.")
@@ -75,7 +75,7 @@
   "Generate a new internal symbol."
   ;; where is the standard function to do this ?
   (setq sym-lock-sym-count (+ sym-lock-sym-count 1))
-  (intern (concat "sym-lock-gen-" (or prefix "") 
+  (intern (concat "sym-lock-gen-" (or prefix "")
 		  (int-to-string sym-lock-sym-count))))
 
 (defun sym-lock-make-symbols-atomic (&optional begin end)
@@ -216,7 +216,7 @@ the empty string. OBJ may either be a string or a character."
     (fillarray table "")
     (set-face-property tface 'display-table table)
     (set-face-property tface 'sym-lock-remap 1) ; mark it
-    tface 
+    tface
     ;; return face value and not face name
     ;; the temporary face would be otherwise GCed
     ))
