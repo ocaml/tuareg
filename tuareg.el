@@ -2192,8 +2192,7 @@ Returns t iff skipped to indentation."
       (while (and (not (looking-at tuareg-no-more-code-this-line-regexp))
                   (< (point) old-point)) ; do not go beyond old-point
         (forward-sexp 1))
-      (forward-line 1)
-      (re-search-forward "^[ \t]*[^ \t]" old-point t) ; skip blank lines
+      (tuareg-skip-blank-and-comments)
       (tuareg-back-to-paren-or-indentation)
       (if (save-excursion (goto-char match-end-point)
                           (looking-at tuareg-no-more-code-this-line-regexp))
