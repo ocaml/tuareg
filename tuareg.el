@@ -701,7 +701,7 @@ and `tuareg-xemacs-w3-manual' (XEmacs only)."
       ind)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                           Sym-lock in Emacs
+;;                           Font-lock in Emacs
 
 ;; Originally by Stefan Monnier
 
@@ -883,34 +883,6 @@ Regexp match data 0 points to the chars."
   ()
   "Font-Lock patterns for Tuareg mode.")
 
-(when (featurep 'sym-lock)
-  (make-face 'tuareg-font-lock-lambda-face
-             "Face description for fun keywords (lambda operator).")
-  (set-face-parent 'tuareg-font-lock-lambda-face
-                   font-lock-function-name-face)
-  (set-face-font 'tuareg-font-lock-lambda-face
-                 sym-lock-font-name)
-
-  ;; To change this table, xfd -fn '-adobe-symbol-*--12-*' may be
-  ;; used to determine the symbol character codes.
-  (defvar tuareg-sym-lock-keywords
-    '(("<-" 0 1 172 nil)
-      ("->" 0 1 174 nil)
-      ("<=" 0 1 163 nil)
-      (">=" 0 1 179 nil)
-      ("<>" 0 1 185 nil)
-      ("==" 0 1 186 nil)
-      ("||" 0 1 218 nil)
-      ("&&" 0 1 217 nil)
-      ("[^*]\\(\\*\\)\\." 1 8 180 nil)
-      ("\\(/\\)\\." 1 3 184 nil)
-      (";;" 0 1 191 nil)
-      ("\\<sqrt\\>" 0 3 214 nil)
-      ("\\<fun\\>" 0 3 108 tuareg-font-lock-lambda-face)
-      ("\\<or\\>" 0 3 218 nil)
-      ("\\<not\\>" 0 3 216 nil))
-    "If non nil: Overrides default Sym-Lock patterns for Tuareg."))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                    Keymap
 
@@ -1039,16 +1011,9 @@ handles Objective Labl and Caml Light as well.
 Report bugs, remarks and questions to Albert.Cohen@prism.uvsq.fr.
 
 The Font-Lock minor-mode is used according to your customization
-options. Within XEmacs (non-MULE versions only) you may also want to
-use Sym-Lock:
+options.
 
-\(when (and (boundp 'window-system) window-system
-            (string-match \"XEmacs\" emacs-version))
-  (unless (and (boundp 'mule-x-win-initted) mule-x-win-initted)
-    (require 'sym-lock))
-  (require 'font-lock))
-
-You have better byte-compile tuareg.el (and sym-lock.el if you use it).
+You have better byte-compile tuareg.el.
 
 For customization purposes, you should use `tuareg-mode-hook'
 \(run for every file) or `tuareg-load-hook' (run once) and not patch
@@ -1060,10 +1025,6 @@ the mode itself. You should add to your configuration file something like:
 For example you can change the indentation of some keywords, the
 `electric' flags, Font-Lock colors... Every customizable variable is
 documented, use `C-h-v' or look at the mode's source code.
-
-A special case is Sym-Lock customization: You may set
-`tuareg-sym-lock-keywords' in your `.emacs' configuration file
-to override default Sym-Lock patterns.
 
 `custom-tuareg.el' is a sample customization file for standard changes.
 You can append it to your `.emacs' or use it as a tutorial.
@@ -1150,7 +1111,7 @@ Short cuts for interactions with the toplevel:
   (when tuareg-use-abbrev-mode (abbrev-mode 1))
   (message nil))
 
-(defun tuareg-install-font-lock (&optional no-sym-lock)
+(defun tuareg-install-font-lock ()
   (setq
    tuareg-font-lock-keywords
    (nconc
@@ -1223,12 +1184,6 @@ Short cuts for interactions with the toplevel:
     (if tuareg-font-lock-symbols
         (tuareg-font-lock-symbols-keywords)
       ())))
-  (when (and (not no-sym-lock)
-             (featurep 'sym-lock))
-    (setq sym-lock-color
-          (face-foreground 'tuareg-font-lock-operator-face))
-    (unless sym-lock-keywords
-      (sym-lock tuareg-sym-lock-keywords)))
   (setq font-lock-defaults
         (list*
          'tuareg-font-lock-keywords (not tuareg-use-syntax-ppss) nil
@@ -3030,10 +2985,7 @@ or indent all lines in the current phrase."
            (list 'read-only t)))
         (when (and font-lock-mode tuareg-interactive-input-font-lock)
           (font-lock-fontify-region comint-last-input-start
-                                    comint-last-input-end)
-          (when (featurep 'sym-lock)
-            (sym-lock-make-symbols-atomic comint-last-input-start
-                                          comint-last-input-end)))
+                                    comint-last-input-end))
         (when tuareg-interactive-output-font-lock
           (save-excursion
             (goto-char (point-max))
@@ -3069,7 +3021,7 @@ be sent from another buffer in Caml mode.
 
 Short cuts for interactions with the toplevel:
 \\{tuareg-interactive-mode-map}"
-  (tuareg-install-font-lock t)
+  (tuareg-install-font-lock)
   (when (or tuareg-interactive-input-font-lock
             tuareg-interactive-output-font-lock
             tuareg-interactive-error-font-lock)
