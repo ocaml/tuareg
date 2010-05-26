@@ -881,12 +881,6 @@ Regexp match data 0 points to the chars."
           tuareg-doc-face
         font-lock-comment-face))))
 
-(when (facep 'font-lock-keyword-face)
-  (defvar font-lock-preprocessor-face)
-  (if (facep 'font-lock-preprocessor-face) ()
-    (defvar font-lock-preprocessor-face font-lock-keyword-face)
-    (copy-face font-lock-keyword-face 'font-lock-preprocessor-face)))
-
 ;; Initially empty, set in `tuareg-install-font-lock'
 (defvar tuareg-font-lock-keywords
   ()
