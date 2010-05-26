@@ -1307,7 +1307,7 @@ possible."
 (defun tuareg-ro (&rest words) (concat "\\<" (regexp-opt words t) "\\>"))
 
 (defconst tuareg-extra-unindent-regexp
-  (concat "\\(" (tuareg-ro "with" "fun" "function" "type" "parse" "parser")
+  (concat "\\(" (tuareg-ro "with" "fun" "function" "parse" "parser")
           "\\|\\[" tuareg-no-more-code-this-line-regexp "\\)")
   "Regexp for keywords needing extra indentation to compensate for case matches.")
 
@@ -2321,7 +2321,7 @@ Returns t iff skipped to indentation."
 (defconst tuareg-=-indent-regexp-1
   (tuareg-ro "val" "let" "method" "module" "class" "when" "for" "if" "do"))
 
-(defun tuareg-compute-=-indent ()
+(defun tuareg-compute-=-indent (start-pos)
   (let ((current-column-module-type nil) (kwop1 (tuareg-find-=-match)))
     (+ (save-excursion
          (tuareg-reset-and-kwop kwop1)
@@ -2334,9 +2334,11 @@ Returns t iff skipped to indentation."
                        (tuareg-find-with-match)
                        (setq current-column-module-type (current-column))
                        tuareg-default-indent)
-                      (t (re-search-forward "\\<type\\>")
+                      (t (goto-char start-pos)
                          (beginning-of-line)
-                         tuareg-type-indent)))
+                         (+ tuareg-type-indent
+                            (if (looking-at "[ \t]*[\[|]")
+                                0 tuareg-default-indent)))))
                ((looking-at tuareg-=-indent-regexp-1)
                 (let ((matched-string (tuareg-match-string 0)))
                   ;; sds: why was it here?! (tuareg-back-to-paren-or-indentation)
@@ -2358,7 +2360,8 @@ Returns t iff skipped to indentation."
   (let ((leading-operator (looking-at tuareg-operator-regexp)))
     (beginning-of-line)
     (save-excursion
-      (let ((kwop (tuareg-find-kwop
+      (let ((start-pos (point))
+            (kwop (tuareg-find-kwop
                    (if leading-operator
                        tuareg-compute-argument-indent-regexp
                      tuareg-compute-normal-indent-regexp)
@@ -2407,7 +2410,7 @@ Returns t iff skipped to indentation."
            ((looking-at (tuareg-give-keyword-regexp))
             (tuareg-compute-keyword-indent kwop leading-operator))
            ((and (string= kwop "=") (not (tuareg-false-=-p)))
-            (tuareg-compute-=-indent))
+            (tuareg-compute-=-indent start-pos))
            (nil 0)
            (t (tuareg-compute-argument-indent leading-operator))))))))
 
