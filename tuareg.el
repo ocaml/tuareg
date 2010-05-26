@@ -1365,7 +1365,7 @@ For synchronous programming.")
     tuareg-keyword-regexp))
 
 (defconst tuareg-match-|-kwop-regexp
-  "\\<\\(and\\|fun\\(ction\\)?\\|type\\|with\\|parser?\\)\\>\\|[[({|=]"
+  "\\<\\(and\\|function\\|type\\|with\\|parser?\\)\\>\\|[[({=]\\||[^!|]"
   "Regexp for keywords supporting case match.")
 
 (defconst tuareg-match-|-kwop-regexp-ls3
@@ -1378,7 +1378,7 @@ For synchronous programming.")
       tuareg-match-|-kwop-regexp-ls3
     tuareg-match-|-kwop-regexp))
 
-(defconst tuareg-operator-regexp "[---+*/=<>@^&|]\\|:>\\|::\\|\\<\\(or\\|l\\(and\\|x?or\\|s[lr]\\)\\|as[lr]\\|mod\\)\\>"
+(defconst tuareg-operator-regexp "[---+!*/=<>@^&|]\\|:>\\|::\\|\\<\\(or\\|l\\(and\\|x?or\\|s[lr]\\)\\|as[lr]\\|mod\\)\\>"
   "Regexp for all operators.")
 
 (defconst tuareg-matching-keyword-regexp
@@ -1534,7 +1534,7 @@ Gathered here for memoization and dynamic reconfiguration purposes."
   (defconst tuareg-find-|-match-regexp
     (tuareg-make-find-kwop-regexp (tuareg-give-match-|-kwop-regexp)))
   (defconst tuareg-find-->-match-regexp
-    (tuareg-make-find-kwop-regexp "\\<\\(external\\|val\\|method\\|let\\|with\\|fun\\(ction\\|ctor\\)?\\|class\\|automaton\\|present\\|parser\\)\\>\\|[|:;]"))
+    (tuareg-make-find-kwop-regexp "\\<\\(external\\|val\\|method\\|let\\|with\\|fun\\(ction\\|ctor\\)?\\|class\\|automaton\\|present\\|parser\\)\\>\\|[|:;][^!|]"))
   (defconst tuareg-find-semi-colon-match-regexp
     (tuareg-make-find-kwop-regexp ";[ \t]*\\((\\*\\|$\\)\\|->\\|\\<\\(let\\|method\\|with\\|try\\|initializer\\)\\>"))
   (defconst tuareg-find-phrase-indentation-regexp
@@ -1589,7 +1589,7 @@ If found, return the actual text of the keyword or operator."
        ((tuareg-at-phrase-break-p)
 	(setq found t))
        ((and do-not-skip-regexp (looking-at do-not-skip-regexp))
-	(if (and (string= kwop "|") (char-equal ?| (preceding-char)))
+	(if (and (string= kwop "|") (or (char-equal ?| (preceding-char)) (char-equal ?! (following-char))))
 	    (backward-char)
 	  (setq found t)))
        ((looking-at (tuareg-give-matching-keyword-regexp))
@@ -1753,7 +1753,7 @@ If found, return the actual text of the keyword or operator."
 	(setq kwop (tuareg-find-->-match)))
       kwop)
      ((and (string= kwop "|")
-	   (looking-at "|[^|]")
+	   (looking-at "|[^!|]")
 	   (tuareg-in-indentation-p))
       kwop)
      ((string= kwop "|") (tuareg-find-|-match))
@@ -1978,8 +1978,8 @@ Returns t iff skipped to indentation."
 ;		(tuareg-back-to-paren-or-indentation)))
 	     (t (back-to-indentation) t)))
       (cond
-       ((looking-at "|[^|]")
-	(re-search-forward "|[^|][ \t]*") nil)
+       ((looking-at "|[^!|]")
+	(re-search-forward "|[^!|][ \t]*") nil)
        ((or (string= kwop "in") (string= kwop "do"))
 	(tuareg-find-in-match)
 	(tuareg-back-to-paren-or-indentation)
@@ -2359,7 +2359,7 @@ Compute new indentation based on Caml syntax."
 	(let* ((old-point (point))
 	       (paren-match-p (looking-at "[|>]?[]})]\\|>\\."))
 	       (need-not-back-kwop (string= kwop "and"))
-	       (real-| (looking-at "|\\([^|]\\|$\\)"))
+	       (real-| (looking-at "|\\([^|!]\\|$\\)"))
 	       (matching-kwop
 		(if (string= kwop "and")
 		    (tuareg-find-and-match)
@@ -2479,7 +2479,7 @@ Compute new indentation based on Caml syntax."
 		       (not (tuareg-in-comment-p)))))
     (self-insert-command 1)
     (if (and electric
-	     (not (and (char-equal ?| (preceding-char))
+	     (not (and (or (char-equal ?| (preceding-char)) (char-equal ?! (following-char)))
 		       (save-excursion
 			 (tuareg-backward-char)
 			 (tuareg-find-|-match)
@@ -2540,16 +2540,17 @@ Also, if the matching [ is followed by a | and this ] is not preceded
 by |, insert one |."
   (interactive "*")
   (let* ((prec (preceding-char))
+         (succ (following-char))
 	 (look-|-or-bra (and tuareg-electric-close-vector
 			     (not (tuareg-in-literal-or-comment-p))
-			     (not (and (char-equal ?| prec)
+			     (not (and (or (char-equal ?| prec) (char-equal ?! succ))
 				       (not (char-equal
 					     (save-excursion
 					       (tuareg-backward-char)
 					       (preceding-char)) ?\[))))))
 	 (electric (and tuareg-electric-indent
 			(or (tuareg-in-indentation-p)
-			    (and (char-equal ?| prec)
+			    (and (or (char-equal ?| prec) (char-equal ?! succ))
 				 (save-excursion (tuareg-backward-char)
 						 (tuareg-in-indentation-p))))
 			(not (tuareg-in-literal-or-comment-p)))))
