@@ -2249,7 +2249,8 @@ Returns t iff skipped to indentation."
       (if (save-excursion (goto-char match-end-point)
                           (looking-at tuareg-no-more-code-this-line-regexp))
           (+ (tuareg-add-default-indent
-              (or leading-operator (string= kwop "{")))
+              (or leading-operator (string= kwop "{")
+                  (looking-at (tuareg-no-code-after "[[:upper:]].*\\."))))
              (current-column))
         (current-column))))))
 
@@ -2504,12 +2505,13 @@ Returns t iff skipped to indentation."
 (defun tuareg-compute-paren-indent (paren-match-p)
   (unless paren-match-p
     (tuareg-search-forward-paren))
-  (when (looking-at "\\(\(\\|\\(\{\\(.*with\\)?\\|\\[\\)[ \t]*\\(\(\\*\\|$\\)\\)")
-    (let ((looking-at (char-after)) (start-pos (point)))
+  (let ((looking-at-paren (char-equal ?\( (char-after))) (start-pos (point)))
+    (when (or looking-at-paren
+              (looking-at (tuareg-no-code-after "\\(\{\\(.*with[ \t]*\\([[:upper:]].*\\.\\)?\\)?\\|\\[\\)")))
       (if (tuareg-in-indentation-p)
           (tuareg-back-to-paren-or-indentation)
         (tuareg-indent-from-previous-kwop))
-      (when (char-equal looking-at ?\()
+      (when looking-at-paren
         (skip-chars-forward "( \t" start-pos))))
   (current-column))
 
