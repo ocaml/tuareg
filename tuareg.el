@@ -1917,19 +1917,17 @@ If found, return the actual text of the keyword or operator."
 Returns t iff skipped to indentation."
   (if (or (bolp) (tuareg-in-indentation-p))
       (progn (back-to-indentation) t)
-    (let
-        ((kwop (tuareg-find-kwop
-                tuareg-back-to-paren-or-indentation-regexp
-                "\\<and\\|with\\|in\\|do\\|where\\>"))
-         (retval))
-      (if (string= kwop "with")
-          (let ((with-point (point)))
-            (setq kwop (tuareg-find-with-match))
-            (if (or (string= kwop "match") (string= kwop "try"))
-                (tuareg-find-kwop
+    (let ((kwop (tuareg-find-kwop
                  tuareg-back-to-paren-or-indentation-regexp
-                 "\\<and\\>")
-              (setq kwop "with") (goto-char with-point))))
+                 "\\<and\\|with\\|in\\|do\\|where\\>"))
+          (retval))
+      (when (string= kwop "with")
+        (let ((with-point (point)))
+          (setq kwop (tuareg-find-with-match))
+          (if (or (string= kwop "match") (string= kwop "try"))
+              (tuareg-find-kwop tuareg-back-to-paren-or-indentation-regexp
+                                "\\<and\\>")
+            (setq kwop "with") (goto-char with-point))))
       (setq retval
             (cond
              ((string= kwop "with") nil)
