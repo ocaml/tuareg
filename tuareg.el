@@ -689,7 +689,8 @@ and `tuareg-xemacs-w3-manual' (XEmacs only)."
 
 (defun tuareg-assoc-indent (kwop &optional look-for-let-or-and)
   "Return relative indentation of the keyword given in argument."
-  (let ((ind (symbol-value (cdr (assoc kwop tuareg-keyword-alist))))
+  (let ((ind (or (symbol-value (cdr (assoc kwop tuareg-keyword-alist)))
+                 tuareg-default-indent))
         (looking-let-or-and (and look-for-let-or-and
                                  (looking-at "\\<\\(let\\|and\\)\\>"))))
     (if (string-match (tuareg-give-extra-unindent-regexp) kwop)
@@ -697,7 +698,7 @@ and `tuareg-xemacs-w3-manual' (XEmacs only)."
                     looking-let-or-and (< ind tuareg-let-indent))
                tuareg-let-indent ind)
            tuareg-|-extra-unindent)
-      (or ind tuareg-default-indent))))
+      ind)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                           Sym-lock in Emacs
@@ -1319,7 +1320,7 @@ possible."
 ;;                               Indentation stuff
 
 (defconst tuareg-extra-unindent-regexp
-  "\\<\\(with\\|function\\|type\\|parser?\\)\\>"
+  "\\(\\<\\(with\\|function\\|type\\|parser?\\)\\>\\|\\[[ \t]*\\((\\*\\|$\\)\\)"
   "Regexp for keywords needing extra indentation to compensate for case matches.")
 
 (defconst tuareg-extra-unindent-regexp-ls3
@@ -2296,16 +2297,14 @@ Returns t iff skipped to indentation."
               (current-column))
              (match-|-kwop-p
               (when (and need-back-kwop
-                         (or (looking-at "\[[ \t]*\\((\\*\\|$\\)")
-                             (string-match (tuareg-give-extra-unindent-regexp)
-                                           matching-kwop)))
+                         (looking-at (tuareg-give-extra-unindent-regexp)))
                 (tuareg-back-to-paren-or-indentation))
-              (+ (+ (tuareg-assoc-indent matching-kwop t)
+              (- (+ (tuareg-assoc-indent matching-kwop t)
                     (current-column))
                  (if (or (string= matching-kwop "type")
                          (string= matching-kwop "["))
-                     tuareg-|-extra-unindent
-                     (- tuareg-|-extra-unindent))))
+                     0
+                     tuareg-|-extra-unindent)))
              (t
               (goto-char old-point)
               (tuareg-compute-normal-indent))))
