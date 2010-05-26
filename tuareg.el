@@ -1,6 +1,7 @@
 ;;; tuareg.el --- Caml mode for (X)Emacs.   -*- coding: latin-1 -*-
 
 ;;        Copyright © 1997-2006 Albert Cohen, all rights reserved.
+;;        Copyright (C) 2009-2010 Jane Street Holding, LLC.
 ;;        Licensed under the GNU General Public License.
 
 ;;    This program is free software; you can redistribute it and/or modify
@@ -20,8 +21,9 @@
 (eval-when-compile (require 'cl))
 (require 'easymenu)
 
-(defconst tuareg-mode-version "Tuareg Version 1.46.2"
+(defconst tuareg-mode-version "Tuareg Version 1.99.1"
   "        Copyright © 1997-2006 Albert Cohen, all rights reserved.
+         Copyright (C) 2009-2010 Jane Street Holding, LLC.
          Copying is covered by the GNU General Public License.
 
     This program is free software; you can redistribute it and/or modify
