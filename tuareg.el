@@ -2230,45 +2230,42 @@ Returns t iff skipped to indentation."
                 (+ (current-column)
                    tuareg-default-indent
                    (tuareg-assoc-indent kwop t))))))
-           ((and (looking-at "=") (not (tuareg-false-=-p)))
+           ((and (string= kwop "=") (not (tuareg-false-=-p)))
             (let ((current-column-module-type nil))
               (+
-               (progn
-                 (tuareg-find-=-match)
+               (let ((kwop1 (tuareg-find-=-match)))
                  (save-excursion
-                   (if (looking-at "\\<and\\>")
-                       (tuareg-find-and-match))
+                   (when (string= kwop1 "and")
+                     (setq kwop1 (tuareg-find-and-match)))
                    (cond
-                    ((looking-at "\\<type\\>")
-                     (tuareg-find-meaningful-word)
-                     (if (looking-at "\\<module\\>")
-                         (progn
-                           (setq current-column-module-type (current-column))
-                           tuareg-default-indent)
-                       (if (looking-at "\\<\\(with\\|and\\)\\>")
-                           (progn
+                     ((string= kwop1 "type")
+                      (tuareg-find-meaningful-word)
+                      (cond ((looking-at "\\<module\\>")
+                             (setq current-column-module-type (current-column))
+                             tuareg-default-indent)
+                            ((looking-at "\\<\\(with\\|and\\)\\>")
                              (tuareg-find-with-match)
                              (setq current-column-module-type (current-column))
                              tuareg-default-indent)
-                         (re-search-forward "\\<type\\>")
-                         (beginning-of-line)
-                         (+ tuareg-type-indent
-                            tuareg-|-extra-unindent))))
-                    ((looking-at
-                      "\\<\\(val\\|let\\|m\\(ethod\\|odule\\)\\|class\\|when\\|\\|for\\|if\\|do\\)\\>")
-                     (let ((matched-string (tuareg-match-string 0)))
-                       (tuareg-back-to-paren-or-indentation)
-                       (setq current-column-module-type (current-column))
-                       (tuareg-assoc-indent matched-string)))
-                    ((looking-at "\\<object\\>")
-                     (tuareg-back-to-paren-or-indentation)
-                     (setq current-column-module-type (current-column))
-                     (+ (tuareg-assoc-indent "object")
-                        tuareg-default-indent))
-                    (t (tuareg-back-to-paren-or-indentation)
-                       (setq current-column-module-type
-                             (+ (current-column) tuareg-default-indent))
-                       tuareg-default-indent))))
+                            (t
+                             (re-search-forward "\\<type\\>")
+                             (beginning-of-line)
+                             (+ tuareg-type-indent
+                                tuareg-|-extra-unindent))))
+                     ((looking-at "\\<\\(val\\|let\\|m\\(ethod\\|odule\\)\\|class\\|when\\|\\|for\\|if\\|do\\)\\>")
+                      (let ((matched-string (tuareg-match-string 0)))
+                        (tuareg-back-to-paren-or-indentation)
+                        (setq current-column-module-type (current-column))
+                        (tuareg-assoc-indent matched-string)))
+                     ((looking-at "\\<object\\>")
+                      (tuareg-back-to-paren-or-indentation)
+                      (setq current-column-module-type (current-column))
+                      (+ (tuareg-assoc-indent "object")
+                         tuareg-default-indent))
+                     (t (tuareg-back-to-paren-or-indentation)
+                        (setq current-column-module-type
+                              (+ (current-column) tuareg-default-indent))
+                        tuareg-default-indent))))
                (if current-column-module-type
                    current-column-module-type
                  (current-column)))))
