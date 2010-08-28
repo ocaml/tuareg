@@ -1017,8 +1017,8 @@ Regexp match data 0 points to the chars."
       (define-key map [?\C-c ?\C-f] 'caml-types-show-call)  ; "function"
       (define-key map [?\C-c ?\C-l] 'caml-types-show-ident) ; "let"
       ;; To prevent misbehavior in case of error during exploration.
-      (define-key map [(control mouse-2)] 'caml-types-mouse-ignore)
-      (define-key map [(control down-mouse-2)] 'caml-types-explore)
+      (define-key map [?\C-c mouse-1] 'caml-types-mouse-ignore)
+      (define-key map [?\C-c down-mouse-1] 'caml-types-explore)
       ;; Trigger caml-help
       (define-key map [?\C-c ?i] 'ocaml-add-path)
       (define-key map [?\C-c ?\[] 'ocaml-open-module)
