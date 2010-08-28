@@ -1014,6 +1014,7 @@ Regexp match data 0 points to the chars."
     (when tuareg-with-caml-mode-p
       ;; Trigger caml-types
       (define-key map [?\C-c ?\C-t] 'caml-types-show-type)
+      (define-key map [?\C-c ?\C-f] 'caml-types-show-ident)
       ;; To prevent misbehavior in case of error during exploration.
       (define-key map [(control mouse-2)] 'caml-types-mouse-ignore)
       (define-key map [(control down-mouse-2)] 'caml-types-explore)
@@ -3681,6 +3682,8 @@ Short cuts for interaction within the toplevel:
       ["Scan..." tuareg-list-definitions t])
      "---"
      [ "Show type at point" caml-types-show-type
+       tuareg-with-caml-mode-p]
+     [ "Show fully qualified ident at point" caml-types-show-ident
        tuareg-with-caml-mode-p]
      "---"
      [ "Complete identifier" caml-complete
