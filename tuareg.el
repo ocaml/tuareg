@@ -1361,7 +1361,7 @@ For synchronous programming.")
     tuareg-keyword-regexp))
 
 (defconst tuareg-match-pipe-kwop-regexp
-  (concat (tuareg-ro "and" "fun" "function" "type" "with" "parse" "parser")
+  (concat (tuareg-ro "and" "function" "type" "with" "parse" "parser")
           "\\|[[({=]\\||[^!]")
   "Regexp for keywords supporting case match.")
 
