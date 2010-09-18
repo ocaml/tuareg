@@ -58,6 +58,7 @@ MAKE_VERSION_FILE = (echo "missing $(VERSION_FILE) in the distribution?" >&2; ex
 endif
 endif
 endif
+
 $(VERSION_FILE) : force
 	$(MAKE_VERSION_FILE)
 
@@ -95,5 +96,6 @@ $(DIST_NAME).tgz $(DIST_NAME).zip : $(DIST_FILES)
 	$(POST_INSTALL_HOOK)
 
 distrib : $(DIST_NAME).tgz
+dist: distrib
 
-.PHONY : all elc clean install force check distrib
+.PHONY : all elc clean install force check distrib dist
