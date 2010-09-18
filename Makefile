@@ -49,11 +49,15 @@ ifneq ($(realpath .svn),)
 POST_INSTALL_HOOK = $(RM) $(VERSION_FILE)
 MAKE_VERSION_FILE = svn info | grep Revision: | sed 's/Revision: //' > $(VERSION_FILE)
 else
+ifneq ($(realpath .bzr),)
+POST_INSTALL_HOOK = $(RM) $(VERSION_FILE)
+MAKE_VERSION_FILE = bzr log -l -1 | grep revno: > $(VERSION_FILE)
+else
 POST_INSTALL_HOOK =
 MAKE_VERSION_FILE = (echo "missing $(VERSION_FILE) in the distribution?" >&2; exit 1)
 endif
 endif
-
+endif
 $(VERSION_FILE) : force
 	$(MAKE_VERSION_FILE)
 
