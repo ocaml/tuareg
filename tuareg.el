@@ -22,7 +22,7 @@
 (require 'easymenu)
 
 (defconst tuareg-mode-version
-  (concat "Tuareg Version 2.0.1 ("
+  (concat "Tuareg Version 2.0.2 ("
           (eval-when-compile
             (let ((file (or (and (boundp 'byte-compile-current-file)
                                  byte-compile-current-file)
