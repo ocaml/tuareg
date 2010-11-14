@@ -12,14 +12,13 @@ DIFF_W = diff -uw
 DEST = /usr/share/emacs/site-lisp/tuareg
 
 DIST_FILES = COPYING HISTORY README sample.ml
-ELR = append-tuareg camldebug custom-tuareg ocamlspot tuareg
+ELS = append-tuareg.el camldebug.el custom-tuareg.el ocamlspot.el tuareg.el
 ifeq ("`$(EMACS) --version |grep 'GNU Emacs'`", "")
-ELR += sym-lock
+ELS += sym-lock.el
 else
 DIST_FILES += sym-lock.el
 endif
-ELS = $(addsuffix .el, $(ELR))
-ELC = $(addsuffix .elc, $(ELR))
+ELC = $(ELS:.el=.elc)
 
 INSTALL_RM_R = $(RM)
 INSTALL_MKDIR = mkdir
@@ -53,8 +52,13 @@ ifneq ($(realpath .bzr),)
 POST_INSTALL_HOOK = $(RM) $(VERSION_FILE)
 MAKE_VERSION_FILE = bzr log -l -1 | grep revno: > $(VERSION_FILE)
 else
+ifneq ($(realpath $(VERSION_FILE)),)
 POST_INSTALL_HOOK =
-MAKE_VERSION_FILE = (echo "missing $(VERSION_FILE) in the distribution?" >&2; exit 1)
+MAKE_VERSION_FILE = @echo "Using \"$(VERSION_FILE)\" in the distribution."
+else
+POST_INSTALL_HOOK =
+MAKE_VERSION_FILE = @(echo "missing \"$(VERSION_FILE)\" in the distribution?" >&2; exit 1)
+endif
 endif
 endif
 endif
