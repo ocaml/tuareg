@@ -22,7 +22,7 @@
 (require 'easymenu)
 
 (defconst tuareg-mode-version
-  (concat "Tuareg Version 2.0.2 ("
+  (concat "Tuareg Version 2.0.3 ("
           (eval-when-compile
             (let ((file (or (and (boundp 'byte-compile-current-file)
                                  byte-compile-current-file)
@@ -41,6 +41,8 @@
                              (call-process "hg" nil t nil "id" "-i" "--debug"))
                             ((file-directory-p ".svn")
                              (shell-command "svn info | grep Revision: | sed 's/Revision: //'" t))
+			    ((file-directory-p ".bzr")
+                             (shell-command "bzr log -l -1 | grep revno:" t))
                             (t (insert "unknown\n")))))
                 (buffer-substring-no-properties
                  (point-min) (1- (point-max))))))

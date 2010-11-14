@@ -33,9 +33,6 @@ elc : $(ELC)
 
 camldebug.elc : camldebug.el tuareg.elc
 
-clean :
-	$(RM) $(ELC) test.ml test.ml~ $(DIST_NAME).tgz $(DIST_NAME).zip
-
 VERSION_FILE = version
 
 ifneq ($(realpath .hg),)
@@ -101,5 +98,9 @@ $(DIST_NAME).tgz $(DIST_NAME).zip : $(DIST_FILES)
 
 distrib : $(DIST_NAME).tgz
 dist: distrib
+
+clean :
+	$(RM) $(ELC) test.ml test.ml~ $(DIST_NAME).tgz $(DIST_NAME).zip
+	$(POST_INSTALL_HOOK)
 
 .PHONY : all elc clean install force check distrib dist
