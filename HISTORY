@@ -105,6 +105,13 @@ Tuareg Mode history:
 	Integration of more language variants. A future version will
 	modularize this support, to improve flexibility and minimize
 	interference risks. Plus various bug fixes and new features.
+1.46  - February 2010 - November 2010 -
+to      Changes by Jane Street Capital, Sam setingold and Christophe
+2.04    Troestler. The log of Sam's changes is written below.
+
+2.05  -
+        Cleanup; removal of ocamlspot.el (bundled with ocamlspot).
+
 
 Changes made by Sam Steingold
 

@@ -12,7 +12,7 @@ DIFF_W = diff -uw
 DEST = /usr/share/emacs/site-lisp/tuareg
 
 DIST_FILES = COPYING HISTORY README sample.ml
-ELS = append-tuareg.el camldebug.el custom-tuareg.el ocamlspot.el tuareg.el
+ELS = append-tuareg.el camldebug.el custom-tuareg.el tuareg.el
 ifeq ("`$(EMACS) --version |grep 'GNU Emacs'`", "")
 ELS += sym-lock.el
 else
