@@ -1,45 +1,34 @@
 DESCRIPTION:
 
-This archive contains files to help editing Caml code, to hilight
+This archive contains files to help editing OCaml code, to highlight
 important parts of the code, to run a Caml toplevel, and to run the
-Caml debugger within GNU Emacs/XEmacs editors. It is designed for
-Objective Caml but handles Camllight syntax as well.
+Caml debugger within Emacs. 
 
 CONTENTS:
 
   README             This file.
   HISTORY            Differences with previous versions.
-  tuareg.el          A major mode for editing Tuareg code in Emacs/XEmacs.
-  sym-lock.el        An extension to XEmacs Font-Lock for symbol fontifying.
+  tuareg.el          A major mode for editing Tuareg code in Emacs.
   camldebug.el       To run the Caml debugger under Emacs.
-  append-tuareg.el   Configuration file for quick installation
-  custom-tuareg.el   Tuareg customization example
+  dot-emacs.el       Configuration file for quick installation
   sample.el          Sample file to check the indentation engine.
 
 INSTALL:
 
-  If you have the right to put files in Emacs / XEmacs `site-lisp'
-  directory, you only have to copy the `tuareg.el', `camldebug.el'
-  and `sym-lock.el' files in it (Sym-Lock works with XEmacs only).
+  If you have permissions to the local `site-lisp'
+  directory, you only have to copy `tuareg.el' and `camldebug.el'
+  Otherwise, copy `tuareg.el' and `camldebug.el' to a local directory and
+  add the following line to your `.emacs'
 
-  Otherwise, choose a directory, e.g., `foo'. Copy the `tuareg.el'
-  `camldebug.el' and `sym-lock.el' files in it (Sym-Lock works with
-  XEmacs only). Then add the following line to your `.emacs', where
-  `foo' is replaced by the appropriate directory FULL PATH:
+  (add-to-list 'load-path "DIR")
 
-  (add-to-list 'load-path "foo")
-
-  You can also do
-
-  $ make install DEST=foo
-
-  which will also byte-compile the files.
+  
 
 QUICK CONFIGURATION:
 
   If you are no Emacs-Lisp addict, and would like to use Tuareg NOW, append
-  (or copy) `append-tuareg.el' file to your `.emacs' configuration file.
-  It tells Emacs to load Tuareg and Sym-Lock (for XEmacs) automatically.
+  (or copy) `dot-emacs.el' file to your `.emacs' configuration file.
+  It tells Emacs to load tuareg automatically.
 
   Consider updating your `.emacs' configuration file by hand if you
   keep on using Tuareg.

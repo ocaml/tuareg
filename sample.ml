@@ -1,5 +1,11 @@
 (* sample file indented as we want it to be *)
 
+let x = 
+  let open M in
+  let x = 5 in
+  x + x
+;;
+
 ;; (* http://mantis/view.php?id=4247 *)
 let x = {
   Foo.

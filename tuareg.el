@@ -1,4 +1,4 @@
-;;; tuareg.el --- Caml mode for (X)Emacs.
+;;; tuareg.el --- Caml mode for Emacs.
 
 ;;        Copyright (C) 1997-2006 Albert Cohen, all rights reserved.
 ;;        Copyright (C) 2009-2010 Jane Street Holding, LLC.
@@ -60,11 +60,6 @@
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
     GNU General Public License for more details.")
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                        Emacs versions support
-
-(defconst tuareg-with-xemacs (featurep 'xemacs))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                      Compatibility functions
@@ -890,10 +885,7 @@ Regexp match data 0 points to the chars."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                  Font-Lock
 
-;; XEmacs and Emacs have different documentation faces...
-(defvar tuareg-doc-face
-  (if (facep 'font-lock-doc-face)
-      'font-lock-doc-face 'font-lock-doc-string-face))
+(defvar tuareg-doc-face 'font-lock-doc-face)
 
 (unless tuareg-use-syntax-ppss
 
@@ -917,7 +909,7 @@ Regexp match data 0 points to the chars."
           (goto-char (1- end))
           (end-of-line)
           ;; Dirty hack to trick `font-lock-default-unfontify-region'
-          (unless tuareg-with-xemacs (forward-line 2))
+          (forward-line 2)
           (setq end (point))
 
           (while (> end begin)
@@ -943,10 +935,9 @@ Regexp match data 0 points to the chars."
                    (setq tuareg-cache-local (cdr tuareg-cache-local)))
                  (setq end (if tuareg-cache-local
                                (caar tuareg-cache-local) begin)))))
-          (unless (or tuareg-with-xemacs modified) ; properties taken
-            (set-buffer-modified-p nil)))          ; too seriously...
+          (unless modified (set-buffer-modified-p nil)))
         ))))
-  ) ;; End of (unless tuareg-use-syntax-ppss
+  ) ;; end tuareg-use-syntax-ppss
 
 (defconst tuareg-font-lock-syntactic-keywords
   ;; Char constants start with ' but ' can also appear in identifiers.
@@ -3665,7 +3656,7 @@ Short cuts for interaction within the toplevel:
        :active (comint-check-proc tuareg-interactive-buffer-name)]
       ["Evaluate Region" tuareg-eval-region
        ;; Region-active-p for XEmacs and mark-active for Emacs
-       :active (if (fboundp 'region-active-p) (region-active-p) mark-active)]
+       :active mark-active]
       ["Evaluate Phrase" tuareg-eval-phrase t]
       ["Evaluate Buffer" tuareg-eval-buffer t])
      ("Caml Forms"
@@ -3710,17 +3701,15 @@ Short cuts for interaction within the toplevel:
   (easy-menu-add tuareg-mode-menu)
   (tuareg-update-options-menu)
   ;; Save and update definitions menu
-  (if tuareg-with-xemacs
-      (add-hook 'activate-menubar-hook 'tuareg-update-definitions-menu)
-    (when (functionp 'easy-menu-create-menu)
-      ;; Patch for Emacs
-      (add-hook 'menu-bar-update-hook
-                'tuareg-with-emacs-update-definitions-menu)
-      (make-local-variable 'tuareg-definitions-keymaps)
-      (setq tuareg-definitions-keymaps
-            (cdr (easy-menu-create-menu
-                  "Definitions" tuareg-definitions-menu)))
-      (setq tuareg-definitions-menu-last-buffer nil))))
+  (when (functionp 'easy-menu-create-menu)
+    ;; Patch for Emacs
+    (add-hook 'menu-bar-update-hook
+              'tuareg-with-emacs-update-definitions-menu)
+    (make-local-variable 'tuareg-definitions-keymaps)
+    (setq tuareg-definitions-keymaps
+          (cdr (easy-menu-create-menu
+                "Definitions" tuareg-definitions-menu)))
+    (setq tuareg-definitions-menu-last-buffer nil)))
 
 (defun tuareg-update-definitions-menu ()
   (when (eq major-mode 'tuareg-mode)
@@ -3743,8 +3732,7 @@ Short cuts for interaction within the toplevel:
   (set symbol (not (symbol-value symbol)))
   (when (eq 'tuareg-use-abbrev-mode symbol)
     (abbrev-mode tuareg-use-abbrev-mode)) ; toggle abbrev minor mode
-  (unless tuareg-with-xemacs
-    (tuareg-update-options-menu)))
+  (tuareg-update-options-menu))
 
 (defun tuareg-update-options-menu ()
   (easy-menu-change
@@ -3931,8 +3919,7 @@ for a quick jump via the definitions menu."
       (setq tuareg-definitions-menu
             (append menu (list "---"
                                ["Rescan..." tuareg-list-definitions t])))
-      (unless (or tuareg-with-xemacs
-                  (not (functionp 'easy-menu-create-menu)))
+      (unless (not (functionp 'easy-menu-create-menu))
         ;; Patch for Emacs
         (setq tuareg-definitions-keymaps
               (cdr (easy-menu-create-menu
