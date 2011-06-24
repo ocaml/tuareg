@@ -1,9 +1,29 @@
+(* -*- mode: tuaregX -*- *)
+
 (* sample file indented as we want it to be *)
+
+  
+
+let server_comments request t = 
+  let t = 
+    let module M = N in 
+    let class M = N in 
+    let m M = N in 
+    let module M = N in 
+    let open Grep.Server in
+	let x = 5 in
+    let modue x y = 5 in
+    let open M in
+	
+    t >>= Grep.server_comments 
+      lazy 
+      parser
+      every
 
 let x = 
   let open M in
-  let x = 5 in
-  x + x
+      let x = 5 in
+      x + x
 ;;
 
 ;; (* http://mantis/view.php?id=4247 *)
@@ -344,9 +364,9 @@ let r x =
 
 let g x =
   try let a = b in
-        f x;
-        g x;
-        y x;
+      f x;
+      g x;
+      y x;
   with e -> raise e
 
 let h x =
@@ -367,8 +387,8 @@ let () =
     |e ->
       let x = z in
 
-        yyyyy
-          (a b)
+      yyyyy
+        (a b)
 
 let d x = function
   | A -> (match x with
@@ -400,13 +420,13 @@ let x = foo ~f:(fun _ -> 0              (* comment *)
 
 let f x =
   (let y = x in
-     f x;
-     g y;
-     h z)
+   f x;
+   g y;
+   h z)
 
 let f x =
   (let y = x in
-     f x);
+   f x);
   g y;
   h z
 
@@ -421,8 +441,8 @@ let g y =
 let () =
   (let a = 1 in
    let b = 2 in
-     ( a,
-       b))
+   ( a,
+     b))
 
 let () =
   ((a b
@@ -437,8 +457,8 @@ let () =
   if a
   then
     let b = P.s ~b ~a ~m in
-      a +. e *. b,
-      b -. e *. b
+    a +. e *. b,
+    b -. e *. b
   else
     q.a -. s *. z,
     q.b +. s *. z
@@ -448,21 +468,21 @@ let () =
   (let x =
      3
    in
-     x + 5)
+   x + 5)
 
 let foo = 1 and bar = 2 and zot = 3 in
 let quux = 4 in
-  foo
-  + bar
-  + zot
-  + quux
+foo
++ bar
++ zot
++ quux
 
 (* indent comment to following code *)
 let () =
   try                                   (* foo!
                                            bar *)
     let a = f g c d in
-      a b
+    a b
   with _ -> ()
 
 let () = try
@@ -490,7 +510,7 @@ let () =
 
 let f errors input =
   let ( @@ ) string bool = if not bool then errors := string :: !errors in
-    input @@ false
+  input @@ false
 
 let x =
   if mode = foo then bar;
@@ -543,7 +563,7 @@ let () =
   match
     let a = a in
     let b = b in
-      c
+    c
   with
     | A -> _
 
@@ -558,7 +578,7 @@ let () =
 let f t =
   let (a, b) = to_open in
   let c = g t a b in
-    ()
+  ()
 
 let () =
   begin
@@ -594,7 +614,7 @@ let () =
   let a = 1
   and b = 2
   and c = 3 in
-    a + b + c
+  a + b + c
 
 let _ =
   foo bar
@@ -614,10 +634,10 @@ let () =
   Config.load ()
   >>> fun config ->
   let quux = config.Config.bazonk.Config.Bazonk.quux in
-    load_quux ~input quux config
+  load_quux ~input quux config
   >>> fun quux ->
   let da = Poo.Snapshot.merge quux in
-    load_foobar config ~input
+  load_foobar config ~input
   >>> fun foobar ->
   whatever foobar
 
@@ -643,7 +663,7 @@ let () =
   Config.load ()
   >>> fun config ->
   let quux = x in
-    x
+  x
   >>= fun quux ->
   x
 
@@ -651,7 +671,7 @@ let () =
   Config.load ()
   >>= fun config ->
   let quux = x in
-    x
+  x
   >>= fun quux ->
   x
 
@@ -675,7 +695,7 @@ let () =
     | D -> e,f
     | G -> h,i in
    let j = a + b in
-     j * j),
+   j * j),
   12
 
 module type M = M2
@@ -718,10 +738,10 @@ let x =
     (a
      ^ b
      ^ c) in
-    f ~a:b ?c:d
-      ?e:f ~g:(h i j)
-      ~k:(l m)
-      (n o p)
+  f ~a:b ?c:d
+    ?e:f ~g:(h i j)
+    ~k:(l m)
+    (n o p)
 
 let () =
   foobar (fun () ->
@@ -786,7 +806,7 @@ let () =
 let a = {
   b = (
     let z = f u in
-      z + z;
+    z + z;
   );
   c = (let a = b in {
     z = z;
@@ -896,8 +916,8 @@ let foo =
 
 let check =
   a lsr 30 >= 3
-  && b lsr 20 >= 1
-  && c * 10 > f
+      && b lsr 20 >= 1
+	  && c * 10 > f
 
 let () =
   snoo ~f:(fun foo ->
@@ -919,9 +939,9 @@ let variants a =
     | [ s1; s2; s3 ] ->
       let a0 = String.concat ~sep:"" [ s1; s2] in
       let a1 = String.concat ~sep:"-" [ s1; s2; s3; "055" ] in (* comment *)
-        List.map [ a0; a1; a]
-          ~f:(fun a_s -> lookup a_s)
-        |! List.flatten
+      List.map [ a0; a1; a]
+        ~f:(fun a_s -> lookup a_s)
+      |! List.flatten
     | _ -> failwith "bad"
 
 let f a1 a2 a3

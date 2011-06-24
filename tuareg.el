@@ -1603,7 +1603,8 @@ Gathered here for memoization and dynamic reconfiguration purposes."
      (concat (tuareg-ro "match" "try" "module" "begin" "with" "type")
              "\\|[[{(]"))
    tuareg-find-in-match-regexp
-    (tuareg-make-find-kwop-regexp (tuareg-ro "let" "open"))
+;;    (tuareg-make-find-kwop-regexp (tuareg-ro "let" "open"))
+    (tuareg-make-find-kwop-regexp (tuareg-ro "let"))
    tuareg-find-else-match-regexp
     (tuareg-make-find-kwop-regexp ";")
    tuareg-find-do-match-regexp
