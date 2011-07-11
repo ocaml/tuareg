@@ -1,5 +1,3 @@
-(* -*- mode: tuaregX -*- *)
-
 (* sample file indented as we want it to be *)
 
   
@@ -11,10 +9,10 @@ let server_comments request t =
     let m M = N in 
     let module M = N in 
     let open Grep.Server in
-	let x = 5 in
+    let x = 5 in
     let modue x y = 5 in
     let open M in
-	
+        
     t >>= Grep.server_comments 
       lazy 
       parser
@@ -917,7 +915,7 @@ let foo =
 let check =
   a lsr 30 >= 3
       && b lsr 20 >= 1
-	  && c * 10 > f
+          && c * 10 > f
 
 let () =
   snoo ~f:(fun foo ->

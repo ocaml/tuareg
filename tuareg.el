@@ -1317,7 +1317,7 @@ possible."
 (defun tuareg-ro (&rest words) (concat "\\<" (regexp-opt words t) "\\>"))
 
 (defconst tuareg-extra-unindent-regexp
-  (concat "\\(" (tuareg-ro "with" "fun" "function" "parse" "parser")
+  (concat "\\(" (tuareg-ro "with" "fun" "function" "parse")
           "\\|\\[" tuareg-no-more-code-this-line-regexp "\\)")
   "Regexp for keywords needing extra indentation to compensate for case matches.")
 
@@ -1338,7 +1338,7 @@ possible."
                      "else" "exception" "external" "to" "then" "try" "type"
                      "virtual" "val" "while" "when" "with" "if" "in" "inherit"
                      "for" "fun" "functor" "function" "let" "do" "downto"
-                     "parse" "parser" "rule" "of")
+                     "parse" "rule" "of")
           "\\|->\\|[;,|]")
   "Regexp for all recognized keywords.")
 
@@ -1356,7 +1356,7 @@ For synchronous programming.")
     tuareg-keyword-regexp))
 
 (defconst tuareg-match-pipe-kwop-regexp
-  (concat (tuareg-ro "and" "function" "type" "with" "parse" "parser")
+  (concat (tuareg-ro "and" "function" "type" "with" "parse")
           "\\|[[({=]\\||[^!]")
   "Regexp for keywords supporting case match.")
 
@@ -1457,7 +1457,6 @@ For synchronous programming.")
     ("function" . tuareg-function-indent)
     ("with" . tuareg-with-indent)
     ("parse" . tuareg-with-indent)
-    ("parser" . tuareg-with-indent)
     ("automaton" . tuareg-with-indent)
     ("present" . tuareg-with-indent)
     ("type" . tuareg-type-indent) ; sometimes, `type' acts like a case match
@@ -1619,7 +1618,7 @@ Gathered here for memoization and dynamic reconfiguration purposes."
    tuareg-find-arrow-match-regexp
     (tuareg-make-find-kwop-regexp
      (concat (tuareg-ro "external" "type" "val" "method" "let" "with" "fun"
-                        "function" "functor" "class" "parser")
+                        "function" "functor" "class")
              "\\|[|;]"))
    tuareg-find-semicolon-match-regexp
     (tuareg-make-find-kwop-regexp
