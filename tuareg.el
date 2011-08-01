@@ -202,7 +202,7 @@ For example, setting this variable to 0 leads to the following indentation:
     | Z -> ...
 
 To modify the indentation of lines lead by `|' you need to modify the
-indentation variables for `with', `function' and `parse', and possibly
+indentation variables for `with', `function', and possibly
 for `type' as well. For example, setting them to 0 (and leaving
 `tuareg-pipe-extra-unindent' to its default value) yields:
   match ... with
@@ -1263,24 +1263,29 @@ Short cuts for interactions with the toplevel:
 ;; itz 04-21-96 instead of defining a new function, use defadvice
 ;; that way we get our effect even when we do \C-x` in compilation buffer
 
-(defadvice next-error (after tuareg-next-error activate)
- "Read the extra positional information provided by the Caml compiler.
+;; smclaughlin 07-19-11 defadvice is to be avoided.  It makes debugging
+;; much more difficult.  If you really want this behavior, write your
+;; own next-error-function.  In particular, it breaks when omake is
+;; used.
 
-Puts the point and the mark exactly around the erroneous program
-fragment. The erroneous fragment is also temporarily highlighted if
-possible."
- (when (eq major-mode 'tuareg-mode)
-   (let ((beg nil) (end nil))
-     (with-current-buffer compilation-last-buffer
-       (save-excursion
-         (goto-char (window-point (get-buffer-window (current-buffer) t)))
-         (when (looking-at tuareg-error-chars-regexp)
-           (setq beg (string-to-number (tuareg-match-string 1))
-                 end (string-to-number (tuareg-match-string 2))))))
-     (beginning-of-line)
-     (when beg
-       (setq beg (+ (point) beg) end (+ (point) end))
-       (goto-char beg) (push-mark end t t)))))
+;; (defadvice next-error (after tuareg-next-error activate)
+;;  "Read the extra positional information provided by the Caml compiler.
+
+;; Puts the point and the mark exactly around the erroneous program
+;; fragment. The erroneous fragment is also temporarily highlighted if
+;; possible."
+;;  (when (eq major-mode 'tuareg-mode)
+;;    (let ((beg nil) (end nil))
+;;      (with-current-buffer compilation-last-buffer
+;;        (save-excursion
+;;          (goto-char (window-point (get-buffer-window (current-buffer) t)))
+;;          (when (looking-at tuareg-error-chars-regexp)
+;;            (setq beg (string-to-number (tuareg-match-string 1))
+;;                  end (string-to-number (tuareg-match-string 2))))))
+;;      (beginning-of-line)
+;;      (when beg
+;;        (setq beg (+ (point) beg) end (+ (point) end))
+;;        (goto-char beg) (push-mark end t t)))))
 
 (defvar tuareg-interactive-error-regexp
   (concat "\\(\\("
@@ -1317,7 +1322,7 @@ possible."
 (defun tuareg-ro (&rest words) (concat "\\<" (regexp-opt words t) "\\>"))
 
 (defconst tuareg-extra-unindent-regexp
-  (concat "\\(" (tuareg-ro "with" "fun" "function" "parse")
+  (concat "\\(" (tuareg-ro "with" "fun" "function")
           "\\|\\[" tuareg-no-more-code-this-line-regexp "\\)")
   "Regexp for keywords needing extra indentation to compensate for case matches.")
 
@@ -1338,7 +1343,7 @@ possible."
                      "else" "exception" "external" "to" "then" "try" "type"
                      "virtual" "val" "while" "when" "with" "if" "in" "inherit"
                      "for" "fun" "functor" "function" "let" "do" "downto"
-                     "parse" "rule" "of")
+                     "rule" "of")
           "\\|->\\|[;,|]")
   "Regexp for all recognized keywords.")
 
@@ -1356,7 +1361,7 @@ For synchronous programming.")
     tuareg-keyword-regexp))
 
 (defconst tuareg-match-pipe-kwop-regexp
-  (concat (tuareg-ro "and" "function" "type" "with" "parse")
+  (concat (tuareg-ro "and" "function" "type" "with")
           "\\|[[({=]\\||[^!]")
   "Regexp for keywords supporting case match.")
 
@@ -1456,7 +1461,6 @@ For synchronous programming.")
     ;; Case match keywords
     ("function" . tuareg-function-indent)
     ("with" . tuareg-with-indent)
-    ("parse" . tuareg-with-indent)
     ("automaton" . tuareg-with-indent)
     ("present" . tuareg-with-indent)
     ("type" . tuareg-type-indent) ; sometimes, `type' acts like a case match
@@ -1906,12 +1910,6 @@ If found, return the actual text of the keyword or operator."
                (not (string= (save-excursion (tuareg-find-=-match))
                              "type"))))
       (tuareg-find-pipe-match))
-     ((string= kwop "parse")
-      (if (and (tuareg-editing-camllex)
-               (save-excursion
-                 (string= (tuareg-find-meaningful-word) "=")))
-          kwop
-        (tuareg-find-pipe-match)))
      (t
       kwop))))
 
