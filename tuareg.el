@@ -795,6 +795,7 @@ alignment and can thus lead to surprises."
            (">=" . ,(decode-char 'ucs 8805))
            ("<>" . ,(decode-char 'ucs 8800))
            ("==" . ,(decode-char 'ucs 8801))
+           ("!=" . ,(decode-char 'ucs 8802))
            ("<=>" . ,(decode-char 'ucs 8660))
            (":=" . ,(decode-char 'ucs 8656))
            ("infinity" . ,(decode-char 'ucs 8734))
