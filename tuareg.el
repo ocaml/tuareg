@@ -1093,7 +1093,7 @@ Regexp match data 0 points to the chars."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                              The major mode
 
-;;;###autoload (add-to-list 'auto-mode-alist '("\\.ml\\w?\\'" . tuareg-mode))
+;;;###autoload (add-to-list 'auto-mode-alist '("\\.ml[iylp]?" . tuareg-mode))
 
 ;;;###autoload
 (defun tuareg-mode ()
@@ -3475,6 +3475,7 @@ Short cuts for interactions with the toplevel:
   (easy-menu-add tuareg-interactive-mode-menu)
   (tuareg-update-options-menu))
 
+;;;###autoload
 (defun tuareg-run-caml ()
   "Run a Caml toplevel process. I/O via buffer `*caml-toplevel*'."
   (interactive)
