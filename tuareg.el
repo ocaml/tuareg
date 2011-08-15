@@ -1104,8 +1104,6 @@ automatic indentation and compilation interface. Performs font/color
 highlighting using Font-Lock. It is designed for Objective Caml but
 handles Objective Labl and Caml Light as well.
 
-Report bugs, remarks and questions to Albert.Cohen@prism.uvsq.fr.
-
 The Font-Lock minor-mode is used according to your customization
 options.
 
@@ -1122,7 +1120,7 @@ For example you can change the indentation of some keywords, the
 `electric' flags, Font-Lock colors... Every customizable variable is
 documented, use `C-h-v' or look at the mode's source code.
 
-`custom-tuareg.el' is a sample customization file for standard changes.
+`dot-emacs.el' is a sample customization file for standard changes.
 You can append it to your `.emacs' or use it as a tutorial.
 
 `M-x camldebug' FILE starts the Caml debugger camldebug on the executable
