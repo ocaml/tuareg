@@ -7,7 +7,7 @@ DIST_NAME = tuareg-$(VERSION)
 ELS = tuareg.el ocamldebug.el
 ELC = $(ELS:.el=.elc)
 
-DIST_FILES += $(ELS) Makefile
+DIST_FILES += $(ELS) Makefile README
 
 EMACS = emacs
 NOINIT = -q --no-site-file
