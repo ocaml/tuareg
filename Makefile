@@ -1,3 +1,13 @@
+VERSION = $(shell grep ';; Version:' tuareg.el \
+	| sed 's/;; Version: *\([0-9.]\+\).*/\1/')
+DESCRIPTION = $(shell grep ';;; tuareg.el ---' tuareg.el \
+	| sed 's/[^-]*--- *\(.*\)/\1/')
+DIST_NAME = tuareg-$(VERSION)
+
+ELS = tuareg.el camldebug.el
+ELC = $(ELS:.el=.elc)
+
+DIST_FILES += $(ELS) Makefile
 
 EMACS = emacs
 NOINIT = -q --no-site-file
@@ -12,8 +22,6 @@ CMP = cmp
 # CMP = diff -u
 DIFF_W = diff -uw
 
-ELS = tuareg.el
-ELC = $(ELS:.el=.elc)
 
 INSTALL_RM_R = $(RM)
 INSTALL_MKDIR = mkdir
@@ -27,8 +35,6 @@ elc : $(ELC)
 	$(EMACS) -batch $(NOINIT) -f batch-byte-compile $<
 
 # camldebug.elc : camldebug.el tuareg.elc
-
-# VERSION_FILE = version
 
 # ifneq ($(realpath .hg),)
 # POST_INSTALL_HOOK = $(RM) $(VERSION_FILE)
@@ -55,9 +61,6 @@ elc : $(ELC)
 # endif
 # endif
 
-# $(VERSION_FILE) : force
-#         $(MAKE_VERSION_FILE)
-
 # install : $(ELC) $(VERSION_FILE)
 #         fgrep `cat $(VERSION_FILE)` tuareg.elc >/dev/null 2>&1 || \
 #          ($(RM) tuareg.elc; $(MAKE) tuareg.elc)
@@ -81,21 +84,20 @@ elc : $(ELC)
 #         $(EXTRA_CHECK_COMMANDS)
 #         $(RM) test.ml test.ml~
 
-# DIST_NAME = tuareg-$(shell grep 'Tuareg Version' tuareg.el | sed 's/.*Tuareg Version \([^ ]*\) .*/\1/')
-# DIST_FILES += $(ELS) $(VERSION_FILE) Makefile
-# $(DIST_NAME).tgz $(DIST_NAME).zip : $(DIST_FILES)
-#         $(RM) $(DIST_NAME) $(DIST_NAME).tgz $(DIST_NAME).zip; mkdir $(DIST_NAME)
-#         for f in $(DIST_FILES); do $(LN) $$f $(DIST_NAME); done
-#         tar cvfz $(DIST_NAME).tgz $(DIST_NAME)
-#         zip -9vr $(DIST_NAME).zip $(DIST_NAME)
-#         $(RM) $(DIST_NAME)
-#         $(POST_INSTALL_HOOK)
 
-# distrib : $(DIST_NAME).tgz
-# dist: distrib
+.PHONY: dist tar
+dist tar: $(DIST_NAME).tar.gz
 
-# clean :
-#         $(RM) $(ELC) test.ml test.ml~ $(DIST_NAME).tgz $(DIST_NAME).zip
+$(DIST_NAME).tar.gz : $(DIST_FILES)
+	mkdir -p $(DIST_NAME)
+	for f in $(DIST_FILES); do $(LN) $$f $(DIST_NAME); done
+	echo "(define-package \"tuareg\" \"$(VERSION)\" \"$(DESCRIPTION)\" \
+		)" > $(DIST_NAME)/tuareg-pkg.el
+	tar cvfz $@ $(DIST_NAME)
+	$(RM) -rf $(DIST_NAME)
+
+clean :
+	$(RM) $(ELC) "$(DIST_NAME).tar.gz"
 #         $(POST_INSTALL_HOOK)
 
 # .PHONY : all elc clean install force check distrib dist

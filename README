@@ -15,14 +15,7 @@ CONTENTS:
 
 INSTALL:
 
-  If you have permissions to the local `site-lisp'
-  directory, you only have to copy `tuareg.el' and `camldebug.el'
-  Otherwise, copy `tuareg.el' and `camldebug.el' to a local directory and
-  add the following line to your `.emacs'
-
-  (add-to-list 'load-path "DIR")
-
-  
+  See tuareg.el
 
 QUICK CONFIGURATION:
 
@@ -47,28 +40,7 @@ MANUAL CONFIGURATION:
 
 USAGE:
 
-  Tuareg allows you to run batch Caml compilations from Emacs (using M-x
-  compile) and browse the errors (C-x `). Typing C-x ` sets the point at
-  the beginning of the erroneous program fragment, and the mark at the end.
-  Under Emacs, the program fragment is temporarily hilighted.
-
-  M-x tuareg-run-caml starts a Caml toplevel with input and output in
-  an Emacs buffer named `*caml-toplevel*. This gives you the full
-  power of Emacs to edit the input to the Caml toplevel. This mode is
-  based on comint so you get all the usual comint features, including
-  command history. A hook named `tuareg-interactive-mode-hook' may be
-  used for customization.
-
-  Typing C-c C-e in a buffer in Caml mode sends the current phrase
-  (containing the point) to the Caml toplevel, and evaluates it.
-  If you type one of these commands before M-x tuareg-run-caml, the
-  toplevel will be started automatically.
-
-  M-x camldebug FILE starts the Caml debugger camldebug on the
-  executable FILE, with input and output in an Emacs buffer named
-  *camldebug-FILE*. It is similar to April 1996 version, with minor
-  changes to support XEmacs, Tuareg and OCaml. Furthermore, package
-  `thingatpt' is not required any more.
+  See tuareg.el.
 
 CUSTOMIZATION
 

@@ -1,20 +1,72 @@
-;;; tuareg.el --- Caml mode for Emacs.
+;;; tuareg.el --- OCaml mode for Emacs.
 
-;;        Copyright (C) 1997-2006 Albert Cohen, all rights reserved.
-;;        Copyright (C) 2009-2010 Jane Street Holding, LLC.
-;;        Licensed under the GNU General Public License.
+;; Copyright (C) 1997-2006 Albert Cohen, all rights reserved.
+;; Copyright (C) 2009-2010 Jane Street Holding, LLC.
+;; Licensed under the GNU General Public License.
 
-;;    This program is free software; you can redistribute it and/or modify
-;;    it under the terms of the GNU General Public License as published by
-;;    the Free Software Foundation; either version 2 of the License, or
-;;    (at your option) any later version.
-
-;;    This program is distributed in the hope that it will be useful,
-;;    but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-;;    GNU General Public License for more details.
+;; Author: Albert Cohen <Albert.Cohen@inria.fr>
+;;	Sam Steingold <sds@gnu.org>
+;;	Christophe Troestler <Christophe.Troestler@umons.ac.be>
+;;	Till Varoquaux <till@pps.jussieu.fr>
+;;	Sean McLaughlin <seanmcl@gmail.com>
+;; Created: 8 Jan 1997
+;; Version: 2.0.4
+;; Package-Requires:
+;; Keywords: ocaml languages
+;; URL: http://forge.ocamlcore.org/projects/tuareg/
+;; EmacsWiki: TuaregMode
 
 ;;; Commentary:
+;; Description:
+;; Tuareg helps editing OCaml code, to highlight important parts of
+;; the code, to run a Caml toplevel, and to run the Caml debugger
+;; within Emacs.
+
+;; Installation:
+;; If you have permissions to the local `site-lisp' directory, you
+;; only have to copy `tuareg.el' and `camldebug.el' Otherwise, copy
+;; `tuareg.el' and `camldebug.el' to a local directory and add the
+;; following line to your `.emacs'
+;;
+;; (add-to-list 'load-path "DIR")
+
+
+;;; Usage:
+;; Tuareg allows you to run batch Caml compilations from Emacs (using
+;; M-x compile) and browse the errors (C-x `). Typing C-x ` sets the
+;; point at the beginning of the erroneous program fragment, and the
+;; mark at the end.  Under Emacs, the program fragment is temporarily
+;; hilighted.
+;;
+;; M-x tuareg-run-caml starts a Caml toplevel with input and output in
+;; an Emacs buffer named `*caml-toplevel*. This gives you the full
+;; power of Emacs to edit the input to the Caml toplevel. This mode is
+;; based on comint so you get all the usual comint features, including
+;; command history. A hook named `tuareg-interactive-mode-hook' may be
+;; used for customization.
+;;
+;; Typing C-c C-e in a buffer in Caml mode sends the current phrase
+;; (containing the point) to the Caml toplevel, and evaluates it.  If
+;; you type one of these commands before M-x tuareg-run-caml, the
+;; toplevel will be started automatically.
+;;
+;; M-x camldebug FILE starts the Caml debugger camldebug on the
+;; executable FILE, with input and output in an Emacs buffer named
+;; *camldebug-FILE*.  It is similar to April 1996 version, with minor
+;; changes to support XEmacs, Tuareg and OCaml. Furthermore, package
+;; `thingatpt' is not required any more.
+
+;; This file is *NOT* part of GNU Emacs.
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+;; GNU General Public License for more details.
 
 ;;; Code:
 
@@ -27,9 +79,6 @@
             (let ((file (or (and (boundp 'byte-compile-current-file)
                                  byte-compile-current-file)
                             load-file-name)))
-              (when file
-                (setq file (expand-file-name "version"
-                                             (file-name-directory file))))
               (with-temp-buffer
                 (if (and file (file-exists-p file))
                     (insert-file-contents-literally file)
