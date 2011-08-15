@@ -12,8 +12,8 @@ First Font-Lock and XEmacs support -
 First OCaml and OLabl version -
         By Jacques Garrigue <Jacques.Garrigue@kurims.kyoto-u.ac.jp>, 1996.
 
-New version for Objective Caml
-        Extension to Objective Caml (and Labl) syntax (including literals
+New version for OCaml (Objective Caml)
+        Extension to OCaml (and Labl) syntax (including literals
         and preserving compatibility with Camllight syntax) complete
         rewritting of Zimmerman's mode, especially comment detection
         and indentation, along with major improvement of

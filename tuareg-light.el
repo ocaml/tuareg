@@ -7,7 +7,7 @@
 (require 'custom)
 
 (defgroup tuareg2 nil
-  "Support for the Objective Caml language."
+  "Support for the OCaml language."
   :group 'languages)
 
 ;; Comments
@@ -77,7 +77,7 @@ same way."
   :group 'tuareg2 :type 'boolean)
 
 (defcustom tuareg2-pipe-extra-unindent tuareg2-default-indent
-  "*Extra backward indent for Caml lines starting with the `|' operator.
+  "*Extra backward indent for OCaml lines starting with the `|' operator.
 
 It is NOT the variable controlling the indentation of the `|' itself:
 this value is automatically added to `function', `with', `parse' and
@@ -205,8 +205,8 @@ instead of the historical `tuareg2-default-indent'."
 ;; Util                                                                       ;;
 ;;----------------------------------------------------------------------------;;
 
-(defun tuareg2-editing-camllex ()
-  "Tells whether we are editing CamlLex syntax."
+(defun tuareg2-editing-ocamllex ()
+  "Tells whether we are editing OCamlLex syntax."
   (string-match "\\.mll" (buffer-name)))
 
 (defalias 'tuareg2-match-string 'match-string-no-properties)
@@ -254,16 +254,16 @@ instead of the historical `tuareg2-default-indent'."
     (bolp)))
 
 (defun tuareg2-in-literal-p ()
-  "Returns non-nil if point is inside a Caml literal."
+  "Returns non-nil if point is inside an OCaml literal."
   (nth 3 (syntax-ppss)))
 
 (defun tuareg2-in-comment-p ()
-  "Returns non-nil if point is inside or right before a Caml comment."
+  "Returns non-nil if point is inside or right before an OCaml comment."
   (or (nth 4 (syntax-ppss))
       (looking-at "[ \t]*(\\*")))
 
 (defun tuareg2-in-literal-or-comment-p ()
-  "Returns non-nil if point is inside a Caml literal or comment."
+  "Returns non-nil if point is inside an OCaml literal or comment."
   (nth 8 (syntax-ppss)))
 
 (defun tuareg2-beginning-of-literal-or-comment ()
@@ -587,7 +587,7 @@ Regexp match data 0 points to the chars."
 
 (defconst tuareg2-matching-keyword-regexp
   (tuareg2-ro "and" "do" "done" "then" "else" "end" "in" "down" "downto")
-  "Regexp matching Caml keywords which act as end block delimiters.")
+  "Regexp matching OCaml keywords which act as end block delimiters.")
 
 (defun tuareg2-matching-keyword-regexp ()
   tuareg2-matching-keyword-regexp)
@@ -595,7 +595,8 @@ Regexp match data 0 points to the chars."
 (defconst tuareg2-matching-kwop-regexp
   (concat tuareg2-matching-keyword-regexp
           "\\|\\<with\\>\\|[|>]?\\]\\|>?}\\|[|)]\\|;;")
-  "Regexp matching Caml keywords or operators which act as end block delimiters.")
+  "Regexp matching OCaml keywords or operators which act as end block
+delimiters.")
 
 (defun tuareg2-matching-kwop-regexp ()
   tuareg2-matching-kwop-regexp)
@@ -1073,7 +1074,7 @@ If found, return the actual text of the keyword or operator."
                              "type"))))
       (tuareg2-find-pipe-match))
      ((string= kwop "parse")
-      (if (and (tuareg2-editing-camllex)
+      (if (and (tuareg2-editing-ocamllex)
                (save-excursion
                  (string= (tuareg2-find-meaningful-word) "=")))
           kwop
@@ -1811,7 +1812,7 @@ Returns t iff skipped to indentation."
 (defun tuareg2-indent-command (&optional from-leading-star)
   "Indent the current line in Tuareg2 mode.
 
-Compute new indentation based on Caml syntax."
+Compute new indentation based on OCaml syntax."
   (interactive "*")
   (unless from-leading-star
     (tuareg2-auto-fill-insert-leading-star))
@@ -1891,7 +1892,7 @@ Compute new indentation based on Caml syntax."
      (t (tuareg2-compute-normal-indent)))))
 
 (defun tuareg2-split-string ()
-  "Called whenever a line is broken inside a Caml string literal."
+  "Called whenever a line is broken inside an OCaml string literal."
   (insert-before-markers "\\ ")
   (tuareg2-backward-char))
 
@@ -2121,8 +2122,8 @@ module/class are considered enclosed in this module/class."
         (list begin (point) end))))))
 
 (defun tuareg2-mark-phrase ()
-  "Put mark at end of this Caml phrase, point at beginning.
-The Caml phrase is the phrase just before the point."
+  "Put mark at end of this OCaml phrase, point at beginning.
+The OCaml phrase is the phrase just before the point."
   (interactive)
   (let ((pair (tuareg2-discover-phrase)))
     (goto-char (nth 1 pair)) (push-mark (nth 0 pair) t t)))
@@ -2212,9 +2213,9 @@ or indent all lines in the current phrase."
     (define-key map "\C-c\C-e" 'tuareg2-eval-phrase)
     (define-key map "\C-c\C-r" 'tuareg2-eval-region)
     (define-key map "\C-c\C-b" 'tuareg2-eval-buffer)
-    (define-key map "\C-c\C-s" 'tuareg2-run-caml)
-    (define-key map "\C-c\C-i" 'tuareg2-interrupt-caml)
-    (define-key map "\C-c\C-k" 'tuareg2-kill-caml)
+    (define-key map "\C-c\C-s" 'tuareg2-run-ocaml)
+    (define-key map "\C-c\C-i" 'tuareg2-interrupt-ocaml)
+    (define-key map "\C-c\C-k" 'tuareg2-kill-ocaml)
     (define-key map "\C-c\C-n" 'tuareg2-next-phrase)
     (define-key map "\C-c\C-p" 'tuareg2-previous-phrase)
     (define-key map [(backspace)] 'backward-delete-char-untabify)
@@ -2298,12 +2299,12 @@ or indent all lines in the current phrase."
 ;;----------------------------------------------------------------------------;;
 
 (defun tuareg2-mode ()
-  "Major mode for editing Caml code.
+  "Major mode for editing OCaml code.
 
 Dedicated to GNU Emacs, version 23 and higher. Provides
 automatic indentation and compilation interface. Performs font/color
-highlighting using Font-Lock. It is designed for Objective Caml but
-handles Objective Labl and Caml Light as well.
+highlighting using Font-Lock. It is designed for OCaml but handles
+Caml Light as well.
 
 Report bugs, remarks and questions to Albert.Cohen@prism.uvsq.fr.
 

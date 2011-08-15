@@ -19,40 +19,40 @@
 ;;; Commentary:
 ;; Description:
 ;; Tuareg helps editing OCaml code, to highlight important parts of
-;; the code, to run a Caml toplevel, and to run the Caml debugger
+;; the code, to run an OCaml toplevel, and to run the OCaml debugger
 ;; within Emacs.
 
 ;; Installation:
 ;; If you have permissions to the local `site-lisp' directory, you
-;; only have to copy `tuareg.el' and `camldebug.el' Otherwise, copy
-;; `tuareg.el' and `camldebug.el' to a local directory and add the
+;; only have to copy `tuareg.el' and `ocamldebug.el' Otherwise, copy
+;; `tuareg.el' and `ocamldebug.el' to a local directory and add the
 ;; following line to your `.emacs'
 ;;
 ;; (add-to-list 'load-path "DIR")
 
 
 ;;; Usage:
-;; Tuareg allows you to run batch Caml compilations from Emacs (using
+;; Tuareg allows you to run batch OCaml compilations from Emacs (using
 ;; M-x compile) and browse the errors (C-x `). Typing C-x ` sets the
 ;; point at the beginning of the erroneous program fragment, and the
 ;; mark at the end.  Under Emacs, the program fragment is temporarily
 ;; hilighted.
 ;;
-;; M-x tuareg-run-caml starts a Caml toplevel with input and output in
-;; an Emacs buffer named `*caml-toplevel*. This gives you the full
-;; power of Emacs to edit the input to the Caml toplevel. This mode is
+;; M-x tuareg-run-ocaml starts an OCaml toplevel with input and output in
+;; an Emacs buffer named `*ocaml-toplevel*. This gives you the full
+;; power of Emacs to edit the input to the OCaml toplevel. This mode is
 ;; based on comint so you get all the usual comint features, including
 ;; command history. A hook named `tuareg-interactive-mode-hook' may be
 ;; used for customization.
 ;;
-;; Typing C-c C-e in a buffer in Caml mode sends the current phrase
-;; (containing the point) to the Caml toplevel, and evaluates it.  If
-;; you type one of these commands before M-x tuareg-run-caml, the
+;; Typing C-c C-e in a buffer in tuareg mode sends the current phrase
+;; (containing the point) to the OCaml toplevel, and evaluates it.  If
+;; you type one of these commands before M-x tuareg-run-ocaml, the
 ;; toplevel will be started automatically.
 ;;
-;; M-x camldebug FILE starts the Caml debugger camldebug on the
+;; M-x ocamldebug FILE starts the OCaml debugger ocamldebug on the
 ;; executable FILE, with input and output in an Emacs buffer named
-;; *camldebug-FILE*.  It is similar to April 1996 version, with minor
+;; *ocamldebug-FILE*.  It is similar to April 1996 version, with minor
 ;; changes to support XEmacs, Tuareg and OCaml. Furthermore, package
 ;; `thingatpt' is not required any more.
 
@@ -117,8 +117,8 @@
   "Tells whether we are editing Lucid Synchrone syntax."
   (string-match "\\.ls" (buffer-name)))
 
-(defun tuareg-editing-camllex ()
-  "Tells whether we are editing CamlLex syntax."
+(defun tuareg-editing-ocamllex ()
+  "Tells whether we are editing OCamlLex syntax."
   (string-match "\\.mll" (buffer-name)))
 
 (defalias 'tuareg-match-string
@@ -149,7 +149,7 @@
 (require 'custom)
 
 (defgroup tuareg nil
-  "Support for the Objective Caml language."
+  "Support for the OCaml language."
   :group 'languages)
 
 ;; Comments
@@ -237,7 +237,7 @@ same way."
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-pipe-extra-unindent tuareg-default-indent
-  "*Extra backward indent for Caml lines starting with the `|' operator.
+  "*Extra backward indent for OCaml lines starting with the `|' operator.
 
 It is NOT the variable controlling the indentation of the `|' itself:
 this value is automatically added to `function', `with', `parse' and
@@ -386,12 +386,12 @@ Caml toplevel."
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-interactive-read-only-input nil
-  "*Non-nil means input sent to the Caml toplevel is read-only."
+  "*Non-nil means input sent to the OCaml toplevel is read-only."
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-interactive-echo-phrase t
   "*Non-nil means echo phrases in the toplevel buffer when sending
-them to the Caml toplevel."
+them to the OCaml toplevel."
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-interactive-input-font-lock t
@@ -407,20 +407,20 @@ them to the Caml toplevel."
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-display-buffer-on-eval t
-  "*Non nil means pop up the Caml toplevel when evaluating code."
+  "*Non nil means pop up the OCaml toplevel when evaluating code."
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-manual-url "http://pauillac.inria.fr/ocaml/htmlman/index.html"
-  "*URL to the Caml reference manual."
+  "*URL to the OCaml reference manual."
   :group 'tuareg :type 'string)
 
 (defcustom tuareg-browser 'browse-url
-  "*Name of function that displays the Caml reference manual.
+  "*Name of function that displays the OCaml reference manual.
 Valid names are `browse-url', `browse-url-firefox', etc."
   :group 'tuareg)
 
 (defcustom tuareg-library-path "/usr/local/lib/ocaml/"
-  "*Path to the Caml library."
+  "*Path to the OCaml library."
   :group 'tuareg :type 'string)
 
 (defcustom tuareg-definitions-max-items 30
@@ -449,7 +449,7 @@ Valid names are `browse-url', `browse-url-firefox', etc."
   "*List of menu-configurable Tuareg options.")
 
 (defvar tuareg-interactive-program "ocaml"
-  "*Default program name for invoking a Caml toplevel from Emacs.")
+  "*Default program name for invoking an OCaml toplevel from Emacs.")
 ;; Could be interesting to have this variable buffer-local
 ;;   (e.g., ocaml vs. metaocaml buffers)
 ;; (make-variable-buffer-local 'tuareg-interactive-program)
@@ -586,14 +586,14 @@ Valid names are `browse-url', `browse-url-firefox', etc."
 (defun tuareg-ppss-in-literal-or-comment () (error "tuareg uses PPSS"))
 (defun tuareg-ppss-fontify (beg end) (error "tuareg uses PPSS"))
 (defun tuareg-ppss-in-literal-p ()
-  "Returns non-nil if point is inside a Caml literal."
+  "Returns non-nil if point is inside an OCaml literal."
   (nth 3 (syntax-ppss)))
 (defun tuareg-ppss-in-comment-p ()
-  "Returns non-nil if point is inside or right before a Caml comment."
+  "Returns non-nil if point is inside or right before an OCaml comment."
   (or (nth 4 (syntax-ppss))
       (looking-at "[ \t]*(\\*")))
 (defun tuareg-ppss-in-literal-or-comment-p ()
-  "Returns non-nil if point is inside a Caml literal or comment."
+  "Returns non-nil if point is inside an OCaml literal or comment."
   (nth 8 (syntax-ppss)))
 (defun tuareg-ppss-beginning-of-literal-or-comment ()
   "Skips to the beginning of the current literal or comment (or buffer)."
@@ -606,13 +606,13 @@ Valid names are `browse-url', `browse-url-firefox', etc."
 
 ;; non-PPSS definitions
 (defun tuareg-!ppss-in-literal-p ()
-  "Return non-nil if point is inside a Caml literal."
+  "Return non-nil if point is inside an OCaml literal."
   (car (tuareg-in-literal-or-comment)))
 (defun tuareg-!ppss-in-comment-p ()
-  "Return non-nil if point is inside a Caml comment."
+  "Return non-nil if point is inside an OCaml comment."
   (cdr (tuareg-in-literal-or-comment)))
 (defun tuareg-!ppss-in-literal-or-comment-p ()
-  "Return non-nil if point is inside a Caml literal or comment."
+  "Return non-nil if point is inside an OCaml literal or comment."
   (tuareg-in-literal-or-comment)
   (or (car tuareg-last-loc) (cdr tuareg-last-loc)))
 (defun tuareg-!ppss-in-literal-or-comment ()
@@ -1030,9 +1030,9 @@ Regexp match data 0 points to the chars."
     (define-key map "\C-c\C-e" 'tuareg-eval-phrase)
     (define-key map "\C-c\C-r" 'tuareg-eval-region)
     (define-key map "\C-c\C-b" 'tuareg-eval-buffer)
-    (define-key map "\C-c\C-s" 'tuareg-run-caml)
-    (define-key map "\C-c\C-i" 'tuareg-interrupt-caml)
-    (define-key map "\C-c\C-k" 'tuareg-kill-caml)
+    (define-key map "\C-c\C-s" 'tuareg-run-ocaml)
+    (define-key map "\C-c\C-i" 'tuareg-interrupt-ocaml)
+    (define-key map "\C-c\C-k" 'tuareg-kill-ocaml)
     (define-key map "\C-c\C-n" 'tuareg-next-phrase)
     (define-key map "\C-c\C-p" 'tuareg-previous-phrase)
     (define-key map [(backspace)] 'backward-delete-char-untabify)
@@ -1097,12 +1097,12 @@ Regexp match data 0 points to the chars."
 
 ;;;###autoload
 (defun tuareg-mode ()
-  "Major mode for editing Caml code.
+  "Major mode for editing OCaml code.
 
-Dedicated to Emacs and XEmacs, version 21 and higher. Provides
+Dedicated to Emacs and XEmacs, version 21 and higher.  Provides
 automatic indentation and compilation interface. Performs font/color
-highlighting using Font-Lock. It is designed for Objective Caml but
-handles Objective Labl and Caml Light as well.
+highlighting using Font-Lock.  It is designed for OCaml but handles
+Caml Light as well.
 
 The Font-Lock minor-mode is used according to your customization
 options.
@@ -1123,11 +1123,11 @@ documented, use `C-h-v' or look at the mode's source code.
 `dot-emacs.el' is a sample customization file for standard changes.
 You can append it to your `.emacs' or use it as a tutorial.
 
-`M-x camldebug' FILE starts the Caml debugger camldebug on the executable
-FILE, with input and output in an Emacs buffer named *camldebug-FILE*.
+`M-x ocamldebug' FILE starts the OCaml debugger ocamldebug on the executable
+FILE, with input and output in an Emacs buffer named *ocamldebug-FILE*.
 
 A Tuareg Interactive Mode to evaluate expressions in a toplevel is included.
-Type `M-x tuareg-run-caml' or see special-keys below.
+Type `M-x tuareg-run-ocaml' or see special-keys below.
 
 For the best indentation experience, some elementary rules must be followed.
   - Because the `function' keyword has a special indentation (to handle
@@ -1291,7 +1291,7 @@ Short cuts for interactions with the toplevel:
 
 (defconst tuareg-error-regexp
   "^[^\0-@]+ \"\\([^\"\n]+\\)\", [^\0-@]+ \\([0-9]+\\)[-,:]"
-  "Regular expression matching the error messages produced by (o)camlc.")
+  "Regular expression matching the error messages produced by ocamlc.")
 
 (when (boundp 'compilation-error-regexp-alist)
   (or (assoc tuareg-error-regexp
@@ -1304,7 +1304,7 @@ Short cuts for interactions with the toplevel:
 
 (defconst tuareg-error-chars-regexp
   ".*, .*, [^\0-@]+ \\([0-9]+\\)-\\([0-9]+\\):"
-  "Regexp matching the char numbers in an error message produced by (o)camlc.")
+  "Regexp matching the char numbers in an error message produced by ocamlc.")
 
 ;; Wrapper around next-error.
 
@@ -1317,7 +1317,7 @@ Short cuts for interactions with the toplevel:
 ;; used.
 
 ;; (defadvice next-error (after tuareg-next-error activate)
-;;  "Read the extra positional information provided by the Caml compiler.
+;;  "Read the extra positional information provided by the OCaml compiler.
 
 ;; Puts the point and the mark exactly around the erroneous program
 ;; fragment. The erroneous fragment is also temporarily highlighted if
@@ -1351,7 +1351,7 @@ Short cuts for interactions with the toplevel:
           "\\|Exception non rattrap.e:"
           "\\|Uncaught exception:"
           "\\)[^#]*\\)" )
-  "Regular expression matching the error messages produced by Caml.")
+  "Regular expression matching the error messages produced by OCaml.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               Indentation stuff
@@ -1428,7 +1428,7 @@ For synchronous programming.")
 
 (defconst tuareg-matching-keyword-regexp
   (tuareg-ro "and" "do" "done" "then" "else" "end" "in" "down" "downto")
-  "Regexp matching Caml keywords which act as end block delimiters.")
+  "Regexp matching OCaml keywords which act as end block delimiters.")
 
 (defconst tuareg-extra-ls3-keyword-regexp
   (tuareg-ro "where" "unless" "until" "every")
@@ -1436,7 +1436,7 @@ For synchronous programming.")
 
 (defconst tuareg-matching-keyword-regexp-ls3
   (concat tuareg-matching-keyword-regexp "\\|" tuareg-extra-ls3-keyword-regexp)
-  "Regexp matching Caml keywords which act as end block delimiters
+  "Regexp matching OCaml keywords which act as end block delimiters
 For synchronous programming.")
 
 (defun tuareg-give-matching-keyword-regexp ()
@@ -1450,12 +1450,13 @@ For synchronous programming.")
 (defconst tuareg-matching-kwop-regexp
   (concat tuareg-matching-keyword-regexp
           "\\|\\<with\\>\\|[|>]?\\]\\|>?}\\|[|)]\\|;;")
-  "Regexp matching Caml keywords or operators which act as end block delimiters.")
+  "Regexp matching OCaml keywords or operators which act as end block
+delimiters.")
 
 (defconst tuareg-matching-kwop-regexp-ls3
   (concat tuareg-matching-kwop-regexp "\\|" tuareg-extra-ls3-keyword-regexp)
-  "Regexp matching Caml keywords or operators which act as end block delimiters.
-For synchronous programming.")
+  "Regexp matching OCaml keywords or operators which act as end block
+delimiters.  For synchronous programming.")
 
 (defun tuareg-give-matching-kwop-regexp ()
   (if (tuareg-editing-ls3)
@@ -2729,7 +2730,7 @@ Returns t iff skipped to indentation."
 (defun tuareg-indent-command (&optional from-leading-star)
   "Indent the current line in Tuareg mode.
 
-Compute new indentation based on Caml syntax."
+Compute new indentation based on OCaml syntax."
   (interactive "*")
   (unless from-leading-star
     (tuareg-auto-fill-insert-leading-star))
@@ -2809,7 +2810,7 @@ Compute new indentation based on Caml syntax."
      (t (tuareg-compute-normal-indent)))))
 
 (defun tuareg-split-string ()
-  "Called whenever a line is broken inside a Caml string literal."
+  "Called whenever a line is broken inside an OCaml string literal."
   (insert-before-markers "\\ ")
   (tuareg-backward-char))
 
@@ -3149,8 +3150,8 @@ module/class are considered enclosed in this module/class."
         (list begin (point) end))))))
 
 (defun tuareg-mark-phrase ()
-  "Put mark at end of this Caml phrase, point at beginning.
-The Caml phrase is the phrase just before the point."
+  "Put mark at end of this OCaml phrase, point at beginning.
+The OCaml phrase is the phrase just before the point."
   (interactive)
   (let ((pair (tuareg-discover-phrase)))
     (goto-char (nth 1 pair)) (push-mark (nth 0 pair) t t)))
@@ -3354,7 +3355,7 @@ or indent all lines in the current phrase."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                            Tuareg interactive mode
 
-;; Augment Tuareg mode with a Caml toplevel.
+;; Augment Tuareg mode with a OCaml toplevel.
 
 (require 'comint)
 
@@ -3364,8 +3365,8 @@ or indent all lines in the current phrase."
     (define-key map ")" 'tuareg-electric-rp)
     (define-key map "}" 'tuareg-electric-rc)
     (define-key map "]" 'tuareg-electric-rb)
-    (define-key map "\C-c\C-i" 'tuareg-interrupt-caml)
-    (define-key map "\C-c\C-k" 'tuareg-kill-caml)
+    (define-key map "\C-c\C-i" 'tuareg-interrupt-ocaml)
+    (define-key map "\C-c\C-k" 'tuareg-kill-ocaml)
     (define-key map "\C-c`" 'tuareg-interactive-next-error-toplevel)
     (define-key map "\C-c?" 'tuareg-interactive-next-error-toplevel)
     (define-key map "\C-m" 'tuareg-interactive-send-input)
@@ -3374,7 +3375,7 @@ or indent all lines in the current phrase."
     (define-key map [kp-enter] 'tuareg-interactive-send-input-end-of-phrase)
     map))
 
-(defconst tuareg-interactive-buffer-name "*caml-toplevel*")
+(defconst tuareg-interactive-buffer-name "*ocaml-toplevel*")
 
 (defconst tuareg-interactive-toplevel-error-regexp
   "[ \t]*Characters \\([0-9]+\\)-\\([0-9]+\\):"
@@ -3425,10 +3426,10 @@ or indent all lines in the current phrase."
   "Tuareg Interactive Mode Menu."
   '("Tuareg"
     ("Interactive Mode"
-     ["Run Caml Toplevel" tuareg-run-caml t]
-     ["Interrupt Caml Toplevel" tuareg-interrupt-caml
+     ["Run OCaml Toplevel" tuareg-run-ocaml t]
+     ["Interrupt OCaml Toplevel" tuareg-interrupt-ocaml
       :active (comint-check-proc tuareg-interactive-buffer-name)]
-     ["Kill Caml Toplevel" tuareg-kill-caml
+     ["Kill OCaml Toplevel" tuareg-kill-ocaml
       :active (comint-check-proc tuareg-interactive-buffer-name)]
      ["Evaluate Region" tuareg-eval-region :active (region-active-p)]
      ["Evaluate Phrase" tuareg-eval-phrase t]
@@ -3442,10 +3443,10 @@ or indent all lines in the current phrase."
     ["Help" tuareg-interactive-help t]))
 
 (define-derived-mode tuareg-interactive-mode comint-mode "Tuareg-Interactive"
-  "Major mode for interacting with a Caml process.
-Runs a Caml toplevel as a subprocess of Emacs, with I/O through an
+  "Major mode for interacting with an OCaml process.
+Runs an OCaml toplevel as a subprocess of Emacs, with I/O through an
 Emacs buffer. A history of input phrases is maintained. Phrases can
-be sent from another buffer in Caml mode.
+be sent from another buffer in tuareg mode.
 
 Short cuts for interactions with the toplevel:
 \\{tuareg-interactive-mode-map}"
@@ -3474,25 +3475,28 @@ Short cuts for interactions with the toplevel:
   (tuareg-update-options-menu))
 
 ;;;###autoload
-(defun tuareg-run-caml ()
-  "Run a Caml toplevel process. I/O via buffer `*caml-toplevel*'."
+(defun tuareg-run-ocaml ()
+  "Run an OCaml toplevel process. I/O via buffer `*ocaml-toplevel*'."
   (interactive)
   (tuareg-run-process-if-needed)
   (display-buffer tuareg-interactive-buffer-name))
 
+;;;###autoload
+(defalias 'tuareg-run-caml 'tuareg-run-ocaml)
+
 (defun tuareg-run-process-if-needed (&optional cmd)
-  "Run a Caml toplevel process if needed, with an optional command name.
-I/O via buffer `*caml-toplevel*'."
+  "Run an OCaml toplevel process if needed, with an optional command name.
+I/O via buffer `*ocaml-toplevel*'."
   (if cmd
       (setq tuareg-interactive-program cmd)
     (unless (comint-check-proc tuareg-interactive-buffer-name)
       (setq tuareg-interactive-program
-            (read-shell-command "Caml toplevel to run: "
+            (read-shell-command "OCaml toplevel to run: "
                                 tuareg-interactive-program))))
   (unless (comint-check-proc tuareg-interactive-buffer-name)
     (let ((cmdlist (tuareg-args-to-list tuareg-interactive-program))
           (process-connection-type nil))
-      (set-buffer (apply (function make-comint) "caml-toplevel"
+      (set-buffer (apply (function make-comint) "ocaml-toplevel"
                          (car cmdlist) nil (cdr cmdlist)))
       (tuareg-interactive-mode)
       (sleep-for 1))))
@@ -3558,7 +3562,7 @@ current phrase else insert a newline and indent."
     (message tuareg-interactive-send-warning)))
 
 (defun tuareg-eval-region (start end)
-  "Eval the current region in the Caml toplevel."
+  "Eval the current region in the OCaml toplevel."
   (interactive "r")
   (save-excursion (tuareg-run-process-if-needed))
   (comint-preinput-scroll-to-bottom)
@@ -3573,7 +3577,7 @@ current phrase else insert a newline and indent."
     (let ((text (buffer-substring-no-properties start end)))
       (goto-char end)
       (if (string= text "")
-          (message "Cannot send empty commands to Caml toplevel!")
+          (message "Cannot send empty commands to OCaml toplevel!")
         (set-buffer tuareg-interactive-buffer-name)
         (goto-char (point-max))
         (setq tuareg-interactive-last-phrase-pos-in-toplevel (point))
@@ -3589,14 +3593,14 @@ current phrase else insert a newline and indent."
       (display-buffer tuareg-interactive-buffer-name))))
 
 (defun tuareg-narrow-to-phrase ()
-  "Narrow the editting window to the surrounding Caml phrase (or block)."
+  "Narrow the editting window to the surrounding OCaml phrase (or block)."
   (interactive)
   (save-excursion
     (let ((pair (tuareg-discover-phrase)))
       (narrow-to-region (nth 0 pair) (nth 1 pair)))))
 
 (defun tuareg-eval-phrase ()
-  "Eval the surrounding Caml phrase (or block) in the Caml toplevel."
+  "Eval the surrounding OCaml phrase (or block) in the Caml toplevel."
   (interactive)
   (let ((end))
     (save-excursion
@@ -3647,13 +3651,13 @@ current phrase else insert a newline and indent."
       (put-text-property beg end 'face 'tuareg-font-lock-error-face)
       (goto-char beg))))
 
-(defun tuareg-interrupt-caml ()
+(defun tuareg-interrupt-ocaml ()
   (interactive)
   (when (comint-check-proc tuareg-interactive-buffer-name)
     (with-current-buffer tuareg-interactive-buffer-name
       (comint-interrupt-subjob))))
 
-(defun tuareg-kill-caml ()
+(defun tuareg-kill-ocaml ()
   (interactive)
   (when (comint-check-proc tuareg-interactive-buffer-name)
     (with-current-buffer tuareg-interactive-buffer-name
@@ -3696,17 +3700,17 @@ Short cuts for interaction within the toplevel:
    "Tuareg Mode Menu."
    '("Tuareg"
      ("Interactive Mode"
-      ["Run Caml Toplevel" tuareg-run-caml t]
-      ["Interrupt Caml Toplevel" tuareg-interrupt-caml
+      ["Run OCaml Toplevel" tuareg-run-ocaml t]
+      ["Interrupt OCaml Toplevel" tuareg-interrupt-ocaml
        :active (comint-check-proc tuareg-interactive-buffer-name)]
-      ["Kill Caml Toplevel" tuareg-kill-caml
+      ["Kill OCaml Toplevel" tuareg-kill-ocaml
        :active (comint-check-proc tuareg-interactive-buffer-name)]
       ["Evaluate Region" tuareg-eval-region
        ;; Region-active-p for XEmacs and mark-active for Emacs
        :active mark-active]
       ["Evaluate Phrase" tuareg-eval-phrase t]
       ["Evaluate Buffer" tuareg-eval-buffer t])
-     ("Caml Forms"
+     ("OCaml Forms"
       ["try .. with .." tuareg-insert-try-form t]
       ["match .. with .." tuareg-insert-match-form t]
       ["let .. in .." tuareg-insert-let-form t]
@@ -3718,7 +3722,7 @@ Short cuts for interaction within the toplevel:
      "---"
      ["Compile..." compile t]
      ["Reference Manual..." tuareg-browse-manual t]
-     ["Caml Library..." tuareg-browse-library t]
+     ["OCaml Library..." tuareg-browse-library t]
      ("Definitions"
       ["Scan..." tuareg-list-definitions t])
      "---"
@@ -3809,7 +3813,7 @@ Short cuts for interaction within the toplevel:
 ;; From M. Quercia
 
 (defun tuareg-browse-manual ()
-  "*Browse Caml reference manual."
+  "*Browse OCaml reference manual."
   (interactive)
   (setq tuareg-manual-url (read-from-minibuffer "URL: " tuareg-manual-url))
   (funcall tuareg-browser tuareg-manual-url))
@@ -3827,9 +3831,9 @@ Short cuts for interaction within the toplevel:
     map))
 
 (defun tuareg-browse-library()
-  "Browse the Caml library."
+  "Browse the OCaml library."
   (interactive)
-  (let ((buf-name "*caml-library*") (opoint)
+  (let ((buf-name "*ocaml-library*") (opoint)
         (dir (read-from-minibuffer "Library path: " tuareg-library-path)))
     (when (and (file-directory-p dir) (file-readable-p dir))
       (setq tuareg-library-path dir)

@@ -1,7 +1,7 @@
 DESCRIPTION:
 
 This archive contains files to help editing OCaml code, to highlight
-important parts of the code, to run a Caml toplevel, and to run the
+important parts of the code, to run an OCaml toplevel, and to run the
 Caml debugger within Emacs. 
 
 CONTENTS:
@@ -9,7 +9,7 @@ CONTENTS:
   README             This file.
   HISTORY            Differences with previous versions.
   tuareg.el          A major mode for editing Tuareg code in Emacs.
-  camldebug.el       To run the Caml debugger under Emacs.
+  ocamldebug.el      To run the OCaml debugger under Emacs.
   dot-emacs.el       Configuration file for quick installation
   sample.el          Sample file to check the indentation engine.
 
@@ -31,12 +31,13 @@ MANUAL CONFIGURATION:
   Add the following lines to your .emacs file:
 
   (add-to-list 'auto-mode-alist '("\\.ml[iylp]?" . tuareg-mode))
-  (autoload 'tuareg-mode "tuareg" "Major mode for editing Caml code" t)
-  (autoload 'camldebug "camldebug" "Run the Caml debugger" t)
+  (autoload 'tuareg-mode "tuareg" "Major mode for editing OCaml code" t)
+  (autoload 'tuareg-run-ocaml "tuareg" "Run an inferior OCaml process." t)
+  (autoload 'ocamldebug "ocamldebug" "Run the OCaml debugger" t)
 
   The Tuareg major mode is triggered by visiting a file with extension
   .ml, .mli, .mly, .mll, and .mlp or manually by M-x tuareg-mode. It
-  gives you the correct syntax table for the Caml language.
+  gives you the correct syntax table for the OCaml language.
 
 USAGE:
 
@@ -48,7 +49,7 @@ CUSTOMIZATION
   Tuareg options. It is available from the Options menu and Tuareg's
   Customize sub-menu.
 
-  You may also customize the appearance of Caml code by twiddling the
+  You may also customize the appearance of OCaml code by twiddling the
   variables listed at the start of tuareg.el (preferably using
   `tuareg-mode-hook', you should not patch the file directly).
   You should then add to your configuration file something like:
@@ -68,9 +69,8 @@ THANKS:
   debugger enhancement.
 
   Jacques Garrigue enhanced Zimmerman's mode along with an adaptation
-  to Objective Caml (and Labl) syntax. Although this work was
-  performed independently, his useful test file and comments were of
-  great help.
+  to OCaml (and Labl) syntax. Although this work was performed
+  independently, his useful test file and comments were of great help.
 
   Michel Quercia for excellent suggestions, patches, and helpful
   emacs-lisp contributions (full, ready-to-work implementations, I

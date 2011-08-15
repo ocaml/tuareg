@@ -4,7 +4,7 @@ DESCRIPTION = $(shell grep ';;; tuareg.el ---' tuareg.el \
 	| sed 's/[^-]*--- *\(.*\)/\1/')
 DIST_NAME = tuareg-$(VERSION)
 
-ELS = tuareg.el camldebug.el
+ELS = tuareg.el ocamldebug.el
 ELC = $(ELS:.el=.elc)
 
 DIST_FILES += $(ELS) Makefile
@@ -33,8 +33,6 @@ elc : $(ELC)
 
 %.elc : %.el
 	$(EMACS) -batch $(NOINIT) -f batch-byte-compile $<
-
-# camldebug.elc : camldebug.el tuareg.elc
 
 # ifneq ($(realpath .hg),)
 # POST_INSTALL_HOOK = $(RM) $(VERSION_FILE)
@@ -86,18 +84,19 @@ elc : $(ELC)
 
 
 .PHONY: dist tar
-dist tar: $(DIST_NAME).tar.gz
+dist: $(DIST_NAME).tar.gz
+tar: $(DIST_NAME).tar
 
-$(DIST_NAME).tar.gz : $(DIST_FILES)
+$(DIST_NAME).tar.gz $(DIST_NAME).tar: $(DIST_FILES)
 	mkdir -p $(DIST_NAME)
 	for f in $(DIST_FILES); do $(LN) $$f $(DIST_NAME); done
 	echo "(define-package \"tuareg\" \"$(VERSION)\" \"$(DESCRIPTION)\" \
 		)" > $(DIST_NAME)/tuareg-pkg.el
-	tar cvfz $@ $(DIST_NAME)
+	tar acvf $@ $(DIST_NAME)
 	$(RM) -rf $(DIST_NAME)
 
 clean :
-	$(RM) $(ELC) "$(DIST_NAME).tar.gz"
+	$(RM) $(ELC) "$(DIST_NAME).tar.gz" "$(DIST_NAME).tar"
 #         $(POST_INSTALL_HOOK)
 
 # .PHONY : all elc clean install force check distrib dist
