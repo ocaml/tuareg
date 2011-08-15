@@ -73,29 +73,26 @@
 (eval-when-compile (require 'cl))
 (require 'easymenu)
 
+(defconst tuareg-mode-revision
+  (eval-when-compile
+    (with-temp-buffer
+      (cond ((file-directory-p ".hg")
+	     (call-process "hg" nil t nil "id" "-i" "--debug"))
+	    ((file-directory-p ".svn")
+	     (shell-command "svn info | grep Revision: | sed 's/Revision: //'" t))
+	    ((file-directory-p ".bzr")
+	     (shell-command "bzr log -l -1 | grep revno:" t))
+	    (t (insert "\n")))
+      (buffer-substring-no-properties
+       (point-min) (1- (point-max)))))
+  "Tuareg revision from the control system used.")
+
 (defconst tuareg-mode-version
-  (concat "Tuareg Version 2.0.4 ("
-          (eval-when-compile
-            (let ((file (or (and (boundp 'byte-compile-current-file)
-                                 byte-compile-current-file)
-                            load-file-name)))
-              (with-temp-buffer
-                (if (and file (file-exists-p file))
-                    (insert-file-contents-literally file)
-                    (let ((default-directory
-                           (if file
-                               (file-name-directory file)
-                               default-directory)))
-                      (cond ((file-directory-p ".hg")
-                             (call-process "hg" nil t nil "id" "-i" "--debug"))
-                            ((file-directory-p ".svn")
-                             (shell-command "svn info | grep Revision: | sed 's/Revision: //'" t))
-			    ((file-directory-p ".bzr")
-                             (shell-command "bzr log -l -1 | grep revno:" t))
-                            (t (insert "unknown\n")))))
-                (buffer-substring-no-properties
-                 (point-min) (1- (point-max))))))
-          ")")
+  (let ((version "Tuareg Version 2.0.4"))
+    (if (string= tuareg-mode-revision "")
+	version
+      (concat version " (" tuareg-mode-revision ")")
+      ))
   "         Copyright (C) 1997-2006 Albert Cohen, all rights reserved.
          Copyright (C) 2009-2010 Jane Street Holding, LLC.
          Copying is covered by the GNU General Public License.
