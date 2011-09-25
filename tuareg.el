@@ -10,8 +10,8 @@
 ;;	Till Varoquaux <till@pps.jussieu.fr>
 ;;	Sean McLaughlin <seanmcl@gmail.com>
 ;; Created: 8 Jan 1997
-;; Version: 2.0.4
-;; Package-Requires:
+;; Version: 2.0.5
+;; Package-Requires: ((caml "3.12.0.1"))
 ;; Keywords: ocaml languages
 ;; URL: http://forge.ocamlcore.org/projects/tuareg/
 ;; EmacsWiki: TuaregMode

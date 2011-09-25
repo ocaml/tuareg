@@ -2,6 +2,8 @@ VERSION = $(shell grep ';; Version:' tuareg.el \
 	| sed 's/;; Version: *\([0-9.]\+\).*/\1/')
 DESCRIPTION = $(shell grep ';;; tuareg.el ---' tuareg.el \
 	| sed 's/[^-]*--- *\(.*\)/\1/')
+REQUIREMENTS = $(shell grep ';; Package-Requires:' tuareg.el \
+	| sed 's/;; Package-Requires: *\(.\+\).*/\1/')
 DIST_NAME = tuareg-$(VERSION)
 
 ELS = tuareg.el ocamldebug.el
@@ -90,8 +92,7 @@ tar: $(DIST_NAME).tar
 $(DIST_NAME).tar.gz $(DIST_NAME).tar: $(DIST_FILES)
 	mkdir -p $(DIST_NAME)
 	for f in $(DIST_FILES); do $(LN) $$f $(DIST_NAME); done
-	echo "(define-package \"tuareg\" \"$(VERSION)\" \"$(DESCRIPTION)\" \
-		)" > $(DIST_NAME)/tuareg-pkg.el
+	echo '(define-package "tuareg" "$(VERSION)" "$(DESCRIPTION)" ' "'"'$(REQUIREMENTS))' > $(DIST_NAME)/tuareg-pkg.el
 	tar acvf $@ $(DIST_NAME)
 	$(RM) -rf $(DIST_NAME)
 
