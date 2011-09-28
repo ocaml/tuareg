@@ -1424,7 +1424,7 @@ For synchronous programming.")
   "Regexp for all operators.")
 
 (defconst tuareg-matching-keyword-regexp
-  (tuareg-ro "and" "do" "done" "then" "else" "end" "in" "down" "downto")
+  (tuareg-ro "and" "do" "done" "then" "else" "end" "in" "downto")
   "Regexp matching OCaml keywords which act as end block delimiters.")
 
 (defconst tuareg-extra-ls3-keyword-regexp
@@ -1615,7 +1615,7 @@ Returns the actual text of the word, if found."
 
 ;; Static regexps
 (defconst tuareg-find-and-match-regexp
-  (concat (tuareg-ro "do" "done" "else" "end" "in" "then" "down" "downto"
+  (concat (tuareg-ro "do" "done" "else" "end" "in" "then" "downto"
                      "for" "while" "do" "if" "begin" "sig" "struct" "class"
                      "rule" "exception" "let" "in" "type" "val" "module")
           "\\|[][(){}]\\|\\*)"))
@@ -1837,7 +1837,7 @@ If found, return the actual text of the keyword or operator."
       (tuareg-find-semicolon-match)
       (tuareg-find-else-match)))))
 
-(defconst tuareg-do-match-stop-regexp (tuareg-ro "down" "downto"))
+(defconst tuareg-do-match-stop-regexp (tuareg-ro "downto"))
 (defun tuareg-find-do-match ()
   (let ((kwop (tuareg-find-kwop tuareg-find-do-match-regexp
                                 tuareg-do-match-stop-regexp)))
