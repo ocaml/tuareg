@@ -1,5 +1,4 @@
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; ocamldebug.el - Run ocamldebug / camldebug under Emacs.
+;;; ocamldebug.el --- Run ocamldebug / camldebug under Emacs.
 ;; Derived from gdb.el.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -16,7 +15,7 @@
 ;;    GNU General Public License for more details.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                 History
+;;; History:
 ;;
 ;;itz 04-06-96 I pondered basing this on gud. The potential advantages
 ;;were: automatic bugfix , keymaps and menus propagation.
@@ -32,6 +31,10 @@
 ;;Albert Cohen 05-98: A few patches and OCaml customization.
 ;;Albert Cohen 09-98: XEmacs support and some improvements.
 ;;Erwan Jahier and Albert Cohen 11-05: support for ocamldebug 3.09.
+
+;;; Commentary:
+
+;;; Code:
 
 (require 'comint)
 (require 'shell)
@@ -261,7 +264,7 @@ representation is simply concatenated with the COMMAND."
 
 Without TIME, the command behaves as follows: In the ocamldebug buffer,
 if the point at buffer end, goto time 0\; otherwise, try to obtain the
-time from context around point. In an OCaml buffer, try to find the
+time from context around point.  In an OCaml buffer, try to find the
 time associated in execution history with the current point location.
 
 With a negative TIME, move that many lines backward in the ocamldebug
@@ -341,7 +344,7 @@ buffer, then try to obtain the time from context around point."
   "Delete the breakpoint numbered ARG.
 
 Without ARG, the command behaves as follows: In the ocamldebug buffer,
-try to obtain the time from context around point. In an OCaml buffer,
+try to obtain the time from context around point.  In an OCaml buffer,
 try to find the breakpoint associated with the current point location.
 
 With a negative ARG, look for the -ARGth breakpoint pattern in the
@@ -683,10 +686,10 @@ Obeying it means displaying in another window the specified file and line."
 (defun ocamldebug-module-name (filename)
   (substring filename (string-match "\\([^/]*\\)\\.ml$" filename) (match-end 1)))
 
-;;; The ocamldebug-call function must do the right thing whether its
-;;; invoking keystroke is from the ocamldebug buffer itself (via
-;;; major-mode binding) or an OCaml buffer.  In the former case, we want
-;;; to supply data from ocamldebug-last-frame.  Here's how we do it:
+;; The ocamldebug-call function must do the right thing whether its
+;; invoking keystroke is from the ocamldebug buffer itself (via
+;; major-mode binding) or an OCaml buffer.  In the former case, we want
+;; to supply data from ocamldebug-last-frame.  Here's how we do it:
 
 (defun ocamldebug-format-command (str)
   (let* ((insource (not (eq (current-buffer) ocamldebug-current-buffer)))
@@ -761,3 +764,4 @@ representation is simply concatenated with the COMMAND."
 
 
 (provide 'ocamldebug)
+;;; ocamldebug.el ends here

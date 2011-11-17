@@ -79,17 +79,19 @@
       (cond ((file-directory-p ".hg")
 	     (call-process "hg" nil t nil "id" "-i" "--debug"))
 	    ((file-directory-p ".svn")
-	     (shell-command "svn info | grep Revision: | sed 's/Revision: //'" t))
+             (let ((process-environment
+                    (cons "LANG=C" process-environment)))
+               (shell-command "svn info | grep Revision: | sed 's/Revision: //'" t)))
 	    ((file-directory-p ".bzr")
-	     (shell-command "bzr log -l -1 | grep revno:" t))
-	    (t (insert "\n")))
-      (buffer-substring-no-properties
-       (point-min) (1- (point-max)))))
+	     (shell-command "bzr log -l -1 | grep revno:" t)))
+      (unless (zerop (buffer-size))
+        (buffer-substring-no-properties
+         (point-min) (1- (point-max))))))
   "Tuareg revision from the control system used.")
 
 (defconst tuareg-mode-version
   (let ((version "Tuareg Version 2.0.4"))
-    (if (string= tuareg-mode-revision "")
+    (if (null tuareg-mode-revision)
 	version
       (concat version " (" tuareg-mode-revision ")")
       ))
@@ -111,12 +113,12 @@
 ;;                      Compatibility functions
 
 (defun tuareg-editing-ls3 ()
-  "Tells whether we are editing Lucid Synchrone syntax."
-  (string-match "\\.ls" (buffer-name)))
+  "Tell whether we are editing Lucid Synchrone syntax."
+  (string-match "\\.ls\\'" (or buffer-file-name (buffer-name))))
 
 (defun tuareg-editing-ocamllex ()
-  "Tells whether we are editing OCamlLex syntax."
-  (string-match "\\.mll" (buffer-name)))
+  "Tell whether we are editing OCamlLex syntax."
+  (string-match "\\.mll\\'" (or buffer-file-name (buffer-name))))
 
 (defalias 'tuareg-match-string
   (if (fboundp 'match-string-no-properties)
@@ -210,20 +212,20 @@ if it has to."
 (defcustom tuareg-support-camllight nil
   "*If true, handle Caml Light character syntax (incompatible with labels)."
   :group 'tuareg :type 'boolean
-  :set '(lambda (var val)
-          (setq tuareg-support-camllight val)
-          (when (boundp 'tuareg-mode-syntax-table)
-            (modify-syntax-entry ?` (if val "\"" ".")
-                                 tuareg-mode-syntax-table))))
+  :set (lambda (var val)
+         (setq tuareg-support-camllight val)
+         (when (boundp 'tuareg-mode-syntax-table)
+           (modify-syntax-entry ?` (if val "\"" ".")
+                                tuareg-mode-syntax-table))))
 
 (defcustom tuareg-support-metaocaml nil
   "*If true, handle MetaOCaml syntax."
   :group 'tuareg :type 'boolean
-  :set '(lambda (var val)
-          (setq tuareg-support-metaocaml val)
-          (when (boundp 'tuareg-font-lock-keywords)
-            (tuareg-make-indentation-regexps)
-            (tuareg-install-font-lock))))
+  :set (lambda (var val)
+         (setq tuareg-support-metaocaml val)
+         (when (boundp 'tuareg-font-lock-keywords)
+           (tuareg-make-indentation-regexps)
+           (tuareg-install-font-lock))))
 
 (defcustom tuareg-let-always-indent t
   "*If true, enforce indentation is at least `tuareg-let-indent' after a `let'.
@@ -340,17 +342,19 @@ instead of the historical `tuareg-default-indent'."
 Leading keywords are such as `end', `done', `else' etc.
 It makes use of `abbrev-mode'.
 
-Many people find eletric keywords irritating, so you can disable them by
+Many people find electric keywords irritating, so you can disable them by
 setting this variable to nil."
   :group 'tuareg :type 'boolean
-  :set '(lambda (var val)
-          (setq tuareg-use-abbrev-mode val)
-          (abbrev-mode val)))
+  :set (lambda (var val)
+         (setq tuareg-use-abbrev-mode val)
+         ;; FIXME: Can't be right: this only affects the current buffer,
+         ;; which could be a Customize buffer for all we know.
+         (abbrev-mode val)))
 
 (defcustom tuareg-electric-indent t
   "*Non-nil means electrically indent lines starting with `|', `)', `]' or `}'.
 
-Many people find eletric keys irritating, so you can disable them in
+Many people find electric keys irritating, so you can disable them by
 setting this variable to nil."
   :group 'tuareg :type 'boolean)
 
@@ -358,7 +362,7 @@ setting this variable to nil."
   "*Non-nil means electrically insert `|' before a vector-closing `]' or
 `>' before an object-closing `}'.
 
-Many people find eletric keys irritating, so you can disable them in
+Many people find electric keys irritating, so you can disable them by
 setting this variable to nil. You should probably have this on,
 though, if you also have `tuareg-electric-indent' on."
   :group 'tuareg :type 'boolean)
@@ -372,10 +376,11 @@ upon evaluating an expression.
 
 See `comint-scroll-to-bottom-on-output' for details."
   :group 'tuareg :type 'boolean
-  :set '(lambda (var val)
-          (setq tuareg-interactive-scroll-to-bottom-on-output val)
-          (when (boundp 'comint-scroll-to-bottom-on-output)
-            (setq comint-scroll-to-bottom-on-output val))))
+  :set (lambda (var val)
+         (setq tuareg-interactive-scroll-to-bottom-on-output val)
+         ;; FIXME: this can't be right since it affects all comint buffers.
+         (when (boundp 'comint-scroll-to-bottom-on-output)
+           (setq comint-scroll-to-bottom-on-output val))))
 
 (defcustom tuareg-skip-after-eval-phrase t
   "*Non-nil means skip to the end of the phrase after evaluation in the
@@ -583,14 +588,14 @@ Valid names are `browse-url', `browse-url-firefox', etc."
 (defun tuareg-ppss-in-literal-or-comment () (error "tuareg uses PPSS"))
 (defun tuareg-ppss-fontify (beg end) (error "tuareg uses PPSS"))
 (defun tuareg-ppss-in-literal-p ()
-  "Returns non-nil if point is inside an OCaml literal."
+  "Return non-nil if point is inside an OCaml literal."
   (nth 3 (syntax-ppss)))
 (defun tuareg-ppss-in-comment-p ()
-  "Returns non-nil if point is inside or right before an OCaml comment."
+  "Return non-nil if point is inside or right before an OCaml comment."
   (or (nth 4 (syntax-ppss))
       (looking-at "[ \t]*(\\*")))
 (defun tuareg-ppss-in-literal-or-comment-p ()
-  "Returns non-nil if point is inside an OCaml literal or comment."
+  "Return non-nil if point is inside an OCaml literal or comment."
   (nth 8 (syntax-ppss)))
 (defun tuareg-ppss-beginning-of-literal-or-comment ()
   "Skips to the beginning of the current literal or comment (or buffer)."
@@ -733,9 +738,11 @@ Valid names are `browse-url', `browse-url-firefox', etc."
       (setq op (point)))))
 
 (defalias 'tuareg-in-literal-or-comment
-    (eval-and-compile (if tuareg-use-syntax-ppss
-                          'tuareg-ppss-in-literal-or-comment
-                          'tuareg-!ppss-in-literal-or-comment)))
+  ;; FIXME: These eval-and-compile have no effect.  Maybe eval-when-compile
+  ;; was intended?
+  (eval-and-compile (if tuareg-use-syntax-ppss
+                        'tuareg-ppss-in-literal-or-comment
+                      'tuareg-!ppss-in-literal-or-comment)))
 (defalias 'tuareg-fontify
     (eval-and-compile (if tuareg-use-syntax-ppss
                           'tuareg-ppss-fontify
@@ -797,6 +804,8 @@ alignment and can thus lead to surprises."
            ("&&" . ,(decode-char 'ucs 8743)); 'LOGICAL AND' (U+2227)
            ("or" . ,(decode-char 'ucs 8744)); 'LOGICAL OR' (U+2228)
            ("||" . ,(decode-char 'ucs 8744))
+           ("[|" . ,(decode-char 'ucs 12314)) ;; 〚
+           ("|]" . ,(decode-char 'ucs 12315)) ;; 〛
            ("*." . ,(decode-char 'ucs 215))
            ("/." . ,(decode-char 'ucs 247))
            ("->" . ,(decode-char 'ucs 8594))
@@ -1076,16 +1085,14 @@ Regexp match data 0 points to the chars."
 
 (defvar tuareg-mode-abbrev-table ()
   "Abbrev table used for Tuareg mode buffers.")
-(defun tuareg-define-abbrev (keyword)
-  (define-abbrev tuareg-mode-abbrev-table keyword keyword 'tuareg-abbrev-hook))
 (if tuareg-mode-abbrev-table ()
-    (setq tuareg-mode-abbrev-table (make-abbrev-table))
-  (mapc 'tuareg-define-abbrev
-        '("module" "class" "functor" "object" "type" "val" "inherit"
-          "include" "virtual" "constraint" "exception" "external" "open"
-          "method" "and" "initializer" "to" "downto" "do" "done" "else"
-          "begin" "end" "let" "in" "then" "with"))
-  (setq abbrevs-changed nil))
+  (define-abbrev-table 'tuareg-mode-abbrev-table
+    (mapcar (lambda (keyword)
+              `(,keyword ,keyword tuareg-abbrev-hook nil t))
+            '("module" "class" "functor" "object" "type" "val" "inherit"
+              "include" "virtual" "constraint" "exception" "external" "open"
+              "method" "and" "initializer" "to" "downto" "do" "done" "else"
+              "begin" "end" "let" "in" "then" "with"))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                              The major mode
@@ -1171,34 +1178,25 @@ Short cuts for interactions with the toplevel:
   ;; Initialize indentation regexps
   (tuareg-make-indentation-regexps)
 
-  (make-local-variable 'paragraph-start)
-  (setq paragraph-start (concat "^[ \t]*$\\|\\*)$\\|" page-delimiter))
-  (make-local-variable 'paragraph-separate)
-  (setq paragraph-separate paragraph-start)
-  (make-local-variable 'require-final-newline)
-  (setq require-final-newline t)
-  (make-local-variable 'comment-start)
-  (setq comment-start "(* ")
-  (make-local-variable 'comment-end)
-  (setq comment-end " *)")
-  (make-local-variable 'comment-column)
-  (setq comment-column 40)
-  (make-local-variable 'comment-start-skip)
-  (setq comment-start-skip "(\\*+[ \t]*")
-  (make-local-variable 'comment-multi-line)
-  (setq comment-multi-line t)
-  (make-local-variable 'parse-sexp-ignore-comments)
-  (setq parse-sexp-ignore-comments nil)
-  (make-local-variable 'indent-line-function)
-  (setq indent-line-function 'tuareg-indent-command)
+  (set (make-local-variable 'paragraph-start)
+       (concat "^[ \t]*$\\|\\*)$\\|" page-delimiter))
+  (set (make-local-variable 'paragraph-separate) paragraph-start)
+  (set (make-local-variable 'require-final-newline) t)
+  (set (make-local-variable 'comment-start) "(* ")
+  (set (make-local-variable 'comment-end) " *)")
+  (set (make-local-variable 'comment-start-skip) "(\\*+[ \t]*")
+  (set (make-local-variable 'comment-column) 40)              ;FIXME: Why?
+  (set (make-local-variable 'comment-multi-line) t)           ;FIXME: Why?
+  (set (make-local-variable 'parse-sexp-ignore-comments) nil) ;FIXME: Why?
+  (set (make-local-variable 'indent-line-function) #'tuareg-indent-command)
   (unless tuareg-use-syntax-ppss
     (add-hook 'before-change-functions 'tuareg-before-change-function nil t))
-  (make-local-variable 'normal-auto-fill-function)
-  (setq normal-auto-fill-function 'tuareg-auto-fill-function)
+  
+  (set (make-local-variable 'normal-auto-fill-function)
+       #'tuareg-auto-fill-function)
 
-  (when (featurep 'imenu)
-    (setq imenu-prev-index-position-function 'tuareg-imenu-prev-index-position
-          imenu-extract-index-name-function 'tuareg-imenu-extract-index-name))
+  (set (make-local-variable 'imenu-create-index-function)
+       #'tuareg-imenu-create-index)
 
   ;; Hooks for tuareg-mode, use them for tuareg-mode configuration
   (tuareg-install-font-lock)
@@ -1284,24 +1282,31 @@ Short cuts for interactions with the toplevel:
 
 ;; In some versions of Emacs, the regexps in
 ;; compilation-error-regexp-alist do not match the error messages when
-;; the language is not English. Hence we add a regexp.
+;; the language is not English.  Hence we add a regexp.
+;; FIXME: We should report those cases to bug-gnu-emacs@gnu.org.
 
 (defconst tuareg-error-regexp
-  "^[^\0-@]+ \"\\([^\"\n]+\\)\", [^\0-@]+ \\([0-9]+\\)[-,:]"
+  (concat "^[^\0-@]+ \"\\([^\"\n]+\\)\", "                     ;File name.
+          "[^\0-@]+ \\([0-9]+\\)\\(?:\\(?:-\\([0-9]+\\)\\)?, " ;Lines.
+          "[^\0-@]+ \\([0-9]+\\)-\\([0-9]+\\):"                ;Columns.
+          "\\(\nWarning\\)?\\|[-,:]\\)")                       ;Warning/error.
   "Regular expression matching the error messages produced by ocamlc.")
 
 (when (boundp 'compilation-error-regexp-alist)
   (or (assoc tuareg-error-regexp
              compilation-error-regexp-alist)
       (setq compilation-error-regexp-alist
-            (cons (list tuareg-error-regexp 1 2)
+            (cons (if (fboundp 'compilation-fake-loc)
+                      (list tuareg-error-regexp
+                            1 '(2 . 3) '(4 . 5) '(6))
+                    (list tuareg-error-regexp 1 2))
                   compilation-error-regexp-alist))))
 
 ;; A regexp to extract the range info.
 
-(defconst tuareg-error-chars-regexp
-  ".*, .*, [^\0-@]+ \\([0-9]+\\)-\\([0-9]+\\):"
-  "Regexp matching the char numbers in an error message produced by ocamlc.")
+;; (defconst tuareg-error-chars-regexp
+;;   ".*, .*, [^\0-@]+ \\([0-9]+\\)-\\([0-9]+\\):"
+;;   "Regexp matching the char numbers in an error message produced by ocamlc.")
 
 ;; Wrapper around next-error.
 
@@ -2169,16 +2174,16 @@ Returns t iff skipped to indentation."
              ((string= kwop "with") nil)
              ((or (string= kwop "in") (string= kwop "do"))
               (tuareg-in-indentation-p))
-;            ((looking-at "[[{(]") (tuareg-search-forward-paren) nil)
-;            ((looking-at "\\.<")
-;             (if tuareg-support-metaocaml
-;                 (progn
-;                   (tuareg-search-forward-paren) nil)
-;               (tuareg-back-to-paren-or-indentation)))
+             ;; ((looking-at "[[{(]") (tuareg-search-forward-paren) nil)
+             ;; ((looking-at "\\.<")
+             ;;  (if tuareg-support-metaocaml
+             ;;      (progn
+             ;;        (tuareg-search-forward-paren) nil)
+             ;;    (tuareg-back-to-paren-or-indentation)))
              (t (back-to-indentation) t)))
       (cond
-    ;   ((looking-at "|[^|]")
-    ;    (re-search-forward "|[^|][ \t]*") nil)
+       ;; ((looking-at "|[^|]")
+       ;;  (re-search-forward "|[^|][ \t]*") nil)
        ((or (string= kwop "in") (string= kwop "do"))
         (tuareg-find-in-match)
         (tuareg-back-to-paren-or-indentation)
@@ -2943,10 +2948,12 @@ by |, insert one |."
       (goto-char (+ (point) (length kwop))))))
 
 (defun tuareg-skip-blank-and-comments ()
-  (skip-syntax-forward " ")
-  (while (and (not (eobp)) (tuareg-in-comment-p)
-              (search-forward "*)" nil t))
-    (skip-syntax-forward " ")))
+  (if tuareg-use-syntax-ppss
+      (forward-comment (point-max))
+    (skip-syntax-forward " ")
+    (while (and (not (eobp)) (tuareg-in-comment-p)
+                (search-forward "*)" nil t))
+      (skip-syntax-forward " "))))
 
 (defun tuareg-skip-back-blank-and-comments ()
   (skip-syntax-backward " ")
@@ -2994,19 +3001,6 @@ by |, insert one |."
     (back-to-indentation)
     (point)))
 
-(defun tuareg-imenu-prev-index-position ()
-  "The default value for `imenu-prev-index-position-function'."
-  (let ((pos (point)) ret)
-    (while (and (<= 0 pos)
-                (<= pos (setq ret (tuareg-find-phrase-beginning t))))
-      (setq pos (goto-char (1- pos))))
-    (and (<= 0 pos) ret)))
-
-(defun tuareg-imenu-extract-index-name ()
-  "The default value for `imenu-extract-index-name-function'."
-  (forward-sexp 1)
-  (skip-syntax-forward " ")
-  (buffer-substring-no-properties (point) (scan-sexps (point) 1)))
 
 (defun tuareg-search-forward-end ()
   (let ((begin (point)) (current -1) (found) (move t))
@@ -3747,33 +3741,13 @@ Short cuts for interaction within the toplevel:
      ["Short Cuts" tuareg-short-cuts]
      ["Help" tuareg-help t]))
   (easy-menu-add tuareg-mode-menu)
-  (tuareg-update-options-menu)
-  ;; Save and update definitions menu
-  (when (functionp 'easy-menu-create-menu)
-    ;; Patch for Emacs
-    (add-hook 'menu-bar-update-hook
-              'tuareg-with-emacs-update-definitions-menu)
-    (make-local-variable 'tuareg-definitions-keymaps)
-    (setq tuareg-definitions-keymaps
-          (cdr (easy-menu-create-menu
-                "Definitions" tuareg-definitions-menu)))
-    (setq tuareg-definitions-menu-last-buffer nil)))
+  (tuareg-update-options-menu))
 
 (defun tuareg-update-definitions-menu ()
   (when (eq major-mode 'tuareg-mode)
     (easy-menu-change
      '("Tuareg") "Definitions"
      tuareg-definitions-menu)))
-
-(defun tuareg-with-emacs-update-definitions-menu ()
-  (when (current-local-map)
-    (let ((keymap
-           (lookup-key (current-local-map) [menu-bar Tuareg Definitions])))
-      (if (and
-           (keymapp keymap)
-           (not (eq tuareg-definitions-menu-last-buffer (current-buffer))))
-          (setcdr keymap tuareg-definitions-keymaps)
-        (setq tuareg-definitions-menu-last-buffer (current-buffer))))))
 
 (defun tuareg-toggle-option (symbol)
   (interactive)
@@ -3869,14 +3843,14 @@ Short cuts for interaction within the toplevel:
 (defun tuareg-library-find-file ()
   "Load the file whose name is near point."
   (interactive)
-  (when (text-properties-at (point))
+  (when (text-properties-at (point))    ;FIXME: Why??
     (save-excursion
       (let (beg)
         (re-search-backward "\\<") (setq beg (point))
         (re-search-forward "\\>")
-        (find-file-read-only (concat tuareg-library-path "/"
-                                     (buffer-substring-no-properties
-                                      beg (point))))))))
+        (find-file-read-only (expand-file-name (buffer-substring-no-properties
+                                                beg (point))
+                                               tuareg-library-path))))))
 
 (defun tuareg-library-mouse-find-file (event)
   "Visit the file name you click on."
@@ -3900,80 +3874,85 @@ Short cuts for interaction within the toplevel:
 
 (defconst tuareg-identifier-regexp (concat "\\<" tuareg--id-regexp "\\>"))
 
+(defun tuareg-imenu-create-index ()
+  (let ((cpt (if (fboundp 'make-progress-reporter)
+                 (make-progress-reporter "Searching definitions..."
+                                         (point-min) (point-max))
+               0))
+        (kw) (value-list) (type-list) (module-list) (class-list) (misc-list))
+    (goto-char (point-min))
+    (tuareg-skip-blank-and-comments)
+    (while (not (eobp))
+      (when (looking-at tuareg-definitions-regexp)
+        (setq kw (tuareg-match-string 0))
+        (save-match-data (tuareg-reset-and-kwop kw))
+        (when (member kw '("exception" "val"))
+          (setq kw "let"))
+        ;; Skip optional elements
+        (goto-char (match-end 0))
+        (tuareg-skip-blank-and-comments)
+        (when (looking-at tuareg-definitions-bind-skip-regexp)
+          (goto-char (match-end 0)))
+        (tuareg-skip-blank-and-comments)
+        (when (looking-at tuareg-identifier-regexp)
+          (let ((ref (cons (tuareg-match-string 0) (point-marker))))
+            (if (not (integerp cpt))
+                (progress-reporter-update cpt (point))
+              (setq cpt (1+ cpt))
+              (message "Searching definitions... (%d)" cpt))
+            (cond ((string= kw "let")
+                   (setq value-list (cons ref value-list)))
+                  ((string= kw "type")
+                   (setq type-list (cons ref type-list)))
+                  ((string= kw "module")
+                   (setq module-list (cons ref module-list)))
+                  ((string= kw "class")
+                   (setq class-list (cons ref class-list)))
+                  (t (setq misc-list (cons ref misc-list)))))))
+      ;; Skip to next phrase or next top-level `and'
+      (tuareg-forward-char)
+      (let ((old-point (point))
+            (last-and (progn (tuareg-next-phrase t t) (point))))
+        (when (< last-and old-point) (error "Scan error"))
+        (save-excursion
+          (while (and (re-search-backward "\\<and\\>" old-point t)
+                      (not (tuareg-in-literal-or-comment-p))
+                      (save-excursion (tuareg-find-and-match)
+                                      (>= old-point (point))))
+            (setq last-and (point))))
+        (goto-char last-and)))
+    (if (integerp cpt)
+        (message "Searching definitions... done")
+      (progress-reporter-done cpt))
+    (let ((index ()))
+      (when module-list (push (cons "Modules" module-list) index))
+      (when type-list   (push (cons "Types" type-list) index))
+      (when class-list  (push (cons "Classes" class-list) index))
+      (when value-list  (push (cons "Values" value-list) index))
+      (when misc-list   (push (cons "Miscellaneous" misc-list) index))
+      index)))
+
 (defun tuareg-list-definitions ()
   "Parse the buffer and gather toplevel definitions
 for a quick jump via the definitions menu."
   (interactive)
-  (message "Searching for definitions...")
-  (save-excursion
-    (let ((cpt 0) (kw) (menu)
-          (value-list) (type-list) (module-list) (class-list) (misc-list))
-      (goto-char (point-min))
-      (tuareg-skip-blank-and-comments)
-      (while (and (< (point) (point-max)))
-        (when (looking-at tuareg-definitions-regexp)
-          (setq kw (tuareg-match-string 0))
-          (save-match-data (tuareg-reset-and-kwop kw))
-          (when (or (string= kw "exception") (string= kw "val"))
-            (setq kw "let"))
-          ;; Skip optional elements
-          (goto-char (match-end 0))
-          (tuareg-skip-blank-and-comments)
-          (when (looking-at tuareg-definitions-bind-skip-regexp)
-            (goto-char (match-end 0)))
-          (tuareg-skip-blank-and-comments)
-          (when (looking-at tuareg-identifier-regexp)
-            ;; Menu item : [name (goto-char ...) t]
-            (let* ((p (make-marker))
-                   (ref (vector (tuareg-match-string 0)
-                                (list 'tuareg-goto p) t)))
-              (setq cpt (1+ cpt))
-              (message (concat "Searching definitions... ("
-                               (number-to-string cpt) ")"))
-              (set-marker p (point))
-              (cond ((string= kw "let")
-                     (setq value-list (cons ref value-list)))
-                    ((string= kw "type")
-                     (setq type-list (cons ref type-list)))
-                    ((string= kw "module")
-                     (setq module-list (cons ref module-list)))
-                    ((string= kw "class")
-                     (setq class-list (cons ref class-list)))
-                    (t (setq misc-list (cons ref misc-list)))))))
-        ;; Skip to next phrase or next top-level `and'
-        (tuareg-forward-char)
-        (let ((old-point (point))
-              (last-and (progn (tuareg-next-phrase t t) (point))))
-          (when (< last-and old-point) (error "scan error"))
-          (save-excursion
-            (while (and (re-search-backward "\\<and\\>" old-point t)
-                        (not (tuareg-in-literal-or-comment-p))
-                        (save-excursion (tuareg-find-and-match)
-                                        (>= old-point (point))))
-              (setq last-and (point))))
-          (goto-char last-and)))
-      ;; Sort and build lists
-      (dolist (pair (list (cons "Miscellaneous" misc-list)
-                          (cons "Values" value-list)
-                          (cons "Classes" class-list)
-                          (cons "Types" type-list)
-                          (cons "Modules" module-list)))
-        (when (cdr pair)
-          (setq menu
-                (append (tuareg-split-long-list
-                         (car pair) (tuareg-sort-definitions (cdr pair)))
-                        menu))))
-      ;; Update definitions menu
-      (setq tuareg-definitions-menu
-            (append menu (list "---"
-                               ["Rescan..." tuareg-list-definitions t])))
-      (unless (not (functionp 'easy-menu-create-menu))
-        ;; Patch for Emacs
-        (setq tuareg-definitions-keymaps
-              (cdr (easy-menu-create-menu
-                    "Definitions" tuareg-definitions-menu)))
-        (setq tuareg-definitions-menu-last-buffer nil))
-      (message "Searching definitions... done")))
+  (let ((defs (save-excursion (tuareg-imenu-create-index)))
+        menu)
+    ;; Sort and build lists
+    (dolist (pair defs)
+      (let ((entries (mapcar (lambda (elem)
+                               (vector (car elem)
+                                       (list 'tuareg-goto (cdr elem))
+                                       t))
+                             (cdr pair))))
+        (setq menu
+              (append (tuareg-split-long-list
+                       (car pair) (tuareg-sort-definitions entries))
+                      menu))))
+    ;; Update definitions menu
+    (setq tuareg-definitions-menu
+          (append menu (list "---"
+                             ["Rescan..." tuareg-list-definitions t]))))
   (tuareg-update-definitions-menu))
 
 (defun tuareg-goto (pos)
@@ -3982,7 +3961,7 @@ for a quick jump via the definitions menu."
 
 (defun tuareg-sort-definitions (list)
   (let* ((last "") (cpt 1)
-         (list (sort (nreverse list)
+         (list (sort (nreverse list)    ;FIXME: Why reverse before sorting?
                      (lambda (p q) (string< (elt p 0) (elt q 0)))))
          (tail list))
     (while tail
@@ -3995,15 +3974,10 @@ for a quick jump via the definitions menu."
       (setq tail (cdr tail)))
     list))
 
-;; Look for the (n-1)th or last element of a list
-(defun tuareg-nth (n list)
-  (if (or (<= n 1) (null list) (null (cdr list))) list
-    (tuareg-nth (1- n) (cdr list))))
-
 ;; Split a definition list if it is too long
 (defun tuareg-split-long-list (title list)
-  (let ((tail (tuareg-nth tuareg-definitions-max-items list)))
-    (if (or (null tail) (null (cdr tail)))
+  (let ((tail (nthcdr tuareg-definitions-max-items list)))
+    (if (null (cdr tail))
         ;; List not too long, cons the title
         (list (cons title list))
       ;; List too long, split and add initials to the title
@@ -4016,7 +3990,7 @@ for a quick jump via the definitions menu."
                          lists))
             (setq list (cdr tail))
             (setcdr tail nil)
-            (setq tail (tuareg-nth tuareg-definitions-max-items list))))
+            (setq tail (nthcdr tuareg-definitions-max-items list))))
         (nreverse lists)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

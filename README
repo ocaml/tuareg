@@ -8,10 +8,10 @@ CONTENTS:
 
   README             This file.
   HISTORY            Differences with previous versions.
-  tuareg.el          A major mode for editing Tuareg code in Emacs.
+  tuareg.el          A major mode for editing OCaml code in Emacs.
   ocamldebug.el      To run the OCaml debugger under Emacs.
   dot-emacs.el       Configuration file for quick installation
-  sample.el          Sample file to check the indentation engine.
+  sample.ml          Sample file to check the indentation engine.
 
 INSTALL:
 
@@ -54,7 +54,7 @@ CUSTOMIZATION
   `tuareg-mode-hook', you should not patch the file directly).
   You should then add to your configuration file something like:
   (add-hook 'tuareg-mode-hook
-    '(lambda () ... ; your customization code ))
+    (lambda () ... ; your customization code ))
 
   `custom-tuareg.el' is a sample customization file for standard
   changes. You can append it to your `.emacs' or use it as a tutorial.
