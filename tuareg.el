@@ -908,10 +908,13 @@ Regexp match data 0 points to the chars."
 (defvar tuareg-mode-syntax-table
   (let ((st (make-syntax-table)))
     (modify-syntax-entry ?_ "_" st)
+    (modify-syntax-entry ?. "_" st)     ;Make qualified names a single symbol.
     (modify-syntax-entry ?? ". p" st)
     (modify-syntax-entry ?~ ". p" st)
-    (modify-syntax-entry ?: "." st)
-    (modify-syntax-entry ?' "w" st) ; ' is part of words (for primes).
+    ;; See http://caml.inria.fr/pub/docs/manual-ocaml/lex.html.
+    (dolist (c '(?! ?$ ?% ?& ?+ ?- ?/ ?: ?< ?= ?> ?@ ?^ ?|))
+      (modify-syntax-entry c "." st))
+    (modify-syntax-entry ?' "_" st) ; ' is part of symbols (for primes).
     (modify-syntax-entry
      ;; ` is punctuation or character delimiter (Caml Light compatibility).
      ?` (if tuareg-support-camllight "\"" ".") st)
@@ -932,10 +935,12 @@ Regexp match data 0 points to the chars."
   `(progn
      ;; Switch to a modified internal syntax.
      (modify-syntax-entry ?. "w" tuareg-mode-syntax-table)
+     (modify-syntax-entry ?' "w" tuareg-mode-syntax-table)
      (modify-syntax-entry ?_ "w" tuareg-mode-syntax-table)
      (unwind-protect (progn ,@body)
        ;; Switch back to the interactive syntax.
-       (modify-syntax-entry ?. "." tuareg-mode-syntax-table)
+       (modify-syntax-entry ?. "_" tuareg-mode-syntax-table)
+       (modify-syntax-entry ?' "_" tuareg-mode-syntax-table)
        (modify-syntax-entry ?_ "_" tuareg-mode-syntax-table))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -999,8 +1004,31 @@ Regexp match data 0 points to the chars."
   ;; Char constants start with ' but ' can also appear in identifiers.
   ;; Beware not to match things like '*)hel' or '"hel' since the first '
   ;; might be inside a string or comment.
+  ;; Note: for compatibility with Emacs<23, we use "\\<" rather than "\\_<",
+  ;; which depends on tuareg-font-lock-syntax turning all "_" into "w".
   '(("\\<\\('\\)\\([^'\\\n]\\|\\\\.[^\\'\n \")]*\\)\\('\\)"
      (1 '(7)) (3 '(7)))))
+
+(defconst tuareg-syntax-propertize
+  (when (fboundp 'syntax-propertize-rules)
+    (syntax-propertize-rules
+     ;; When we see a '"', knowing whether it's a literal char (as opposed to
+     ;; the end of a string followed by the beginning of a literal char)
+     ;; requires checking syntax-ppss as in:
+     ;; ("\\_<\\('\"'\\)"
+     ;;  (1 (unless (nth 3 (save-excursion (syntax-ppss (match-beginning 0))))
+     ;;       (string-to-syntax "\""))))
+     ;; Not sure if it's worth the trouble since adding a space between the
+     ;; string and the literal char is easy enough and is the usual
+     ;; style anyway.
+     ;; For all other cases we don't need to check syntax-ppss because, if the
+     ;; first quote is within a string (or comment), the whole match is within
+     ;; the string (or comment), so the syntax-properties don't hurt.
+     ;;
+     ;; Note: we can't just use "\\<" here because syntax-propertize is also
+     ;; used outside of font-lock.
+     ("\\_<\\('\\)\\(?:[^'\\\n]\\|\\\\.[^\\'\n \")]*\\)\\('\\)"
+      (1 "\"") (2 "\"")))))
 
 (defun tuareg-font-lock-syntactic-face-function (state)
   (if (nth 3 state) font-lock-string-face
@@ -1078,9 +1106,11 @@ Regexp match data 0 points to the chars."
   "Keymap used in Tuareg mode.")
 
 (defconst tuareg-font-lock-syntax
-  `((?_ . "w") (?` . ".")
+  ;; Note: as a general rule, changing syntax-table during font-lock
+  ;; is a potential problem for syntax-ppss.
+  `((?_ . "w") (?' . "w")
     ,@(unless tuareg-use-syntax-ppss
-        '((?\" . ".") (?\( . ".") (?\) . ".") (?* . "."))))
+        '((?` . ".") (?\" . ".") (?\( . ".") (?\) . ".") (?* . "."))))
   "Syntax changes for Font-Lock.")
 
 (defvar tuareg-mode-abbrev-table ()
@@ -1191,7 +1221,8 @@ Short cuts for interactions with the toplevel:
   (set (make-local-variable 'indent-line-function) #'tuareg-indent-command)
   (unless tuareg-use-syntax-ppss
     (add-hook 'before-change-functions 'tuareg-before-change-function nil t))
-  
+  (set (make-local-variable 'syntax-propertize-function)
+       tuareg-syntax-propertize)
   (set (make-local-variable 'normal-auto-fill-function)
        #'tuareg-auto-fill-function)
 
@@ -1258,18 +1289,18 @@ Short cuts for interactions with the toplevel:
      ,@(and tuareg-font-lock-symbols
             (tuareg-font-lock-symbols-keywords))))
   (setq font-lock-defaults
-        (list*
-         'tuareg-font-lock-keywords (not tuareg-use-syntax-ppss) nil
-         tuareg-font-lock-syntax nil
-         '(font-lock-syntactic-keywords
-           . tuareg-font-lock-syntactic-keywords)
-         '(parse-sexp-lookup-properties
-           . t)
-         '(font-lock-syntactic-face-function
+        `(tuareg-font-lock-keywords
+          ,(not tuareg-use-syntax-ppss) nil
+          ,tuareg-font-lock-syntax nil
+          ,@(unless tuareg-syntax-propertize
+              '((font-lock-syntactic-keywords
+                 . tuareg-font-lock-syntactic-keywords)
+                (parse-sexp-lookup-properties . t)))
+          (font-lock-syntactic-face-function
            . tuareg-font-lock-syntactic-face-function)
-         (unless tuareg-use-syntax-ppss
-           '((font-lock-fontify-region-function
-              . tuareg-fontify-region)))))
+          ,@(unless tuareg-use-syntax-ppss
+              '((font-lock-fontify-region-function
+                 . tuareg-fontify-region)))))
   (when (and (boundp 'font-lock-fontify-region-function)
              (not tuareg-use-syntax-ppss))
     (make-local-variable 'font-lock-fontify-region-function)
@@ -3219,8 +3250,9 @@ or indent all lines in the current phrase."
   "Completes qualified ocaml identifiers."
   (interactive "p")
   (modify-syntax-entry ?_ "w" tuareg-mode-syntax-table)
-  (caml-complete arg)
-  (modify-syntax-entry ?_ "_" tuareg-mode-syntax-table))
+  (unwind-protect
+      (caml-complete arg)
+    (modify-syntax-entry ?_ "_" tuareg-mode-syntax-table)))
 
 (defun tuareg-find-alternate-file ()
   "Switch Implementation/Interface."
