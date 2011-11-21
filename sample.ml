@@ -1,22 +1,19 @@
 (* sample file indented as we want it to be -*- tuareg -*- *)
 
-
-
 let server_comments request t =
-  let t =
-    let module M = N in
-    let class M = N in
-    let m M = N in
-    let module M = N in
-    let open Grep.Server in
-    let x = 5 in
-    let modue x y = 5 in
-    let open M in
+  let module M = N in
+  let class M = N in
+  let m M = N in
+  let module M = N in
+  let open Grep.Server in
+  let x = 5 in
+  let modue x y = 5 in
+  let open M in
 
-    t >>= Grep.server_comments
-      lazy
-      parser
-      every
+  t >>= Grep.server_comments
+    lazy
+    parser
+    every
 
 let x =
   let open M in
@@ -24,7 +21,7 @@ let x =
   x + x
 ;;
 
-;; (* http://mantis/view.php?id=4247 *)
+;; (* http://caml.inria.fr/mantis/view.php?id=4247 *)
 let x = {
   Foo.
   a = b;
@@ -39,12 +36,12 @@ let x = {
       };
 }
 
-;; (* http://mantis/view.php?id=4249 *)
+;; (* http://caml.inria.fr/mantis/view.php?id=4249 *)
 let x = { a = b;
           c = d;
         }
 
-;; (* http://mantis/view.php?id=4255 *)
+;; (* http://caml.inria.fr/mantis/view.php?id=4255 *)
 { foo: [ `Foo of int
        | `Bar of string ];
 }
@@ -128,12 +125,12 @@ type m =
   | T
 with sexp
 
-;; (* http://mantis/view.php?id=4334 *)
+;; (* http://caml.inria.fr/mantis/view.php?id=4334 *)
 type foo =
-    a
-    -> b
-    -> c
-    -> d
+  a
+  -> b
+  -> c
+  -> d
 
 val f :
   a:a
@@ -141,19 +138,19 @@ val f :
   -> c:c
 
 type bar = a -> b
-    -> c -> d
-    -> e -> f
+  -> c -> d
+  -> e -> f
 
 type baz = a -> b ->
-    c -> d ->
-    e -> f
+  c -> d ->
+  e -> f
 
 val quux : a -> b ->
   c -> d ->
   e -> f
 
 type t : a:b -> c:d
-    -> e:f -> g
+  -> e:f -> g
 
 val f : a:b -> c:d
   -> e:f -> g
@@ -224,49 +221,49 @@ type t = {
 } with sexp_of
 
 type 'a v = id:O.t ->
-    ssss:Ssss.t ->
-    dddd:ddd.t ->
-    t:S_m.t ->
-    mmm:Safe_float.t ->
-    qqq:int ->
-    c:C.t ->
-    uuuu:string option ->
-    aaaaaa:Aaaaaa.t ->
-    a:A.t ->
-    rrrrr:Rrrrr.t ->
-    time:Time.t ->
-    typ:[ `L_p of Safe_float.t ] ->
-    bazonk:present option ->
-    o_p_e:O_m.t option ->
-    only_hjkl:present option ->
-    show_junk:int option ->
-    d_p_o: Safe_float.t option ->
-    asdf:present option ->
-    generic:Sexp.t list ->
-    'a
+  ssss:Ssss.t ->
+  dddd:ddd.t ->
+  t:S_m.t ->
+  mmm:Safe_float.t ->
+  qqq:int ->
+  c:C.t ->
+  uuuu:string option ->
+  aaaaaa:Aaaaaa.t ->
+  a:A.t ->
+  rrrrr:Rrrrr.t ->
+  time:Time.t ->
+  typ:[ `L_p of Safe_float.t ] ->
+  bazonk:present option ->
+  o_p_e:O_m.t option ->
+  only_hjkl:present option ->
+  show_junk:int option ->
+  d_p_o: Safe_float.t option ->
+  asdf:present option ->
+  generic:Sexp.t list ->
+  'a
 
 type 'a v =
-    id:O.t
-    -> ssss:Ssss.t
-    -> dddd:ddd.t
-    -> t:S_m.t
-    -> mmm:Safe_float.t
-    -> qqq:int
-    -> c:C.t
-    -> uuuu:string option
-    -> aaaaaa:Aaaaaa.t
-    -> a:A.t
-    -> rrrrr:Rrrrr.t
-    -> time:Time.t
-    -> typ:[ `L_p of Safe_float.t ]
-    -> bazonk:present option
-    -> o_p_e:O_m.t option
-    -> only_hjkl:present option
-    -> show_junk:int option
-    -> d_p_o: Safe_float.t option
-    -> asdf:present option
-    -> generic:Sexp.t list
-    -> 'a
+  id:O.t
+  -> ssss:Ssss.t
+  -> dddd:ddd.t
+  -> t:S_m.t
+  -> mmm:Safe_float.t
+  -> qqq:int
+  -> c:C.t
+  -> uuuu:string option
+  -> aaaaaa:Aaaaaa.t
+  -> a:A.t
+  -> rrrrr:Rrrrr.t
+  -> time:Time.t
+  -> typ:[ `L_p of Safe_float.t ]
+  -> bazonk:present option
+  -> o_p_e:O_m.t option
+  -> only_hjkl:present option
+  -> show_junk:int option
+  -> d_p_o: Safe_float.t option
+  -> asdf:present option
+  -> generic:Sexp.t list
+  -> 'a
 
 ;; (* not in mantis *)
 let bar x =
@@ -310,17 +307,18 @@ let () =
   )
 
 let rec count_append l1 l2 count =
+  (* http://caml.inria.fr/resources/doc/guides/guidelines.en.html *)
   match l1 with
-    | []               ->                         l2
-    | [x1]             -> x1                   :: l2
-    | [x1; x2]         -> x1 :: x2             :: l2
-    | [x1; x2; x3]     -> x1 :: x2 :: x3       :: l2
-    | [x1; x2; x3; x4] -> x1 :: x2 :: x3 :: x4 :: l2
-    | x1 :: x2 :: x3 :: x4 :: x5 :: tl ->
+  | []               ->                         l2
+  | [x1]             -> x1                   :: l2
+  | [x1; x2]         -> x1 :: x2             :: l2
+  | [x1; x2; x3]     -> x1 :: x2 :: x3       :: l2
+  | [x1; x2; x3; x4] -> x1 :: x2 :: x3 :: x4 :: l2
+  | x1 :: x2 :: x3 :: x4 :: x5 :: tl ->
       x1 :: x2 :: x3 :: x4 :: x5 ::
-        (if count > 1000
-         then slow_append tl l2
-         else count_append tl l2 (count + 1))
+      (if count > 1000
+       then slow_append tl l2
+       else count_append tl l2 (count + 1))
 
 let foo =
   (
@@ -351,8 +349,8 @@ let () = match x with
 
 let () =
   match x with
-      Foo -> 1
-    | Bar -> 2
+    Foo -> 1
+  | Bar -> 2
 
 let r x =
   try  f x;
@@ -378,23 +376,27 @@ let () =
   try
     _
   with
-      Bar -> ()
+    Bar -> ()
 
 let () =
+  (* http://caml.inria.fr/resources/doc/guides/guidelines.en.html *)
   try () with
-    |e ->
-      let x = z in
+  | e ->
+    let x = z in
 
-      yyyyy
-        (a b)
+    yyyyy
+      (a b)
 
 let d x = function
+  (* FIXME: should we leave it like this or align "|" with "match"?
+     I chose with "match" because it looks otherwise odd and is more
+     consistent with the "try" alignments above.  *)
   | A -> (match x with
-      | X ->
-        false
-      | Y -> true
-      |  Z ->
-        false)
+         | X ->
+           false
+         | Y -> true
+         |  Z ->
+            false)
   | B -> false
 
 let a f = function
@@ -404,14 +406,14 @@ let a f = function
     2
   |      C ->
     (function
-      |  X  ->
+     |  X  ->
         a
-      | Y ->
-        b) 12
+     | Y ->
+       b) 12
   | D ->
     (match z with
-      | 4 -> 3
-      |  5 -> 7)
+     | 4 -> 3
+     |  5 -> 7)
 
 let x = foo ~f:(fun _ -> 0              (* comment *)
 )
@@ -501,10 +503,10 @@ let () =
   try f a
   with A () ->
     ()
-    | B () ->
-      ()
-    |     C () ->
-      ()
+  | B () ->
+    ()
+  |     C () ->
+    ()
 
 let f errors input =
   let ( @@ ) string bool = if not bool then errors := string :: !errors in
@@ -519,10 +521,10 @@ let x =
 
 let () =
   match _ with
-    | foo ->
-      bar
-      >>| function _ ->
-        _
+  | foo ->
+    bar
+    >>| function _ ->
+      _
 
 let () =
   a
@@ -563,7 +565,7 @@ let () =
     let b = b in
     c
   with
-    | A -> _
+  | A -> _
 
 let () =
   match
@@ -571,7 +573,7 @@ let () =
      b >>= fun b ->
      c)
   with
-      A -> _
+    A -> _
 
 let f t =
   let (a, b) = to_open in
@@ -604,9 +606,9 @@ let () =
 
 let () =
   match e with
-    | `T d ->
-      notify `O `T d;
-      cancel t u ~now
+  | `T d ->
+    notify `O `T d;
+    cancel t u ~now
 
 let () =
   let a = 1
@@ -704,7 +706,7 @@ module type M = M2
 let () =
   try
     match () with
-      | () -> ()
+    | () -> ()
   with _ -> ()
 
 let () =
@@ -934,13 +936,13 @@ let () =
 
 let variants a =
   match String.split a ~on:'-' with
-    | [ s1; s2; s3 ] ->
-      let a0 = String.concat ~sep:"" [ s1; s2] in
-      let a1 = String.concat ~sep:"-" [ s1; s2; s3; "055" ] in (* comment *)
-      List.map [ a0; a1; a]
-        ~f:(fun a_s -> lookup a_s)
-      |! List.flatten
-    | _ -> failwith "bad"
+  | [ s1; s2; s3 ] ->
+    let a0 = String.concat ~sep:"" [ s1; s2] in
+    let a1 = String.concat ~sep:"-" [ s1; s2; s3; "055" ] in (* comment *)
+    List.map [ a0; a1; a]
+      ~f:(fun a_s -> lookup a_s)
+    |! List.flatten
+  | _ -> failwith "bad"
 
 let f a1 a2 a3
     b1 b2 b3 d1 d2 d3 = {
@@ -970,6 +972,13 @@ let fv =
 (* https://forge.ocamlcore.org/tracker/index.php?func=detail&aid=644&group_id=43&atid=255 *)
 let b =
   match z with
-    | 0 -> fun x -> x
-    | 1 -> fun x -> 1
+  | 0 -> fun x -> x
+  | 1 -> fun x -> 1
 
+
+module type X =
+struct
+  val f : float -> float
+  (** This comment should be under "val", like other doc comments and not
+   aligned to the left margin. *)
+end
