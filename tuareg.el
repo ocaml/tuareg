@@ -1009,8 +1009,9 @@ Regexp match data 0 points to the chars."
   '(("\\<\\('\\)\\([^'\\\n]\\|\\\\.[^\\'\n \")]*\\)\\('\\)"
      (1 '(7)) (3 '(7)))))
 
+(defvar syntax-propertize-function)
 (defconst tuareg-syntax-propertize
-  (when (fboundp 'syntax-propertize-rules)
+  (when (eval-when-compile (fboundp 'syntax-propertize-rules))
     (syntax-propertize-rules
      ;; When we see a '"', knowing whether it's a literal char (as opposed to
      ;; the end of a string followed by the beginning of a literal char)
@@ -1124,8 +1125,359 @@ Regexp match data 0 points to the chars."
               "method" "and" "initializer" "to" "downto" "do" "done" "else"
               "begin" "end" "let" "in" "then" "with"))))
 
+;;; SMIE
+
+;; TODO:
+;; - Match sample.ml.
+;; - Obey tuareg-*-indent customization variables.
+;; - Fix use of tuareg-indent-command in tuareg-auto-fill-insert-leading-star.
+;; - Use it by default (when possible).
+;; - Move the old indentation code to a separate file.
+
+(defvar tuareg-use-smie nil)            ;Not used by default yet.
+
+(require 'smie nil 'noerror)
+
+(defconst tuareg-smie-grammar
+  ;; Problems:
+  ;; - "let D in E" expression vs "let D" declaration.  This is solved
+  ;;   by making the lexer return "d-let" for the second case.
+  ;; - FIXME: SMIE assumes that concatenation binds tighter than
+  ;;   everything else, whereas OCaml gives tighter precedence to ".".
+  ;; - "x : t1; (y : (t2 -> t3)); z : t4" but
+  ;;   "when (x1; x2) -> (z1; z2)".  We solve this by distinguishing
+  ;;   the two kinds of arrows, using "t->" for the type arrow.
+  ;; - and then some...
+  (let* ((bnf
+          '((decls (decls "type" decls) (decls "d-let" decls)
+                   (decls "and" decls) (decls ";;" decls)
+                   (decls "exception" decls)
+                   (decls "module" decls)
+                   (decls "val" decls) (decls "external" decls)
+                   (decls "open" decls) (decls "include" decls)
+                   (exception)
+                   (def))
+            (def (var "d-=" exp) (id "d-=" datatype) (id "d-=" module))
+            (var (id) (id ":" type))
+            (exception (id "of" type))
+            (datatype ("{" typefields "}") (typebranches)
+                      (typebranches "with" id))
+            (typebranches (typebranches "|" typebranches) (id "of" type))
+            (typefields (typefields ";" typefields) (id ":" type))
+            (type (type "*" type) (type "t->" type)
+                  ;; ("<" ... ">") ;; FIXME!
+                  (type "as" id))
+            (id)
+            (module ("struct" decls "end")
+                    ("sig" decls "end")
+                    ("functor" id "->" module)
+                    ;; FIXME: this introduces many conflicts.
+                    ;; (module "with" mod-constraints)
+                    )
+            ;; http://caml.inria.fr/pub/docs/manual-ocaml/expr.html
+            (exp ("begin" exp "end")
+                 ("(" exp:type ")")
+                 ("[|" exp "|]")
+                 ("{" fields "}")
+                 ;; If we use ("if" exp "then" exp "else" exp) we get into
+                 ;; trouble because that gives us "then = else" but we need:
+                 ;; - "; > else" in case the then expression is "let D = A;B".
+                 ;; - "then > ;" because "if A then B;C" is "(if A then B);C".
+                 ;; - "; = ;" because it's associative.
+                 ;; and together these give us a cycle.
+                 ;; As it turns out, we don't need "then = else", i.e. rather
+                 ;; than match `else' to `then', we can match it to `if'.
+                 ("if" thenexp "else" exp)
+                 ("if" exp "then" exp)
+                 ("while" exp "do" exp "done")
+                 ("for" forbounds "do" exp "done")
+                 (exp ";" exp)
+                 ("match" exp "with" branches)
+                 ("function" branches)
+                 ("fun" patterns "->" exp)
+                 ("try" exp "with" branches)
+                 ;; FIXME: Add "rec".
+                 ("let" defs "in" exp)
+                 ("object" class-body "end")
+                 ("(" exp:>type ")")
+                 ("{<" fields ">}"))
+            (forbounds (iddef "to" exp) (iddef "downto" exp))
+            (defs (def) (defs "and" defs))
+            (exp:>type (exp:type ":>" type))
+            (exp:type (exp)) ;; (exp ":" type)
+            (fields (fields1) (exp "with" fields1))
+            (fields1 (fields1 ";" fields1) (iddef))
+            (iddef (id "=" exp))
+            (thenexp (exp "then" exp))
+            (branches (branches "|" branches) (branch))
+            (branch (patterns "->" exp))
+            (patterns (pattern) (pattern "when" exp))
+            (pattern (id) (pattern "as" id) (pattern "," pattern))
+            (class-body (exp)) ;; FIXME!
+            ;; We get cyclic dependencies between ; and | because things like
+            ;; "branches | branches" implies that "; > |" whereas "exp ; exp"
+            ;; implies "| > ;" and while those two do not directly conflict
+            ;; because they're constraints on precedences of different sides,
+            ;; they do introduce a cycle later on because those operators are
+            ;; declared associative which adds a constraint that both side are
+            ;; of equal precedence.  So we declare here a dummy rule to
+            ;; force a direct conflict, that we can later resolve with explicit
+            ;; precedence rules.
+            (foo1 (foo1 ";" foo1) (foo1 "|" foo1)) ;; (foo1 ":" id)
+            ;; (foo2 (foo2 ":" id) (id "->" foo2))
+            ;; While the "thenexp" hack works well in most cases, it introduces
+            ;; some problems:
+            ;; E.g. both "if" rules have a keyword after the "if",
+            ;; so the (exp) rule of `decls' does not add a constraint
+            ;; "if > d-let" but only "then > d-let", which is insufficient
+            ;; since "if < then".
+            (foo3 ("if" id) (foo3 "d-let" foo3))
+            ))
+         (resolutions
+          '(;; Type precedence rules.
+            ;; http://caml.inria.fr/pub/docs/manual-ocaml/types.html
+            ((nonassoc "as") (assoc "t->") (assoc "*"))
+            ;; Pattern precedence rules.
+            ;; http://caml.inria.fr/pub/docs/manual-ocaml/patterns.html
+            ;; Note that we don't include "|" because its precedence collides
+            ;; with the one of the | used between branches and resolving the
+            ;; conflict in the lexer is not worth the trouble.
+            ((nonassoc "as") (assoc ",") (assoc "::"))
+            ;; Resolve "{a=(1;b=2)}" vs "{(a=1);(b=2)}".
+            ((nonassoc ";") (nonassoc "="))
+            ;; Resolve "(function a -> b) | c -> d"
+            ((nonassoc "function") (nonassoc "|"))
+            ;; Resolve "when (function a -> b) -> c"
+            ((nonassoc "function") (nonassoc "->"))
+            ;; Resolve ambiguity "(let d in e2); e3" vs "let d in (e2; e3)"
+            ((nonassoc "in" "match" "->" "with") (nonassoc ";"))
+            ;; Resolve ambiguity "(if a then b); c" vs "if a then (b; c)"
+            ((nonassoc ";") (nonassoc "then" "else"))
+            ;; Resolve "match e1 with a → (match e2 with b → e3 | c → e4)"
+            ;;      vs "match e1 with a → (match e2 with b → e3) | c → e4"
+            ((nonassoc "with") (nonassoc "|"))
+            ;; Resolve the conflicts caused by "when" and by SMIE's assumption
+            ;; that all non-terminals can match the empty string.
+            ((nonassoc "with") (nonassoc "->")) ; "when (match a with) -> e"
+            ((nonassoc "|") (nonassoc "->")) ; "when (match a with a | b) -> e"
+            ;; Resolve the conflict introduced by the two forms of "if".
+            ((nonassoc "if") (nonassoc "then"))
+            ;; Resolve the "artificial" conflict introduced by the `foo1' rule.
+            ((assoc "|") (assoc ";") (nonassoc ":"))
+            ;; ;; Resolve the "artificial" conflict introduced by `foo2'.
+            ;; ((nonassoc "->") (nonassoc ":"))
+            ;; Fix up associative declaration keywords.
+            ((assoc "type" "d-let" "exception" "module" "val" "open" "external"
+                    "include" ";;") (assoc "and"))
+            ;; Declare associativity of remaining sequence separators.
+            ((assoc ";")) ((assoc "|")))))
+    (when (fboundp 'smie-prec2->grammar)
+      (let ((bnfprec2 (apply #'smie-bnf->prec2 bnf resolutions)))
+        ;; SMIE takes for granted that all non-terminals can match the empty
+        ;; string, which can lead to the addition of unnecessary constraints.
+        ;; Let's remove the ones that cause cycles without causing conflicts.
+        (progn
+          ;; This comes from "exp ; exp" and "function branches", where
+          ;; SMIE doesn't realize that `branches' has to have a -> before ;.
+          (assert (eq '> (gethash (cons "function" ";") bnfprec2)))
+          (remhash (cons "function" ";") bnfprec2))
+        ;; (progn
+        ;;   ;; This comes from "exp : type" and "function branches", where
+        ;;   ;; SMIE doesn't realize that `branches' has to have a -> before ;.
+        ;;   (assert (eq '> (gethash (cons "function" ":") bnfprec2)))
+        ;;   (remhash (cons "function" ":") bnfprec2))
+        (smie-prec2->grammar
+         (smie-merge-prec2s
+          bnfprec2
+          (smie-precs->prec2
+           ;; Precedence of operators.
+           ;; http://caml.inria.fr/pub/docs/manual-ocaml/expr.html
+           (reverse
+            '((nonassoc "." "#")
+              ;; function application, constructor application, assert, lazy
+              ;; - -. (prefix)	–
+              (right "**" "lsl" "lsr" "asr")
+              (nonassoc "*" "/" "%" "mod" "land" "lor" "lxor")
+              (left "+" "-")
+              (assoc "::")
+              (right "@" "^")
+              (left "=" "<" ">" "| " "& " "$")
+              (right "&" "&&")
+              (right "||")
+              (assoc ",")
+              (right "<-" ":=")
+              (assoc ";"))))))))))
+
+(defun tuareg-smie--search-backward (tokens)
+  (let (tok)
+    (while (progn
+             (setq tok (smie-default-backward-token))
+             (if (not (zerop (length tok)))
+                 (not (member tok tokens))
+               (ignore-errors (backward-sexp) t))))
+    tok))
+
+(defconst tuareg-smie--type-label-leader
+  '("->" ":" "=" ""))
+(defconst tuareg-smie--exp-operator-leader
+  (delq nil (mapcar (lambda (x) (if (numberp (nth 2 x)) (car x)))
+                    tuareg-smie-grammar)))
+
+(defun tuareg-smie-forward-token ()
+  (let ((tok (smie-default-forward-token)))
+    (cond
+     ((zerop (length tok))
+      (if (not (looking-at "{<\\|\\[|"))
+          tok
+        (goto-char (match-end 0))
+        (match-string 0)))
+     ((or (member tok '("let" "=" "->"))
+          ;; http://caml.inria.fr/pub/docs/manual-ocaml/expr.html lists
+          ;; the tokens whose precedence is based on their prefix.
+          (memq (aref tok 0) '(?* ?/ ?% ?+ ?- ?@ ?^ ?= ?< ?> ?| ?& ?$)))
+      ;; When indenting, the movement is mainly backward, so it's OK to make
+      ;; the forward tokenizer a bit slower.
+      (save-excursion (tuareg-smie-backward-token)))
+     ((and (member tok '("~" "?"))
+           (looking-at "[[:alpha:]_][[:alnum:]'_]*:"))
+      (goto-char (match-end 0))
+      "label:")
+     ((and (looking-at ":\\(?:[^:]\\|\\'\\)")
+           (string-match "\\`[[:alpha:]_]" tok)
+           (save-excursion
+             (smie-default-backward-token) ;Go back.
+             (member (smie-default-backward-token)
+                     tuareg-smie--type-label-leader)))
+      (forward-char 1)
+      "label:")
+     ((and (equal tok "|") (looking-at "\\]")) (forward-char 1) "|]")
+     ((and (equal tok ">") (looking-at "}")) (forward-char 1) ">}")
+     ((string-match "\\`[[:alpha:]_].*\\.\\'"  tok)
+      (forward-char -1) (substring tok 0 -1))
+     (t tok))))
+
+(defun tuareg-smie-backward-token ()
+  (let ((tok (smie-default-backward-token)))
+    (cond
+     ;; Distinguish a let expression from a let declaration.
+     ((equal tok "let")
+      (save-excursion
+        (let ((prev (smie-default-backward-token)))
+          (if (or (member prev '("try" "in" "if" "then" "else" "match" "when"))
+                  (if (zerop (length prev))
+                      (and (not (bobp))
+                           (eq 4 (mod (car (syntax-after (1- (point)))) 256)))
+                    (and (eq ?. (char-syntax (aref prev 0)))
+                         (not (equal prev ";;")))))
+              tok
+            "d-let"))))
+     ;; Distinguish a "type ->" from a "case ->".
+     ((equal tok "->")
+      (save-excursion
+        (let ((nearest (tuareg-smie--search-backward
+                        '("with" "|" "fun" "type" ":" "of"))))
+          (if (member nearest '("with" "|" "fun"))
+              tok "t->"))))
+     ;; Distinguish a defining = from a comparison-=.
+     ((equal tok "=")
+      (save-excursion
+        (let ((nearest (tuareg-smie--search-backward
+                        '("type" "let" "module"
+                          "=" "if" "then" "else" "->" ";"))))
+          (if (member nearest '("type" "let" "module"))
+              "d-=" tok))))
+     ((zerop (length tok))
+      (if (not (and (memq (char-before) '(?\} ?\]))
+                    (save-excursion (forward-char -2)
+                                    (looking-at ">}\\||\\]"))))
+          tok
+        (goto-char (match-beginning 0))
+        (match-string 0)))
+     ((and (equal tok "|") (eq (char-before) ?\[)) (forward-char -1) "[|")
+     ((and (equal tok "<") (eq (char-before) ?\{)) (forward-char -1) "{<")
+     ;; Some infix operators get a precedence based on their prefix, so we
+     ;; collapse them into a canonical representative.
+     ;; See http://caml.inria.fr/pub/docs/manual-ocaml/expr.html.
+     ((memq (aref tok 0) '(?* ?/ ?% ?+ ?- ?@ ?^ ?= ?< ?> ?| ?& ?$))
+      (cond
+       ((member tok '("|" "||" "&" "&&" "<-" "->")) tok)
+       ((eq (aref tok 0) ?|) "| ")
+       ((eq (aref tok 0) ?&) "& ")
+       ((and (eq (aref tok 0) ?*) (> (length tok) 1) (eq (aref tok 1) ?*))
+        "**")
+       (t (char-to-string (aref tok 0)))))
+     ((equal tok ":")
+      (let ((pos (point)))
+        (if (and (not (zerop (skip-chars-backward "[[:alnum:]]_")))
+                 (or (not (zerop (skip-chars-backward "?~")))
+                     (save-excursion
+                       (member (smie-default-backward-token)
+                               tuareg-smie--type-label-leader))))
+            "label:"
+          (goto-char pos)
+          tok)))
+     ((string-match "\\`[[:alpha:]_].*\\.\\'"  tok)
+      (forward-char (1- (length tok))) ".")
+     (t tok))))
+
+(defun tuareg-smie-rules (kind token)
+  (cond
+   ((member token '(";" "|" "," "and"))
+    ;; FIXME: smie-rule-separator doesn't behave correctly when the separator
+    ;; is right after the parent (on another line).
+    (if (smie-rule-prev-p "d-=" "with" "[")
+        (if (and (eq kind :before) (smie-rule-prev-p "["))
+            0
+          nil) ;; FIXME: do the right thing.
+      (smie-rule-separator kind)))
+   (t
+    (case kind
+      (:elem (if (eq token 'basic) tuareg-default-indent))
+      (:list-intro (member token '("fun")))
+      (:before
+       (cond
+	((equal token "d-=") (smie-rule-parent 2))
+	((equal token "match") (if (and (not (smie-rule-bolp))
+					(smie-rule-prev-p "d-="))
+				   (smie-rule-parent)))
+	((equal token "then") (smie-rule-parent))
+	((equal token "if") (if (and (not (smie-rule-bolp))
+				     (smie-rule-prev-p "else"))
+				(smie-rule-parent)))
+	((and (equal token "with") (smie-rule-parent-p "{"))
+	 (smie-rule-parent))
+        ;; Treat purely syntactic block-constructs as being part of their
+        ;; parent, when the opening statement is hanging.
+        ((member token '("let" "(" "[" "{" "struct"))
+         (if (and (smie-rule-hanging-p)
+                  (apply #'smie-rule-prev-p tuareg-smie--exp-operator-leader))
+             (smie-rule-parent)))))
+      (:after
+       (cond
+	((equal token "in") (if (smie-rule-hanging-p) 0))
+	((equal token "with")
+	 (cond
+	  ((smie-rule-next-p "|") 2)
+	  ((smie-rule-parent-p "{") 2)
+	  (t 4)))))))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                              The major mode
+
+(defun tuareg--common-mode-setup ()
+  (setq local-abbrev-table tuareg-mode-abbrev-table)
+  (set (make-local-variable 'syntax-propertize-function)
+       tuareg-syntax-propertize)
+  (set (make-local-variable 'parse-sexp-ignore-comments)
+       ;; Tuareg used to set this to nil (for an unknown reason) but SMIE needs
+       ;; it to be set to t.
+       tuareg-use-smie)
+  (if (and tuareg-smie-grammar tuareg-use-smie)
+      (smie-setup tuareg-smie-grammar #'tuareg-smie-rules
+                  :forward-token #'tuareg-smie-forward-token
+                  :backward-token #'tuareg-smie-backward-token)
+    (set (make-local-variable 'indent-line-function) #'tuareg-indent-command))
+  (tuareg-install-font-lock))
 
 ;;;###autoload (add-to-list 'auto-mode-alist '("\\.ml[iylp]?" . tuareg-mode))
 
@@ -1183,7 +1535,7 @@ For the best indentation experience, some elementary rules must be followed.
     code; to enforce this, leave a blank line before the comment.
 
 Known bugs:
-  - When writting a line with mixed code and comments, avoid putting
+  - When writing a line with mixed code and comments, avoid putting
     comments at the beginning or middle of the text. More precisely,
     writing comments immediately after `=' or parentheses then writing
     some more code on the line leads to indentation errors. You may write
@@ -1200,7 +1552,6 @@ Short cuts for interactions with the toplevel:
   (setq mode-name "Tuareg")
   (use-local-map tuareg-mode-map)
   (set-syntax-table tuareg-mode-syntax-table)
-  (setq local-abbrev-table tuareg-mode-abbrev-table)
 
   ;; Initialize the Tuareg menu
   (tuareg-build-menu)
@@ -1217,12 +1568,9 @@ Short cuts for interactions with the toplevel:
   (set (make-local-variable 'comment-start-skip) "(\\*+[ \t]*")
   (set (make-local-variable 'comment-column) 40)              ;FIXME: Why?
   (set (make-local-variable 'comment-multi-line) t)           ;FIXME: Why?
-  (set (make-local-variable 'parse-sexp-ignore-comments) nil) ;FIXME: Why?
-  (set (make-local-variable 'indent-line-function) #'tuareg-indent-command)
+  (tuareg--common-mode-setup)
   (unless tuareg-use-syntax-ppss
     (add-hook 'before-change-functions 'tuareg-before-change-function nil t))
-  (set (make-local-variable 'syntax-propertize-function)
-       tuareg-syntax-propertize)
   (set (make-local-variable 'normal-auto-fill-function)
        #'tuareg-auto-fill-function)
 
@@ -1230,7 +1578,6 @@ Short cuts for interactions with the toplevel:
        #'tuareg-imenu-create-index)
 
   ;; Hooks for tuareg-mode, use them for tuareg-mode configuration
-  (tuareg-install-font-lock)
   (run-hooks 'tuareg-mode-hook)
   (when tuareg-use-abbrev-mode (abbrev-mode 1))
   (message nil))
@@ -3473,26 +3820,23 @@ be sent from another buffer in tuareg mode.
 
 Short cuts for interactions with the toplevel:
 \\{tuareg-interactive-mode-map}"
-  (tuareg-install-font-lock)
-  (when (or tuareg-interactive-input-font-lock
-            tuareg-interactive-output-font-lock
-            tuareg-interactive-error-font-lock)
-    (font-lock-mode 1))
   (add-hook 'comint-output-filter-functions 'tuareg-interactive-filter)
-  (when (boundp 'after-change-functions)
-    (remove-hook 'after-change-functions 'font-lock-after-change-function t))
-  (when (boundp 'pre-idle-hook)
-    (remove-hook 'pre-idle-hook 'font-lock-pre-idle-hook t))
   (setq comint-prompt-regexp "^#  *")
   (setq comint-process-echoes nil)
   (setq comint-get-old-input 'tuareg-interactive-get-old-input)
   (setq comint-scroll-to-bottom-on-output
         tuareg-interactive-scroll-to-bottom-on-output)
   (set-syntax-table tuareg-mode-syntax-table)
-  (setq local-abbrev-table tuareg-mode-abbrev-table)
 
-  (make-local-variable 'indent-line-function)
-  (setq indent-line-function 'tuareg-indent-command)
+  (tuareg--common-mode-setup)
+  (when (or tuareg-interactive-input-font-lock
+            tuareg-interactive-output-font-lock
+            tuareg-interactive-error-font-lock)
+    (font-lock-mode 1))
+  (when (boundp 'after-change-functions) ;FIXME: Why?
+    (remove-hook 'after-change-functions 'font-lock-after-change-function t))
+  (when (boundp 'pre-idle-hook)
+    (remove-hook 'pre-idle-hook 'font-lock-pre-idle-hook t))
 
   (easy-menu-add tuareg-interactive-mode-menu)
   (tuareg-update-options-menu))

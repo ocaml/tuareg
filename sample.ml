@@ -1,27 +1,27 @@
-(* sample file indented as we want it to be *)
+(* sample file indented as we want it to be -*- tuareg -*- *)
 
-  
 
-let server_comments request t = 
-  let t = 
-    let module M = N in 
-    let class M = N in 
-    let m M = N in 
-    let module M = N in 
+
+let server_comments request t =
+  let t =
+    let module M = N in
+    let class M = N in
+    let m M = N in
+    let module M = N in
     let open Grep.Server in
     let x = 5 in
     let modue x y = 5 in
     let open M in
-        
-    t >>= Grep.server_comments 
-      lazy 
+
+    t >>= Grep.server_comments
+      lazy
       parser
       every
 
-let x = 
+let x =
   let open M in
-      let x = 5 in
-      x + x
+  let x = 5 in
+  x + x
 ;;
 
 ;; (* http://mantis/view.php?id=4247 *)
@@ -914,8 +914,8 @@ let foo =
 
 let check =
   a lsr 30 >= 3
-      && b lsr 20 >= 1
-          && c * 10 > f
+  && b lsr 20 >= 1
+  && c * 10 > f
 
 let () =
   snoo ~f:(fun foo ->
