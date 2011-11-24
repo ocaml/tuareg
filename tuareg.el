@@ -291,7 +291,7 @@ for `type' as well. For example, setting them to 0 (and leaving
   "*How many spaces to indent from a `fun' keyword."
   :group 'tuareg :type 'integer)
 
-(defcustom tuareg-function-indent tuareg-default-indent
+(defcustom tuareg-function-indent 0 ;tuareg-default-indent
   "*How many spaces to indent from a `function' keyword."
   :group 'tuareg :type 'integer)
 
@@ -318,15 +318,17 @@ instead of the historical `tuareg-default-indent'."
   "*How many spaces to indent from a `try' keyword."
   :group 'tuareg :type 'integer)
 
-(defcustom tuareg-with-indent tuareg-default-indent
-  "*How many spaces to indent from a `with' keyword."
+(defcustom tuareg-with-indent 0 ;tuareg-default-indent
+  "*How many spaces to indent from a `with' keyword.
+The examples at <http://caml.inria.fr/resources/doc/guides/guidelines.en.html>
+show the '|' is aligned with 'match', thus 0 is the default value."
   :group 'tuareg :type 'integer)
 
 (defcustom tuareg-rule-indent tuareg-default-indent
   "*How many spaces to indent from a `rule' keyword."
   :group 'tuareg :type 'integer)
 
-(defcustom tuareg-type-indent tuareg-default-indent
+(defcustom tuareg-type-indent 0 ;tuareg-default-indent
   "*How many spaces to indent from a `type' keyword."
   :group 'tuareg :type 'integer)
 

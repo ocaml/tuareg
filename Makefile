@@ -12,18 +12,12 @@ ELC = $(ELS:.el=.elc)
 DIST_FILES += $(ELS) Makefile README
 
 EMACS = emacs
-NOINIT = -q --no-site-file
 
-# when testing, we want all settings to be non-0
-TEST_INIT = -eval '(setq tuareg-in-indent 2)'
-BATCH = -batch $(NOINIT) --load tuareg.elc
+#ENABLE_SMIE = --eval '(setq tuareg-use-smie t)'
 RM = rm -rf
 CP = cp -f
 LN = ln
-CMP = cmp
-# CMP = diff -u
-DIFF_W = diff -uw
-
+DIFF = diff -u -B
 
 INSTALL_RM_R = $(RM)
 INSTALL_MKDIR = mkdir
@@ -69,20 +63,23 @@ elc : $(ELC)
 #         for f in $(ELS) $(ELC) $(VERSION_FILE); do $(INSTALL_CP) $$f $(DEST)/$$f; done
 #         $(POST_INSTALL_HOOK)
 
-# # have to indent twice because comments are indented to the _following_ code
-# REINDENT = --file test.ml --eval '(with-current-buffer "test.ml" (tuareg-mode) (indent-region (point-min) (point-max)) (indent-region (point-min) (point-max)) (save-buffer))' --kill
 
-# MANGLE = sed -e 's/^\(  *[a-z].*[^\"]\)$$/ \1/'
+.PHONY: refresh
+refresh:
 
-# EXTRA_CHECK_COMMANDS =
+check : sample.ml.test
 
-# check : $(ELC) sample.ml
-#         @echo ====sample.ml====
-#         $(MANGLE) sample.ml > test.ml
-#         $(EMACS) $(BATCH) $(TEST_INIT) $(REINDENT)
-#         $(CMP) sample.ml test.ml
-#         $(EXTRA_CHECK_COMMANDS)
-#         $(RM) test.ml test.ml~
+%.test: % $(ELC) refresh
+	@echo ====Indent $*====
+	-$(RM) $@
+	$(EMACS) --batch -q --no-site-file $(ENABLE_SMIE) \
+	  --load tuareg.elc $< \
+	  --eval '(setq indent-tabs-mode nil)' \
+	  --eval '(defun ask-user-about-lock (file opponent) nil)' \
+	  --eval '(indent-region (point-min) (point-max) nil)' \
+	  --eval '(indent-region (point-min) (point-max) nil)' \
+	  --eval '(write-region (point-min) (point-max) "$@")'
+	$(DIFF) $< $@ || true
 
 
 .PHONY: dist tar

@@ -72,9 +72,9 @@ type t = [ `Foo of int
          | `Bar of string ]
 
 type t =
-  | A
-  | B
-  | C
+| A
+| B
+| C
 with sexp
 
 type t = | A
@@ -93,20 +93,14 @@ type t = [                              (* comment *)
 | `C
 ]
 
-type t =
-  [ `A
-  | `B
-  | `C
-  ]
-
 type t = a
 and x = b
 
 module M = struct
   type t =
-    | A
-    | B
-    | C
+  | A
+  | B
+  | C
   with sexp
 
   type s = [
@@ -116,13 +110,13 @@ module M = struct
   ]
 
   type u =
-    | D
-    | E
+  | D
+  | E
   with sexp
 end
 
 type m =
-  | T
+| T
 with sexp
 
 ;; (* http://caml.inria.fr/mantis/view.php?id=4334 *)
@@ -315,7 +309,7 @@ let rec count_append l1 l2 count =
   | [x1; x2; x3]     -> x1 :: x2 :: x3       :: l2
   | [x1; x2; x3; x4] -> x1 :: x2 :: x3 :: x4 :: l2
   | x1 :: x2 :: x3 :: x4 :: x5 :: tl ->
-      x1 :: x2 :: x3 :: x4 :: x5 ::
+    x1 :: x2 :: x3 :: x4 :: x5 ::
       (if count > 1000
        then slow_append tl l2
        else count_append tl l2 (count + 1))
@@ -392,11 +386,11 @@ let d x = function
      I chose with "match" because it looks otherwise odd and is more
      consistent with the "try" alignments above.  *)
   | A -> (match x with
-         | X ->
-           false
-         | Y -> true
-         |  Z ->
-            false)
+        | X ->
+          false
+        | Y -> true
+        |  Z ->
+          false)
   | B -> false
 
 let a f = function
@@ -406,14 +400,14 @@ let a f = function
     2
   |      C ->
     (function
-     |  X  ->
-        a
-     | Y ->
-       b) 12
+    |  X  ->
+      a
+    | Y ->
+      b) 12
   | D ->
     (match z with
-     | 4 -> 3
-     |  5 -> 7)
+    | 4 -> 3
+    |  5 -> 7)
 
 let x = foo ~f:(fun _ -> 0              (* comment *)
 )
@@ -649,10 +643,10 @@ let () =
 let () =
   a
   >>= function
-    | b -> c
-    | d ->
-      e
-      >>= f
+  | b -> c
+  | d ->
+    e
+    >>= f
 
 let () =
   foo >>> fun bar ->
@@ -752,8 +746,8 @@ let w f =
   List.map f ~f:(fun (a, b) ->
     L.r a
     >>= function
-      | Ok s -> `Fst (b, s)
-      | Error e -> `Snd (b, a, e))
+    | Ok s -> `Fst (b, s)
+    | Error e -> `Snd (b, a, e))
 
 class c (a : b) =
 object
@@ -820,8 +814,8 @@ let () =
       C.d e ~f:(fun g -> (h.I.j.K.l, m))
       |! begin fun n ->
         match O.p n with
-          | `Q r -> r
-          | `S _k -> assert false
+        | `Q r -> r
+        | `S _k -> assert false
       end;
     t =
       u ~v:w
@@ -949,9 +943,10 @@ let f a1 a2 a3
   aa = func1 a1 a2 a3;
   bb = func2
     b1 b2 b3;
+  (* FIXME: Here it is reasonable to have '|' aligned with 'match' *)
   cc = (match c with
-    | A -> 1
-    | B -> 2);
+       | A -> 1
+       | B -> 2);
   dd = func3
     d1 d2 d3;
 }
@@ -967,7 +962,7 @@ let fv =
       z
     ->
       match x y z with
-        | `No)
+      | `No)
 
 (* https://forge.ocamlcore.org/tracker/index.php?func=detail&aid=644&group_id=43&atid=255 *)
 let b =
