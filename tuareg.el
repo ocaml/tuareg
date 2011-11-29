@@ -363,6 +363,9 @@ setting this variable to nil."
 Many people find electric keys irritating, so you can disable them by
 setting this variable to nil."
   :group 'tuareg :type 'boolean)
+(when (fboundp 'electric-indent-mode)
+  (make-obsolete-variable 'tuareg-electric-indent
+                          'electric-indent-mode "Emacs-24.1"))
 
 (defcustom tuareg-electric-close-vector t
   "*Non-nil means electrically insert `|' before a vector-closing `]' or
@@ -558,14 +561,15 @@ Valid names are `browse-url', `browse-url-firefox', etc."
           (tuareg-indent-command t))))
     return-leading))
 
-(defun tuareg-auto-fill-function ()
-  (unless (tuareg-in-literal-p)
-    (let ((leading-star
-           (and (not (char-equal ?\n last-command-event))
-                (tuareg-auto-fill-insert-leading-star))))
-      (do-auto-fill)
-      (unless (char-equal ?\n last-command-event)
-        (tuareg-auto-fill-insert-leading-star leading-star)))))
+(unless (fboundp 'comment-normalize-vars)
+  (defun tuareg-auto-fill-function ()
+    (unless (tuareg-in-literal-p)
+      (let ((leading-star
+             (and (not (char-equal ?\n last-command-event))
+                  (tuareg-auto-fill-insert-leading-star))))
+        (do-auto-fill)
+        (unless (char-equal ?\n last-command-event)
+          (tuareg-auto-fill-insert-leading-star leading-star))))))
 
 ;; these two functions are different from the standard
 ;; in that they do NOT signal errors beginning-of-buffer and end-of-buffer
@@ -1134,6 +1138,21 @@ Regexp match data 0 points to the chars."
               "method" "and" "initializer" "to" "downto" "do" "done" "else"
               "begin" "end" "let" "in" "then" "with"))))
 
+(defvar electric-indent-chars)
+(defvar tuareg-electric-indent-chars
+  `((?|  . tuareg-in-indentation-p)
+    (?\) . ,(lambda () (or (tuareg-in-indentation-p)
+                      (char-equal ?* (preceding-char)))))
+    (?\} . ,(lambda () (or (tuareg-in-indentation-p)
+                      (and (char-equal ?> (preceding-char))
+                           (save-excursion (tuareg-backward-char)
+                                           (tuareg-in-indentation-p))))))
+    (?\] . ,(lambda () (or (tuareg-in-indentation-p)
+                      (and (char-equal ?| (preceding-char))
+                           (save-excursion (tuareg-backward-char)
+                                           (tuareg-in-indentation-p)))))))
+  "Set of indentation chars to add to `electric-indent-chars'.")
+
 ;;; SMIE
 
 ;; TODO:
@@ -1555,7 +1574,13 @@ Regexp match data 0 points to the chars."
                   :forward-token #'tuareg-smie-forward-token
                   :backward-token #'tuareg-smie-backward-token)
     (set (make-local-variable 'indent-line-function) #'tuareg-indent-command))
-  (tuareg-install-font-lock))
+  (tuareg-install-font-lock)
+
+  (when (boundp 'electric-indent-chars)
+    (set (make-local-variable 'electric-indent-chars)
+         (append electric-indent-chars tuareg-electric-indent-chars)))
+  (when (boundp 'post-self-insert-hook)
+    (add-hook 'post-self-insert-hook #'tuareg--electric-close-vector nil t)))
 
 ;;;###autoload(add-to-list 'auto-mode-alist '("\\.ml[iylp]?" . tuareg-mode))
 ;;;###autoload(dolist (ext '(".cmo" ".cmx" ".cma" ".cmxa" ".cmi"))
@@ -1651,8 +1676,10 @@ Short cuts for interactions with the toplevel:
   (tuareg--common-mode-setup)
   (unless tuareg-use-syntax-ppss
     (add-hook 'before-change-functions 'tuareg-before-change-function nil t))
-  (set (make-local-variable 'normal-auto-fill-function)
-       #'tuareg-auto-fill-function)
+  (unless (fboundp 'comment-normalize-vars)
+    ;; Emacs-21's newcomment.el provides this functionality by default.
+    (set (make-local-variable 'normal-auto-fill-function)
+         #'tuareg-auto-fill-function))
 
   (set (make-local-variable 'imenu-create-index-function)
        #'tuareg-imenu-create-index)
@@ -3290,6 +3317,7 @@ Compute new indentation based on OCaml syntax."
   "If inserting a | operator at beginning of line, reindent the line."
   (interactive "*")
   (let ((electric (and tuareg-electric-indent
+                       (not electric-indent-mode)
                        (tuareg-in-indentation-p)
                        (not (tuareg-in-literal-p))
                        (not (tuareg-in-comment-p)))))
@@ -3307,6 +3335,7 @@ Compute new indentation based on OCaml syntax."
 reindent the line."
   (interactive "*")
   (let ((electric (and tuareg-electric-indent
+                       (not electric-indent-mode)
                        (or (tuareg-in-indentation-p)
                            (char-equal ?* (preceding-char)))
                        (not (tuareg-in-literal-p))
@@ -3318,6 +3347,22 @@ reindent the line."
     (and electric
          (indent-according-to-mode))))
 
+(defun tuareg--electric-close-vector ()
+  ;; Function for use on post-self-insert-hook.
+  (when tuareg-electric-close-vector
+    (let ((inners (cdr (assq last-command-event
+                             '((?\} ?> "{<") (?\] ?| "\\[|"))))))
+      (and inners
+           (eq (char-before) last-command-event) ;; Sanity check.
+           (not (eq (car inners) (char-before (1- (point)))))
+           (not (tuareg-in-literal-or-comment-p))
+           (save-excursion
+             (when (ignore-errors (backward-sexp 1) t)
+               (looking-at (nth 1 inners))))
+           (save-excursion
+             (goto-char (1- (point)))
+             (insert (car inners)))))))
+
 (defun tuareg-electric-rc ()
   "If inserting a } operator at beginning of line, reindent the line.
 
@@ -3327,9 +3372,11 @@ by >, insert one >."
   (interactive "*")
   (let* ((prec (preceding-char))
          (look-bra (and tuareg-electric-close-vector
+                        (not (boundp 'post-self-insert-hook))
                         (not (tuareg-in-literal-or-comment-p))
                         (not (char-equal ?> prec))))
          (electric (and tuareg-electric-indent
+                        (not electric-indent-mode)
                         (or (tuareg-in-indentation-p)
                             (and (char-equal ?> prec)
                                  (save-excursion (tuareg-backward-char)
@@ -3357,6 +3404,7 @@ by |, insert one |."
   (interactive "*")
   (let* ((prec (preceding-char))
          (look-pipe-or-bra (and tuareg-electric-close-vector
+                                (not (boundp 'post-self-insert-hook))
                                 (not (tuareg-in-literal-or-comment-p))
                                 (not (and (char-equal ?| prec)
                                           (not (char-equal
@@ -3364,6 +3412,7 @@ by |, insert one |."
                                                   (tuareg-backward-char)
                                                   (preceding-char)) ?\[))))))
          (electric (and tuareg-electric-indent
+                        (not electric-indent-mode)
                         (or (tuareg-in-indentation-p)
                             (and (char-equal ?| prec)
                                  (save-excursion (tuareg-backward-char)
