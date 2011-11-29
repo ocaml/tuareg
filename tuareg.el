@@ -3317,7 +3317,8 @@ Compute new indentation based on OCaml syntax."
   "If inserting a | operator at beginning of line, reindent the line."
   (interactive "*")
   (let ((electric (and tuareg-electric-indent
-                       (not electric-indent-mode)
+                       (not (and (boundp 'electric-indent-mode)
+                                 electric-indent-mode))
                        (tuareg-in-indentation-p)
                        (not (tuareg-in-literal-p))
                        (not (tuareg-in-comment-p)))))
@@ -3335,7 +3336,8 @@ Compute new indentation based on OCaml syntax."
 reindent the line."
   (interactive "*")
   (let ((electric (and tuareg-electric-indent
-                       (not electric-indent-mode)
+                       (not (and (boundp 'electric-indent-mode)
+                                 electric-indent-mode))
                        (or (tuareg-in-indentation-p)
                            (char-equal ?* (preceding-char)))
                        (not (tuareg-in-literal-p))
@@ -3376,7 +3378,8 @@ by >, insert one >."
                         (not (tuareg-in-literal-or-comment-p))
                         (not (char-equal ?> prec))))
          (electric (and tuareg-electric-indent
-                        (not electric-indent-mode)
+                        (not (and (boundp 'electric-indent-mode)
+                                  electric-indent-mode))
                         (or (tuareg-in-indentation-p)
                             (and (char-equal ?> prec)
                                  (save-excursion (tuareg-backward-char)
@@ -3412,7 +3415,8 @@ by |, insert one |."
                                                   (tuareg-backward-char)
                                                   (preceding-char)) ?\[))))))
          (electric (and tuareg-electric-indent
-                        (not electric-indent-mode)
+                        (not (and (boundp 'electric-indent-mode)
+                                  electric-indent-mode))
                         (or (tuareg-in-indentation-p)
                             (and (char-equal ?| prec)
                                  (save-excursion (tuareg-backward-char)
