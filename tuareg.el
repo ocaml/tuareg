@@ -3737,118 +3737,46 @@ or indent all lines in the current phrase."
       (find-file (concat (tuareg-match-string 1 name)
                          (if (match-beginning 2) ".ml" ".mli"))))))
 
-(defun tuareg-ensure-space ()
-  (let ((prec (preceding-char)))
-    (when (and prec (not (char-equal ?\  (char-syntax prec))))
-      (insert " "))))
-
-(defun tuareg-insert-class-form ()
+(define-skeleton tuareg-insert-class-form
   "Insert a nicely formatted class-end form, leaving a mark after end."
-  (interactive "*")
-  (tuareg-ensure-space)
-  (let ((old (point)))
-    (insert "class  = object (self)\ninherit  as super\nend;;\n")
-    (end-of-line)
-    (indent-region old (point) nil)
-    (indent-according-to-mode)
-    (push-mark)
-    (forward-line -2)
-    (indent-according-to-mode)))
+  nil
+  \n "class " @ " = object (self)" > \n
+  "inherit " > _ " as super" \n "end;;" > \n)
 
-(defun tuareg-insert-begin-form ()
+(define-skeleton tuareg-insert-begin-form
   "Insert a nicely formatted begin-end form, leaving a mark after end."
-  (interactive "*")
-  (tuareg-ensure-space)
-  (let ((old (point)))
-    (insert "begin\n\nend\n")
-    (end-of-line)
-    (indent-region old (point) nil)
-    (push-mark)
-    (forward-line -2)
-    (indent-according-to-mode)))
+  nil
+  \n "begin" > \n _ \n "end" > \n)
 
-(defun tuareg-insert-for-form ()
+(define-skeleton tuareg-insert-for-form
   "Insert a nicely formatted for-to-done form, leaving a mark after done."
-  (interactive "*")
-  (tuareg-ensure-space)
-  (let ((old (point)))
-    (insert "for  do\n\ndone\n")
-    (end-of-line)
-    (indent-region old (point) nil)
-    (push-mark)
-    (forward-line -2)
-    (indent-according-to-mode)
-    (beginning-of-line 1)
-    (backward-char 4)))
+  nil
+  \n "for " - " do" > \n _ \n "done" > \n)
 
-(defun tuareg-insert-while-form ()
+(define-skeleton tuareg-insert-while-form
   "Insert a nicely formatted for-to-done form, leaving a mark after done."
-  (interactive "*")
-  (tuareg-ensure-space)
-  (let ((old (point)))
-    (insert "while  do\n\ndone\n")
-    (end-of-line)
-    (indent-region old (point) nil)
-    (push-mark)
-    (forward-line -2)
-    (indent-according-to-mode)
-    (beginning-of-line 1)
-    (backward-char 4)))
+  nil
+  \n "while " - " do" > \n _ \n "done" > \n)
 
-(defun tuareg-insert-if-form ()
+(define-skeleton tuareg-insert-if-form
   "Insert a nicely formatted if-then-else form, leaving a mark after else."
-  (interactive "*")
-  (tuareg-ensure-space)
-  (let ((old (point)))
-    (insert "if\n\nthen\n\nelse\n")
-    (end-of-line)
-    (indent-region old (point) nil)
-    (indent-according-to-mode)
-    (push-mark)
-    (forward-line -2)
-    (indent-according-to-mode)
-    (forward-line -2)
-    (indent-according-to-mode)))
+  nil
+  \n "if" > \n _ \n "then" > \n @ \n "else" \n @)
 
-(defun tuareg-insert-match-form ()
+(define-skeleton tuareg-insert-match-form
   "Insert a nicely formatted math-with form, leaving a mark after with."
-  (interactive "*")
-  (tuareg-ensure-space)
-  (let ((old (point)))
-    (insert "match\n\nwith\n")
-    (end-of-line)
-    (indent-region old (point) nil)
-    (indent-according-to-mode)
-    (push-mark)
-    (forward-line -2)
-    (indent-according-to-mode)))
+  nil
+  \n "match" > \n _ \n "with" > \n)
 
-(defun tuareg-insert-let-form ()
+(define-skeleton tuareg-insert-let-form
   "Insert a nicely formatted let-in form, leaving a mark after in."
-  (interactive "*")
-  (tuareg-ensure-space)
-  (let ((old (point)))
-    (insert "let  in\n")
-    (end-of-line)
-    (indent-region old (point) nil)
-    (indent-according-to-mode)
-    (push-mark)
-    (beginning-of-line)
-    (backward-char 4)
-    (indent-according-to-mode)))
+  nil
+  \n "let " > _ " in" > \n)
 
-(defun tuareg-insert-try-form ()
+(define-skeleton tuareg-insert-try-form
   "Insert a nicely formatted try-with form, leaving a mark after with."
-  (interactive "*")
-  (tuareg-ensure-space)
-  (let ((old (point)))
-    (insert "try\n\nwith\n")
-    (end-of-line)
-    (indent-region old (point) nil)
-    (indent-according-to-mode)
-    (push-mark)
-    (forward-line -2)
-    (indent-according-to-mode)))
+  nil
+  \n "try" > \n _ \n "with" > \n)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                            Tuareg interactive mode
