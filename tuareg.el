@@ -213,7 +213,7 @@ if it has to."
   "*If true, handle Caml Light character syntax (incompatible with labels)."
   :group 'tuareg :type 'boolean
   :set (lambda (var val)
-         (setq tuareg-support-camllight val)
+         (set-default var val)
          (when (boundp 'tuareg-mode-syntax-table)
            (modify-syntax-entry ?` (if val "\"" ".")
                                 tuareg-mode-syntax-table))))
@@ -222,15 +222,18 @@ if it has to."
   "*If true, handle MetaOCaml syntax."
   :group 'tuareg :type 'boolean
   :set (lambda (var val)
-         (setq tuareg-support-metaocaml val)
-         (when (boundp 'tuareg-font-lock-keywords)
+         (set-default var val)
+         (ignore-errors
            (tuareg-make-indentation-regexps)
-           (tuareg-install-font-lock))))
+           (dolist (buf (buffer-list))
+             (with-current-buffer buf
+               (when (derived-mode-p 'tuareg-mode 'tuareg-interactive-mode)
+                 (tuareg-install-font-lock)))))))
 
 (defcustom tuareg-let-always-indent t
   "*If true, enforce indentation is at least `tuareg-let-indent' after a `let'.
 
-As an example, set it to false when you have `tuareg-with-indent' set to 0,
+As an example, set it to nil when you have `tuareg-with-indent' set to 0,
 and you want `let x = match ... with' and `match ... with' indent the
 same way."
   :group 'tuareg :type 'boolean)
@@ -348,10 +351,11 @@ Many people find electric keywords irritating, so you can disable them by
 setting this variable to nil."
   :group 'tuareg :type 'boolean
   :set (lambda (var val)
-         (setq tuareg-use-abbrev-mode val)
-         ;; FIXME: Can't be right: this only affects the current buffer,
-         ;; which could be a Customize buffer for all we know.
-         (abbrev-mode val)))
+         (set-default var val)
+         (dolist (buf (buffer-list))
+           (with-current-buffer buf
+             (when (derived-mode-p 'tuareg-mode)
+               (abbrev-mode (if val 1 -1)))))))
 
 (defcustom tuareg-electric-indent t
   "*Non-nil means electrically indent lines starting with `|', `)', `]' or `}'.
@@ -379,10 +383,13 @@ upon evaluating an expression.
 See `comint-scroll-to-bottom-on-output' for details."
   :group 'tuareg :type 'boolean
   :set (lambda (var val)
-         (setq tuareg-interactive-scroll-to-bottom-on-output val)
-         ;; FIXME: this can't be right since it affects all comint buffers.
+         (set-default var val)
          (when (boundp 'comint-scroll-to-bottom-on-output)
-           (setq comint-scroll-to-bottom-on-output val))))
+           (dolist (buf (buffer-list))
+             (with-current-buffer buf
+               (when (derived-mode-p 'tuareg-interactive-mode)
+                 (set (make-local-variable 'comint-scroll-to-bottom-on-output)
+                      val)))))))
 
 (defcustom tuareg-skip-after-eval-phrase t
   "*Non-nil means skip to the end of the phrase after evaluation in the
@@ -1550,10 +1557,16 @@ Regexp match data 0 points to the chars."
     (set (make-local-variable 'indent-line-function) #'tuareg-indent-command))
   (tuareg-install-font-lock))
 
-;;;###autoload (add-to-list 'auto-mode-alist '("\\.ml[iylp]?" . tuareg-mode))
+;;;###autoload(add-to-list 'auto-mode-alist '("\\.ml[iylp]?" . tuareg-mode))
+;;;###autoload(dolist (ext '(".cmo" ".cmx" ".cma" ".cmxa" ".cmi"))
+;;;###autoload  (add-to-list 'completion-ignored-extensions ext))
+
+(defalias 'tuareg--prog-mode
+  (if (fboundp 'prog-mode) #'prog-mode #'fundamental-mode))
+(defvar compilation-first-column)
 
 ;;;###autoload
-(defun tuareg-mode ()
+(define-derived-mode tuareg-mode tuareg--prog-mode "Tuareg"
   "Major mode for editing OCaml code.
 
 Dedicated to Emacs and XEmacs, version 21 and higher.  Provides
@@ -1617,12 +1630,6 @@ Short cuts for the Tuareg mode:
 
 Short cuts for interactions with the toplevel:
 \\{tuareg-interactive-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'tuareg-mode)
-  (setq mode-name "Tuareg")
-  (use-local-map tuareg-mode-map)
-  (set-syntax-table tuareg-mode-syntax-table)
 
   ;; Initialize the Tuareg menu
   (tuareg-build-menu)
@@ -1639,6 +1646,8 @@ Short cuts for interactions with the toplevel:
   (set (make-local-variable 'comment-start-skip) "(\\*+[ \t]*")
   (set (make-local-variable 'comment-column) 40)              ;FIXME: Why?
   (set (make-local-variable 'comment-multi-line) t)           ;FIXME: Why?
+  ;; `ocamlc' counts columns from 0, contrary to other tools which start at 1.
+  (set (make-local-variable 'compilation-first-column) 0)
   (tuareg--common-mode-setup)
   (unless tuareg-use-syntax-ppss
     (add-hook 'before-change-functions 'tuareg-before-change-function nil t))
@@ -1648,8 +1657,6 @@ Short cuts for interactions with the toplevel:
   (set (make-local-variable 'imenu-create-index-function)
        #'tuareg-imenu-create-index)
 
-  ;; Hooks for tuareg-mode, use them for tuareg-mode configuration
-  (run-hooks 'tuareg-mode-hook)
   (when tuareg-use-abbrev-mode (abbrev-mode 1))
   (message nil))
 
@@ -1721,8 +1728,8 @@ Short cuts for interactions with the toplevel:
                  . tuareg-fontify-region)))))
   (when (and (boundp 'font-lock-fontify-region-function)
              (not tuareg-use-syntax-ppss))
-    (make-local-variable 'font-lock-fontify-region-function)
-    (setq font-lock-fontify-region-function 'tuareg-fontify-region)))
+    (set (make-local-variable 'font-lock-fontify-region-function)
+         'tuareg-fontify-region)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               Error processing
@@ -3667,6 +3674,7 @@ or indent all lines in the current phrase."
 (defun tuareg-complete (arg)
   "Completes qualified ocaml identifiers."
   (interactive "p")
+  ;; FIXME: Use completion-at-point-functions.
   (modify-syntax-entry ?_ "w" tuareg-mode-syntax-table)
   (unwind-protect
       (caml-complete arg)
@@ -4260,8 +4268,7 @@ Short cuts for interaction within the toplevel:
         (buffer-disable-undo standard-output)
         (with-current-buffer buf-name
           (kill-all-local-variables)
-          (make-local-variable 'tuareg-library-path)
-          (setq tuareg-library-path dir)
+          (set (make-local-variable 'tuareg-library-path) dir)
           ;; Help
           (insert "Directory \"" dir "\".\n")
           (insert "Select a file with middle mouse button or RETURN.\n\n")
