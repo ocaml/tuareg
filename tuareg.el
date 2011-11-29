@@ -1149,166 +1149,171 @@ Regexp match data 0 points to the chars."
   ;; - "x : t1; (y : (t2 -> t3)); z : t4" but
   ;;   "when (x1; x2) -> (z1; z2)".  We solve this by distinguishing
   ;;   the two kinds of arrows, using "t->" for the type arrow.
+  ;; - The "with" in modules's "with type" has different precedence.
+  ;; - Big problem with "if...then": because of SMIE's transitivity of the
+  ;;   precedence relation, we can't properly parse both "if A then B; C" and
+  ;;   "if A then let x = E in B; C else D" (IOW I think a non-transitive OPG
+  ;;   could do it).  We could try and fix the problem in the lexer, but it's
+  ;;   far from obvious how (we'd probably end up having to pre-parse the text
+  ;;   in the lexer to decide which kind of "if" and "then" we're looking
+  ;;   at).  A good solution could be found maybe if SMIE let us disambiguate
+  ;;   lexemes late, i.e. at a time where we have access to the relevant parse
+  ;;   stack.  Or maybe by allowing smie-grammar to use a non-transitive
+  ;;   precedence relation.  But until that happens, we will live with an
+  ;;   incorrect parse, and instead we try to patch up the result with ad-hoc
+  ;;   hacks in tuareg-smie-rules.
   ;; - and then some...
-  (let* ((bnf
-          '((decls (decls "type" decls) (decls "d-let" decls)
-                   (decls "and" decls) (decls ";;" decls)
-                   (decls "exception" decls)
-                   (decls "module" decls)
-                   (decls "val" decls) (decls "external" decls)
-                   (decls "open" decls) (decls "include" decls)
-                   (exception)
-                   (def))
-            (def (var "d-=" exp) (id "d-=" datatype) (id "d-=" module))
-            (var (id) (id ":" type))
-            (exception (id "of" type))
-            (datatype ("{" typefields "}") (typebranches)
-                      (typebranches "with" id))
-            (typebranches (typebranches "|" typebranches) (id "of" type))
-            (typefields (typefields ";" typefields) (id ":" type))
-            (type (type "*" type) (type "t->" type)
-                  ;; ("<" ... ">") ;; FIXME!
-                  (type "as" id))
-            (id)
-            (module ("struct" decls "end")
-                    ("sig" decls "end")
-                    ("functor" id "->" module)
-                    ;; FIXME: this introduces many conflicts.
-                    ;; (module "with" mod-constraints)
-                    )
-            ;; http://caml.inria.fr/pub/docs/manual-ocaml/expr.html
-            (exp ("begin" exp "end")
-                 ("(" exp:type ")")
-                 ("[|" exp "|]")
-                 ("{" fields "}")
-                 ;; If we use ("if" exp "then" exp "else" exp) we get into
-                 ;; trouble because that gives us "then = else" but we need:
-                 ;; - "; > else" in case the then expression is "let D = A;B".
-                 ;; - "then > ;" because "if A then B;C" is "(if A then B);C".
-                 ;; - "; = ;" because it's associative.
-                 ;; and together these give us a cycle.
-                 ;; As it turns out, we don't need "then = else", i.e. rather
-                 ;; than match `else' to `then', we can match it to `if'.
-                 ("if" thenexp "else" exp)
-                 ("if" exp "then" exp)
-                 ("while" exp "do" exp "done")
-                 ("for" forbounds "do" exp "done")
-                 (exp ";" exp)
-                 ("match" exp "with" branches)
-                 ("function" branches)
-                 ("fun" patterns "->" exp)
-                 ("try" exp "with" branches)
-                 ;; FIXME: Add "rec".
-                 ("let" defs "in" exp)
-                 ("object" class-body "end")
-                 ("(" exp:>type ")")
-                 ("{<" fields ">}"))
-            (forbounds (iddef "to" exp) (iddef "downto" exp))
-            (defs (def) (defs "and" defs))
-            (exp:>type (exp:type ":>" type))
-            (exp:type (exp)) ;; (exp ":" type)
-            (fields (fields1) (exp "with" fields1))
-            (fields1 (fields1 ";" fields1) (iddef))
-            (iddef (id "=" exp))
-            (thenexp (exp "then" exp))
-            (branches (branches "|" branches) (branch))
-            (branch (patterns "->" exp))
-            (patterns (pattern) (pattern "when" exp))
-            (pattern (id) (pattern "as" id) (pattern "," pattern))
-            (class-body (exp)) ;; FIXME!
-            ;; We get cyclic dependencies between ; and | because things like
-            ;; "branches | branches" implies that "; > |" whereas "exp ; exp"
-            ;; implies "| > ;" and while those two do not directly conflict
-            ;; because they're constraints on precedences of different sides,
-            ;; they do introduce a cycle later on because those operators are
-            ;; declared associative which adds a constraint that both side are
-            ;; of equal precedence.  So we declare here a dummy rule to
-            ;; force a direct conflict, that we can later resolve with explicit
-            ;; precedence rules.
-            (foo1 (foo1 ";" foo1) (foo1 "|" foo1)) ;; (foo1 ":" id)
-            ;; (foo2 (foo2 ":" id) (id "->" foo2))
-            ;; While the "thenexp" hack works well in most cases, it introduces
-            ;; some problems:
-            ;; E.g. both "if" rules have a keyword after the "if",
-            ;; so the (exp) rule of `decls' does not add a constraint
-            ;; "if > d-let" but only "then > d-let", which is insufficient
-            ;; since "if < then".
-            (foo3 ("if" id) (foo3 "d-let" foo3))
-            ))
-         (resolutions
-          '(;; Type precedence rules.
+  (when (fboundp 'smie-prec2->grammar)
+    (let ((bnfprec2
+           (smie-bnf->prec2
+            '((decls (decls "type" decls) (decls "d-let" decls)
+                     (decls "and" decls) (decls ";;" decls)
+                     (decls "exception" decls)
+                     (decls "module" decls)
+                     (decls "class" decls)
+                     (decls "val" decls) (decls "external" decls)
+                     (decls "open" decls) (decls "include" decls)
+                     (exception)
+                     (def)
+                     ;; Hack: at the top-level, a "let D in E" can appear in
+                     ;; decls as well, but the lexer classifies it as "d-let",
+                     ;; so we need to make sure that "d-let D in E" doesn't
+                     ;; end up matching the "in" with some far away thingy.
+                     (def-in-exp))
+              (def-in-exp (defs "in" exp))
+              (def (var "d-=" exp) (id "d-=" datatype) (id "d-=" module))
+              (var (id) ("rec" var) (id ":" type))
+              (exception (id "of" type))
+              (datatype ("{" typefields "}") (typebranches)
+                        (typebranches "with" id))
+              (typebranches (typebranches "|" typebranches) (id "of" type))
+              (typefields (typefields ";" typefields) (id ":" type))
+              (type (type "*" type) (type "t->" type)
+                    ;; ("<" ... ">") ;; FIXME!
+                    (type "as" id))
+              (id)
+              (module ("struct" decls "end")
+                      ("sig" decls "end")
+                      ("functor" id "->" module)
+                      ;; FIXME: this introduces many conflicts.
+                      ;; (module "with" mod-constraints)
+                      )
+              ;; http://caml.inria.fr/pub/docs/manual-ocaml/expr.html
+              ;; exp1 is "all exps except for `if exp then'".
+              (exp1 ("begin" exp "end")
+                    ("(" exp:type ")")
+                    ("[|" exp "|]")
+                    ("{" fields "}")
+                    ("if" exp "then" exp1 "else" exp1)
+                    ;; ("if" exp "then" exp)
+                    ("while" exp "do" exp "done")
+                    ("for" forbounds "do" exp "done")
+                    (exp1 ";" exp1)
+                    ("match" exp "with" branches)
+                    ("function" branches)
+                    ("fun" patterns "->" exp1)
+                    ("try" exp "with" branches)
+                    ("let" defs "in" exp1)
+                    ("object" class-body "end")
+                    ("(" exp:>type ")")
+                    ("{<" fields ">}"))
+              ;; Like `exp' but additionally allow if-then without else.
+              (exp (exp1) ("if" exp "then" exp))
+              (forbounds (iddef "to" exp) (iddef "downto" exp))
+              (defs (def) (defs "and" defs)
+                ;; "let module" and friends.
+                ("l-module" def) ("l-class" def) ("l-open" id))
+              (exp:>type (exp:type ":>" type))
+              (exp:type (exp)) ;; (exp ":" type)
+              (fields (fields1) (exp "with" fields1))
+              (fields1 (fields1 ";" fields1) (iddef))
+              (iddef (id "=" exp1))
+              (branches (branches "|" branches) (branch))
+              (branch (patterns "->" exp1))
+              (patterns (pattern) (pattern "when" exp1))
+              (pattern (id) (pattern "as" id) (pattern "," pattern))
+              (class-body (exp)) ;; FIXME!
+              ;; We get cyclic dependencies between ; and | because things like
+              ;; "branches | branches" implies that "; > |" whereas "exp ; exp"
+              ;; implies "| > ;" and while those two do not directly conflict
+              ;; because they're constraints on precedences of different sides,
+              ;; they do introduce a cycle later on because those operators are
+              ;; declared associative which adds a constraint that both side
+              ;; are of equal precedence.  So we declare here a dummy rule to
+              ;; force a direct conflict, that we can later resolve with
+              ;; explicit precedence rules.
+              (foo1 (foo1 ";" foo1) (foo1 "|" foo1))
+              )
+            ;; Type precedence rules.
             ;; http://caml.inria.fr/pub/docs/manual-ocaml/types.html
-            ((nonassoc "as") (assoc "t->") (assoc "*"))
+            '((nonassoc "as") (assoc "t->") (assoc "*"))
             ;; Pattern precedence rules.
             ;; http://caml.inria.fr/pub/docs/manual-ocaml/patterns.html
             ;; Note that we don't include "|" because its precedence collides
             ;; with the one of the | used between branches and resolving the
             ;; conflict in the lexer is not worth the trouble.
-            ((nonassoc "as") (assoc ",") (assoc "::"))
+            '((nonassoc "as") (assoc ",") (assoc "::"))
             ;; Resolve "{a=(1;b=2)}" vs "{(a=1);(b=2)}".
-            ((nonassoc ";") (nonassoc "="))
+            '((nonassoc ";") (nonassoc "="))
             ;; Resolve "(function a -> b) | c -> d"
-            ((nonassoc "function") (nonassoc "|"))
+            '((nonassoc "function") (nonassoc "|"))
             ;; Resolve "when (function a -> b) -> c"
-            ((nonassoc "function") (nonassoc "->"))
+            '((nonassoc "function") (nonassoc "->"))
             ;; Resolve ambiguity "(let d in e2); e3" vs "let d in (e2; e3)"
-            ((nonassoc "in" "match" "->" "with") (nonassoc ";"))
-            ;; Resolve ambiguity "(if a then b); c" vs "if a then (b; c)"
-            ((nonassoc ";") (nonassoc "then" "else"))
+            '((nonassoc "in" "match" "->" "with") (nonassoc ";"))
+            ;; Resolve "(if a then b else c);d" vs "if a then b else (c; d)".
+            '((nonassoc ";") (nonassoc "else")) ;; ("else" > ";")
             ;; Resolve "match e1 with a → (match e2 with b → e3 | c → e4)"
             ;;      vs "match e1 with a → (match e2 with b → e3) | c → e4"
-            ((nonassoc "with") (nonassoc "|"))
+            '((nonassoc "with") (nonassoc "|"))
             ;; Resolve the conflicts caused by "when" and by SMIE's assumption
             ;; that all non-terminals can match the empty string.
-            ((nonassoc "with") (nonassoc "->")) ; "when (match a with) -> e"
-            ((nonassoc "|") (nonassoc "->")) ; "when (match a with a | b) -> e"
-            ;; Resolve the conflict introduced by the two forms of "if".
-            ((nonassoc "if") (nonassoc "then"))
+            '((nonassoc "with") (nonassoc "->")) ; "when (match a with) -> e"
+            '((nonassoc "|") (nonassoc "->")) ; "when (match a with a|b) -> e"
+            ;; Fix up conflict between (decls "and" decls) and (defs "in" exp).
+            '((nonassoc "in") (nonassoc "and"))
             ;; Resolve the "artificial" conflict introduced by the `foo1' rule.
-            ((assoc "|") (assoc ";") (nonassoc ":"))
-            ;; ;; Resolve the "artificial" conflict introduced by `foo2'.
-            ;; ((nonassoc "->") (nonassoc ":"))
+            '((assoc "|") (assoc ";"))
             ;; Fix up associative declaration keywords.
-            ((assoc "type" "d-let" "exception" "module" "val" "open" "external"
-                    "include" ";;") (assoc "and"))
+            '((assoc "type" "d-let" "exception" "module" "val" "open"
+                     "external" "include" "class" ";;")
+              (assoc "and"))
             ;; Declare associativity of remaining sequence separators.
-            ((assoc ";")) ((assoc "|")))))
-    (when (fboundp 'smie-prec2->grammar)
-      (let ((bnfprec2 (apply #'smie-bnf->prec2 bnf resolutions)))
-        ;; SMIE takes for granted that all non-terminals can match the empty
-        ;; string, which can lead to the addition of unnecessary constraints.
-        ;; Let's remove the ones that cause cycles without causing conflicts.
-        (progn
-          ;; This comes from "exp ; exp" and "function branches", where
-          ;; SMIE doesn't realize that `branches' has to have a -> before ;.
-          (assert (eq '> (gethash (cons "function" ";") bnfprec2)))
-          (remhash (cons "function" ";") bnfprec2))
-        ;; (progn
-        ;;   ;; This comes from "exp : type" and "function branches", where
-        ;;   ;; SMIE doesn't realize that `branches' has to have a -> before ;.
-        ;;   (assert (eq '> (gethash (cons "function" ":") bnfprec2)))
-        ;;   (remhash (cons "function" ":") bnfprec2))
-        (smie-prec2->grammar
-         (smie-merge-prec2s
-          bnfprec2
-          (smie-precs->prec2
-           ;; Precedence of operators.
-           ;; http://caml.inria.fr/pub/docs/manual-ocaml/expr.html
-           (reverse
-            '((nonassoc "." "#")
-              ;; function application, constructor application, assert, lazy
-              ;; - -. (prefix)	–
-              (right "**" "lsl" "lsr" "asr")
-              (nonassoc "*" "/" "%" "mod" "land" "lor" "lxor")
-              (left "+" "-")
-              (assoc "::")
-              (right "@" "^")
-              (left "=" "<" ">" "| " "& " "$")
-              (right "&" "&&")
-              (right "||")
-              (assoc ",")
-              (right "<-" ":=")
-              (assoc ";"))))))))))
+            '((assoc ";")) '((assoc "|")))))
+      ;; (dolist (pair '()) ;; ("then" . "|") ("|" . "then")
+      ;;   (display-warning 'prec2 (format "%s %s %s"
+      ;;                                   (car pair)
+      ;;                                   (gethash pair bnfprec2)
+      ;;                                   (cdr pair))))
+      ;; SMIE takes for granted that all non-terminals can match the empty
+      ;; string, which can lead to the addition of unnecessary constraints.
+      ;; Let's remove the ones that cause cycles without causing conflicts.
+      (progn
+        ;; This comes from "exp ; exp" and "function branches", where
+        ;; SMIE doesn't realize that `branches' has to have a -> before ;.
+        (assert (eq '> (gethash (cons "function" ";") bnfprec2)))
+        (remhash (cons "function" ";") bnfprec2))
+      (smie-prec2->grammar
+       (smie-merge-prec2s
+        bnfprec2
+        (smie-precs->prec2
+         ;; Precedence of operators.
+         ;; http://caml.inria.fr/pub/docs/manual-ocaml/expr.html
+         (reverse
+          '((nonassoc "." "#")
+            ;; function application, constructor application, assert, lazy
+            ;; - -. (prefix)	–
+            (right "**" "lsl" "lsr" "asr")
+            (nonassoc "*" "/" "%" "mod" "land" "lor" "lxor")
+            (left "+" "-")
+            (assoc "::")
+            (right "@" "^")
+            (left "=" "<" ">" "| " "& " "$")
+            (right "&" "&&")
+            (right "||")
+            (assoc ",")
+            (right "<-" ":=")
+            (assoc ";")))))))))
 
 (defun tuareg-smie--search-backward (tokens)
   (let (tok)
@@ -1333,7 +1338,7 @@ Regexp match data 0 points to the chars."
           tok
         (goto-char (match-end 0))
         (match-string 0)))
-     ((or (member tok '("let" "=" "->"))
+     ((or (member tok '("let" "=" "->" "module" "class" "open"))
           ;; http://caml.inria.fr/pub/docs/manual-ocaml/expr.html lists
           ;; the tokens whose precedence is based on their prefix.
           (memq (aref tok 0) '(?* ?/ ?% ?+ ?- ?@ ?^ ?= ?< ?> ?| ?& ?$)))
@@ -1358,6 +1363,17 @@ Regexp match data 0 points to the chars."
       (forward-char -1) (substring tok 0 -1))
      (t tok))))
 
+(defconst tuareg-smie--exp-leaders
+  ;; (let ((leaders ()))
+  ;;   (dolist (cat tuareg-smie-bnf)
+  ;;     (dolist (rule (cdr cat))
+  ;;       (setq rule (reverse rule))
+  ;;       (while (setq rule (cdr (memq 'exp rule)))
+  ;;         (push (car rule) leaders))))
+  ;;   leaders)
+  '("if" "then" "try" "match" "do" "while" "begin" "in" "when"
+    "downto" "to" "else"))
+
 (defun tuareg-smie-backward-token ()
   (let ((tok (smie-default-backward-token)))
     (cond
@@ -1365,7 +1381,7 @@ Regexp match data 0 points to the chars."
      ((equal tok "let")
       (save-excursion
         (let ((prev (smie-default-backward-token)))
-          (if (or (member prev '("try" "in" "if" "then" "else" "match" "when"))
+          (if (or (member prev tuareg-smie--exp-leaders)
                   (if (zerop (length prev))
                       (and (not (bobp))
                            (eq 4 (mod (car (syntax-after (1- (point)))) 256)))
@@ -1373,6 +1389,10 @@ Regexp match data 0 points to the chars."
                          (not (equal prev ";;")))))
               tok
             "d-let"))))
+     ;; Handle "let module" and friends.
+     ((member tok '("module" "class" "open"))
+      (let ((prev (save-excursion (smie-default-backward-token))))
+        (if (equal prev "let") (concat "l-" tok) tok)))
      ;; Distinguish a "type ->" from a "case ->".
      ((equal tok "->")
       (save-excursion
@@ -1384,9 +1404,9 @@ Regexp match data 0 points to the chars."
      ((equal tok "=")
       (save-excursion
         (let ((nearest (tuareg-smie--search-backward
-                        '("type" "let" "module"
+                        '("type" "let" "module" "class"
                           "=" "if" "then" "else" "->" ";"))))
-          (if (member nearest '("type" "let" "module"))
+          (if (member nearest '("type" "let" "module" "class"))
               "d-=" tok))))
      ((zerop (length tok))
       (if (not (and (memq (char-before) '(?\} ?\]))
@@ -1423,14 +1443,25 @@ Regexp match data 0 points to the chars."
      (t tok))))
 
 (defun tuareg-smie-rules (kind token)
+  ;; FIXME: Handling of "= |", "with |", "function |", and "[ |" is
+  ;; problematic.
   (cond
+   ((and (eq kind :after) (member token '("." ";"))
+         (smie-rule-parent-p "with")
+         (tuareg-smie--with-module-fields-rule)))
+   ((and (eq kind :before) (member token '("|" ";"))
+         (smie-rule-parent-p "then")
+         ;; We have misparsed the code: TOKEN is not a child of `then' but
+         ;; should have closed the "if E1 then E2" instead!
+         (tuareg-smie--if-then-hack kind token)))
    ((member token '(";" "|" "," "and"))
     ;; FIXME: smie-rule-separator doesn't behave correctly when the separator
     ;; is right after the parent (on another line).
-    (if (smie-rule-prev-p "d-=" "with" "[")
-        (if (and (eq kind :before) (smie-rule-prev-p "["))
+    (if (smie-rule-prev-p "d-=" "with" "[" "function")
+        (if (and (eq kind :before) (smie-rule-bolp)
+                 (smie-rule-prev-p "[" "d-=" "function"))
             0
-          nil) ;; FIXME: do the right thing.
+          2) ;; FIXME: do the right thing.
       (smie-rule-separator kind)))
    (t
     (case kind
@@ -1439,9 +1470,13 @@ Regexp match data 0 points to the chars."
       (:before
        (cond
 	((equal token "d-=") (smie-rule-parent 2))
-	((equal token "match") (if (and (not (smie-rule-bolp))
+	((member token '("fun"))
+         (if (and (not (smie-rule-bolp))
 					(smie-rule-prev-p "d-="))
-				   (smie-rule-parent)))
+             (smie-rule-parent 2)))
+	((equal token "match") (if (and (not (smie-rule-bolp))
+                                        (smie-rule-prev-p "d-="))
+                                   (smie-rule-parent)))
 	((equal token "then") (smie-rule-parent))
 	((equal token "if") (if (and (not (smie-rule-bolp))
 				     (smie-rule-prev-p "else"))
@@ -1456,12 +1491,46 @@ Regexp match data 0 points to the chars."
              (smie-rule-parent)))))
       (:after
        (cond
+        ((equal token "d-=")
+         (and (smie-rule-parent-p "type")
+              (not (smie-rule-next-p "["))
+              2))
+        ((equal token "->") 0)
+        ((equal token ":")
+         (if (smie-rule-parent-p "val") (smie-rule-parent 2) 2))
 	((equal token "in") (if (smie-rule-hanging-p) 0))
 	((equal token "with")
 	 (cond
-	  ((smie-rule-next-p "|") 2)
-	  ((smie-rule-parent-p "{") 2)
-	  (t 4)))))))))
+	  ;; ((smie-rule-next-p "|") 2)
+	  ((smie-rule-parent-p "{") nil)
+	  (t 4)))
+        ((member token '("." "t->")) nil)
+        ;; Default indentation after a dangling operator such as in "a + b +".
+        (t tuareg-default-indent)))))))
+
+(defun tuareg-smie--with-module-fields-rule ()
+  ;; Indentation of fields after "{ E with Module." where the "Module."
+  ;; syntactically only applies to the first field, but has
+  ;; semantically a higher position since it applies to all fields.
+  (save-excursion
+    (forward-char 1)
+    (let ((parent-data (smie-backward-sexp 'halfsexp)))
+      (when (looking-at "\\(?:\\sw\\|\\s_\\)+\\.[ \t]*$")
+        (smie-backward-sexp 'halfsexp)
+        (cons 'column (current-column))))))
+
+(defun tuareg-smie--if-then-hack (kind token)
+  (save-excursion
+    (let* ((pdt (smie-backward-sexp token))
+           (_ (assert (equal (nth 2 pdt) "then")))
+           (pdi (smie-backward-sexp 'halfsexp))
+           (_ (assert (equal (nth 2 pdi) "if")))
+           (pd (smie-backward-sexp token)))
+      (cond
+       ((equal (nth 2 pd) token)
+        (goto-char (nth 1 pd))
+        (cons 'column (smie-indent-virtual)))
+       (t (cons 'column (current-column)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                              The major mode

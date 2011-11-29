@@ -330,6 +330,7 @@ let foo x = function
   | None -> false
 
 let bar x = fun u ->
+  match u with
   | Some _ -> true
   | None -> false
 
