@@ -115,6 +115,14 @@ module M = struct
   with sexp
 end
 
+module N =
+struct
+  type u =
+  | D
+  | E
+  with sexp
+end
+
 type m =
 | T
 with sexp
@@ -978,3 +986,7 @@ struct
   (** This comment should be under "val", like other doc comments and not
    aligned to the left margin. *)
 end
+
+let splitting_long_expression =
+  quad.{band, i3} <- quad.{band, i3} +. g +.
+    area_12 *. (P.potential x13 y13 +. P.potential x23 y23);
