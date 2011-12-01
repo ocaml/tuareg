@@ -327,10 +327,6 @@ The examples at <http://caml.inria.fr/resources/doc/guides/guidelines.en.html>
 show the '|' is aligned with 'match', thus 0 is the default value."
   :group 'tuareg :type 'integer)
 
-(defcustom tuareg-rule-indent tuareg-default-indent
-  "*How many spaces to indent from a `rule' keyword."
-  :group 'tuareg :type 'integer)
-
 (defcustom tuareg-type-indent 0 ;tuareg-default-indent
   "*How many spaces to indent from a `type' keyword."
   :group 'tuareg :type 'integer)
@@ -1693,7 +1689,7 @@ Short cuts for interactions with the toplevel:
    `(,@(and (tuareg-editing-ls3)
             '(("\\<\\(let[ \t\n]+\\(clock\\|node\\|static\\)\\|present\\|automaton\\|where\\|match\\|with\\|do\\|done\\|unless\\|until\\|reset\\|every\\)\\>"
                0 tuareg-font-lock-governing-face nil nil)))
-     ("\\<\\(external\\|open\\|include\\|rule\\|s\\(ig\\|truct\\)\\|module\\|functor\\|with[ \t\n]+\\(type\\|module\\)\\|val\\|type\\|method\\|virtual\\|constraint\\|class\\|in\\|inherit\\|initializer\\|let\\|rec\\|object\\|and\\|begin\\|end\\)\\>"
+     ("\\<\\(external\\|open\\|include\\|s\\(ig\\|truct\\)\\|module\\|functor\\|with[ \t\n]+\\(type\\|module\\)\\|val\\|type\\|method\\|virtual\\|constraint\\|class\\|in\\|inherit\\|initializer\\|let\\|rec\\|object\\|and\\|begin\\|end\\)\\>"
       0 tuareg-font-lock-governing-face nil nil)
      ,@(and tuareg-support-metaocaml
             '(("\\.<\\|>\\.\\|\\.~\\|\\.!"
@@ -1876,7 +1872,7 @@ Short cuts for interactions with the toplevel:
                      "else" "exception" "external" "to" "then" "try" "type"
                      "virtual" "val" "while" "when" "with" "if" "in" "inherit"
                      "for" "fun" "functor" "function" "let" "do" "downto"
-                     "rule" "of")
+                     "of")
           "\\|->\\|[;,|]")
   "Regexp for all recognized keywords.")
 
@@ -1990,7 +1986,6 @@ delimiters.  For synchronous programming.")
     ("let" . tuareg-let-indent)
     ("match" . tuareg-match-indent)
     ("try" . tuareg-try-indent)
-    ("rule" . tuareg-rule-indent)
 
     ;; Case match keywords
     ("function" . tuareg-function-indent)
@@ -2105,7 +2100,7 @@ Returns the actual text of the word, if found."
 (defconst tuareg-find-and-match-regexp
   (concat (tuareg-ro "do" "done" "else" "end" "in" "then" "downto"
                      "for" "while" "do" "if" "begin" "sig" "struct" "class"
-                     "rule" "exception" "let" "in" "type" "val" "module")
+                     "exception" "let" "in" "type" "val" "module")
           "\\|[][(){}]\\|\\*)"))
 (defconst tuareg-find-phrase-beginning-regexp
   (concat (tuareg-ro "end" "type" "module" "sig" "struct" "class"
