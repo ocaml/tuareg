@@ -1123,31 +1123,43 @@ Regexp match data 0 points to the chars."
         '((?` . ".") (?\" . ".") (?\( . ".") (?\) . ".") (?* . "."))))
   "Syntax changes for Font-Lock.")
 
+(defvar tuareg-electric-indent-keywords
+  '("module" "class" "functor" "object" "type" "val" "inherit"
+    "include" "virtual" "constraint" "exception" "external" "open"
+    "method" "and" "initializer" "to" "downto" "do" "done" "else"
+    "begin" "end" "let" "in" "then" "with"))
+
 (defvar tuareg-mode-abbrev-table ()
   "Abbrev table used for Tuareg mode buffers.")
 (if tuareg-mode-abbrev-table ()
   (define-abbrev-table 'tuareg-mode-abbrev-table
     (mapcar (lambda (keyword)
               `(,keyword ,keyword tuareg-abbrev-hook nil t))
-            '("module" "class" "functor" "object" "type" "val" "inherit"
-              "include" "virtual" "constraint" "exception" "external" "open"
-              "method" "and" "initializer" "to" "downto" "do" "done" "else"
-              "begin" "end" "let" "in" "then" "with"))))
+            tuareg-electric-indent-keywords)))
 
-(defvar electric-indent-chars)
-(defvar tuareg-electric-indent-chars
-  `((?|  . tuareg-in-indentation-p)
-    (?\) . ,(lambda () (or (tuareg-in-indentation-p)
-                      (char-equal ?* (preceding-char)))))
-    (?\} . ,(lambda () (or (tuareg-in-indentation-p)
-                      (and (char-equal ?> (preceding-char))
-                           (save-excursion (tuareg-backward-char)
-                                           (tuareg-in-indentation-p))))))
-    (?\] . ,(lambda () (or (tuareg-in-indentation-p)
-                      (and (char-equal ?| (preceding-char))
-                           (save-excursion (tuareg-backward-char)
+(defun tuareg--electric-indent-predicate (char)
+  "Check whether we should auto-indent.
+For use on `electric-indent-functions'."
+  (save-excursion
+    (forward-char -1) ;; Go before the inserted char.
+    (let ((syntax (char-syntax char)))
+      (if (tuareg-in-indentation-p)
+          (or (eq char ?|) (eq syntax ?\)))
+        (or (case char
+              (?\) (char-equal ?* (preceding-char)))
+              (?\} (and (char-equal ?> (preceding-char))
+                        (progn (tuareg-backward-char)
+                               (tuareg-in-indentation-p))))
+              (?\] (and (char-equal ?| (preceding-char))
+                        (progn (tuareg-backward-char)
+                               (tuareg-in-indentation-p)))))
+            (and tuareg-use-abbrev-mode  ;; Misnomer, eh?
+                 (not (eq syntax ?w))
+                 (let ((end (point)))
+                   (skip-syntax-backward "w_")
+                   (member (buffer-substring (point) end)
+                           tuareg-electric-indent-keywords))
                                            (tuareg-in-indentation-p)))))))
-  "Set of indentation chars to add to `electric-indent-chars'.")
 
 ;;; SMIE
 
@@ -1184,6 +1196,19 @@ Regexp match data 0 points to the chars."
   ;;   precedence relation.  But until that happens, we will live with an
   ;;   incorrect parse, and instead we try to patch up the result with ad-hoc
   ;;   hacks in tuareg-smie-rules.
+  ;; - The "<module-type> with <mod-constraints>" syntax introduces many
+  ;;   conflicts:
+  ;;      "... with module M = A with module B = C"
+  ;;   vs      "... module M = A with module B = C"
+  ;;   In the first, the second "with" should either have the first "with" as
+  ;;   sibling, or have some earlier construct as parent, whereas in the second
+  ;;   the "with" should have the first "=" (or maybe the first "module", tho
+  ;;   that would not correspond to the actual language syntax and would
+  ;;   probably break other cases) as parent.  Other problems in this
+  ;;   mod-constraints syntax: we need a precedence along the lines of
+  ;;   "with" < "and" < "module/type", whereas the rest of the syntax wants
+  ;;   "module/type" < "and" < "with", so basically all the keywords involved
+  ;;   in mod-constraints need to be handled specially in the lexer :-(
   ;; - and then some...
   (when (fboundp 'smie-prec2->grammar)
     (let ((bnfprec2
@@ -1203,8 +1228,8 @@ Regexp match data 0 points to the chars."
                      ;; end up matching the "in" with some far away thingy.
                      (def-in-exp))
               (def-in-exp (defs "in" exp))
-              (def (var "d-=" exp) (id "d-=" datatype) (id "d-=" module))
-              (var (id) ("rec" var) (id ":" type))
+              (def (var "d=" exp) (id "d=" datatype) (id "d=" module))
+              (var (id) ("m-type" var) ("rec" var) (id ":" type))
               (exception (id "of" type))
               (datatype ("{" typefields "}") (typebranches)
                         (typebranches "with" id))
@@ -1217,9 +1242,11 @@ Regexp match data 0 points to the chars."
               (module ("struct" decls "end")
                       ("sig" decls "end")
                       ("functor" id "->" module)
-                      ;; FIXME: this introduces many conflicts.
-                      ;; (module "with" mod-constraints)
-                      )
+                      (module "m-with" mod-constraints))
+              (simpledef (id "c=" type))
+              (mod-constraints (mod-constraints "m-and" mod-constraints)
+                               ("w-type" simpledef)
+                               ("w-module" simpledef))
               ;; http://caml.inria.fr/pub/docs/manual-ocaml/expr.html
               ;; exp1 is "all exps except for `if exp then'".
               (exp1 ("begin" exp "end")
@@ -1254,7 +1281,13 @@ Regexp match data 0 points to the chars."
               (branch (patterns "->" exp1))
               (patterns (pattern) (pattern "when" exp1))
               (pattern (id) (pattern "as" id) (pattern "," pattern))
-              (class-body (exp)) ;; FIXME!
+              (class-body (class-body "inherit" class-body)
+                          (class-body "method" class-body)
+                          (class-body "val" class-body)
+                          (class-body "constraint" class-body)
+                          (class-field))
+              (class-field (exp) ("mutable" class-field)
+                           ("virtual" class-field) ("private" class-field))
               ;; We get cyclic dependencies between ; and | because things like
               ;; "branches | branches" implies that "; > |" whereas "exp ; exp"
               ;; implies "| > ;" and while those two do not directly conflict
@@ -1277,17 +1310,19 @@ Regexp match data 0 points to the chars."
             '((nonassoc "as") (assoc ",") (assoc "::"))
             ;; Resolve "{a=(1;b=2)}" vs "{(a=1);(b=2)}".
             '((nonassoc ";") (nonassoc "="))
-            ;; Resolve "(function a -> b) | c -> d"
+            ;; Resolve "(function a -> b) | c -> d".
             '((nonassoc "function") (nonassoc "|"))
-            ;; Resolve "when (function a -> b) -> c"
+            ;; Resolve "when (function a -> b) -> c".
             '((nonassoc "function") (nonassoc "->"))
-            ;; Resolve ambiguity "(let d in e2); e3" vs "let d in (e2; e3)"
+            ;; Resolve ambiguity "(let d in e2); e3" vs "let d in (e2; e3)".
             '((nonassoc "in" "match" "->" "with") (nonassoc ";"))
             ;; Resolve "(if a then b else c);d" vs "if a then b else (c; d)".
             '((nonassoc ";") (nonassoc "else")) ;; ("else" > ";")
             ;; Resolve "match e1 with a → (match e2 with b → e3 | c → e4)"
             ;;      vs "match e1 with a → (match e2 with b → e3) | c → e4"
             '((nonassoc "with") (nonassoc "|"))
+            ;; Resolve "functor A -> (M with MC)".
+            '((nonassoc "->") (nonassoc "m-with"))
             ;; Resolve the conflicts caused by "when" and by SMIE's assumption
             ;; that all non-terminals can match the empty string.
             '((nonassoc "with") (nonassoc "->")) ; "when (match a with) -> e"
@@ -1300,8 +1335,9 @@ Regexp match data 0 points to the chars."
             '((assoc "type" "d-let" "exception" "module" "val" "open"
                      "external" "include" "class" ";;")
               (assoc "and"))
+            '((assoc "val" "method" "inherit" "constraint"))
             ;; Declare associativity of remaining sequence separators.
-            '((assoc ";")) '((assoc "|")))))
+            '((assoc ";")) '((assoc "|")) '((assoc "m-and")))))
       ;; (dolist (pair '()) ;; ("then" . "|") ("|" . "then")
       ;;   (display-warning 'prec2 (format "%s %s %s"
       ;;                                   (car pair)
@@ -1360,7 +1396,8 @@ Regexp match data 0 points to the chars."
           tok
         (goto-char (match-end 0))
         (match-string 0)))
-     ((or (member tok '("let" "=" "->" "module" "class" "open"))
+     ((or (member tok '("let" "=" "->"
+                        "module" "class" "open" "type" "with" "and"))
           ;; http://caml.inria.fr/pub/docs/manual-ocaml/expr.html lists
           ;; the tokens whose precedence is based on their prefix.
           (memq (aref tok 0) '(?* ?/ ?% ?+ ?- ?@ ?^ ?= ?< ?> ?| ?& ?$)))
@@ -1414,7 +1451,10 @@ Regexp match data 0 points to the chars."
      ;; Handle "let module" and friends.
      ((member tok '("module" "class" "open"))
       (let ((prev (save-excursion (smie-default-backward-token))))
-        (if (equal prev "let") (concat "l-" tok) tok)))
+        (cond
+         ((equal prev "let") (concat "l-" tok))
+         ((and (member prev '("with" "and")) (equal tok "module")) "w-module")
+         (t tok))))
      ;; Distinguish a "type ->" from a "case ->".
      ((equal tok "->")
       (save-excursion
@@ -1422,14 +1462,30 @@ Regexp match data 0 points to the chars."
                         '("with" "|" "fun" "type" ":" "of"))))
           (if (member nearest '("with" "|" "fun"))
               tok "t->"))))
+     ;; Handle "module type" and mod-constraint's "with/and type".
+     ((equal tok "type")
+      (save-excursion
+        (let ((prev (smie-default-backward-token)))
+          (cond ((equal prev "module") "m-type")
+                ((member prev '("and" "with")) "w-type")
+                (t tok)))))
+     ;; Disambiguate mod-constraint's "and" and "with".
+     ((member tok '("with" "and"))
+      (save-excursion
+        (smie-default-forward-token)
+        (if (member (smie-default-forward-token) '("type" "module"))
+            (concat "m-" tok) tok)))
      ;; Distinguish a defining = from a comparison-=.
      ((equal tok "=")
       (save-excursion
         (let ((nearest (tuareg-smie--search-backward
                         '("type" "let" "module" "class"
                           "=" "if" "then" "else" "->" ";"))))
-          (if (member nearest '("type" "let" "module" "class"))
-              "d-=" tok))))
+          (cond
+           ((not (member nearest '("type" "let" "module" "class"))) tok)
+           ((and (member nearest '("type" "module"))
+                 (member (smie-default-backward-token) '("with" "and"))) "c=")
+           (t "d=")))))
      ((zerop (length tok))
       (if (not (and (memq (char-before) '(?\} ?\]))
                     (save-excursion (forward-char -2)
@@ -1475,13 +1531,13 @@ Regexp match data 0 points to the chars."
          (smie-rule-parent-p "then")
          ;; We have misparsed the code: TOKEN is not a child of `then' but
          ;; should have closed the "if E1 then E2" instead!
-         (tuareg-smie--if-then-hack kind token)))
+         (tuareg-smie--if-then-hack token)))
    ((member token '(";" "|" "," "and"))
     ;; FIXME: smie-rule-separator doesn't behave correctly when the separator
     ;; is right after the parent (on another line).
-    (if (smie-rule-prev-p "d-=" "with" "[" "function")
+    (if (smie-rule-prev-p "d=" "with" "[" "function")
         (if (and (eq kind :before) (smie-rule-bolp)
-                 (smie-rule-prev-p "[" "d-=" "function"))
+                 (smie-rule-prev-p "[" "d=" "function"))
             0
           2) ;; FIXME: do the right thing.
       (smie-rule-separator kind)))
@@ -1491,13 +1547,13 @@ Regexp match data 0 points to the chars."
       (:list-intro (member token '("fun")))
       (:before
        (cond
-	((equal token "d-=") (smie-rule-parent 2))
+	((equal token "d=") (smie-rule-parent 2))
 	((member token '("fun"))
          (if (and (not (smie-rule-bolp))
-					(smie-rule-prev-p "d-="))
+					(smie-rule-prev-p "d="))
              (smie-rule-parent 2)))
 	((equal token "match") (if (and (not (smie-rule-bolp))
-                                        (smie-rule-prev-p "d-="))
+                                        (smie-rule-prev-p "d="))
                                    (smie-rule-parent)))
 	((equal token "then") (smie-rule-parent))
 	((equal token "if") (if (and (not (smie-rule-bolp))
@@ -1513,7 +1569,7 @@ Regexp match data 0 points to the chars."
              (smie-rule-parent)))))
       (:after
        (cond
-        ((equal token "d-=")
+        ((equal token "d=")
          (and (smie-rule-parent-p "type")
               (not (smie-rule-next-p "["))
               2))
@@ -1527,7 +1583,6 @@ Regexp match data 0 points to the chars."
 	  ((smie-rule-parent-p "{") nil)
 	  (t 4)))
         ((member token '("." "t->")) nil)
-        ;; Default indentation after a dangling operator such as in "a + b +".
         (t tuareg-default-indent)))))))
 
 (defun tuareg-smie--with-module-fields-rule ()
@@ -1541,13 +1596,16 @@ Regexp match data 0 points to the chars."
         (smie-backward-sexp 'halfsexp)
         (cons 'column (current-column))))))
 
-(defun tuareg-smie--if-then-hack (kind token)
+(defun tuareg-smie--if-then-hack (token)
+  ;; Getting SMIE's parser to properly parse "if E1 then E2" is difficult, so
+  ;; instead we live with a confused parser and try to work around the mess
+  ;; here, although it clearly won't help other uses of the parser
+  ;; (e.g. navigation).
   (save-excursion
-    (let* ((pdt (smie-backward-sexp token))
-           (_ (assert (equal (nth 2 pdt) "then")))
-           (pdi (smie-backward-sexp 'halfsexp))
-           (_ (assert (equal (nth 2 pdi) "if")))
-           (pd (smie-backward-sexp token)))
+    (let (pd)
+      (while (equal (nth 2 (setq pd (smie-backward-sexp token))) "then")
+        (let ((pdi (smie-backward-sexp 'halfsexp)))
+          (assert (equal (nth 2 pdi) "if"))))
       (cond
        ((equal (nth 2 pd) token)
         (goto-char (nth 1 pd))
@@ -1572,9 +1630,9 @@ Regexp match data 0 points to the chars."
     (set (make-local-variable 'indent-line-function) #'tuareg-indent-command))
   (tuareg-install-font-lock)
 
-  (when (boundp 'electric-indent-chars)
-    (set (make-local-variable 'electric-indent-chars)
-         (append electric-indent-chars tuareg-electric-indent-chars)))
+  (when (fboundp 'electric-indent-mode)
+    (add-hook 'electric-indent-functions
+              #'tuareg--electric-indent-predicate nil t))
   (when (boundp 'post-self-insert-hook)
     (add-hook 'post-self-insert-hook #'tuareg--electric-close-vector nil t)))
 
@@ -1680,7 +1738,9 @@ Short cuts for interactions with the toplevel:
   (set (make-local-variable 'imenu-create-index-function)
        #'tuareg-imenu-create-index)
 
-  (when tuareg-use-abbrev-mode (abbrev-mode 1))
+  (when (and tuareg-use-abbrev-mode
+             (not (and (boundp 'electric-indent-mode) electric-indent-mode)))
+    (abbrev-mode 1))
   (message nil))
 
 (defun tuareg-install-font-lock ()
@@ -3432,7 +3492,8 @@ by |, insert one |."
 
 (defun tuareg-abbrev-hook ()
   "If inserting a leading keyword at beginning of line, reindent the line."
-  (unless (tuareg-in-literal-or-comment-p)
+  (unless (or (and (boundp 'electric-indent-mode) electric-indent-mode)
+              (tuareg-in-literal-or-comment-p))
     (let* ((bol (line-beginning-position))
            (kw (save-excursion
                  (and (re-search-backward "^[ \t]*\\(\\w\\|_\\)+\\=" bol t)

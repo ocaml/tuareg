@@ -703,6 +703,8 @@ let () =
 
 module type M = M2
   with type t1 = int
+   and type t2 = int
+   and module S = M3
   with type t2 = int
   with type t3 = int
 
@@ -986,6 +988,44 @@ struct
   (** This comment should be under "val", like other doc comments and not
    aligned to the left margin. *)
 end
+
+let test () =                           (* bug#927 *)
+  if a then
+    if b then x
+    else if c then y
+    else z
+  else something
+
+let f x =
+  if x = 1 then print "hello";
+  print "there";
+  print "everywhere"
+
+let f x =
+  if print "hello"; x = 1 then print "hello";
+  print "there"
+
+let f x =
+  if x = 1 then let y = 2 in print "hello";
+                             print "there"
+  else print "toto"
+
+let f x =
+  match x with
+    | 1 -> let x = 2 in
+          if x = 1 then print "hello"
+    | 2 -> print "there"
+
+let f x =
+  if x = 1 then match x with
+                  | 1 -> print "hello"
+                  | 2 -> print "there"
+  else print "toto"
+
+let f x =
+  x + 4 +
+    x + 5 +
+    x + 6
 
 let splitting_long_expression =
   quad.{band, i3} <- quad.{band, i3} +. g +.

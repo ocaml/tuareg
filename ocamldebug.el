@@ -36,6 +36,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
 (require 'comint)
 (require 'shell)
 (require 'tuareg (expand-file-name
@@ -90,6 +91,17 @@
 
 ;;; OCamldebug mode.
 
+(defvar ocamldebug-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-l" 'ocamldebug-refresh)
+    ;; This is already the default anyway!
+    ;;(define-key map "\t" 'comint-dynamic-complete)
+    (define-key map "\M-?"
+      ;; FIXME: This binding is wrong since comint-dynamic-list-completions
+      ;; is a function, not a command.
+      'comint-dynamic-list-completions)
+    map))
+
 (define-derived-mode ocamldebug-mode comint-mode "OCaml-Debugger"
 
   "Major mode for interacting with an ocamldebug process.
@@ -115,24 +127,18 @@ Additionally we have:
 \\[ocamldebug-display-frame] display frames file in other window
 \\[ocamldebug-step] advance one line in program
 C-x SPACE sets break point at current line."
-
-  (mapc 'make-local-variable
-        '(ocamldebug-last-frame-displayed-p  ocamldebug-last-frame
-          ocamldebug-delete-prompt-marker ocamldebug-filter-function
-          ocamldebug-filter-accumulator paragraph-start))
-  (setq
-   ocamldebug-last-frame nil
-   ocamldebug-delete-prompt-marker (make-marker)
-   ocamldebug-filter-accumulator ""
-   ocamldebug-filter-function 'ocamldebug-marker-filter
-   comint-prompt-regexp ocamldebug-prompt-pattern
-   comint-dynamic-complete-functions (cons 'ocamldebug-complete
-					   comint-dynamic-complete-functions)
-   paragraph-start comint-prompt-regexp
-   ocamldebug-last-frame-displayed-p t)
-  (make-local-variable 'shell-dirtrackp)
-  (setq shell-dirtrackp t)
-  (add-hook 'comint-input-filter-functions 'shell-directory-tracker))
+  (set (make-local-variable 'ocamldebug-last-frame) nil)
+  (set (make-local-variable 'ocamldebug-delete-prompt-marker) (make-marker))
+  (set (make-local-variable 'ocamldebug-filter-accumulator) "")
+  (set (make-local-variable 'ocamldebug-filter-function)
+       #'ocamldebug-marker-filter)
+  (set (make-local-variable 'comint-prompt-regexp) ocamldebug-prompt-pattern)
+  (set (make-local-variable 'comint-dynamic-complete-functions)
+       (cons #'ocamldebug-complete comint-dynamic-complete-functions))
+  (set (make-local-variable 'paragraph-start) comint-prompt-regexp)
+  (set (make-local-variable 'ocamldebug-last-frame-displayed-p) t)
+  (set (make-local-variable 'shell-dirtrackp) t)
+  (add-hook 'comint-input-filter-functions 'shell-directory-tracker nil t))
 
 ;;; Keymaps.
 
@@ -163,19 +169,15 @@ If a numeric is present, it overrides any ARGS flags and its string
 representation is simply concatenated with the COMMAND."
 
   (let* ((fun (intern (format "ocamldebug-%s" name))))
-    (list 'progn
-	  (if doc
-	      (list 'defun fun '(arg)
-		    doc
-		    '(interactive "P")
-		    (list 'ocamldebug-call name args
-			  '(ocamldebug-numeric-arg arg))))
-	  (list 'define-key 'ocamldebug-mode-map
-		(concat "\C-c" key)
-		(list 'quote fun))
-	  (list 'define-key 'tuareg-mode-map
-		(concat "\C-x\C-a" key)
-		(list 'quote fun)))))
+    `(progn
+       ,(if doc
+            `(defun ,fun (arg)
+               ,doc
+               (interactive "P")
+               (ocamldebug-call ,name ,args
+                                (ocamldebug-numeric-arg arg))))
+       (define-key ocamldebug-mode-map ,(concat "\C-c" key) ',fun)
+       (define-key tuareg-mode-map ,(concat "\C-x\C-a" key) ',fun))))
 
 (def-ocamldebug "step"	"\C-s"	"Step one source line with display.")
 (def-ocamldebug "run"	"\C-r"	"Run the program.")
@@ -453,14 +455,8 @@ around point."
 	  (sort ocamldebug-complete-list 'string-lessp))
     (comint-dynamic-simple-complete command-word ocamldebug-complete-list)))
 
-(define-key ocamldebug-mode-map "\C-l" 'ocamldebug-refresh)
-(define-key ocamldebug-mode-map "\t" 'comint-dynamic-complete)
-(define-key ocamldebug-mode-map "\M-?" 'comint-dynamic-list-completions)
-
 (define-key tuareg-mode-map "\C-x " 'ocamldebug-break)
 
-
-;;;###autoload
 (defvar ocamldebug-command-name "ocamldebug"
   "Pathname for executing the OCaml debugger.")
 
@@ -555,16 +551,15 @@ the ocamldebug commands `cd DIR' and `directory'."
     output))
 
 (defun ocamldebug-filter (proc string)
-  (let ((output))
-    (when (buffer-name (process-buffer proc))
-      (let ((process-window))
-        (with-current-buffer (process-buffer proc)
-          ;; If we have been so requested, delete the debugger prompt.
-          (when (marker-buffer ocamldebug-delete-prompt-marker)
-            (delete-region (process-mark proc)
-                           ocamldebug-delete-prompt-marker)
-            (set-marker ocamldebug-delete-prompt-marker nil))
-          (setq output (funcall ocamldebug-filter-function string))
+  (when (buffer-name (process-buffer proc))
+    (let ((process-window))
+      (with-current-buffer (process-buffer proc)
+        ;; If we have been so requested, delete the debugger prompt.
+        (when (marker-buffer ocamldebug-delete-prompt-marker)
+          (delete-region (process-mark proc)
+                         ocamldebug-delete-prompt-marker)
+          (set-marker ocamldebug-delete-prompt-marker nil))
+        (let ((output (funcall ocamldebug-filter-function string)))
           ;; Don't display the specified file unless
           ;; (1) point is at or after the position where output appears
           ;; and (2) this buffer is on the screen.
@@ -573,11 +568,11 @@ the ocamldebug commands `cd DIR' and `directory'."
                                     (>= (point) (process-mark proc))
                                     (get-buffer-window (current-buffer))))
           ;; Insert the text, moving the process-marker.
-          (comint-output-filter proc output))
-        (when process-window
-          (save-selected-window
-            (select-window process-window)
-            (ocamldebug-display-frame)))))))
+          (comint-output-filter proc output)))
+      (when process-window
+        (save-selected-window
+          (select-window process-window)
+          (ocamldebug-display-frame))))))
 
 (defun ocamldebug-sentinel (proc msg)
   (cond ((null (buffer-name (process-buffer proc)))
@@ -693,27 +688,31 @@ Obeying it means displaying in another window the specified file and line."
 
 (defun ocamldebug-format-command (str)
   (let* ((insource (not (eq (current-buffer) ocamldebug-current-buffer)))
-	(frame (if insource nil ocamldebug-last-frame)) (result))
+         (frame (if insource nil ocamldebug-last-frame))
+         (result ""))
     (while (and str (string-match "\\([^%]*\\)%\\([mdcep]\\)" str))
-      (let ((key (string-to-char (substring str (match-beginning 2))))
-	    (cmd (substring str (match-beginning 1) (match-end 1)))
-	    (subst))
-	(setq str (substring str (match-end 2)))
-	(cond
-	 ((eq key ?m)
-	  (setq subst (ocamldebug-module-name
-		       (if insource (buffer-file-name) (nth 0 frame)))))
-	 ((eq key ?d)
-	  (setq subst (file-name-directory
-		       (if insource (buffer-file-name) (nth 0 frame)))))
-	 ((eq key ?c)
-	  (setq subst (int-to-string
-		       (if insource (1- (point)) (nth 1 frame)))))
-	 ((eq key ?e)
-	  (setq subst (save-excursion
-			(skip-chars-backward "_0-9A-Za-z\277-\377")
-			(looking-at "[_0-9A-Za-z\277-\377]*")
-			(match-string 0)))))
+      (let* ((key (aref str (match-beginning 2)))
+             (cmd (match-string 1 str))
+             (end (match-end 0))
+             (subst
+              (case key
+                (?m
+                 (ocamldebug-module-name
+                  (if insource buffer-file-name (nth 0 frame))))
+                (?d
+                 (file-name-directory
+                  (if insource buffer-file-name (nth 0 frame))))
+                (?c
+                 (int-to-string
+                  ;; FIXME: Should this be (- (point) (point-min))?
+                  ;; What happens with multibyte chars?
+                  (if insource (1- (point)) (nth 1 frame))))
+                (?e
+                 (save-excursion
+                   (skip-chars-backward "_0-9A-Za-z\277-\377")
+                   (looking-at "[_0-9A-Za-z\277-\377]*")
+                   (match-string 0))))))
+        (setq str (substring str end))
 	(setq result (concat result cmd subst))))
     ;; There might be text left in STR when the loop ends.
     (concat result str)))
