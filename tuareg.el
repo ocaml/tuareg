@@ -1276,7 +1276,7 @@ For use on `electric-indent-functions'."
               (exp:type (exp)) ;; (exp ":" type)
               (fields (fields1) (exp "with" fields1))
               (fields1 (fields1 ";" fields1) (iddef))
-              (iddef (id "=" exp1))
+              (iddef (id "f=" exp1))
               (branches (branches "|" branches) (branch))
               (branch (patterns "->" exp1))
               (patterns (pattern) (pattern "when" exp1))
@@ -1309,7 +1309,7 @@ For use on `electric-indent-functions'."
             ;; conflict in the lexer is not worth the trouble.
             '((nonassoc "as") (assoc ",") (assoc "::"))
             ;; Resolve "{a=(1;b=2)}" vs "{(a=1);(b=2)}".
-            '((nonassoc ";") (nonassoc "="))
+            '((nonassoc ";") (nonassoc "f="))
             ;; Resolve "(function a -> b) | c -> d".
             '((nonassoc "function") (nonassoc "|"))
             ;; Resolve "when (function a -> b) -> c".
@@ -1376,10 +1376,14 @@ For use on `electric-indent-functions'."
 (defun tuareg-smie--search-backward (tokens)
   (let (tok)
     (while (progn
-             (setq tok (smie-default-backward-token))
+             (setq tok (tuareg-smie--backward-token))
              (if (not (zerop (length tok)))
                  (not (member tok tokens))
-               (ignore-errors (backward-sexp) t))))
+               (condition-case err
+                   (progn (backward-sexp) t)
+                 (scan-error
+                  (setq tok (buffer-substring (nth 3 err) (1+ (nth 3 err))))
+                  nil)))))
     tok))
 
 (defconst tuareg-smie--type-label-leader
@@ -1388,8 +1392,35 @@ For use on `electric-indent-functions'."
   (delq nil (mapcar (lambda (x) (if (numberp (nth 2 x)) (car x)))
                     tuareg-smie-grammar)))
 
+(defun tuareg-smie--forward-token ()
+  (forward-comment (point-max))
+  (buffer-substring-no-properties
+   (point)
+   (progn (if (zerop (skip-syntax-forward "."))
+              (skip-syntax-forward "w_'")
+            ;; The "." char is given symbol property so that "M.x" is
+            ;; considered as a single symbol, but in reality, it's part of the
+            ;; operator chars, since "+." and friends are operators.
+            (while (not (and (zerop (skip-chars-forward "."))
+                             (zerop (skip-syntax-forward "."))))))
+          (point))))
+
+(defun tuareg-smie--backward-token ()
+  (forward-comment (- (point)))
+  (buffer-substring-no-properties
+   (point)
+   (progn (if (and (zerop (skip-chars-backward "."))
+                   (zerop (skip-syntax-backward ".")))
+              (skip-syntax-backward "w_'")
+            ;; The "." char is given symbol property so that "M.x" is
+            ;; considered as a single symbol, but in reality, it's part of the
+            ;; operator chars, since "+." and friends are operators.
+            (while (not (and (zerop (skip-chars-backward "."))
+                             (zerop (skip-syntax-backward "."))))))
+          (point))))
+
 (defun tuareg-smie-forward-token ()
-  (let ((tok (smie-default-forward-token)))
+  (let ((tok (tuareg-smie--forward-token)))
     (cond
      ((zerop (length tok))
       (if (not (looking-at "{<\\|\\[|"))
@@ -1411,8 +1442,8 @@ For use on `electric-indent-functions'."
      ((and (looking-at ":\\(?:[^:]\\|\\'\\)")
            (string-match "\\`[[:alpha:]_]" tok)
            (save-excursion
-             (smie-default-backward-token) ;Go back.
-             (member (smie-default-backward-token)
+             (tuareg-smie--backward-token) ;Go back.
+             (member (tuareg-smie--backward-token)
                      tuareg-smie--type-label-leader)))
       (forward-char 1)
       "label:")
@@ -1434,12 +1465,12 @@ For use on `electric-indent-functions'."
     "downto" "to" "else"))
 
 (defun tuareg-smie-backward-token ()
-  (let ((tok (smie-default-backward-token)))
+  (let ((tok (tuareg-smie--backward-token)))
     (cond
      ;; Distinguish a let expression from a let declaration.
      ((equal tok "let")
       (save-excursion
-        (let ((prev (smie-default-backward-token)))
+        (let ((prev (tuareg-smie--backward-token)))
           (if (or (member prev tuareg-smie--exp-leaders)
                   (if (zerop (length prev))
                       (and (not (bobp))
@@ -1450,7 +1481,7 @@ For use on `electric-indent-functions'."
             "d-let"))))
      ;; Handle "let module" and friends.
      ((member tok '("module" "class" "open"))
-      (let ((prev (save-excursion (smie-default-backward-token))))
+      (let ((prev (save-excursion (tuareg-smie--backward-token))))
         (cond
          ((equal prev "let") (concat "l-" tok))
          ((and (member prev '("with" "and")) (equal tok "module")) "w-module")
@@ -1465,26 +1496,39 @@ For use on `electric-indent-functions'."
      ;; Handle "module type" and mod-constraint's "with/and type".
      ((equal tok "type")
       (save-excursion
-        (let ((prev (smie-default-backward-token)))
+        (let ((prev (tuareg-smie--backward-token)))
           (cond ((equal prev "module") "m-type")
                 ((member prev '("and" "with")) "w-type")
                 (t tok)))))
      ;; Disambiguate mod-constraint's "and" and "with".
      ((member tok '("with" "and"))
       (save-excursion
-        (smie-default-forward-token)
-        (if (member (smie-default-forward-token) '("type" "module"))
+        (tuareg-smie--forward-token)
+        (if (member (tuareg-smie--forward-token) '("type" "module"))
             (concat "m-" tok) tok)))
      ;; Distinguish a defining = from a comparison-=.
      ((equal tok "=")
       (save-excursion
-        (let ((nearest (tuareg-smie--search-backward
+        (let ((pos (point))
+              (nearest (tuareg-smie--search-backward
                         '("type" "let" "module" "class"
                           "=" "if" "then" "else" "->" ";"))))
           (cond
+           ((and (member nearest '("{" ";"))
+                 (let ((field t))
+                   (while
+                       (let ((x (tuareg-smie--forward-token)))
+                         (and (< (point) pos)
+                              (cond
+                               ((zerop (length x)) (setq field nil))
+                               ((memq (char-syntax (aref x 0)) '(?w ?_)))
+                               ((member x '("." ";")))
+                               (t (setq field nil))))))
+                   field))
+            "f=")                       ;Field definition.
            ((not (member nearest '("type" "let" "module" "class"))) tok)
            ((and (member nearest '("type" "module"))
-                 (member (smie-default-backward-token) '("with" "and"))) "c=")
+                 (member (tuareg-smie--backward-token) '("with" "and"))) "c=")
            (t "d=")))))
      ((zerop (length tok))
       (if (not (and (memq (char-before) '(?\} ?\]))
@@ -1511,7 +1555,7 @@ For use on `electric-indent-functions'."
         (if (and (not (zerop (skip-chars-backward "[[:alnum:]]_")))
                  (or (not (zerop (skip-chars-backward "?~")))
                      (save-excursion
-                       (member (smie-default-backward-token)
+                       (member (tuareg-smie--backward-token)
                                tuareg-smie--type-label-leader))))
             "label:"
           (goto-char pos)
@@ -1532,7 +1576,7 @@ For use on `electric-indent-functions'."
          ;; We have misparsed the code: TOKEN is not a child of `then' but
          ;; should have closed the "if E1 then E2" instead!
          (tuareg-smie--if-then-hack token)))
-   ((member token '(";" "|" "," "and"))
+   ((member token '(";" "|" "," "and" "m-and"))
     ;; FIXME: smie-rule-separator doesn't behave correctly when the separator
     ;; is right after the parent (on another line).
     (if (smie-rule-prev-p "d=" "with" "[" "function")
@@ -1561,12 +1605,29 @@ For use on `electric-indent-functions'."
 				(smie-rule-parent)))
 	((and (equal token "with") (smie-rule-parent-p "{"))
 	 (smie-rule-parent))
+        ;; Align the "with" of "module type A = B \n with ..." w.r.t "module".
+	((and (equal token "m-with") (smie-rule-parent-p "d="))
+         (save-excursion
+           (smie-backward-sexp token)
+           (goto-char (nth 1 (smie-backward-sexp 'halfsexp)))
+           (cons 'column (+ 2 (current-column)))))
         ;; Treat purely syntactic block-constructs as being part of their
         ;; parent, when the opening statement is hanging.
         ((member token '("let" "(" "[" "{" "struct"))
-         (if (and (smie-rule-hanging-p)
-                  (apply #'smie-rule-prev-p tuareg-smie--exp-operator-leader))
-             (smie-rule-parent)))))
+         (when (and (smie-rule-hanging-p)
+                    (apply #'smie-rule-prev-p
+                           tuareg-smie--exp-operator-leader))
+           (if (let ((openers '("{" "(" "{<" "[" "[|")))
+                 (or (apply #'smie-rule-prev-p openers)
+                     (not (apply #'smie-rule-parent-p openers))))
+               (smie-rule-parent)
+             ;; In "{ a = (", "{" and "a =" are not part of the same
+             ;; syntax rule, so "(" is part of "a =" but not of the
+             ;; surrounding "{".
+             (save-excursion
+               (smie-backward-sexp 'halfsexp)
+               (cons 'column (smie-indent-virtual))))))
+        ))
       (:after
        (cond
         ((equal token "d=")
@@ -1582,7 +1643,9 @@ For use on `electric-indent-functions'."
 	  ;; ((smie-rule-next-p "|") 2)
 	  ((smie-rule-parent-p "{") nil)
 	  (t 4)))
-        ((member token '("." "t->")) nil)
+        ((or (member token '("." "t->" "]"))
+             (consp (nth 2 (assoc token tuareg-smie-grammar)))) ;; Closer.
+         nil)
         (t tuareg-default-indent)))))))
 
 (defun tuareg-smie--with-module-fields-rule ()
