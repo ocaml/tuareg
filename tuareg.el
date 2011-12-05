@@ -1,4 +1,4 @@
-;;; tuareg.el --- OCaml mode for Emacs.
+;;; tuareg.el --- OCaml mode for Emacs.  -*- coding: utf-8 -*-
 
 ;; Copyright (C) 1997-2006 Albert Cohen, all rights reserved.
 ;; Copyright (C) 2009-2010 Jane Street Holding, LLC.
@@ -1065,7 +1065,8 @@ Regexp match data 0 points to the chars."
     (define-key map "]" 'tuareg-electric-rb)
     (define-key map "\M-q" 'tuareg-indent-phrase)
     (define-key map "\C-c\C-q" 'tuareg-indent-phrase)
-    (define-key map "\M-\C-\\" 'indent-region)
+    ;; Don't bother: it's the global default anyway.
+    ;;(define-key map "\M-\C-\\" 'indent-region)
     (define-key map "\C-c\C-a" 'tuareg-find-alternate-file)
     (define-key map "\C-c\C-c" 'compile)
     (define-key map "\C-xnd" 'tuareg-narrow-to-phrase)
@@ -1164,7 +1165,6 @@ For use on `electric-indent-functions'."
 ;;; SMIE
 
 ;; TODO:
-;; - Match sample.ml.
 ;; - Obey tuareg-*-indent customization variables.
 ;; - Fix use of tuareg-indent-command in tuareg-auto-fill-insert-leading-star.
 ;; - Use it by default (when possible).
@@ -1235,7 +1235,7 @@ For use on `electric-indent-functions'."
                         (typebranches "with" id))
               (typebranches (typebranches "|" typebranches) (id "of" type))
               (typefields (typefields ";" typefields) (id ":" type))
-              (type (type "*" type) (type "t->" type)
+              (type (type "*…" type) (type "t->" type)
                     ;; ("<" ... ">") ;; FIXME!
                     (type "as" id))
               (id)
@@ -1301,7 +1301,7 @@ For use on `electric-indent-functions'."
               )
             ;; Type precedence rules.
             ;; http://caml.inria.fr/pub/docs/manual-ocaml/types.html
-            '((nonassoc "as") (assoc "t->") (assoc "*"))
+            '((nonassoc "as") (assoc "t->") (assoc "*…"))
             ;; Pattern precedence rules.
             ;; http://caml.inria.fr/pub/docs/manual-ocaml/patterns.html
             ;; Note that we don't include "|" because its precedence collides
@@ -1361,14 +1361,14 @@ For use on `electric-indent-functions'."
           '((nonassoc "." "#")
             ;; function application, constructor application, assert, lazy
             ;; - -. (prefix)	–
-            (right "**" "lsl" "lsr" "asr")
-            (nonassoc "*" "/" "%" "mod" "land" "lor" "lxor")
-            (left "+" "-")
+            (right "**…" "lsl" "lsr" "asr")
+            (nonassoc "*…" "/…" "%…" "mod" "land" "lor" "lxor")
+            (left "+…" "-…")
             (assoc "::")
-            (right "@" "^")
-            (left "=" "<" ">" "| " "& " "$")
+            (right "@…" "^…")
+            (left "=…" "<…" ">…" "|…" "&…" "$…")
             (right "&" "&&")
-            (right "||")
+            (right "or" "||")
             (assoc ",")
             (right "<-" ":=")
             (assoc ";")))))))))
@@ -1526,7 +1526,7 @@ For use on `electric-indent-functions'."
                                (t (setq field nil))))))
                    field))
             "f=")                       ;Field definition.
-           ((not (member nearest '("type" "let" "module" "class"))) tok)
+           ((not (member nearest '("type" "let" "module" "class"))) "=…")
            ((and (member nearest '("type" "module"))
                  (member (tuareg-smie--backward-token) '("with" "and"))) "c=")
            (t "d=")))))
@@ -1545,11 +1545,9 @@ For use on `electric-indent-functions'."
      ((memq (aref tok 0) '(?* ?/ ?% ?+ ?- ?@ ?^ ?= ?< ?> ?| ?& ?$))
       (cond
        ((member tok '("|" "||" "&" "&&" "<-" "->")) tok)
-       ((eq (aref tok 0) ?|) "| ")
-       ((eq (aref tok 0) ?&) "& ")
        ((and (eq (aref tok 0) ?*) (> (length tok) 1) (eq (aref tok 1) ?*))
-        "**")
-       (t (char-to-string (aref tok 0)))))
+        "**…")
+       (t (string (aref tok 0) ?…))))
      ((equal tok ":")
       (let ((pos (point)))
         (if (and (not (zerop (skip-chars-backward "[[:alnum:]]_")))
@@ -1568,23 +1566,26 @@ For use on `electric-indent-functions'."
   ;; FIXME: Handling of "= |", "with |", "function |", and "[ |" is
   ;; problematic.
   (cond
+   ;; Special indentation for module fields.
    ((and (eq kind :after) (member token '("." ";"))
          (smie-rule-parent-p "with")
          (tuareg-smie--with-module-fields-rule)))
-   ((and (eq kind :before) (member token '("|" ";"))
-         (smie-rule-parent-p "then")
-         ;; We have misparsed the code: TOKEN is not a child of `then' but
-         ;; should have closed the "if E1 then E2" instead!
-         (tuareg-smie--if-then-hack token)))
+   ;; Special indentation for monadic >>>, >>|, and >>= operators.
+   ((and (eq kind :before) (tuareg-smie--monadic-rule token)))
    ((member token '(";" "|" "," "and" "m-and"))
-    ;; FIXME: smie-rule-separator doesn't behave correctly when the separator
-    ;; is right after the parent (on another line).
-    (if (smie-rule-prev-p "d=" "with" "[" "function")
-        (if (and (eq kind :before) (smie-rule-bolp)
-                 (smie-rule-prev-p "[" "d=" "function"))
-            0
-          2) ;; FIXME: do the right thing.
-      (smie-rule-separator kind)))
+    (cond
+     ((and (eq kind :before) (member token '("|" ";"))
+           (smie-rule-parent-p "then")
+           ;; We have misparsed the code: TOKEN is not a child of `then' but
+           ;; should have closed the "if E1 then E2" instead!
+           (tuareg-smie--if-then-hack token)))
+     ;; FIXME: smie-rule-separator doesn't behave correctly when the separator
+     ;; is right after the parent (on another line).
+     ((smie-rule-prev-p "d=" "with" "[" "function")
+      (if (and (eq kind :before) (smie-rule-bolp)
+               (smie-rule-prev-p "[" "d=" "function"))
+          0 2))
+     (t (smie-rule-separator kind))))
    (t
     (case kind
       (:elem (if (eq token 'basic) tuareg-default-indent))
@@ -1593,12 +1594,11 @@ For use on `electric-indent-functions'."
        (cond
 	((equal token "d=") (smie-rule-parent 2))
 	((member token '("fun"))
-         (if (and (not (smie-rule-bolp))
-					(smie-rule-prev-p "d="))
+         (if (and (not (smie-rule-bolp)) (smie-rule-prev-p "d="))
              (smie-rule-parent 2)))
-	((equal token "match") (if (and (not (smie-rule-bolp))
-                                        (smie-rule-prev-p "d="))
-                                   (smie-rule-parent)))
+	((equal token "match")
+         (if (and (not (smie-rule-bolp)) (smie-rule-prev-p "d="))
+             (smie-rule-parent)))
 	((equal token "then") (smie-rule-parent))
 	((equal token "if") (if (and (not (smie-rule-bolp))
 				     (smie-rule-prev-p "else"))
@@ -1626,8 +1626,7 @@ For use on `electric-indent-functions'."
              ;; surrounding "{".
              (save-excursion
                (smie-backward-sexp 'halfsexp)
-               (cons 'column (smie-indent-virtual))))))
-        ))
+               (cons 'column (smie-indent-virtual))))))))
       (:after
        (cond
         ((equal token "d=")
@@ -1658,6 +1657,37 @@ For use on `electric-indent-functions'."
       (when (looking-at "\\(?:\\sw\\|\\s_\\)+\\.[ \t]*$")
         (smie-backward-sexp 'halfsexp)
         (cons 'column (current-column))))))
+
+(defun tuareg-smie--monadic-rule (token)
+  ;; When trying to indent a >>=, try to look back to find any earlier
+  ;; >>= in a sequence of "monadic steps".
+  (or (and (equal token ">…") (looking-at ">>[>=|]")
+           (save-excursion
+             (tuareg-smie--forward-token)
+             (let ((indent nil))
+               (while
+                   (let ((parent-data (smie-backward-sexp 'halfsexp)))
+                     (cond
+                      ((car parent-data) (member (nth 2 parent-data) '("->")))
+                      ((member (nth 2 parent-data) '(";" "d=")) nil)
+                      ((equal (nth 2 parent-data) "fun")
+                       (let ((pos (point)))
+                         (if (member (tuareg-smie--backward-token)
+                                     '(">>|" ">>=" ">>>"))
+                             (progn
+                               (setq indent (cons 'column
+                                                  (smie-indent-virtual)))
+                               nil)
+                           t))))))
+               indent)))
+      ;; In "foo >>= fun x => bar" indent `bar' relative to `foo'.
+      (and (equal token "fun") (not (smie-rule-bolp))
+           (save-excursion
+             (let ((prev (tuareg-smie-backward-token)))
+               ;; FIXME: Should we use the same loop as above?
+               (and (equal prev ">…") (looking-at ">>[>=]")
+                    (progn (smie-backward-sexp prev)
+                           (cons 'column (current-column)))))))))
 
 (defun tuareg-smie--if-then-hack (token)
   ;; Getting SMIE's parser to properly parse "if E1 then E2" is difficult, so
