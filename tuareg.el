@@ -136,8 +136,6 @@
 
 (defvar tuareg-with-caml-mode-p
   (and (require 'caml-types nil t) (require 'caml-help nil t)))
-(eval-when-compile
-  (autoload 'caml-complete "caml-help"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                       User customizable variables
@@ -1722,6 +1720,8 @@ For use on `electric-indent-functions'."
                   :backward-token #'tuareg-smie-backward-token)
     (set (make-local-variable 'indent-line-function) #'tuareg-indent-command))
   (tuareg-install-font-lock)
+
+  (add-hook 'completion-at-point-functions #'tuareg-completion-at-point nil t)
 
   (when (fboundp 'electric-indent-mode)
     (add-hook 'electric-indent-functions
@@ -3873,10 +3873,39 @@ or indent all lines in the current phrase."
       (let ((pair (tuareg-discover-phrase)))
         (indent-region (nth 0 pair) (nth 1 pair) nil)))))
 
+(autoload 'ocaml-module-alist "caml-help")
+(autoload 'ocaml-visible-modules "caml-help")
+
+(defun tuareg-completion-at-point ()
+  (let ((beg (save-excursion (skip-syntax-backward "w_") (point)))
+        (end (save-excursion (skip-syntax-forward "w_") (point)))
+        (table
+         (lambda (string pred action)
+           (let ((dot (string-match "\\.[^.]*\\'" string)))
+             (if (eq (car-safe action) 'boundaries)
+                 `(boundaries ,(if dot (1+ dot) 0)
+                              ,@(string-match "\\." (cdr action)))
+               (if (null dot)
+                   (complete-with-action
+                    action (apply #'append
+                                  (mapcar (lambda (mod) (concat (car mod) "."))
+                                          (ocaml-module-alist))
+                                  (mapcar #'cddr (ocaml-visible-modules)))
+                    string pred)
+                 (completion-table-with-context
+                  (substring string 0 (1+ dot))
+                  (cddr (assoc (substring string 0 dot) (ocaml-module-alist)))
+                  (substring string (1+ dot)) pred action)))))))
+    (unless (or (eq beg end)
+                (not tuareg-with-caml-mode-p))
+      (list beg end table))))
+
+
+(autoload 'caml-complete "caml-help")
+
 (defun tuareg-complete (arg)
   "Completes qualified ocaml identifiers."
   (interactive "p")
-  ;; FIXME: Use completion-at-point-functions.
   (modify-syntax-entry ?_ "w" tuareg-mode-syntax-table)
   (unwind-protect
       (caml-complete arg)
