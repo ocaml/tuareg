@@ -1513,7 +1513,7 @@ For use on `electric-indent-functions'."
       (save-excursion
         (let ((pos (point))
               (nearest (tuareg-smie--search-backward
-                        '("type" "let" "module" "class"
+                        '("type" "let" "module" "class" "and"
                           "=" "if" "then" "else" "->" ";"))))
           (cond
            ((and (member nearest '("{" ";"))
@@ -1528,7 +1528,7 @@ For use on `electric-indent-functions'."
                                (t (setq field nil))))))
                    field))
             "f=")                       ;Field definition.
-           ((not (member nearest '("type" "let" "module" "class"))) "=…")
+           ((not (member nearest '("type" "let" "module" "class" "and"))) "=…")
            ((and (member nearest '("type" "module"))
                  (member (tuareg-smie--backward-token) '("with" "and"))) "c=")
            (t "d=")))))

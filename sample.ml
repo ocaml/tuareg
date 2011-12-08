@@ -1029,4 +1029,15 @@ let f x =
 
 let splitting_long_expression =
   quad.{band, i3} <- quad.{band, i3} +. g +.
-    area_12 *. (P.potential x13 y13 +. P.potential x23 y23);
+                      area_12 *. (P.potential x13 y13 +. P.potential x23 y23)
+
+let () =
+  (* Beware of lexing ".;" as a single token!  *)
+  A.Axes.box vp;
+  A.fx vp (E.on_ray u0) 0. 2000.;
+  A.Viewport.set_color vp A.Color.green
+
+let f x =
+  1
+and g y =
+  2
