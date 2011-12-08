@@ -418,7 +418,8 @@ them to the OCaml toplevel."
   "*Non nil means pop up the OCaml toplevel when evaluating code."
   :group 'tuareg :type 'boolean)
 
-(defcustom tuareg-manual-url "http://pauillac.inria.fr/ocaml/htmlman/index.html"
+(defcustom tuareg-manual-url
+  "http://pauillac.inria.fr/ocaml/htmlman/index.html"
   "*URL to the OCaml reference manual."
   :group 'tuareg :type 'string)
 
@@ -1069,6 +1070,7 @@ Regexp match data 0 points to the chars."
     (define-key map "\C-c\C-c" 'compile)
     (define-key map "\C-xnd" 'tuareg-narrow-to-phrase)
     (define-key map "\M-\C-x" 'tuareg-eval-phrase)
+    (define-key map [remap newline-and-indent] 'tuareg-newline-and-indent)
     (define-key map "\C-x\C-e" 'tuareg-eval-phrase)
     (define-key map "\C-c\C-e" 'tuareg-eval-phrase)
     (define-key map "\C-c\C-r" 'tuareg-eval-region)
@@ -1079,7 +1081,8 @@ Regexp match data 0 points to the chars."
     (define-key map "\C-c\C-n" 'tuareg-next-phrase)
     (define-key map "\C-c\C-p" 'tuareg-previous-phrase)
     (define-key map [(backspace)] 'backward-delete-char-untabify)
-    (define-key map [(control c) (home)] 'tuareg-move-inside-module-or-class-opening)
+    (define-key map [(control c) (home)]
+      'tuareg-move-inside-module-or-class-opening)
     (define-key map [(control c) (control down)] 'tuareg-next-phrase)
     (define-key map [(control c) (control up)] 'tuareg-previous-phrase)
     (define-key map [(meta control down)]  'tuareg-next-phrase)
@@ -1410,11 +1413,12 @@ For use on `electric-indent-functions'."
    (progn (if (and (zerop (skip-chars-backward "."))
                    (zerop (skip-syntax-backward ".")))
               (skip-syntax-backward "w_'")
-            ;; The "." char is given symbol property so that "M.x" is
-            ;; considered as a single symbol, but in reality, it's part of the
-            ;; operator chars, since "+." and friends are operators.
-            (while (not (and (zerop (skip-chars-backward "."))
-                             (zerop (skip-syntax-backward "."))))))
+            (unless (memq (char-after) '(?\; ?,)) ; ".;" is not a token.
+              ;; The "." char is given symbol property so that "M.x" is
+              ;; considered as a single symbol, but in reality, it's part of
+              ;; the operator chars, since "+." and friends are operators.
+              (while (not (and (zerop (skip-chars-backward "."))
+                               (zerop (skip-syntax-backward ".")))))))
           (point))))
 
 (defun tuareg-smie-forward-token ()
@@ -1582,7 +1586,7 @@ For use on `electric-indent-functions'."
      ((smie-rule-prev-p "d=" "with" "[" "function")
       (if (and (eq kind :before) (smie-rule-bolp)
                (smie-rule-prev-p "[" "d=" "function"))
-          0 2))
+          0 tuareg-with-indent))
      (t (smie-rule-separator kind))))
    (t
     (case kind
@@ -1591,12 +1595,9 @@ For use on `electric-indent-functions'."
       (:before
        (cond
 	((equal token "d=") (smie-rule-parent 2))
-	((member token '("fun"))
+	((member token '("fun" "match"))
          (if (and (not (smie-rule-bolp)) (smie-rule-prev-p "d="))
-             (smie-rule-parent 2)))
-	((equal token "match")
-         (if (and (not (smie-rule-bolp)) (smie-rule-prev-p "d="))
-             (smie-rule-parent)))
+             (smie-rule-parent tuareg-default-indent)))
 	((equal token "then") (smie-rule-parent))
 	((equal token "if") (if (and (not (smie-rule-bolp))
 				     (smie-rule-prev-p "else"))
@@ -1634,12 +1635,12 @@ For use on `electric-indent-functions'."
         ((equal token "->") 0)
         ((equal token ":")
          (if (smie-rule-parent-p "val") (smie-rule-parent 2) 2))
-	((equal token "in") (if (smie-rule-hanging-p) 0))
+	((equal token "in") tuareg-in-indent) ;;(if (smie-rule-hanging-p)
 	((equal token "with")
 	 (cond
 	  ;; ((smie-rule-next-p "|") 2)
 	  ((smie-rule-parent-p "{") nil)
-	  (t 4)))
+	  (t (+ 2 tuareg-with-indent))))
         ((or (member token '("." "t->" "]"))
              (consp (nth 2 (assoc token tuareg-smie-grammar)))) ;; Closer.
          nil)
@@ -2634,7 +2635,8 @@ If found, return the actual text of the keyword or operator."
   (let ((kwop (tuareg-find-kwop tuareg-find-semicolon-match-regexp
                                 tuareg-semicolon-match-stop-regexp))
         (point (point)))
-    ;; We don't need to find the keyword matching `and' since we know it's `let'!
+    ;; We don't need to find the keyword matching `and' since we know
+    ;; it's `let'!
     (list
      (cond
        ((string= kwop ";")
@@ -2650,7 +2652,8 @@ If found, return the actual text of the keyword or operator."
         (current-column))
        ;; ((looking-at (tuareg-no-code-after "\\((\\|\\[[<|]?\\|{<?\\)"))
        ;;  (+ (current-column) tuareg-default-indent))
-       ((looking-at (tuareg-no-code-after "\\<begin\\>\\|\\((\\|\\[[<|]?\\|{<?\\)"))
+       ((looking-at (tuareg-no-code-after
+                     "\\<begin\\>\\|\\((\\|\\[[<|]?\\|{<?\\)"))
         (if (tuareg-in-indentation-p)
             (+ (current-column) tuareg-default-indent)
           (tuareg-indent-from-previous-kwop)))
@@ -3213,7 +3216,8 @@ Returns t iff skipped to indentation."
                  ((and leading-operator (string= kwop "("))
                   (tuareg-indent-after-next-char))
                  (t (+ tuareg-default-indent
-                       (tuareg-indent-from-paren leading-operator start-pos)))))
+                       (tuareg-indent-from-paren leading-operator
+                                                 start-pos)))))
           ((looking-at "\\.<")
            (if (looking-at (tuareg-no-code-after "\\.<"))
                (tuareg-indent-from-paren leading-operator start-pos)
@@ -3447,18 +3451,17 @@ Compute new indentation based on OCaml syntax."
   (insert-before-markers "\\ ")
   (tuareg-backward-char))
 
-(defadvice newline-and-indent (around
-                               tuareg-newline-and-indent
-                               activate)
-  "Handle multi-line strings in Tuareg mode."
-  (let ((hooked (and (eq major-mode 'tuareg-mode) (tuareg-in-literal-p)))
+(defun tuareg-newline-and-indent ()
+  "Like `newline-and-indent' but handles OCaml's multi-line strings."
+  (interactive)
+  (let ((hooked (tuareg-in-literal-p))
         (split-mark))
     (when hooked
       (setq split-mark (set-marker (make-marker) (point)))
       (tuareg-split-string))
-    ad-do-it
+    (newline-and-indent)
     (when hooked
-      (goto-char split-mark)
+      (goto-char (max (point) split-mark))
       (set-marker split-mark nil))))
 
 (defun tuareg-electric-pipe ()
@@ -3680,7 +3683,8 @@ by |, insert one |."
                    (> (point) begin)
                    (and
                     (string= kwop "sig")
-                    (looking-at "[ \t\n]*\\(\\<with\\>[ \t\n]*\\<type\\>\\|=\\)")))
+                    (looking-at
+                     "[ \t\n]*\\(\\<with\\>[ \t\n]*\\<type\\>\\|=\\)")))
                   (if (> (point) current)
                       (progn
                         (setq current (point))
