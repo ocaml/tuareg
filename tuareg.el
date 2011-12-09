@@ -3885,7 +3885,13 @@ or indent all lines in the current phrase."
         (end (save-excursion (skip-syntax-forward "w_") (point)))
         (table
          (lambda (string pred action)
-           (let ((dot (string-match "\\.[^.]*\\'" string)))
+           (let ((dot (string-match "\\.[^.]*\\'" string))
+                 ;; ocaml-module-symbols contains an unexplained call to
+                 ;; pop-to-buffer within save-window-excursion.  Let's try and
+                 ;; avoid it pops up a stupid frame.
+                 (special-display-buffer-names
+                  (cons '("*caml-help*" (same-frame . t))
+                        special-display-buffer-names)))
              (if (eq (car-safe action) 'boundaries)
                  `(boundaries ,(if dot (1+ dot) 0)
                               ,@(string-match "\\." (cdr action)))
@@ -3894,11 +3900,13 @@ or indent all lines in the current phrase."
                     action (apply #'append
                                   (mapcar (lambda (mod) (concat (car mod) "."))
                                           (ocaml-module-alist))
-                                  (mapcar #'cddr (ocaml-visible-modules)))
+                                  (mapcar #'ocaml-module-symbols
+                                          (ocaml-visible-modules)))
                     string pred)
                  (completion-table-with-context
                   (substring string 0 (1+ dot))
-                  (cddr (assoc (substring string 0 dot) (ocaml-module-alist)))
+                  (ocaml-module-symbols
+                   (assoc (substring string 0 dot) (ocaml-module-alist)))
                   (substring string (1+ dot)) pred action)))))))
     (unless (or (eq beg end)
                 (not tuareg-with-caml-mode-p))
