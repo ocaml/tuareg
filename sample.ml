@@ -1041,3 +1041,9 @@ let f x =
   1
 and g y =
   2
+
+let x =
+  let module M =
+    struct
+    end
+  in 0

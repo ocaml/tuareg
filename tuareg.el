@@ -1230,7 +1230,8 @@ For use on `electric-indent-functions'."
                      (def-in-exp))
               (def-in-exp (defs "in" exp))
               (def (var "d=" exp) (id "d=" datatype) (id "d=" module))
-              (var (id) ("m-type" var) ("rec" var) (id ":" type))
+              (var (id) ("m-type" var) ("rec" var) (id ":" type)
+                   ("l-module" var) ("l-class" var))
               (exception (id "of" type))
               (datatype ("{" typefields "}") (typebranches)
                         (typebranches "with" id))
@@ -1270,9 +1271,7 @@ For use on `electric-indent-functions'."
               ;; Like `exp' but additionally allow if-then without else.
               (exp (exp1) ("if" exp "then" exp))
               (forbounds (iddef "to" exp) (iddef "downto" exp))
-              (defs (def) (defs "and" defs)
-                ;; "let module" and friends.
-                ("l-module" def) ("l-class" def) ("l-open" id))
+              (defs (def) (defs "and" defs) ("l-open" id))
               (exp:>type (exp:type ":>" type))
               (exp:type (exp)) ;; (exp ":" type)
               (fields (fields1) (exp "with" fields1))
@@ -1721,7 +1720,8 @@ For use on `electric-indent-functions'."
                   :backward-token #'tuareg-smie-backward-token)
     (set (make-local-variable 'indent-line-function) #'tuareg-indent-command))
   (tuareg-install-font-lock)
-
+  (set (make-local-variable 'open-paren-in-column-0-is-defun-start) nil)
+  
   (add-hook 'completion-at-point-functions #'tuareg-completion-at-point nil t)
 
   (when (fboundp 'electric-indent-mode)
