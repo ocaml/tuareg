@@ -1465,6 +1465,13 @@ For use on `electric-indent-functions'."
   '("if" "then" "try" "match" "do" "while" "begin" "in" "when"
     "downto" "to" "else"))
 
+(defun tuareg-smie--label-colon-p ()
+  (and (not (zerop (skip-chars-backward "[[:alnum:]]_")))
+       (or (not (zerop (skip-chars-backward "?~")))
+           (save-excursion
+             (member (tuareg-smie--backward-token)
+                     tuareg-smie--type-label-leader)))))
+
 (defun tuareg-smie-backward-token ()
   (let ((tok (tuareg-smie--backward-token)))
     (cond
@@ -1490,8 +1497,12 @@ For use on `electric-indent-functions'."
      ;; Distinguish a "type ->" from a "case ->".
      ((equal tok "->")
       (save-excursion
-        (let ((nearest (tuareg-smie--search-backward
-                        '("with" "|" "fun" "type" ":" "of"))))
+        (let (nearest)
+          (while (progn
+                   (setq nearest (tuareg-smie--search-backward
+                                  '("with" "|" "fun" "type" ":" "of")))
+                   (and (equal nearest ":")
+                        (tuareg-smie--label-colon-p))))
           (if (member nearest '("with" "|" "fun"))
               tok "t->"))))
      ;; Handle "module type" and mod-constraint's "with/and type".
@@ -1551,11 +1562,7 @@ For use on `electric-indent-functions'."
        (t (string (aref tok 0) ?…))))
      ((equal tok ":")
       (let ((pos (point)))
-        (if (and (not (zerop (skip-chars-backward "[[:alnum:]]_")))
-                 (or (not (zerop (skip-chars-backward "?~")))
-                     (save-excursion
-                       (member (tuareg-smie--backward-token)
-                               tuareg-smie--type-label-leader))))
+        (if (tuareg-smie--label-colon-p)
             "label:"
           (goto-char pos)
           tok)))
@@ -1631,7 +1638,18 @@ For use on `electric-indent-functions'."
          (and (smie-rule-parent-p "type")
               (not (smie-rule-next-p "["))
               2))
-        ((equal token "->") 0)
+        ((equal token "->")
+         (if (and (smie-rule-parent-p "with")
+                  ;; Align with "with" but only if it's the only branch (often
+                  ;; the case in try..with), since otherwise subsequent
+                  ;; branches can't be both indented well and aligned.
+                  (save-excursion
+                    (and (not (equal "|" (nth 2 (smie-forward-sexp "|"))))
+                         ;; Since we may misparse "if..then.." we need to
+                         ;; double check that smie-forward-sexp indeed got us
+                         ;; to the right place.
+                         (equal (nth 2 (smie-backward-sexp "|")) "with"))))
+             (smie-rule-parent 2) 0))
         ((equal token ":")
          (if (smie-rule-parent-p "val") (smie-rule-parent 2) 2))
 	((equal token "in") tuareg-in-indent) ;;(if (smie-rule-hanging-p)
@@ -1703,6 +1721,11 @@ For use on `electric-indent-functions'."
         (cons 'column (smie-indent-virtual)))
        (t (cons 'column (current-column)))))))
 
+(defun tuareg-smie--inside-string ()
+  (when (nth 3 (syntax-ppss))
+    (goto-char (1+ (nth 8 (syntax-ppss))))
+    (current-column)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                              The major mode
 
@@ -1715,9 +1738,11 @@ For use on `electric-indent-functions'."
        ;; it to be set to t.
        tuareg-use-smie)
   (if (and tuareg-smie-grammar tuareg-use-smie)
-      (smie-setup tuareg-smie-grammar #'tuareg-smie-rules
-                  :forward-token #'tuareg-smie-forward-token
-                  :backward-token #'tuareg-smie-backward-token)
+      (progn
+        (smie-setup tuareg-smie-grammar #'tuareg-smie-rules
+                    :forward-token #'tuareg-smie-forward-token
+                    :backward-token #'tuareg-smie-backward-token)
+        (add-hook 'smie-indent-functions #'tuareg-smie--inside-string nil t))
     (set (make-local-variable 'indent-line-function) #'tuareg-indent-command))
   (tuareg-install-font-lock)
   (set (make-local-variable 'open-paren-in-column-0-is-defun-start) nil)
@@ -3879,6 +3904,7 @@ or indent all lines in the current phrase."
 
 (autoload 'ocaml-module-alist "caml-help")
 (autoload 'ocaml-visible-modules "caml-help")
+(autoload 'ocaml-module-symbols "caml-help")
 
 (defun tuareg-completion-at-point ()
   (let ((beg (save-excursion (skip-syntax-backward "w_") (point)))

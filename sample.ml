@@ -1012,14 +1012,14 @@ let f x =
 
 let f x =
   match x with
-    | 1 -> let x = 2 in
-          if x = 1 then print "hello"
-    | 2 -> print "there"
+  | 1 -> let x = 2 in
+         if x = 1 then print "hello"
+  | 2 -> print "there"
 
 let f x =
   if x = 1 then match x with
-                  | 1 -> print "hello"
-                  | 2 -> print "there"
+                | 1 -> print "hello"
+                | 2 -> print "there"
   else print "toto"
 
 let f x =
@@ -1029,7 +1029,7 @@ let f x =
 
 let splitting_long_expression =
   quad.{band, i3} <- quad.{band, i3} +. g +.
-                      area_12 *. (P.potential x13 y13 +. P.potential x23 y23)
+                       area_12 *. (P.potential x13 y13 +. P.potential x23 y23)
 
 let () =
   (* Beware of lexing ".;" as a single token!  *)
@@ -1047,3 +1047,25 @@ let x =
     struct
     end
   in 0
+
+let x =
+  try a
+  with Not_found ->
+    b
+let x =
+  try a
+  with Not_found ->
+       b
+     | _ ->
+       c
+let x =
+  try a
+  with Not_found ->
+       if a then b
+     | flag when String.is_prefix flag ~prefix:"-" ->
+       a
+     | _ ->
+       c
+
+let x = "toto try \
+         tata"
