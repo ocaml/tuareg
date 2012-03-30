@@ -1756,7 +1756,7 @@ For use on `electric-indent-functions'."
     (add-hook 'post-self-insert-hook #'tuareg--electric-close-vector nil t)))
 
 ;;;###autoload(add-to-list 'auto-mode-alist '("\\.ml[iylp]?" . tuareg-mode))
-;;;###autoload(dolist (ext '(".cmo" ".cmx" ".cma" ".cmxa" ".cmi"))
+;;;###autoload(dolist (ext '(".cmo" ".cmx" ".cma" ".cmxa" ".cmi" ".annot"))
 ;;;###autoload  (add-to-list 'completion-ignored-extensions ext))
 
 (defalias 'tuareg--prog-mode
