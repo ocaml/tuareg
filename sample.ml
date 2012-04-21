@@ -1078,7 +1078,7 @@ let () =
   f x ~tol:1.0
     more arguments;
   f x ~tol:1.
-    more arguments;
+    more arguments
 
 let () =
   match var with
@@ -1098,9 +1098,9 @@ type t = {
 }
 
 module Base64 :
-  sig
-    val f : int -> int
-  end
+sig
+  val f : int -> int
+end
 
 external f :
   int -> unit  (* treated as [val] *)

@@ -1885,26 +1885,23 @@ Short cuts for interactions with the toplevel:
             '(("\\.<\\|>\\.\\|\\.~\\|\\.!"
                0 tuareg-font-lock-multistage-face nil nil)))
      ("\\<\\(false\\|true\\)\\>" 0 font-lock-constant-face nil nil)
-     (,(concat "\\<\\("
-               (regexp-opt '("as" "do" "of" "done" "downto" "else" "for" "if"
-                             "mutable" "new" "parser" "private"
-                             "then" "to" "try" "when" "while" "match" "with"
-                             "lazy" "exception" "raise" "failwith" "failwithf"
-                             "exit" "assert" "fun" "function"))
-               "\\)\\>")
+     (,(regexp-opt '("as" "do" "of" "done" "downto" "else" "for" "if"
+		     "mutable" "new" "parser" "private"
+		     "then" "to" "try" "when" "while" "match" "with"
+		     "lazy" "exception" "raise" "failwith" "failwithf"
+		     "exit" "assert" "fun" "function") 'words)
       0 font-lock-keyword-face nil nil)
      ,@(if (tuareg-editing-ls3)
            `(("\\<\\(merge\\|when\\|emit\\|period\\)\\>"
               0 font-lock-keyword-face nil nil)))
-     `(,(concat
-         "[][;,()|{}]\\|[@^!:*=<>&/%+~?#---]\\.?\\|\\.\\.\\.*\\|\\<\\("
+     (,(concat
+         "[][;,()|{}]\\|[@^!:*=<>&/%+~?#---]\\.?\\|\\.\\.\\.*\\|"
          (if (tuareg-editing-ls3)
              (regexp-opt '("asr" "asl" "lsr" "lsl" "or" "lor" "and" "land"
                            "lxor" "not" "lnot" "mod" "of" "ref"
-                           "fby" "pre" "last" "at"))
+                           "fby" "pre" "last" "at") 'words)
            (regexp-opt '("asr" "asl" "lsr" "lsl" "or" "lor" "and" "land"
-                         "lxor" "not" "lnot" "mod" "of" "ref")))
-         "\\)\\>")
+                         "lxor" "not" "lnot" "mod" "of" "ref") 'words)))
        0 tuareg-font-lock-operator-face nil nil)
      (,(concat
         "\\<\\(\\(method\\([ \t\n]+\\(private\\|virtual\\)\\)*\\)"
@@ -1913,10 +1910,10 @@ Short cuts for interactions with the toplevel:
         (if (tuareg-editing-ls3)
             "\\|let\\([ \t\n]+\\(?:rec\\|clock\\|node\\|static\\)\\)?"
           "\\|let\\([ \t\n]+rec\\)?")
-        "\\)\\>[ \t\n]*\\(['_[:lower:]]\\(\\w\\|[._]\\)*\\)\\>"
+        "\\)\\>[ \t\n]*\\([_[:lower:]]\\(\\w\\|[._]\\)*\\)\\>"
         "[ \t\n]*\\(\\(\\w\\|[()_?~.'*:--->]\\)+"
         "\\|=[ \t\n]*fun\\(ction\\)?\\>\\)")
-      8 font-lock-function-name-face keep nil)
+      7 font-lock-function-name-face keep nil)
      ;; FIXME: Isn't this redundant with the previous one?
      ("\\<method\\([ \t\n]+\\(private\\|virtual\\)\\)?\\>[ \t\n]*\\(\\(\\w\\|[_,?~.]\\)*\\)"
       3 font-lock-function-name-face keep nil)
