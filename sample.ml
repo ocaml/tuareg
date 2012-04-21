@@ -1069,3 +1069,39 @@ let x =
 
 let x = "toto try \
          tata"
+
+let optional_sci_float =
+  do_something ~a:1e-7
+               ~b:(fun x -> x + 1)
+
+let () =
+  f x ~tol:1.0
+    more arguments;
+  f x ~tol:1.
+    more arguments;
+
+let () =
+  match var with
+  | <:expr< $lid:f$ >> ->
+    KO
+  | <:expr< $lid:f$ >> when f x ->
+    KO
+  | y when f y ->
+    OK
+  | long_pattern
+      when f long_pattern -> (* should be more indented that the clause body *)
+    z
+
+type t = {
+  mutable a: float;
+  b : int;
+}
+
+module Base64 :
+  sig
+    val f : int -> int
+  end
+
+external f :
+  int -> unit  (* treated as [val] *)
+  = "f_stub"
