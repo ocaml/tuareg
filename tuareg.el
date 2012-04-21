@@ -3990,13 +3990,38 @@ or indent all lines in the current phrase."
       (caml-complete arg)
     (modify-syntax-entry ?_ "_" tuareg-mode-syntax-table)))
 
+(defun tuareg--try-find-alternate-file (mod-name extension)
+  "Switch to the buffer for the file given by `mod-name' and
+   `extension' if it exists or create it otherwise."
+  (let* ((filename (concat mod-name extension))
+         (buffer (get-file-buffer filename))
+         (what (cond 
+                ((string= extension ".ml") "implementation")
+                ((string= extension ".mli") "interface"))))
+    (if buffer
+	(switch-to-buffer buffer)
+      (if (file-exists-p filename)
+	  (find-file filename)
+        (when (and (not (string= extension ".mll"))
+                   (y-or-n-p 
+                    (format "Create %s file %s " what 
+                            (file-name-nondirectory filename))))
+          (find-file filename)))
+      nil)))
+
 (defun tuareg-find-alternate-file ()
   "Switch Implementation/Interface."
   (interactive)
   (let ((name (buffer-file-name)))
-    (when (string-match "\\`\\(.*\\)\\.ml\\(i\\)?\\'" name)
-      (find-file (concat (tuareg-match-string 1 name)
-                         (if (match-beginning 2) ".ml" ".mli"))))))
+    (when (string-match "\\`\\(.*\\)\\.ml\\([il]\\)?\\'" name)
+      (let ((mod-name (tuareg-match-string 1 name))
+	    (e (tuareg-match-string 2 name)))
+	(cond
+	 ((string= e "i")
+	  (unless (tuareg--try-find-alternate-file mod-name ".mll")
+	    (tuareg--try-find-alternate-file mod-name ".ml")))
+	 (t
+	  (tuareg--try-find-alternate-file mod-name ".mli")))))))
 
 (define-skeleton tuareg-insert-class-form
   "Insert a nicely formatted class-end form, leaving a mark after end."
