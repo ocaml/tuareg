@@ -1755,7 +1755,7 @@ For use on `electric-indent-functions'."
   (when (boundp 'post-self-insert-hook)
     (add-hook 'post-self-insert-hook #'tuareg--electric-close-vector nil t)))
 
-;;;###autoload(add-to-list 'auto-mode-alist '("\\.ml[iylp]?" . tuareg-mode))
+;;;###autoload(add-to-list 'auto-mode-alist '("\\.ml[iylp]?\\'" . tuareg-mode))
 ;;;###autoload(dolist (ext '(".cmo" ".cmx" ".cma" ".cmxa" ".cmi" ".annot"))
 ;;;###autoload  (add-to-list 'completion-ignored-extensions ext))
 
@@ -1865,47 +1865,91 @@ Short cuts for interactions with the toplevel:
 (defun tuareg-install-font-lock ()
   (setq
    tuareg-font-lock-keywords
-   `(,@(and (tuareg-editing-ls3)
-            '(("\\<\\(let[ \t\n]+\\(clock\\|node\\|static\\)\\|present\\|automaton\\|where\\|match\\|with\\|do\\|done\\|unless\\|until\\|reset\\|every\\)\\>"
-               0 tuareg-font-lock-governing-face nil nil)))
-     ("\\<\\(external\\|open\\|include\\|s\\(ig\\|truct\\)\\|module\\|functor\\|with[ \t\n]+\\(type\\|module\\)\\|val\\|type\\|method\\|virtual\\|constraint\\|class\\|in\\|inherit\\|initializer\\|let\\|rec\\|object\\|and\\|begin\\|end\\)\\>"
+   `(,@(if (tuareg-editing-ls3)
+           `((,(concat "\\<\\(let[ \t\n]+"
+                       (regexp-opt '("clock" "node" "static")) "\\|"
+                       (regexp-opt '("present" "automaton" "where" "match"
+                                     "with" "do" "done" "unless" "until"
+                                     "reset" "every"))
+                       "\\)\\>")
+              0 tuareg-font-lock-governing-face nil nil)))
+     (,(concat "\\<\\("
+               (regexp-opt '("external" "open" "include" "sig" "struct"
+                             "module" "functor" "val" "type" "method"
+                             "virtual" "constraint" "class" "in" "inherit"
+                             "initializer" "let" "rec" "object" "and" "begin"
+                             "end"))
+               "\\|with[ \t\n]+\\(type\\|module\\)\\)\\>")
       0 tuareg-font-lock-governing-face nil nil)
      ,@(and tuareg-support-metaocaml
             '(("\\.<\\|>\\.\\|\\.~\\|\\.!"
                0 tuareg-font-lock-multistage-face nil nil)))
      ("\\<\\(false\\|true\\)\\>" 0 font-lock-constant-face nil nil)
-     ("\\<\\(as\\|do\\(ne\\|wnto\\)?\\|else\\|for\\|if\\|mutable\\|new\\|p\\(arser\\|rivate\\)\\|t\\(hen\\|o\\|ry\\)\\|wh\\(en\\|ile\\)\\|match\\|with\\|lazy\\|exception\\|raise\\|failwith[f]?\\|exit\\|assert\\|fun\\(ction\\)?\\)\\>"
+     (,(concat "\\<\\("
+               (regexp-opt '("as" "do" "of" "done" "downto" "else" "for" "if"
+                             "mutable" "new" "parser" "private"
+                             "then" "to" "try" "when" "while" "match" "with"
+                             "lazy" "exception" "raise" "failwith" "failwithf"
+                             "exit" "assert" "fun" "function"))
+               "\\)\\>")
       0 font-lock-keyword-face nil nil)
      ,@(if (tuareg-editing-ls3)
-           '(("\\<\\(merge\\|when\\|emit\\|period\\)\\>"
-              0 font-lock-keyword-face nil nil)
-             ("[][;,()|{}]\\|[@^!:*=<>&/%+~?#---]\\.?\\|\\.\\.\\.*\\|\\<\\(asr\\|asl\\|lsr\\|lsl\\|l?or\\|l?and\\|lxor\\|l?not\\|mod\\|of\\|ref\\|fby\\|pre\\|last\\|at\\)\\>"
-              0 tuareg-font-lock-operator-face nil nil)
-             ("\\<\\(\\(method\\([ \t\n]+\\(private\\|virtual\\)\\)?\\)\\([ \t\n]+virtual\\)?\\|val\\([ \t\n]+mutable\\)?\\|external\\|and\\|class\\|let\\([ \t\n]+\\(rec\\|clock\\|node\\|static\\)\\)?\\)\\>[ \t\n]*\\(['_[:lower:]]\\(\\w\\|[._]\\)*\\)\\>[ \t\n]*\\(\\(\\w\\|[()_?~.'*:--->]\\)+\\|=[ \t\n]*fun\\(ction\\)?\\>\\)"
-              9 font-lock-function-name-face keep nil))
-           '(("[][;,()|{}]\\|[@^!:*=<>&/%+~?#---]\\.?\\|\\.\\.\\.*\\|\\<\\(asr\\|asl\\|lsr\\|lsl\\|l?or\\|l?and\\|lxor\\|l?not\\|mod\\|of\\|ref\\)\\>"
-              0 tuareg-font-lock-operator-face nil nil)
-             ("\\<\\(\\(method\\([ \t\n]+\\(private\\|virtual\\)\\)?\\)\\([ \t\n]+virtual\\)?\\|val\\([ \t\n]+mutable\\)?\\|external\\|and\\|class\\|let\\([ \t\n]+rec\\)?\\)\\>[ \t\n]*\\(['_[:lower:]]\\(\\w\\|[._]\\)*\\)\\>[ \t\n]*\\(\\(\\w\\|[()_?~.'*:--->]\\)+\\|=[ \t\n]*fun\\(ction\\)?\\>\\)"
-              8 font-lock-function-name-face keep nil)))
+           `(("\\<\\(merge\\|when\\|emit\\|period\\)\\>"
+              0 font-lock-keyword-face nil nil)))
+     `(,(concat
+         "[][;,()|{}]\\|[@^!:*=<>&/%+~?#---]\\.?\\|\\.\\.\\.*\\|\\<\\("
+         (if (tuareg-editing-ls3)
+             (regexp-opt '("asr" "asl" "lsr" "lsl" "or" "lor" "and" "land"
+                           "lxor" "not" "lnot" "mod" "of" "ref"
+                           "fby" "pre" "last" "at"))
+           (regexp-opt '("asr" "asl" "lsr" "lsl" "or" "lor" "and" "land"
+                         "lxor" "not" "lnot" "mod" "of" "ref")))
+         "\\)\\>")
+       0 tuareg-font-lock-operator-face nil nil)
+     (,(concat
+        "\\<\\(\\(method\\([ \t\n]+\\(private\\|virtual\\)\\)*\\)"
+        "\\|val\\([ \t\n]+mutable\\)?"
+        "\\|external\\|and\\|class"
+        (if (tuareg-editing-ls3)
+            "\\|let\\([ \t\n]+\\(?:rec\\|clock\\|node\\|static\\)\\)?"
+          "\\|let\\([ \t\n]+rec\\)?")
+        "\\)\\>[ \t\n]*\\(['_[:lower:]]\\(\\w\\|[._]\\)*\\)\\>"
+        "[ \t\n]*\\(\\(\\w\\|[()_?~.'*:--->]\\)+"
+        "\\|=[ \t\n]*fun\\(ction\\)?\\>\\)")
+      8 font-lock-function-name-face keep nil)
+     ;; FIXME: Isn't this redundant with the previous one?
      ("\\<method\\([ \t\n]+\\(private\\|virtual\\)\\)?\\>[ \t\n]*\\(\\(\\w\\|[_,?~.]\\)*\\)"
       3 font-lock-function-name-face keep nil)
      ("\\<\\(fun\\(ction\\)?\\)\\>[ \t\n]*\\(\\(\\w\\|[_ \t()*,]\\)+\\)"
       3 font-lock-variable-name-face keep nil)
-     ,@(if (tuareg-editing-ls3)
-           '(("\\<\\(reset\\|do\\|val\\([ \t\n]+mutable\\)?\\|external\\|and\\|class\\|let\\([ \t\n]+rec\\)?\\)\\>[ \t\n]*\\(\\(\\w\\|[_,?~.]\\)*\\)"
-              4 font-lock-variable-name-face keep nil)
-             ("\\<\\(reset\\|do\\|val\\([ \t\n]+mutable\\)?\\|external\\|method\\|and\\|class\\|let\\([ \t\n]+\\(rec\\|clock\\|node\\|static\\)\\)?\\)\\>[ \t\n]*\\(\\(\\w\\|[_,?~.]\\)*\\)\\>\\(\\(\\w\\|[->_ \t,?~.]\\|(\\(\\w\\|[--->_ \t,?~.=]\\)*)\\)*\\)"
-              7 font-lock-variable-name-face keep nil))
-           '(("\\<\\(val\\([ \t\n]+mutable\\)?\\|external\\|and\\|class\\|let\\([ \t\n]+rec\\)?\\)\\>[ \t\n]*\\(\\(\\w\\|[_,?~.]\\)*\\)"
-              4 font-lock-variable-name-face keep nil)
-             ("\\<\\(val\\([ \t\n]+mutable\\)?\\|external\\|method\\|and\\|class\\|let\\([ \t\n]+rec\\)?\\)\\>[ \t\n]*\\(\\(\\w\\|[_,?~.]\\)*\\)\\>\\(\\(\\w\\|[->_ \t,?~.]\\|(\\(\\w\\|[--->_ \t,?~.=]\\)*)\\)*\\)"
-              6 font-lock-variable-name-face keep nil)))
-     ( "\\<\\(open\\|\\(class\\([ \t\n]+type\\)?\\)\\([ \t\n]+virtual\\)?\\|inherit\\|include\\|module\\([ \t\n]+\\(type\\|rec\\)\\)?\\|type\\)\\>[ \t\n]*\\(['~?]*\\([_--->.* \t]\\|\\w\\|(['~?]*\\([_--->.,* \t]\\|\\w\\)*)\\)*\\)"
-           7 font-lock-type-face keep nil)
-     ,@(and (tuareg-editing-ls3)
-            '(("\\<val\\>[ \t\n]*\\w*[ \t\n]*::[ \t\n]*\\(['~?]*\\([_--->.* \t]\\|\\w\\|(['~?]*\\([_--->.,* \t]\\|\\w\\)*)\\)*\\)"
-               1 font-lock-type-face keep nil)))
-     ("[^:>=]:[ \t\n]*\\(['~?]*\\([_--->.* \t]\\|\\w\\|(['~?]*\\([_--->.,* \t]\\|\\w\\)*)\\)*\\)"
+     (,(concat
+        "\\<\\("
+        (if (tuareg-editing-ls3) "reset\\|do\\|")
+        "val\\([ \t\n]+mutable\\)?\\|external\\|and\\|class"
+        "\\|let\\([ \t\n]+rec\\)?"
+        "\\)\\>[ \t\n]*\\(\\(\\w\\|[_,?~.]\\)*\\)")
+      4 font-lock-variable-name-face keep nil)
+     (,(concat
+        "\\<\\("
+        (if (tuareg-editing-ls3) "reset\\|do\\|")
+        "val\\([ \t\n]+mutable\\)?\\|external\\|method\\|and\\|class"
+        "\\|let\\([ \t\n]+"
+        (if (tuareg-editing-ls3) "\\(?:rec\\|clock\\|node\\|static\\)" "rec")
+        "\\)?\\)\\>[ \t\n]*\\(\\(\\w\\|[_,?~.]\\)*\\)\\>"
+        "\\(\\(\\w\\|[->_ \t,?~.]\\|(\\(\\w\\|[--->_ \t,?~.=]\\)*)\\)*\\)")
+      6 font-lock-variable-name-face keep nil)
+     (,(concat
+        "\\<\\(open\\|\\(class\\([ \t\n]+type\\)?\\)\\([ \t\n]+virtual\\)?"
+        "\\|inherit\\|include\\|module\\([ \t\n]+\\(type\\|rec\\)\\)?"
+        "\\|type\\)\\>[ \t\n]*"
+        "\\(['~?]*\\([_--->.* \t]\\|\\w\\|(['~?]*\\([_--->.,* \t]\\|\\w\\)*)\\)*\\)")
+      7 font-lock-type-face keep nil)
+     (,(concat
+        "\\(?:"
+        (if (tuareg-editing-ls3)
+            "\\<val\\>[ \t\n]*\\w*[ \t\n]*:\\|")
+        "[^:>=]\\):[ \t\n]*"
+        "\\(['~?]*\\([_--->.* \t]\\|\\w\\|(['~?]*\\([_--->.,* \t]\\|\\w\\)*)\\)*\\)")
       1 font-lock-type-face keep nil)
      ("\\<\\([A-Z]\\w*\\>\\)[ \t]*\\." 1 font-lock-type-face keep nil)
      ("\\<\\([?~]?[_[:alpha:]]\\w*\\)[ \t\n]*:[^:>=]"
