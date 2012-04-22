@@ -9,6 +9,7 @@
 ;;	Christophe Troestler <Christophe.Troestler@umons.ac.be>
 ;;	Till Varoquaux <till@pps.jussieu.fr>
 ;;	Sean McLaughlin <seanmcl@gmail.com>
+;;	Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Created: 8 Jan 1997
 ;; Version: 2.0.5
 ;; Package-Requires: ((caml "3.12.0.1"))
