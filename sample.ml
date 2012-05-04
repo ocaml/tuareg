@@ -58,15 +58,15 @@ let a = {
 }
 
 let a = { t with M.
-  foo = foo;
-  bar = bar;
-}
+          foo = foo;
+          bar = bar;
+        }
 
 let a = { t with
-  M.
-  foo = foo;
-  bar = bar;
-}
+          M.
+          foo = foo;
+          bar = bar;
+        }
 
 type t = [ `Foo of int
          | `Bar of string ]
@@ -275,12 +275,12 @@ let bar x =
 
 let zot x =
   quux ~f:(if x
-    then y
-    else z)
+           then y
+           else z)
 
 let zot x = quux ~f:(if x
-  then y
-  else z)
+                     then y
+                     else z)
 
 let () =
   if foo
@@ -370,9 +370,9 @@ let g x =
 
 let h x =
   try  ff a b
-         c d;
+          c d;
        gg 1 2
-         3 4;
+          3 4;
   with e -> raise e
 
 let () =
@@ -775,7 +775,7 @@ let f a = {
 }
 
 let f a
-    b = {
+      b = {
   a = a;
   b = b;
 }
@@ -787,19 +787,9 @@ let () =
 
 let a =
   B.c d ~e:f [
-    "g";
-    "h";
-  ]
-
-let a = match b with
-  | Some c -> Some {
-    d = c;
-    e = e
-  }
-  | None -> {
-    d = c;
-    e = e
-  }
+        "g";
+        "h";
+      ]
 
 let () =
   f a ~b:c ~d ~e:g
@@ -807,6 +797,16 @@ let () =
       "a";
       "b";
     ]
+
+let a = match b with
+  | Some c ->  Some {
+    d = c;
+    e = e
+  }
+  | None -> {
+    d = c;
+    e = e
+  }
 
 let a = {
   b = (
@@ -884,7 +884,7 @@ let a =
 let a =
   foo
     ~f:(fun () ->
-      a)
+         a)
 
 let a =
   foo
@@ -894,7 +894,7 @@ let a =
 let a =
   foo
     ~f:(fun () -> a
-    )
+       )
 
 let () =
   (* Comment.  *)
