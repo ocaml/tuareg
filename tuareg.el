@@ -1231,13 +1231,14 @@ For use on `electric-indent-functions'."
                      (def-in-exp))
               (def-in-exp (defs "in" exp))
               (def (var "d=" exp) (id "d=" datatype) (id "d=" module))
-              (var (id) ("m-type" var) ("rec" var) (id ":" type)
+              (idtype (id ":" type))
+              (var (id) ("m-type" var) ("rec" var) (idtype)
                    ("l-module" var) ("l-class" var))
               (exception (id "of" type))
               (datatype ("{" typefields "}") (typebranches)
                         (typebranches "with" id))
               (typebranches (typebranches "|" typebranches) (id "of" type))
-              (typefields (typefields ";" typefields) (id ":" type))
+              (typefields (typefields ";" typefields) (idtype))
               (type (type "*…" type) (type "t->" type)
                     ;; ("<" ... ">") ;; FIXME!
                     (type "as" id))
@@ -1287,18 +1288,20 @@ For use on `electric-indent-functions'."
                           (class-body "val" class-body)
                           (class-body "constraint" class-body)
                           (class-field))
-              (class-field (exp) ("mutable" class-field)
-                           ("virtual" class-field) ("private" class-field))
+              (class-field (exp) ("mutable" idtype)
+                           ("virtual" idtype) ("private" idtype))
               ;; We get cyclic dependencies between ; and | because things like
               ;; "branches | branches" implies that "; > |" whereas "exp ; exp"
               ;; implies "| > ;" and while those two do not directly conflict
               ;; because they're constraints on precedences of different sides,
               ;; they do introduce a cycle later on because those operators are
-              ;; declared associative which adds a constraint that both side
-              ;; are of equal precedence.  So we declare here a dummy rule to
-              ;; force a direct conflict, that we can later resolve with
+              ;; declared associative, which adds a constraint that both sides
+              ;; must be of equal precedence.  So we declare here a dummy rule
+              ;; to force a direct conflict, that we can later resolve with
               ;; explicit precedence rules.
               (foo1 (foo1 ";" foo1) (foo1 "|" foo1))
+              ;; "mutable x : int ; y : int".
+              (foo2 ("mutable" id) (foo2 ";" foo2))
               )
             ;; Type precedence rules.
             ;; http://caml.inria.fr/pub/docs/manual-ocaml/types.html
@@ -1392,13 +1395,22 @@ For use on `electric-indent-functions'."
 (defconst tuareg-smie--exp-operator-leader
   (delq nil (mapcar (lambda (x) (if (numberp (nth 2 x)) (car x)))
                     tuareg-smie-grammar)))
+(defconst tuareg-smie--float-re "[0-9]+\\(?:\\.[0-9]*\\)?\\(?:e[-+]?[0-9]+\\)")
 
 (defun tuareg-smie--forward-token ()
   (forward-comment (point-max))
   (buffer-substring-no-properties
    (point)
    (progn (if (zerop (skip-syntax-forward "."))
-              (skip-syntax-forward "w_'")
+              (let ((start (point)))
+                (skip-syntax-forward "w_'")
+                ;; Watch out for floats!
+                (and (memq (char-after) '(?- ?+))
+                     (eq (char-before) ?e)
+                     (save-excursion
+                       (goto-char start)
+                       (looking-at tuareg-smie--float-re))
+                     (goto-char (match-end 0))))
             ;; The "." char is given symbol property so that "M.x" is
             ;; considered as a single symbol, but in reality, it's part of the
             ;; operator chars, since "+." and friends are operators.
@@ -1412,13 +1424,26 @@ For use on `electric-indent-functions'."
    (point)
    (progn (if (and (zerop (skip-chars-backward "."))
                    (zerop (skip-syntax-backward ".")))
-              (skip-syntax-backward "w_'")
-            (unless (memq (char-after) '(?\; ?,)) ; ".;" is not a token.
-              ;; The "." char is given symbol property so that "M.x" is
+              (progn
+                (skip-syntax-backward "w_'")
+                ;; Watch out for floats!
+                (and (memq (char-before) '(?- ?+))
+                     (memq (char-after) '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9 ?0))
+                     (save-excursion
+                       (forward-char -1) (skip-syntax-backward "w_")
+                       (looking-at tuareg-smie--float-re))
+                     (>= (match-end 0) (point))
+                     (goto-char (match-beginning 0))))
+            (cond
+             ((memq (char-after) '(?\; ?,)) nil) ; ".;" is not a token.
+             ((and (eq (char-after) ?\.)
+                   (memq (char-before) '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9 ?0)))
+              (skip-chars-backward "0-9")) ; A float number!
+             (t ;; The "." char is given symbol property so that "M.x" is
               ;; considered as a single symbol, but in reality, it's part of
               ;; the operator chars, since "+." and friends are operators.
               (while (not (and (zerop (skip-chars-backward "."))
-                               (zerop (skip-syntax-backward ".")))))))
+                               (zerop (skip-syntax-backward "."))))))))
           (point))))
 
 (defun tuareg-smie-forward-token ()
@@ -1473,6 +1498,43 @@ For use on `electric-indent-functions'."
              (member (tuareg-smie--backward-token)
                      tuareg-smie--type-label-leader)))))
 
+(defun tuareg-smie--=-disambiguate ()
+  "Return which kind of \"=\" we've just found.
+Point is not moved and should be right in front of the equality.
+Return values can be \"f=\" for field definition, \"d=\" for a normal definition,
+\"c=\" for a type equality constraint, and \"=…\" for an equality test."
+  (save-excursion
+    (let* ((pos (point))
+           (telltale '("type" "let" "module" "class" "and" "external"
+                       "=" "if" "then" "else" "->" ";"))
+           (nearest (tuareg-smie--search-backward telltale)))
+      (cond
+       ((and (member nearest '("{" ";"))
+             (let ((field t))
+               (while
+                   (let ((x (tuareg-smie--forward-token)))
+                     (and (< (point) pos)
+                          (cond
+                           ((zerop (length x)) (setq field nil))
+                           ((memq (char-syntax (aref x 0)) '(?w ?_)))
+                           ((member x '("." ";")))
+                           (t (setq field nil))))))
+               field))
+        "f=")
+       ((progn
+          (while (and (equal nearest "->")
+                      (save-excursion
+                        (forward-char 2)
+                        (equal (tuareg-smie-backward-token) "t->")))
+            (setq nearest (tuareg-smie--search-backward telltale)))
+          nil))
+       ((not (member nearest
+                     '("type" "let" "module" "class" "and" "external")))
+        "=…")
+       ((and (member nearest '("type" "module"))
+             (member (tuareg-smie--backward-token) '("with" "and"))) "c=")
+       (t "d=")))))
+
 (defun tuareg-smie-backward-token ()
   (let ((tok (tuareg-smie--backward-token)))
     (cond
@@ -1521,28 +1583,7 @@ For use on `electric-indent-functions'."
             (concat "m-" tok) tok)))
      ;; Distinguish a defining = from a comparison-=.
      ((equal tok "=")
-      (save-excursion
-        (let ((pos (point))
-              (nearest (tuareg-smie--search-backward
-                        '("type" "let" "module" "class" "and"
-                          "=" "if" "then" "else" "->" ";"))))
-          (cond
-           ((and (member nearest '("{" ";"))
-                 (let ((field t))
-                   (while
-                       (let ((x (tuareg-smie--forward-token)))
-                         (and (< (point) pos)
-                              (cond
-                               ((zerop (length x)) (setq field nil))
-                               ((memq (char-syntax (aref x 0)) '(?w ?_)))
-                               ((member x '("." ";")))
-                               (t (setq field nil))))))
-                   field))
-            "f=")                       ;Field definition.
-           ((not (member nearest '("type" "let" "module" "class" "and"))) "=…")
-           ((and (member nearest '("type" "module"))
-                 (member (tuareg-smie--backward-token) '("with" "and"))) "c=")
-           (t "d=")))))
+      (tuareg-smie--=-disambiguate))
      ((zerop (length tok))
       (if (not (and (memq (char-before) '(?\} ?\]))
                     (save-excursion (forward-char -2)
@@ -1652,7 +1693,10 @@ For use on `electric-indent-functions'."
                          (equal (nth 2 (smie-backward-sexp "|")) "with"))))
              (smie-rule-parent 2) 0))
         ((equal token ":")
-         (if (smie-rule-parent-p "val") (smie-rule-parent 2) 2))
+         (cond
+          ((smie-rule-parent-p "val" "external") (smie-rule-parent 2))
+          ((smie-rule-parent-p "module") (smie-rule-parent))
+          (t 2)))
 	((equal token "in") tuareg-in-indent) ;;(if (smie-rule-hanging-p)
 	((equal token "with")
 	 (cond
@@ -1747,7 +1791,7 @@ For use on `electric-indent-functions'."
     (set (make-local-variable 'indent-line-function) #'tuareg-indent-command))
   (tuareg-install-font-lock)
   (set (make-local-variable 'open-paren-in-column-0-is-defun-start) nil)
-  
+
   (add-hook 'completion-at-point-functions #'tuareg-completion-at-point nil t)
 
   (when (fboundp 'electric-indent-mode)
@@ -3991,35 +4035,34 @@ or indent all lines in the current phrase."
       (caml-complete arg)
     (modify-syntax-entry ?_ "_" tuareg-mode-syntax-table)))
 
-(defun tuareg--try-find-alternate-file (mod-name extension)
-  "Switch to the buffer for the file given by `mod-name' and
-   `extension' if it exists or create it otherwise."
+(defun tuareg--try-find-alternate-file (mod-name extension &optional no-create)
+  "Switch to the file given by MOD-NAME and EXTENSION.
+If NO-CREATE is non-nil and the file doesn't exist, don't switch and return nil,
+otherwise return non-nil."
   (let* ((filename (concat mod-name extension))
          (buffer (get-file-buffer filename))
-         (what (cond 
+         (what (cond
                 ((string= extension ".ml") "implementation")
                 ((string= extension ".mli") "interface"))))
-    (if buffer
-	(switch-to-buffer buffer)
-      (if (file-exists-p filename)
-	  (find-file filename)
-        (when (and (not (string= extension ".mll"))
-                   (y-or-n-p 
-                    (format "Create %s file %s " what 
-                            (file-name-nondirectory filename))))
-          (find-file filename)))
-      nil)))
+    (cond
+     (buffer (switch-to-buffer buffer))
+     ((file-exists-p filename) (find-file filename))
+     ((and (not no-create)
+           (y-or-n-p
+            (format "Create %s file %s " what
+                    (file-name-nondirectory filename))))
+      (find-file filename)))))
 
 (defun tuareg-find-alternate-file ()
   "Switch Implementation/Interface."
   (interactive)
-  (let ((name (buffer-file-name)))
+  (let ((name buffer-file-name))
     (when (string-match "\\`\\(.*\\)\\.ml\\([il]\\)?\\'" name)
       (let ((mod-name (tuareg-match-string 1 name))
 	    (e (tuareg-match-string 2 name)))
 	(cond
 	 ((string= e "i")
-	  (unless (tuareg--try-find-alternate-file mod-name ".mll")
+	  (unless (tuareg--try-find-alternate-file mod-name ".mll" 'no-create)
 	    (tuareg--try-find-alternate-file mod-name ".ml")))
 	 (t
 	  (tuareg--try-find-alternate-file mod-name ".mli")))))))

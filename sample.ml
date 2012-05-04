@@ -1,4 +1,4 @@
-(* sample file indented as we want it to be -*- tuareg -*- *)
+(* Sample file indented as we want it to be.  -*- tuareg -*- *)
 
 let server_comments request t =
   let module M = N in
@@ -87,7 +87,7 @@ type t = [
 | `C
 ]
 
-type t = [                              (* comment *)
+type t = [                              (* Comment.  *)
 | `A
 | `B
 | `C
@@ -267,7 +267,7 @@ type 'a v =
   -> generic:Sexp.t list
   -> 'a
 
-;; (* not in mantis *)
+;; (* Not in mantis.  *)
 let bar x =
   if y
   then x
@@ -391,7 +391,7 @@ let () =
       (a b)
 
 let d x = function
-  (* FIXME: should we leave it like this or align "|" with "match"?
+  (* FIXME: Should we leave it like this or align "|" with "match"?
      I chose with "match" because it looks otherwise odd and is more
      consistent with the "try" alignments above.  *)
   | A -> (match x with
@@ -418,7 +418,7 @@ let a f = function
     | 4 -> 3
     |  5 -> 7)
 
-let x = foo ~f:(fun _ -> 0              (* comment *)
+let x = foo ~f:(fun _ -> 0              (* Comment.  *)
 )
 
 let f x =
@@ -437,7 +437,7 @@ let g y =
   a b;
   c d;
   e f;
-  (* comment *)
+  (* Comment.  *)
   g h;
   i j
 
@@ -467,7 +467,7 @@ let () =
     q.b +. s *. z
 
 let () =
-  (* comment *)
+  (* Comment.  *)
   (let x =
      3
    in
@@ -480,7 +480,7 @@ foo
 + zot
 + quux
 
-(* indent comment to following code *)
+(* Indent comment to following code.  *)
 let () =
   try                                   (* foo!
                                            bar *)
@@ -551,8 +551,8 @@ let x =
     4 5 6 >>= fun y ->
   w*3 >>= fun q -> r
 
-(* this does not work, see comment in tuareg-compute-arrow-indent
- * workaround: wrap code in parens *)
+(* This does not work, see comment in tuareg-compute-arrow-indent.
+ * Workaround: wrap code in parens.  *)
 (* let () =
  *   match
  *     a 1 2 3
@@ -897,18 +897,18 @@ let a =
     )
 
 let () =
-  (* comment *)
+  (* Comment.  *)
   bar a b
     c d;
   foo ~size
-    (* comment *)
+    (* Comment.  *)
     ~min:foo
     ?reduce
     ?override
     ()
 
 let foo =
-  (* comment *)
+  (* Comment.  *)
   List.map z
     ~f:(fun m ->
       M.q m
@@ -943,14 +943,14 @@ let variants a =
   match String.split a ~on:'-' with
   | [ s1; s2; s3 ] ->
     let a0 = String.concat ~sep:"" [ s1; s2] in
-    let a1 = String.concat ~sep:"-" [ s1; s2; s3; "055" ] in (* comment *)
+    let a1 = String.concat ~sep:"-" [ s1; s2; s3; "055" ] in (* Comment.  *)
     List.map [ a0; a1; a]
       ~f:(fun a_s -> lookup a_s)
     |! List.flatten
   | _ -> failwith "bad"
 
 let f a1 a2 a3
-    b1 b2 b3 d1 d2 d3 = {
+      b1 b2 b3 d1 d2 d3 = {
   aa = func1 a1 a2 a3;
   bb = func2
     b1 b2 b3;
@@ -1089,7 +1089,7 @@ let () =
   | y when f y ->
     OK
   | long_pattern
-      when f long_pattern -> (* should be more indented that the clause body *)
+      when f long_pattern -> (* Should be more indented than the clause body *)
     z
 
 type t = {
@@ -1103,5 +1103,5 @@ sig
 end
 
 external f :
-  int -> unit  (* treated as [val] *)
+  int -> unit  (* Treated as [val].  *)
   = "f_stub"
