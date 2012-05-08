@@ -23,7 +23,7 @@ INSTALL_RM_R = $(RM)
 INSTALL_MKDIR = mkdir
 INSTALL_CP = $(CP)
 
-all : elc
+all : elc tuareg-site-file.el
 
 elc : $(ELC)
 
@@ -81,6 +81,14 @@ check : sample.ml.test
 	  --eval '(write-region (point-min) (point-max) "$@")'
 	$(DIFF) $< $@ || true
 
+tuareg-site-file.el: refresh
+	echo "\
+	;;; $@ --- Automatically extracted autoloads.\n\
+	;;; Code:\n\
+	(add-to-list 'load-path\n\
+	             (or (file-name-directory load-file-name) (car load-path)))\n\
+	" >$@
+	$(EMACS) --batch --eval '(setq generated-autoload-file "'`pwd`'/$@")' -f batch-update-autoloads "."
 
 .PHONY: dist tar
 dist: $(DIST_NAME).tar.gz

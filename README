@@ -17,24 +17,12 @@ INSTALL:
 
   See tuareg.el
 
-QUICK CONFIGURATION:
+CONFIGURATION:
 
-  If you are no Emacs-Lisp addict, and would like to use Tuareg NOW, append
-  (or copy) `dot-emacs.el' file to your `.emacs' configuration file.
-  It tells Emacs to load tuareg automatically.
+  Add the following line near the beginning of your ~/.emacs file:
 
-  Consider updating your `.emacs' configuration file by hand if you
-  keep on using Tuareg.
-
-MANUAL CONFIGURATION:
-
-  Add the following lines to your .emacs file:
-
-  (add-to-list 'auto-mode-alist '("\\.ml[iylp]?" . tuareg-mode))
-  (autoload 'tuareg-mode "tuareg" "Major mode for editing OCaml code" t)
-  (autoload 'tuareg-run-ocaml "tuareg" "Run an inferior OCaml process." t)
-  (autoload 'ocamldebug "ocamldebug" "Run the OCaml debugger" t)
-
+    (load "/where/ever/you/put/tuareg-mode/tuareg-site-file")
+  
   The Tuareg major mode is triggered by visiting a file with extension
   .ml, .mli, .mly, .mll, and .mlp or manually by M-x tuareg-mode. It
   gives you the correct syntax table for the OCaml language.
@@ -46,7 +34,7 @@ USAGE:
 CUSTOMIZATION
 
   The standard Emacs customization tool can be used to configure
-  Tuareg options. It is available from the Options menu and Tuareg's
+  Tuareg options.  It is available from the Options menu and Tuareg's
   Customize sub-menu.
 
   You may also customize the appearance of OCaml code by twiddling the
@@ -56,9 +44,22 @@ CUSTOMIZATION
   (add-hook 'tuareg-mode-hook
     (lambda () ... ; your customization code ))
 
-  `custom-tuareg.el' is a sample customization file for standard
-  changes. You can append it to your `.emacs' or use it as a tutorial.
+SAMPLE CUSTOMIZATIONS
 
+  Here are random examples of customization you might like to put in
+  your ~/.emacs file:
+
+    ;; Indent `=' like a standard keyword.
+    (setq tuareg-lazy-= t)
+    ;; Indent [({ like standard keywords.
+    (setq tuareg-lazy-paren t)
+    ;; No indentation after `in' keywords.
+    (setq tuareg-in-indent 0)
+    
+    (add-hook 'tuareg-mode-hook
+              ;; Turn on auto-fill minor mode.
+              (lambda () (auto-fill-mode 1)))
+    
 FEATURES, KNOWN BUGS:
 
   Cf. online help.
