@@ -1891,6 +1891,7 @@ Short cuts for interactions with the toplevel:
   (set (make-local-variable 'comment-multi-line) t)           ;FIXME: Why?
   ;; `ocamlc' counts columns from 0, contrary to other tools which start at 1.
   (set (make-local-variable 'compilation-first-column) 0)
+  (set (make-local-variable 'compilation-error-screen-columns) nil)
   (tuareg--common-mode-setup)
   (unless tuareg-use-syntax-ppss
     (add-hook 'before-change-functions 'tuareg-before-change-function nil t))
