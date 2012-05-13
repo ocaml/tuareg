@@ -1097,11 +1097,20 @@ type t = {
   b : int;
 }
 
-module Base64 :
-sig
+(* [struct] and [sig] must be treated the same way. *)
+module Base64 : sig
   val f : int -> int
 end
 
 external f :
   int -> unit  (* Treated as [val].  *)
   = "f_stub"
+
+let () =
+  g a.[k]
+    x   (* aligned with [a], despite the dot *)
+
+let () =
+  g a.[k] 1.0
+    x   (* aligned with [a], despite the dots *)
+
