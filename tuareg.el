@@ -4235,9 +4235,6 @@ Short cuts for interactions with the toplevel:
   (tuareg-run-process-if-needed)
   (display-buffer tuareg-interactive-buffer-name))
 
-;;;###autoload
-(defalias 'tuareg-run-caml 'tuareg-run-ocaml)
-
 (defun tuareg-run-process-if-needed (&optional cmd)
   "Run an OCaml toplevel process if needed, with an optional command name.
 I/O via buffer `*ocaml-toplevel*'."
