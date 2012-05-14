@@ -1019,29 +1019,45 @@ Regexp match data 0 points to the chars."
      (1 '(7)) (3 '(7)))))
 
 (defvar syntax-propertize-function)
-(defconst tuareg-syntax-propertize
-  (when (eval-when-compile (fboundp 'syntax-propertize-rules))
-    (syntax-propertize-rules
-     ;; When we see a '"', knowing whether it's a literal char (as opposed to
-     ;; the end of a string followed by the beginning of a literal char)
-     ;; requires checking syntax-ppss as in:
-     ;; ("\\_<\\('\"'\\)"
-     ;;  (1 (unless (nth 3 (save-excursion (syntax-ppss (match-beginning 0))))
-     ;;       (string-to-syntax "\""))))
-     ;; Not sure if it's worth the trouble since adding a space between the
-     ;; string and the literal char is easy enough and is the usual
-     ;; style anyway.
-     ;; For all other cases we don't need to check syntax-ppss because, if the
-     ;; first quote is within a string (or comment), the whole match is within
-     ;; the string (or comment), so the syntax-properties don't hurt.
-     ;;
-     ;; Note: we can't just use "\\<" here because syntax-propertize is also
-     ;; used outside of font-lock.
-     ("\\_<\\('\\)\\(?:[^'\\\n]\\|\\\\.[^\\'\n \")]*\\)\\('\\)"
-      (1 "\"") (2 "\"")))))
+(when (eval-when-compile (fboundp 'syntax-propertize-rules))
+  (defun tuareg-syntax-propertize (start end)
+    (goto-char start)
+    (tuareg--syntax-quotation end)
+    (funcall
+     (syntax-propertize-rules
+      ;; When we see a '"', knowing whether it's a literal char (as opposed to
+      ;; the end of a string followed by the beginning of a literal char)
+      ;; requires checking syntax-ppss as in:
+      ;; ("\\_<\\('\"'\\)"
+      ;;  (1 (unless (nth 3 (save-excursion (syntax-ppss (match-beginning 0))))
+      ;;       (string-to-syntax "\""))))
+      ;; Not sure if it's worth the trouble since adding a space between the
+      ;; string and the literal char is easy enough and is the usual
+      ;; style anyway.
+      ;; For all other cases we don't need to check syntax-ppss because, if the
+      ;; first quote is within a string (or comment), the whole match is within
+      ;; the string (or comment), so the syntax-properties don't hurt.
+      ;;
+      ;; Note: we can't just use "\\<" here because syntax-propertize is also
+      ;; used outside of font-lock.
+      ("\\_<\\('\\)\\(?:[^'\\\n]\\|\\\\.[^\\'\n \")]*\\)\\('\\)"
+       (1 "\"") (2 "\""))
+      ("\\(<\\)\\(?:<\\S.\\|:[[:alpha:]]+<\\)"
+       (1 (prog1 "|" (tuareg--syntax-quotation end))))
+      )
+     start end)))
+
+(defun tuareg--syntax-quotation (end)
+  (when (eq t (nth 3 (syntax-ppss)))
+    ;; We're indeed inside a quotation.
+    (when (re-search-forward ">>" end t)
+      (put-text-property (1- (point)) (point)
+                         'syntax-table (string-to-syntax "|")))))
 
 (defun tuareg-font-lock-syntactic-face-function (state)
-  (if (nth 3 state) font-lock-string-face
+  (if (nth 3 state)
+      (if (eq t (nth 3 state))
+          font-lock-preprocessor-face font-lock-string-face)
     (let ((start (nth 8 state)))
       (if (and (> (point-max) (+ start 2))
                (eq (char-after (+ start 2)) ?*)
@@ -1673,7 +1689,10 @@ Return values can be \"f=\" for field definition, \"d=\" for a normal definition
              ;; surrounding "{".
              (save-excursion
                (smie-backward-sexp 'halfsexp)
-               (cons 'column (smie-indent-virtual))))))))
+               (cons 'column (smie-indent-virtual))))))
+        ;; Apparently, people like their `| pattern when test -> body' to have
+        ;;  the `when' indented deeper than the body.
+        ((equal token "when") (smie-rule-parent 4))))
       (:after
        (cond
         ((equal token "d=")
@@ -1777,7 +1796,7 @@ Return values can be \"f=\" for field definition, \"d=\" for a normal definition
 (defun tuareg--common-mode-setup ()
   (setq local-abbrev-table tuareg-mode-abbrev-table)
   (set (make-local-variable 'syntax-propertize-function)
-       tuareg-syntax-propertize)
+       #'tuareg-syntax-propertize)
   (set (make-local-variable 'parse-sexp-ignore-comments)
        ;; Tuareg used to set this to nil (for an unknown reason) but SMIE needs
        ;; it to be set to t.
@@ -1807,6 +1826,7 @@ Return values can be \"f=\" for field definition, \"d=\" for a normal definition
 (defalias 'tuareg--prog-mode
   (if (fboundp 'prog-mode) #'prog-mode #'fundamental-mode))
 (defvar compilation-first-column)
+(defvar compilation-error-screen-columns)
 
 ;;;###autoload
 (define-derived-mode tuareg-mode tuareg--prog-mode "Tuareg"
@@ -2006,7 +2026,7 @@ Short cuts for interactions with the toplevel:
         `(tuareg-font-lock-keywords
           ,(not tuareg-use-syntax-ppss) nil
           ,tuareg-font-lock-syntax nil
-          ,@(unless tuareg-syntax-propertize
+          ,@(unless (fboundp 'tuareg-syntax-propertize)
               '((font-lock-syntactic-keywords
                  . tuareg-font-lock-syntactic-keywords)
                 (parse-sexp-lookup-properties . t)))
@@ -2031,10 +2051,16 @@ Short cuts for interactions with the toplevel:
 ;; FIXME: We should report those cases to bug-gnu-emacs@gnu.org.
 
 (defconst tuareg-error-regexp
-  (concat "^[^\0-@]+ \"\\([^\"\n]+\\)\", "                     ;File name.
-          "[^\0-@]+ \\([0-9]+\\)\\(?:\\(?:-\\([0-9]+\\)\\)?, " ;Lines.
-          "[^\0-@]+ \\([0-9]+\\)-\\([0-9]+\\):"                ;Columns.
-          "\\(\nWarning\\)?\\|[-,:]\\)")                       ;Warning/error.
+  ;; Errors can take forms like:
+  ;;   "File "main.ml", line 1154, characters 30-48:\nError: ..."
+  ;;   "Raised at file "pervasives.ml", line 22, characters 22-33"
+  ;;   "File "main.ml", line 1018, characters 2-2632:\nWarning 8: ..."
+  ;; as well as localized variants depending on locale.
+  (concat "^\\(Called from \\)?[[:alpha:]][ [:alpha:]]*[[:alpha:]] "
+          "\"\\([^\"\n]+\\)\", "                              ;File name.
+          "[[:alpha:]]+ \\([0-9]+\\)\\(?:-\\([0-9]+\\)\\)?, " ;Lines.
+          "[[:alpha:]]+ \\([0-9]+\\)-\\([0-9]+\\)"            ;Columns.
+          "\\(?::\\(\nWarning\\)?\\|[-,:]\\|$\\)")            ;Warning/error.
   "Regular expression matching the error messages produced by ocamlc.")
 
 (when (boundp 'compilation-error-regexp-alist)
@@ -2043,8 +2069,8 @@ Short cuts for interactions with the toplevel:
       (setq compilation-error-regexp-alist
             (cons (if (fboundp 'compilation-fake-loc)
                       (list tuareg-error-regexp
-                            1 '(2 . 3) '(4 . 5) '(6))
-                    (list tuareg-error-regexp 1 2))
+                            2 '(3 . 4) '(5 . 6) '(7 . 1))
+                    (list tuareg-error-regexp 2 3))
                   compilation-error-regexp-alist))))
 
 ;; A regexp to extract the range info.
