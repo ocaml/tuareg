@@ -317,10 +317,10 @@ let rec count_append l1 l2 count =
   | [x1; x2; x3]     -> x1 :: x2 :: x3       :: l2
   | [x1; x2; x3; x4] -> x1 :: x2 :: x3 :: x4 :: l2
   | x1 :: x2 :: x3 :: x4 :: x5 :: tl ->
-    x1 :: x2 :: x3 :: x4 :: x5 ::
-      (if count > 1000
-       then slow_append tl l2
-       else count_append tl l2 (count + 1))
+     x1 :: x2 :: x3 :: x4 :: x5 ::
+       (if count > 1000
+        then slow_append tl l2
+        else count_append tl l2 (count + 1))
 
 let foo =
   (
@@ -395,11 +395,11 @@ let d x = function
      I chose with "match" because it looks otherwise odd and is more
      consistent with the "try" alignments above.  *)
   | A -> (match x with
-        | X ->
-          false
-        | Y -> true
-        |  Z ->
-          false)
+         | X ->
+            false
+         | Y -> true
+         |  Z ->
+             false)
   | B -> false
 
 let a f = function
@@ -415,8 +415,8 @@ let a f = function
       b) 12
   | D ->
     (match z with
-    | 4 -> 3
-    |  5 -> 7)
+     | 4 -> 3
+     |  5 -> 7)
 
 let x = foo ~f:(fun _ -> 0              (* Comment.  *)
 )
@@ -525,9 +525,9 @@ let x =
 let () =
   match _ with
   | foo ->
-    bar
-    >>| function _ ->
-      _
+     bar
+     >>| function _ ->
+                  _
 
 let () =
   a
@@ -695,8 +695,8 @@ let () =
 
 let () =
   (let a,b = match c with
-    | D -> e,f
-    | G -> h,i in
+     | D -> e,f
+     | G -> h,i in
    let j = a + b in
    j * j),
   12
@@ -956,8 +956,8 @@ let f a1 a2 a3
     b1 b2 b3;
   (* FIXME: Here it is reasonable to have '|' aligned with 'match' *)
   cc = (match c with
-       | A -> 1
-       | B -> 2);
+        | A -> 1
+        | B -> 2);
   dd = func3
     d1 d2 d3;
 }
@@ -1083,14 +1083,14 @@ let () =
 let () =
   match var with
   | <:expr< $lid:f$ >> ->
-    KO
+     KO
   | <:expr< $lid:f$ >> when f x ->
-    KO
+     KO
   | y when f y ->
-    OK
+     OK
   | long_pattern
-      when f long_pattern -> (* Should be more indented than the clause body *)
-    z
+       when f long_pattern -> (* Should be more indented than the clause body *)
+     z
 
 type t = {
   mutable a: float;
