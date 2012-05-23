@@ -326,7 +326,7 @@ The examples at <http://caml.inria.fr/resources/doc/guides/guidelines.en.html>
 show the '|' is aligned with 'match', thus 0 is the default value."
   :group 'tuareg :type 'integer)
 
-(defcustom tuareg-match-clause 1
+(defcustom tuareg-match-clause-indent 1
   "*How many spaces to indent a clause after a pattern match `| ... ->'.
 To respect <http://caml.inria.fr/resources/doc/guides/guidelines.en.html>
 the default is 1.")
@@ -1698,7 +1698,8 @@ Return values can be \"f=\" for field definition, \"d=\" for a normal definition
                (cons 'column (smie-indent-virtual))))))
         ;; Apparently, people like their `| pattern when test -> body' to have
         ;;  the `when' indented deeper than the body.
-        ((equal token "when") (smie-rule-parent (+ 4 tuareg-match-clause)))))
+        ((equal token "when") (smie-rule-parent
+			       (+ 4 tuareg-match-clause-indent)))))
       (:after
        (cond
         ((equal token "d=")
@@ -1718,7 +1719,7 @@ Return values can be \"f=\" for field definition, \"d=\" for a normal definition
 		       ;; to the right place.
 		       (equal (nth 2 (smie-backward-sexp "|")) "with"))))
 	   (smie-rule-parent 2))
-	  ((smie-rule-parent-p "|") tuareg-match-clause)
+	  ((smie-rule-parent-p "|") tuareg-match-clause-indent)
 	  (t 0)))
         ((equal token ":")
          (cond
