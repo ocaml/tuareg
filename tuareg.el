@@ -326,6 +326,12 @@ The examples at <http://caml.inria.fr/resources/doc/guides/guidelines.en.html>
 show the '|' is aligned with 'match', thus 0 is the default value."
   :group 'tuareg :type 'integer)
 
+(defcustom tuareg-match-clause 1
+  "*How many spaces to indent a clause after a pattern match `| ... ->'.
+To respect <http://caml.inria.fr/resources/doc/guides/guidelines.en.html>
+the default is 1.")
+
+
 (defcustom tuareg-type-indent 0 ;tuareg-default-indent
   "*How many spaces to indent from a `type' keyword."
   :group 'tuareg :type 'integer)
@@ -1692,7 +1698,7 @@ Return values can be \"f=\" for field definition, \"d=\" for a normal definition
                (cons 'column (smie-indent-virtual))))))
         ;; Apparently, people like their `| pattern when test -> body' to have
         ;;  the `when' indented deeper than the body.
-        ((equal token "when") (smie-rule-parent 4))))
+        ((equal token "when") (smie-rule-parent (+ 4 tuareg-match-clause)))))
       (:after
        (cond
         ((equal token "d=")
@@ -1700,17 +1706,20 @@ Return values can be \"f=\" for field definition, \"d=\" for a normal definition
               (not (smie-rule-next-p "["))
               2))
         ((equal token "->")
-         (if (and (smie-rule-parent-p "with")
-                  ;; Align with "with" but only if it's the only branch (often
-                  ;; the case in try..with), since otherwise subsequent
-                  ;; branches can't be both indented well and aligned.
-                  (save-excursion
-                    (and (not (equal "|" (nth 2 (smie-forward-sexp "|"))))
-                         ;; Since we may misparse "if..then.." we need to
-                         ;; double check that smie-forward-sexp indeed got us
-                         ;; to the right place.
-                         (equal (nth 2 (smie-backward-sexp "|")) "with"))))
-             (smie-rule-parent 2) 0))
+         (cond
+	  ((and (smie-rule-parent-p "with")
+		;; Align with "with" but only if it's the only branch (often
+		;; the case in try..with), since otherwise subsequent
+		;; branches can't be both indented well and aligned.
+		(save-excursion
+		  (and (not (equal "|" (nth 2 (smie-forward-sexp "|"))))
+		       ;; Since we may misparse "if..then.." we need to
+		       ;; double check that smie-forward-sexp indeed got us
+		       ;; to the right place.
+		       (equal (nth 2 (smie-backward-sexp "|")) "with"))))
+	   (smie-rule-parent 2))
+	  ((smie-rule-parent-p "|") tuareg-match-clause)
+	  (t 0)))
         ((equal token ":")
          (cond
           ((smie-rule-parent-p "val" "external") (smie-rule-parent 2))
