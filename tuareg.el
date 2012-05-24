@@ -1529,12 +1529,15 @@ For use on `electric-indent-functions'."
 (defun tuareg-smie--=-disambiguate ()
   "Return which kind of \"=\" we've just found.
 Point is not moved and should be right in front of the equality.
-Return values can be \"f=\" for field definition, \"d=\" for a normal definition,
-\"c=\" for a type equality constraint, and \"=…\" for an equality test."
+Return values can be
+  \"f=\" for field definition,
+  \"d=\" for a normal definition,
+  \"c=\" for a type equality constraint, and
+  \"=…\" for an equality test."
   (save-excursion
     (let* ((pos (point))
            (telltale '("type" "let" "module" "class" "and" "external"
-                       "=" "if" "then" "else" "->" ";"))
+                       "val" "method" "=" "if" "then" "else" "->" ";"))
            (nearest (tuareg-smie--search-backward telltale)))
       (cond
        ((and (member nearest '("{" ";"))
@@ -1557,7 +1560,8 @@ Return values can be \"f=\" for field definition, \"d=\" for a normal definition
             (setq nearest (tuareg-smie--search-backward telltale)))
           nil))
        ((not (member nearest
-                     '("type" "let" "module" "class" "and" "external")))
+                     '("type" "let" "module" "class" "and" "external"
+                       "val" "method")))
         "=…")
        ((and (member nearest '("type" "module"))
              (member (tuareg-smie--backward-token) '("with" "and"))) "c=")
@@ -1702,6 +1706,10 @@ Return values can be \"f=\" for field definition, \"d=\" for a normal definition
              (save-excursion
                (smie-backward-sexp 'halfsexp)
                (cons 'column (smie-indent-virtual))))))
+        ;; If we're looking at the first class-field-spec
+        ;; in a "object(type)...end", don't rely on the default behavior which
+        ;; will treat (type) as a previous element with which to align.
+        ((tuareg-smie--object-hanging-rule token))
         ;; Apparently, people like their `| pattern when test -> body' to have
         ;;  the `when' indented deeper than the body.
         ((equal token "when") (smie-rule-parent tuareg-match-when-indent))))
@@ -1783,6 +1791,25 @@ Return values can be \"f=\" for field definition, \"d=\" for a normal definition
                (and (equal prev ">…") (looking-at ">>[>=]")
                     (progn (smie-backward-sexp prev)
                            (cons 'column (current-column)))))))))
+
+(defun tuareg-smie--object-hanging-rule (token)
+  ;; If we're looking at the first class-field-spec
+  ;; in a "object(type)...end", don't rely on the default behavior which
+  ;; will treat (type) as a previous element with which to align.
+  (cond
+   ;; An important role of this first condition is to call smie-indent-virtual
+   ;; so that we get called back to compute the (virtual) indentation of
+   ;; "object", thus making sure we get called back to apply the second rule.
+   ((and (member token '("inherit" "val" "method" "constraint"))
+         (smie-rule-parent-p "object"))
+    (save-excursion
+      (forward-word 1)
+      (goto-char (nth 1 (smie-backward-sexp 'halfsexp)))
+      (let ((col (smie-indent-virtual)))
+        `(column . ,(+ tuareg-default-indent col)))))
+   ;; For "class foo = object(type)...end", align object...end with class.
+   ((and (equal token "object") (smie-rule-parent-p "class"))
+    (smie-rule-parent))))
 
 (defun tuareg-smie--if-then-hack (token)
   ;; Getting SMIE's parser to properly parse "if E1 then E2" is difficult, so
@@ -2086,7 +2113,10 @@ Short cuts for interactions with the toplevel:
                       (list tuareg-error-regexp
                             2 '(3 . 4) '(5 . 6) '(7 . 1))
                     (list tuareg-error-regexp 2 3))
-                  compilation-error-regexp-alist))))
+                  ;; Other error format used for unhandled match case.
+                  (cons '("^Fatal error: exception [^ \n]*(\"\\([^\"]*\\)\", \\([0-9]+\\), \\([0-9]+\\))"
+                          1 2 3)
+                        compilation-error-regexp-alist)))))
 
 ;; A regexp to extract the range info.
 
