@@ -321,7 +321,7 @@ instead of the historical `tuareg-default-indent'."
   "*How many spaces to indent from a `try' keyword."
   :group 'tuareg :type 'integer)
 
-(defcustom tuareg-with-indent 0 ;tuareg-default-indent
+(defcustom tuareg-with-indent 0
   "*How many spaces to indent from a `with' keyword.
 The examples at <http://caml.inria.fr/resources/doc/guides/guidelines.en.html>
 show the '|' is aligned with 'match', thus 0 is the default value."
@@ -332,6 +332,11 @@ show the '|' is aligned with 'match', thus 0 is the default value."
 To respect <http://caml.inria.fr/resources/doc/guides/guidelines.en.html>
 the default is 1.")
 
+(defcustom tuareg-match-when-indent (+ 4 tuareg-match-clause-indent)
+  "*How many spaces from `|' to indent `when' in a pattern match
+   | patt
+        when cond ->
+      clause")
 
 (defcustom tuareg-type-indent 0 ;tuareg-default-indent
   "*How many spaces to indent from a `type' keyword."
@@ -1699,8 +1704,7 @@ Return values can be \"f=\" for field definition, \"d=\" for a normal definition
                (cons 'column (smie-indent-virtual))))))
         ;; Apparently, people like their `| pattern when test -> body' to have
         ;;  the `when' indented deeper than the body.
-        ((equal token "when") (smie-rule-parent
-			       (+ 4 tuareg-match-clause-indent)))))
+        ((equal token "when") (smie-rule-parent tuareg-match-when-indent))))
       (:after
        (cond
         ((equal token "d=")
