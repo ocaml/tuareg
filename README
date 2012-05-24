@@ -27,6 +27,10 @@ CONFIGURATION:
   .ml, .mli, .mly, .mll, and .mlp or manually by M-x tuareg-mode. It
   gives you the correct syntax table for the OCaml language.
 
+  Thanks to the work of Stefan Monnier, a new indentation engine based
+  on SMIE was written.  To activate it, add (setq tuareg-use-smie t)
+  to the top-level of your .emacs file.
+
 USAGE:
 
   See tuareg.el.
