@@ -1260,7 +1260,7 @@ For use on `electric-indent-functions'."
               (def-in-exp (defs "in" exp))
               (def (var "d=" exp) (id "d=" datatype) (id "d=" module))
               (idtype (id ":" type))
-              (var (id) ("m-type" var) ("rec" var) (idtype)
+              (var (id) ("m-type" var) ("rec" var) ("private" var) (idtype)
                    ("l-module" var) ("l-class" var))
               (exception (id "of" type))
               (datatype ("{" typefields "}") (typebranches)
@@ -1313,6 +1313,7 @@ For use on `electric-indent-functions'."
               (pattern (id) (pattern "as" id) (pattern "," pattern))
               (class-body (class-body "inherit" class-body)
                           (class-body "method" class-body)
+                          (class-body "initializer" class-body)
                           (class-body "val" class-body)
                           (class-body "constraint" class-body)
                           (class-field))
@@ -1367,7 +1368,7 @@ For use on `electric-indent-functions'."
             '((assoc "type" "d-let" "exception" "module" "val" "open"
                      "external" "include" "class" ";;")
               (assoc "and"))
-            '((assoc "val" "method" "inherit" "constraint"))
+            '((assoc "val" "method" "inherit" "constraint" "initializer"))
             ;; Declare associativity of remaining sequence separators.
             '((assoc ";")) '((assoc "|")) '((assoc "m-and")))))
       ;; (dolist (pair '()) ;; ("then" . "|") ("|" . "then")
