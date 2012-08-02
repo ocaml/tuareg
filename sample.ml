@@ -1154,3 +1154,15 @@ class useless' = object(self)
     | Some x -> Some(self#add x)
     | None   -> None
 end
+
+(* Signatures with labeled arguments *)
+
+val f :
+  x : int ->
+  int ->
+  int
+
+val f :
+  ?x : int ->
+  int ->
+  int
