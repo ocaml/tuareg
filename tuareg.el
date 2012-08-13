@@ -1250,6 +1250,7 @@ For use on `electric-indent-functions'."
                      (decls "class" decls)
                      (decls "val" decls) (decls "external" decls)
                      (decls "open" decls) (decls "include" decls)
+		     (decls "DEFINE" decls)
                      (exception)
                      (def)
                      ;; Hack: at the top-level, a "let D in E" can appear in
@@ -1366,7 +1367,7 @@ For use on `electric-indent-functions'."
             '((assoc "|") (assoc ";"))
             ;; Fix up associative declaration keywords.
             '((assoc "type" "d-let" "exception" "module" "val" "open"
-                     "external" "include" "class" ";;")
+                     "external" "include" "class" "DEFINE" ";;")
               (assoc "and"))
             '((assoc "val" "method" "inherit" "constraint" "initializer"))
             ;; Declare associativity of remaining sequence separators.
@@ -1538,7 +1539,8 @@ Return values can be
   (save-excursion
     (let* ((pos (point))
            (telltale '("type" "let" "module" "class" "and" "external"
-                       "val" "method" "=" "if" "then" "else" "->" ";"))
+                       "val" "method" "DEFINE" "="
+		       "if" "then" "else" "->" ";" ))
            (nearest (tuareg-smie--search-backward telltale)))
       (cond
        ((and (member nearest '("{" ";"))
@@ -1560,9 +1562,8 @@ Return values can be
                         (equal (tuareg-smie-backward-token) "t->")))
             (setq nearest (tuareg-smie--search-backward telltale)))
           nil))
-       ((not (member nearest
-                     '("type" "let" "module" "class" "and" "external"
-                       "val" "method")))
+       ((not (member nearest '("type" "let" "module" "class" "and"
+			       "external" "val" "method" "DEFINE")))
         "=…")
        ((and (member nearest '("type" "module"))
              (member (tuareg-smie--backward-token) '("with" "and"))) "c=")
@@ -1987,7 +1988,7 @@ Short cuts for interactions with the toplevel:
                              "module" "functor" "val" "type" "method"
                              "virtual" "constraint" "class" "in" "inherit"
                              "initializer" "let" "rec" "object" "and" "begin"
-                             "end"))
+                             "end" "DEFINE"))
                "\\|with[ \t\n]+\\(type\\|module\\)\\)\\>")
       0 tuareg-font-lock-governing-face nil nil)
      ,@(and tuareg-support-metaocaml
