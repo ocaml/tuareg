@@ -77,7 +77,11 @@
 (defconst tuareg-mode-revision
   (eval-when-compile
     (with-temp-buffer
-      (cond ((file-directory-p ".hg")
+      (cond ((file-directory-p ".git")
+	     (progn
+	       (insert "git: ")
+	       (call-process "git" nil t nil "log" "--pretty=%h" "-1")))
+	    ((file-directory-p ".hg")
 	     (call-process "hg" nil t nil "id" "-i" "--debug"))
 	    ((file-directory-p ".svn")
              (let ((process-environment
