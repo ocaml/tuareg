@@ -1117,23 +1117,23 @@ let () =
 (* OOP elements (from Marc Simpson <marc AT 0branch DOT com>).  *)
 
 class useless = object
-    val n = 10
+  val n = 10
 
-    method incremented () =
-        succ n
+  method incremented () =
+    succ n
 
-    method add_option = function
+  method add_option = function
     | Some x -> Some(n + x)
     | None   -> None
 end
 
 class useless' = object(self)
-    val n = 10
+  val n = 10
 
-    method incremented () =
-        succ n
+  method incremented () =
+    succ n
 
-    method add_option = function
+  method add_option = function
     | Some x -> Some(n + x)
     | None   -> None
 end
@@ -1166,3 +1166,4 @@ val f :
   ?x : int ->
   int ->
   int
+
