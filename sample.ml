@@ -533,7 +533,7 @@ let () =
   a
   >>= fun () ->
   b
-  >>= fun () ->
+  >>| fun () ->
   Deferred.all
 
 let x =

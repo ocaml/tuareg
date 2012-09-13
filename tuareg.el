@@ -1794,7 +1794,7 @@ Return values can be
            (save-excursion
              (let ((prev (tuareg-smie-backward-token)))
                ;; FIXME: Should we use the same loop as above?
-               (and (equal prev ">…") (looking-at ">>[>=]")
+               (and (equal prev ">…") (looking-at ">>[>=|]")
                     (progn (smie-backward-sexp prev)
                            (cons 'column (current-column)))))))))
 
