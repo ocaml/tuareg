@@ -4189,7 +4189,7 @@ otherwise return non-nil."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                            Tuareg interactive mode
 
-;; Augment Tuareg mode with a OCaml toplevel.
+;; Augment Tuareg mode with an OCaml toplevel.
 
 (require 'comint)
 
@@ -4291,6 +4291,9 @@ Short cuts for interactions with the toplevel:
   (setq comint-scroll-to-bottom-on-output
         tuareg-interactive-scroll-to-bottom-on-output)
   (set-syntax-table tuareg-mode-syntax-table)
+  (set (make-local-variable 'comment-start) "(* ")
+  (set (make-local-variable 'comment-end) " *)")
+  (set (make-local-variable 'comment-start-skip) "(\\*+[ \t]*")
 
   (tuareg--common-mode-setup)
   (when (or tuareg-interactive-input-font-lock
