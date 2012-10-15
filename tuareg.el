@@ -1854,7 +1854,9 @@ Return values can be
         (smie-setup tuareg-smie-grammar #'tuareg-smie-rules
                     :forward-token #'tuareg-smie-forward-token
                     :backward-token #'tuareg-smie-backward-token)
-        (add-hook 'smie-indent-functions #'tuareg-smie--inside-string nil t))
+        (add-hook 'smie-indent-functions #'tuareg-smie--inside-string nil t)
+        (set (make-local-variable 'add-log-current-defun-function)
+             'tuareg-current-fun-name))
     (set (make-local-variable 'indent-line-function) #'tuareg-indent-command))
   (tuareg-install-font-lock)
   (set (make-local-variable 'open-paren-in-column-0-is-defun-start) nil)
@@ -1975,6 +1977,59 @@ Short cuts for interactions with the toplevel:
              (not (and (boundp 'electric-indent-mode) electric-indent-mode)))
     (abbrev-mode 1))
   (message nil))
+
+(defconst tuareg-starters-syms
+  '("module" "type" "let" "d-let" "and"))
+
+(defun tuareg-find-matching-starter (starters)
+  (let (tok)
+    (while
+        (let ((td (smie-backward-sexp 'halfsexp)))
+          (cond
+           ((and (car td)
+                 (member (nth 2 td) starters))
+            (goto-char (nth 1 td)) (setq tok (nth 2 td)) nil)
+           ((and (car td) (not (numberp (car td))))
+            (unless (bobp) (goto-char (nth 1 td)) t))
+           (t t))))
+    tok))
+
+(defun tuareg-skip-siblings ()
+  (while (and (not (bobp))
+              (null (car (smie-backward-sexp))))
+    (tuareg-find-matching-starter tuareg-starters-syms))
+  (when (looking-at "in")
+    ;; Skip over `local...in' and continue.
+    (forward-word 1)
+    (smie-backward-sexp 'halfsexp)
+    (tuareg-skip-siblings)))
+
+(defun tuareg-beginning-of-defun ()
+  (when (tuareg-find-matching-starter tuareg-starters-syms)
+    (save-excursion (tuareg-smie-forward-token)
+                    (forward-comment (point-max))
+                    (let ((name (tuareg-smie-forward-token)))
+                      (if (not (member name '("rec" "type")))
+                          name
+                        (forward-comment (point-max))
+                        (tuareg-smie-forward-token))))))
+
+(defcustom tuareg-max-name-components 3
+  "Maximum number of components to use for the current function name."
+  :type 'integer)
+
+(defun tuareg-current-fun-name ()
+  (save-excursion
+    (let ((count tuareg-max-name-components)
+	  fullname name)
+      (end-of-line)
+      (while (and (> count 0)
+		  (setq name (tuareg-beginning-of-defun)))
+	(decf count)
+	(setq fullname (if fullname (concat name "." fullname) name))
+	;; Skip all other declarations that we find at the same level.
+	(tuareg-skip-siblings))
+      fullname)))
 
 (defun tuareg-install-font-lock ()
   (setq
