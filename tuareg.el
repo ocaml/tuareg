@@ -137,6 +137,9 @@
       (read-from-minibuffer prompt initial-input nil nil
                             (or history 'shell-command-history))))
 
+(unless (fboundp 'derived-mode-p) ;; in derived.el in emacs21
+  (require 'derived))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                             Import types and help features
 
