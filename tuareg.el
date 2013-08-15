@@ -2111,6 +2111,13 @@ Short cuts for interactions with the toplevel:
      (,(concat "\\<fun\\>\\(\\(\\w\\|[_ \t\n(),*~?:=]\\)+\\)[ \t\n]*->")
       1 font-lock-variable-name-face keep nil)
      (,(concat
+        "\\(?:"
+        (if (tuareg-editing-ls3) "\\<val\\>[ \t\n]*\\w*[ \t\n]*:\\|")
+        "[^:>=]\\):[ \t\n]*"
+        "\\(['?]*\\([->_.* \t:]\\|\\w"
+	"\\|(['?]*\\([->_.,* \t:]\\|\\w\\)*)\\)+\\)")
+      1 font-lock-type-face keep nil)
+     (,(concat
         "\\<\\("
         (if (tuareg-editing-ls3) "reset\\|do\\|")
         "val\\([ \t\n]+mutable\\)?\\|method\\|and\\|class"
@@ -2126,13 +2133,6 @@ Short cuts for interactions with the toplevel:
         "\\|type\\)\\>[ \t\n]*"
         "\\(['~?]*\\([->_.* \t]\\|\\w\\|(['~?]*\\([->_.,* \t]\\|\\w\\)*)\\)*\\)")
       7 font-lock-type-face keep nil)
-     (,(concat
-        "\\(?:"
-        (if (tuareg-editing-ls3)
-            "\\<val\\>[ \t\n]*\\w*[ \t\n]*:\\|")
-        "[^:>=]\\):[ \t\n]*"
-        "\\(['~?]*\\([->_.* \t]\\|\\w\\|(['~?]*\\([->_.,* \t]\\|\\w\\)*)\\)*\\)")
-      1 font-lock-type-face keep nil)
      ("\\<\\([A-Z]\\w*\\>\\)[ \t]*\\." 1 font-lock-type-face keep nil)
      ("\\<exception\\>[ \t\n]*\\(\\<[_[:alpha:]]\\w*\\>\\)"
       1 font-lock-variable-name-face keep nil)
