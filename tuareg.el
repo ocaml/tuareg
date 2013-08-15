@@ -2082,10 +2082,13 @@ Short cuts for interactions with the toplevel:
        0 tuareg-font-lock-operator-face nil nil)
      ("[?~]\\<\\([_[:alpha:]]\\w*\\)[ \t\n]*:[^:>=]"
       1 font-lock-constant-face keep nil)
+     ;; A method is considered a function ([self] is always a param)
+     (,(concat "\\<method\\>!?\\([ \t\n]+\\(private\\|virtual\\)\\>\\)*"
+	       "[ \t\n]*\\([_[:lower:]]\\(\\w\\|['_]\\)*\\)")
+      3 font-lock-function-name-face keep nil)
      (,(concat
-        "\\<\\(\\(method\\([ \t\n]+\\(private\\|virtual\\)\\)*\\)"
-        "\\|val\\([ \t\n]+mutable\\)?"
-        "\\|external\\|and\\|class"
+        "\\<\\(val\\>!?\\([ \t\n]+\\(mutable\\|virtual\\)\\>\\)*"
+        "\\|external\\>\\|and\\>\\|class\\>"
         (if (tuareg-editing-ls3)
             "\\|let\\([ \t\n]+\\(?:rec\\|clock\\|node\\|static\\)\\)?"
           "\\|let\\([ \t\n]+rec\\)?")
