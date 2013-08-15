@@ -2080,6 +2080,8 @@ Short cuts for interactions with the toplevel:
            (regexp-opt '("asr" "asl" "lsr" "lsl" "or" "lor" "and" "land"
                          "lxor" "not" "lnot" "mod" "of" "ref") 'words)))
        0 tuareg-font-lock-operator-face nil nil)
+     ("[?~]\\<\\([_[:alpha:]]\\w*\\)[ \t\n]*:[^:>=]"
+      1 font-lock-constant-face keep nil)
      (,(concat
         "\\<\\(\\(method\\([ \t\n]+\\(private\\|virtual\\)\\)*\\)"
         "\\|val\\([ \t\n]+mutable\\)?"
