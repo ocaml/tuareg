@@ -2065,8 +2065,8 @@ Short cuts for interactions with the toplevel:
      ,@(if (tuareg-editing-ls3)
            `(("\\<\\(merge\\|when\\|emit\\|period\\)\\>"
               0 font-lock-keyword-face nil nil)))
-     (,(regexp-opt '("failwith" "failwithf" "exit" "parser" "raise")
-		   'words)
+     (,(regexp-opt '("failwith" "failwithf" "exit" "invalid_arg"
+		     "parser" "raise") 'words)
       0 font-lock-builtin-face nil nil)
      (,(concat
          "[][;,()|{}]\\|[@^!:*=<>&/%+~?#---]\\.?\\|\\.\\.\\.*\\|"
