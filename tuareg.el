@@ -2036,6 +2036,7 @@ Short cuts for interactions with the toplevel:
       fullname)))
 
 (defun tuareg-install-font-lock ()
+  (let ((lid "[_[:lower:]][_'[:word:]]*"))
   (setq
    tuareg-font-lock-keywords
    `(,@(if (tuareg-editing-ls3)
@@ -2095,16 +2096,18 @@ Short cuts for interactions with the toplevel:
         "\\|external\\>\\|and\\>\\|class\\>"
         (if (tuareg-editing-ls3)
             "\\|let\\([ \t\n]+\\(?:rec\\|clock\\|node\\|static\\)\\)?"
-          "\\|let\\([ \t\n]+rec\\)?")
-        "\\)\\>[ \t\n]*\\([_[:lower:]]\\(\\w\\|[._]\\)*\\)\\>"
-        "[ \t\n]*\\(\\(\\w\\|[()_?~.'*:--->]\\)+"
-        "\\|=[ \t\n]*fun\\(ction\\)?\\>\\)")
-      7 font-lock-function-name-face keep nil)
-     ;; FIXME: Isn't this redundant with the previous one?
-     ("\\<method\\([ \t\n]+\\(private\\|virtual\\)\\)?\\>[ \t\n]*\\(\\(\\w\\|[_,?~.]\\)*\\)"
-      3 font-lock-function-name-face keep nil)
-     ("\\<\\(fun\\(ction\\)?\\)\\>[ \t\n]*\\(\\(\\w\\|[_ \t()*,]\\)+\\)"
-      3 font-lock-variable-name-face keep nil)
+          "\\|let\\([ \t\n]+rec\\)?\\>")
+        "\\)[ \t\n]*\\([_[:lower:]]\\(\\w\\|[._]\\)*\\)\\>[ \t\n]*"
+        "\\(\\(\\w\\|[->()_?~.'*:]\\)+\\|=[ \t\n]*fun\\(ction\\)?\\>\\)")
+      5 font-lock-function-name-face keep nil)
+     (,(concat "\\<function[ \t\n]+\\(" lid "\\)")
+      1 font-lock-variable-name-face keep nil)
+     ;; fun (type t) (type s) — only highlight type at beginning as it
+     ;; is good practice.
+     (,(concat "\\<fun\\>\\(\\([ \t\n]*(type[ \t\n]" lid "[ \t\n]*)\\)+\\)")
+      1 font-lock-type-face keep nil)
+     (,(concat "\\<fun\\>\\(\\(\\w\\|[_ \t\n(),*~?:=]\\)+\\)[ \t\n]*->")
+      1 font-lock-variable-name-face keep nil)
      (,(concat
         "\\<\\("
         (if (tuareg-editing-ls3) "reset\\|do\\|")
@@ -2119,29 +2122,27 @@ Short cuts for interactions with the toplevel:
         "\\|let\\([ \t\n]+"
         (if (tuareg-editing-ls3) "\\(?:rec\\|clock\\|node\\|static\\)" "rec")
         "\\)?\\)\\>[ \t\n]*\\(\\(\\w\\|[_,?~.]\\)*\\)\\>"
-        "\\(\\(\\w\\|[->_ \t,?~.]\\|(\\(\\w\\|[--->_ \t,?~.=]\\)*)\\)*\\)")
+        "\\(\\(\\w\\|[->_ \t,?~.]\\|(\\(\\w\\|[->_ \t,?~.=]\\)*)\\)*\\)")
       6 font-lock-variable-name-face keep nil)
-     (,(concat
-        "\\<\\(open\\|\\(class\\([ \t\n]+type\\)?\\)\\([ \t\n]+virtual\\)?"
-        "\\|inherit\\|include\\|module\\([ \t\n]+\\(type\\|rec\\)\\)?"
-        "\\|type\\)\\>[ \t\n]*"
-        "\\(['~?]*\\([_--->.* \t]\\|\\w\\|(['~?]*\\([_--->.,* \t]\\|\\w\\)*)\\)*\\)")
-      7 font-lock-type-face keep nil)
-     (,(concat
-        "\\(?:"
-        (if (tuareg-editing-ls3)
-            "\\<val\\>[ \t\n]*\\w*[ \t\n]*:\\|")
-        "[^:>=]\\):[ \t\n]*"
-        "\\(['~?]*\\([_--->.* \t]\\|\\w\\|(['~?]*\\([_--->.,* \t]\\|\\w\\)*)\\)*\\)")
-      1 font-lock-type-face keep nil)
+     ;; (,(concat
+     ;;    "\\<\\(open\\|\\(class\\([ \t\n]+type\\)?\\)\\([ \t\n]+virtual\\)?"
+     ;;    "\\|inherit\\|include\\|module\\([ \t\n]+\\(type\\|rec\\)\\)?"
+     ;;    "\\|type\\)\\>[ \t\n]*"
+     ;;    "\\(['~?]*\\([->_.* \t]\\|\\w\\|(['~?]*\\([->_.,* \t]\\|\\w\\)*)\\)*\\)")
+     ;;  7 font-lock-type-face keep nil)
+     ;; (,(concat
+     ;;    "\\(?:"
+     ;;    (if (tuareg-editing-ls3)
+     ;;        "\\<val\\>[ \t\n]*\\w*[ \t\n]*:\\|")
+     ;;    "[^:>=]\\):[ \t\n]*"
+     ;;    "\\(['~?]*\\([->_.* \t]\\|\\w\\|(['~?]*\\([->_.,* \t]\\|\\w\\)*)\\)*\\)")
+     ;;  1 font-lock-type-face keep nil)
      ("\\<\\([A-Z]\\w*\\>\\)[ \t]*\\." 1 font-lock-type-face keep nil)
-     ("\\<\\([?~]?[_[:alpha:]]\\w*\\)[ \t\n]*:[^:>=]"
-      1 font-lock-variable-name-face keep nil)
      ("\\<exception\\>[ \t\n]*\\(\\<[_[:alpha:]]\\w*\\>\\)"
       1 font-lock-variable-name-face keep nil)
      ("^#\\w+\\>" 0 font-lock-preprocessor-face t nil)
      ,@(and tuareg-font-lock-symbols
-            (tuareg-font-lock-symbols-keywords))))
+            (tuareg-font-lock-symbols-keywords)))))
   (setq font-lock-defaults
         `(tuareg-font-lock-keywords
           ,(not tuareg-use-syntax-ppss) nil
