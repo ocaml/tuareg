@@ -496,7 +496,8 @@ Valid names are `browse-url', `browse-url-firefox', etc."
        (assq :inherit face-attribute-name-alist)))
 
 (defface tuareg-font-lock-governing-face
-  '((((background light)) (:foreground "black" :bold t))
+  '((((class color) (type tty)) (:bold t))
+    (((background light)) (:foreground "black" :bold t))
     (t (:foreground "wheat" :bold t)))
   "Face description for governing/leading keywords."
   :group 'tuareg-faces)
