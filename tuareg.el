@@ -2058,14 +2058,16 @@ Short cuts for interactions with the toplevel:
                0 tuareg-font-lock-multistage-face nil nil)))
      ("\\<\\(false\\|true\\)\\>" 0 font-lock-constant-face nil nil)
      (,(regexp-opt '("as" "do" "of" "done" "downto" "else" "for" "if"
-		     "mutable" "new" "parser" "private"
+		     "mutable" "new" "private"
 		     "then" "to" "try" "when" "while" "match" "with"
-		     "lazy" "exception" "raise" "failwith" "failwithf"
-		     "exit" "assert" "fun" "function") 'words)
+		     "lazy" "exception" "assert" "fun" "function") 'words)
       0 font-lock-keyword-face nil nil)
      ,@(if (tuareg-editing-ls3)
            `(("\\<\\(merge\\|when\\|emit\\|period\\)\\>"
               0 font-lock-keyword-face nil nil)))
+     (,(regexp-opt '("failwith" "failwithf" "exit" "parser" "raise")
+		   'words)
+      0 font-lock-builtin-face nil nil)
      (,(concat
          "[][;,()|{}]\\|[@^!:*=<>&/%+~?#---]\\.?\\|\\.\\.\\.*\\|"
          (if (tuareg-editing-ls3)
