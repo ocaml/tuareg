@@ -1176,3 +1176,13 @@ let subscribe_impl dir topic ~aborted =
          Ok pipe
     )
     next_argument (* should be indented correctly, given the braces *)
+
+
+let command =
+  Command.Spec.(
+    empty
+    +> flag "-hello" (optional_with_default "Hello" string)
+            ~doc:" The 'hello' of 'hello world'"
+    +> flag "-world" (optional_with_default "World" string)
+            ~doc:" The 'world' of 'hello world'"
+  )
