@@ -2111,8 +2111,7 @@ Short cuts for interactions with the toplevel:
      (,(concat
         "\\<\\("
         (if (tuareg-editing-ls3) "reset\\|do\\|")
-        "val\\([ \t\n]+mutable\\)?\\|external\\|and\\|class"
-        "\\|let\\([ \t\n]+rec\\)?"
+        "val\\([ \t\n]+mutable\\)?\\|and\\|class\\|let\\([ \t\n]+rec\\)?"
         "\\)\\>[ \t\n]*\\(\\(\\w\\|[_,?~.]\\)*\\)")
       4 font-lock-variable-name-face keep nil)
      (,(concat
@@ -2320,7 +2319,7 @@ For synchronous programming.")
       tuareg-match-pipe-kwop-regexp-ls3
     tuareg-match-pipe-kwop-regexp))
 
-(defconst tuareg-operator-regexp "[---+*/=<>@^&|]\\|:>\\|::\\|\\<\\(or\\|l\\(and\\|x?or\\|s[lr]\\)\\|as[lr]\\|mod\\)\\>"
+(defconst tuareg-operator-regexp "[-+*/=<>@^&|]\\|:>\\|::\\|\\<\\(or\\|l\\(and\\|x?or\\|s[lr]\\)\\|as[lr]\\|mod\\)\\>"
   "Regexp for all operators.")
 
 (defconst tuareg-matching-keyword-regexp
