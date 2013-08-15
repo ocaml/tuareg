@@ -2083,6 +2083,9 @@ Short cuts for interactions with the toplevel:
        0 tuareg-font-lock-operator-face nil nil)
      ("[?~]\\<\\([_[:alpha:]]\\w*\\)[ \t\n]*:[^:>=]"
       1 font-lock-constant-face keep nil)
+     ;; label in a type signature
+     (,(concat "\\(->\\|[^:>=]:\\)[ \t\n]*\\(" lid "\\)[ \t]*:")
+      2 font-lock-constant-face keep nil)
      ;; (value: type) and (value :> type)
      (,(concat "([ \t\n]*" lid "[ \t\n]*:>?[ \t\n]*\\("
 	       "\\([^()]+\\|([^()]+)\\)+\\))")
