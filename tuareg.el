@@ -2082,6 +2082,9 @@ Short cuts for interactions with the toplevel:
        0 tuareg-font-lock-operator-face nil nil)
      ("[?~]\\<\\([_[:alpha:]]\\w*\\)[ \t\n]*:[^:>=]"
       1 font-lock-constant-face keep nil)
+     ;; (value: type) — FIXME: how many nested () do we want?
+     (,(concat "([ \t\n]*" lid "[ \t\n]*:[ \t\n]*\\(\\(([^)]+)\\|[^)]+\\)+\\))")
+      1 font-lock-type-face keep nil)
      ;; A method is considered a function ([self] is always a param)
      (,(concat "\\<method\\>!?\\([ \t\n]+\\(private\\|virtual\\)\\>\\)*"
 	       "[ \t\n]*\\([_[:lower:]]\\(\\w\\|['_]\\)*\\)")
