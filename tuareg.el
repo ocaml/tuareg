@@ -2102,9 +2102,8 @@ Short cuts for interactions with the toplevel:
       5 font-lock-function-name-face keep nil)
      (,(concat "\\<function[ \t\n]+\\(" lid "\\)")
       1 font-lock-variable-name-face keep nil)
-     ;; fun (type t) (type s) — only highlight type at beginning as it
-     ;; is good practice.
-     (,(concat "\\<fun\\>\\(\\([ \t\n]*(type[ \t\n]" lid "[ \t\n]*)\\)+\\)")
+     ;; "type lid" anywhere (e.g. "let f (type t) x =") introduces a new type
+     (,(concat "type[ \t\n]+\\(" lid "\\)")
       1 font-lock-type-face keep nil)
      (,(concat "\\<fun\\>\\(\\(\\w\\|[_ \t\n(),*~?:=]\\)+\\)[ \t\n]*->")
       1 font-lock-variable-name-face keep nil)
@@ -2123,19 +2122,19 @@ Short cuts for interactions with the toplevel:
         "\\)?\\)\\>[ \t\n]*\\(\\(\\w\\|[_,?~.]\\)*\\)\\>"
         "\\(\\(\\w\\|[->_ \t,?~.]\\|(\\(\\w\\|[->_ \t,?~.=]\\)*)\\)*\\)")
       6 font-lock-variable-name-face keep nil)
-     ;; (,(concat
-     ;;    "\\<\\(open\\|\\(class\\([ \t\n]+type\\)?\\)\\([ \t\n]+virtual\\)?"
-     ;;    "\\|inherit\\|include\\|module\\([ \t\n]+\\(type\\|rec\\)\\)?"
-     ;;    "\\|type\\)\\>[ \t\n]*"
-     ;;    "\\(['~?]*\\([->_.* \t]\\|\\w\\|(['~?]*\\([->_.,* \t]\\|\\w\\)*)\\)*\\)")
-     ;;  7 font-lock-type-face keep nil)
-     ;; (,(concat
-     ;;    "\\(?:"
-     ;;    (if (tuareg-editing-ls3)
-     ;;        "\\<val\\>[ \t\n]*\\w*[ \t\n]*:\\|")
-     ;;    "[^:>=]\\):[ \t\n]*"
-     ;;    "\\(['~?]*\\([->_.* \t]\\|\\w\\|(['~?]*\\([->_.,* \t]\\|\\w\\)*)\\)*\\)")
-     ;;  1 font-lock-type-face keep nil)
+     (,(concat
+        "\\<\\(open\\|\\(class\\([ \t\n]+type\\)?\\)\\([ \t\n]+virtual\\)?"
+        "\\|inherit\\|include\\|module\\([ \t\n]+\\(type\\|rec\\)\\)?"
+        "\\|type\\)\\>[ \t\n]*"
+        "\\(['~?]*\\([->_.* \t]\\|\\w\\|(['~?]*\\([->_.,* \t]\\|\\w\\)*)\\)*\\)")
+      7 font-lock-type-face keep nil)
+     (,(concat
+        "\\(?:"
+        (if (tuareg-editing-ls3)
+            "\\<val\\>[ \t\n]*\\w*[ \t\n]*:\\|")
+        "[^:>=]\\):[ \t\n]*"
+        "\\(['~?]*\\([->_.* \t]\\|\\w\\|(['~?]*\\([->_.,* \t]\\|\\w\\)*)\\)*\\)")
+      1 font-lock-type-face keep nil)
      ("\\<\\([A-Z]\\w*\\>\\)[ \t]*\\." 1 font-lock-type-face keep nil)
      ("\\<exception\\>[ \t\n]*\\(\\<[_[:alpha:]]\\w*\\>\\)"
       1 font-lock-variable-name-face keep nil)
