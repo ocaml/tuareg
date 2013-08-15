@@ -2110,18 +2110,12 @@ Short cuts for interactions with the toplevel:
      (,(concat
         "\\<\\("
         (if (tuareg-editing-ls3) "reset\\|do\\|")
-        "val\\([ \t\n]+mutable\\)?\\|and\\|class\\|let\\([ \t\n]+rec\\)?"
-        "\\)\\>[ \t\n]*\\(\\(\\w\\|[_,?~.]\\)*\\)")
+        "val\\([ \t\n]+mutable\\)?\\|method\\|and\\|class"
+	"\\|let\\([ \t\n]+"
+	(if (tuareg-editing-ls3) "\\(?:rec\\|clock\\|node\\|static\\)" "rec")
+	"\\)?\\)\\>[ \t\n]*\\(\\([^=?]+\\|\\?" lid
+	"\\|\\?(" lid "=[^=])\\)+\\)[ \t\n]*=")
       4 font-lock-variable-name-face keep nil)
-     (,(concat
-        "\\<\\("
-        (if (tuareg-editing-ls3) "reset\\|do\\|")
-        "val\\([ \t\n]+mutable\\)?\\|external\\|method\\|and\\|class"
-        "\\|let\\([ \t\n]+"
-        (if (tuareg-editing-ls3) "\\(?:rec\\|clock\\|node\\|static\\)" "rec")
-        "\\)?\\)\\>[ \t\n]*\\(\\(\\w\\|[_,?~.]\\)*\\)\\>"
-        "\\(\\(\\w\\|[->_ \t,?~.]\\|(\\(\\w\\|[->_ \t,?~.=]\\)*)\\)*\\)")
-      6 font-lock-variable-name-face keep nil)
      (,(concat
         "\\<\\(open\\|\\(class\\([ \t\n]+type\\)?\\)\\([ \t\n]+virtual\\)?"
         "\\|inherit\\|include\\|module\\([ \t\n]+\\(type\\|rec\\)\\)?"
