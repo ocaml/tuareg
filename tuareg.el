@@ -2114,8 +2114,8 @@ Short cuts for interactions with the toplevel:
         "\\(?:"
         (if (tuareg-editing-ls3) "\\<val\\>[ \t\n]*\\w*[ \t\n]*:\\|")
         "[^:>=]\\):[ \t\n]*"
-        "\\(['?]*\\([->_.* \t:]\\|\\w"
-	"\\|(['?]*\\([->_.,* \t:]\\|\\w\\)*)\\)+\\)")
+        "\\(['?]*\\(->[ \t\n]+\\|[->_.* \t:]\\|\\w" ;; \n after -> only
+	"\\|(['?]*\\([->_.,* \t:]\\|\\w\\)*)\\)\\{1,500\\}\\)\\>")
       1 font-lock-type-face keep nil)
      (,(concat
         "\\<\\("
