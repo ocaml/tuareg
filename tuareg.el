@@ -1208,9 +1208,10 @@ For use on `electric-indent-functions'."
 ;; - Use it by default (when possible).
 ;; - Move the old indentation code to a separate file.
 
-(defvar tuareg-use-smie nil)            ;Not used by default yet.
+(defvar tuareg-use-smie nil)
 
-(require 'smie nil 'noerror)
+(when (require 'smie nil 'noerror)
+  (setq tuareg-use-smie t))
 
 (defconst tuareg-smie-grammar
   ;; Problems:
