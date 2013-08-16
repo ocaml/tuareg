@@ -2036,7 +2036,7 @@ Short cuts for interactions with the toplevel:
       fullname)))
 
 (defun tuareg-install-font-lock ()
-  (let ((lid "[_[:lower:]][_'[:word:]]*"))
+  (let ((lid "[_[:lower:]][_'[:alnum:]]*"))
   (setq
    tuareg-font-lock-keywords
    `(,@(if (tuareg-editing-ls3)
@@ -2067,7 +2067,7 @@ Short cuts for interactions with the toplevel:
 		     "lazy" "exception" "assert" "fun" "function") 'words)
       0 font-lock-keyword-face nil nil)
      ,@(if (tuareg-editing-ls3)
-           `(("\\<\\(merge\\|when\\|emit\\|period\\)\\>"
+           `(("\\<\\(merge\\|emit\\|period\\)\\>"
               0 font-lock-keyword-face nil nil)))
      (,(regexp-opt '("failwith" "failwithf" "exit" "invalid_arg"
 		     "parser" "raise") 'words)
