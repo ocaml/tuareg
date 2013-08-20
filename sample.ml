@@ -21,6 +21,14 @@ let x =
   x + x
 ;;
 
+(* FIXME: MAJOR "function" sends SMIE into a loop (fine with "fun"). *)
+let x =
+  let rec y =
+    let z = function t -> a in
+    foo () in
+  y
+;;
+
 ;; (* http://caml.inria.fr/mantis/view.php?id=4247 *)
 let x = {
   Foo.
