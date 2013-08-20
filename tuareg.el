@@ -2053,11 +2053,16 @@ Short cuts for interactions with the toplevel:
                              "module" "functor" "type"
                              "virtual" "constraint" "class" "in" "inherit"
                              "initializer" "let" "rec" "object" "and" "begin"
-                             "end" "DEFINE"))
+                             "end"))
                "\\>\\|with[ \t\n]+\\(type\\|module\\)\\>"
 	       "\\|\\(method\\|val\\)\\>!?"
 	       "\\([ \t\n]\\(virtual\\|private\\)\\>\\)*\\)")
       0 tuareg-font-lock-governing-face nil nil)
+     (,(concat "\\<\\("
+	       (regexp-opt '("DEFINE" "IFDEF" "IFNDEF" "INCLUDE"
+			     "__FILE__" "__LOCATION__"))
+	       "\\)\\>")
+      0 font-lock-preprocessor-face nil nil)
      ,@(and tuareg-support-metaocaml
             '(("\\.<\\|>\\.\\|\\.~\\|\\.!"
                0 tuareg-font-lock-multistage-face nil nil)))
