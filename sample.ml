@@ -1080,6 +1080,10 @@ let () =
   f x ~tol:1.
     more arguments
 
+let array_args =
+  fold s multi_sms.(0).message_number folder
+       more_args (* FIXME *)
+
 let () =
   match var with
   | <:expr< $lid:f$ >> ->
@@ -1177,6 +1181,13 @@ let subscribe_impl dir topic ~aborted =
     )
     next_argument (* should be indented correctly, given the braces *)
 
+
+List.map
+  (function x ->
+    blabla    (* FIXME: indentation afer "(function" *)
+    blabla
+    blabla)
+  l
 
 let command =
   Command.Spec.(
