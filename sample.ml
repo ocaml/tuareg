@@ -29,6 +29,15 @@ let x =
   y
 ;;
 
+(* FIXME: MAJOR: M-q on the "(" raises 'Scan error: "Unbalanced
+   parentheses"'.  It is fine if both () are on the same line. *)
+let () =
+  begin
+    (begin
+      end)
+  end
+;;
+
 ;; (* http://caml.inria.fr/mantis/view.php?id=4247 *)
 let x = {
   Foo.
