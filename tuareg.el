@@ -2351,6 +2351,7 @@ For synchronous programming.")
 (defconst tuareg-matching-kwop-regexp
   (concat tuareg-matching-keyword-regexp
           "\\|\\<with\\>\\|[|>]?\\]\\|>?}\\|[|)]\\|;;")
+  ;; FIXME: what about \\|\\<end\\> ?
   "Regexp matching OCaml keywords or operators which act as end block
 delimiters.")
 
@@ -4391,6 +4392,9 @@ Short cuts for interactions with the toplevel:
   (interactive)
   (tuareg-run-process-if-needed)
   (display-buffer tuareg-interactive-buffer-name))
+
+;;;###autoload
+(defalias 'run-ocaml 'tuareg-run-ocaml)
 
 (defun tuareg-run-process-if-needed (&optional cmd)
   "Run an OCaml toplevel process if needed, with an optional command name.
