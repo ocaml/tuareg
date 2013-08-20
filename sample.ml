@@ -330,6 +330,26 @@ let rec count_append l1 l2 count =
         then slow_append tl l2
         else count_append tl l2 (count + 1))
 
+
+let x =
+  match x with
+  | Foo of
+      < tag : t;  (* FIXME *)
+      md :  t;
+      is_me :  t;
+      >
+;;
+
+let x =
+  match x with
+  | Foo of
+      <
+        tag : t;  (* FIXME *)
+      md :  t;
+      is_me :  t;
+      >
+;;
+
 let foo =
   (
     if a
