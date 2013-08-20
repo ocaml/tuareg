@@ -21,12 +21,14 @@ let x =
   x + x
 ;;
 
-(* FIXME: MAJOR "function" sends SMIE into a loop (fine with "fun"). *)
-let x =
-  let rec y =
-    let z = function t -> a in
-    foo () in
-  y
+(* FIXME: MAJOR "function" sends SMIE into a loop (fine with "fun").
+   Use M-q to test. *)
+let () =
+  let z = function t -> a in
+  foo z
+
+let () =
+  foo(function t -> a)
 ;;
 
 (* FIXME: MAJOR: M-q on the "(" raises 'Scan error: "Unbalanced
