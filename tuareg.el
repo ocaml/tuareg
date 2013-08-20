@@ -2130,10 +2130,11 @@ Short cuts for interactions with the toplevel:
         "val\\([ \t\n]+mutable\\)?\\|method\\|and\\|class"
 	"\\|let\\([ \t\n]+"
 	(if (tuareg-editing-ls3) "\\(?:rec\\|clock\\|node\\|static\\)" "rec")
-	"\\)?\\)\\>[ \t\n]*\\(\\(\\w\\|[->~_' \t(),.]\\|([ \t]*"
-	lid ":[->~_' \t(),.[:word:]]+)\\|\\?" lid
+	"\\)?\\)\\>[ \t\n]*\\(\\("
+	lid "\\|([ \t]*" lid "[ \t]*:[->~_' \t(),.[:word:]]+)\\|\\?" lid
 	;; FIXME: how to match multiple lines (until "=") efficiently?
-	"\\|\\?(" lid "=[->[:word:]'_. \t,.:]+)\\)+\\)")
+	"\\|\\?(" lid "=[->[:word:]'_. \t,.:]+)"
+	"\\|[>~_(),.[:space:]]\\)+\\)")
       4 font-lock-variable-name-face keep nil)
      (,(concat
         "\\<\\(open\\|\\(class\\([ \t\n]+type\\)?\\)\\([ \t\n]+virtual\\)?"
