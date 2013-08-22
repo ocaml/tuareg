@@ -2133,7 +2133,7 @@ Short cuts for interactions with the toplevel:
 	"\\)?\\)\\>[ \t\n]*\\(\\("
 	lid "\\|([ \t]*" lid "[ \t]*:[->~_' \t(),.[:word:]]+)\\|\\?" lid
 	;; FIXME: how to match multiple lines (until "=") efficiently?
-	"\\|\\?(" lid "=[->[:word:]'_. \t,.:]+)"
+	"\\|\\?(" lid "=[->[:word:]'_. \t,.:\"]+)"
 	"\\|[>~_(),.[:space:]]\\)+\\)")
       4 font-lock-variable-name-face keep nil)
      (,(concat
