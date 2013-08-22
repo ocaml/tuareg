@@ -1962,8 +1962,8 @@ Short cuts for interactions with the toplevel:
   (set (make-local-variable 'comment-start) "(* ")
   (set (make-local-variable 'comment-end) " *)")
   (set (make-local-variable 'comment-start-skip) "(\\*+[ \t]*")
-  (set (make-local-variable 'comment-column) 40)              ;FIXME: Why?
-  (set (make-local-variable 'comment-multi-line) t)           ;FIXME: Why?
+  ;(set (make-local-variable 'comment-column) 40)              ;FIXME: Why?
+  ;(set (make-local-variable 'comment-multi-line) t)           ;FIXME: Why?
   ;; `ocamlc' counts columns from 0, contrary to other tools which start at 1.
   (set (make-local-variable 'compilation-first-column) 0)
   (set (make-local-variable 'compilation-error-screen-columns) nil)
