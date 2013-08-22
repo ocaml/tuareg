@@ -2079,12 +2079,12 @@ Short cuts for interactions with the toplevel:
 		     "parser" "raise") 'words)
       0 font-lock-builtin-face nil nil)
      (,(concat
-         "[][;,()|{}]\\|[@^!:*=<>&/%+~?#---]\\.?\\|\\.\\.\\.*\\|"
+         "[][;,()|{}]\\|[-@^!:*=<>&/%+~?#]\\.?\\|\\.\\.\\.*\\|"
          (if (tuareg-editing-ls3)
              (regexp-opt '("asr" "asl" "lsr" "lsl" "or" "lor" "and" "land"
                            "lxor" "not" "lnot" "mod" "of" "ref"
                            "fby" "pre" "last" "at") 'words)
-           (regexp-opt '("asr" "asl" "lsr" "lsl" "or" "lor" "and" "land"
+           (regexp-opt '("asr" "asl" "lsr" "lsl" "or" "lor" "land"
                          "lxor" "not" "lnot" "mod" "of" "ref") 'words)))
        0 tuareg-font-lock-operator-face nil nil)
      ("[?~]\\<\\([_[:alpha:]]\\w*\\)[ \t\n]*:[^:>=]"
