@@ -2090,11 +2090,11 @@ Short cuts for interactions with the toplevel:
      ("[?~]\\<\\([_[:alpha:]]\\w*\\)[ \t\n]*:[^:>=]"
       1 font-lock-constant-face keep nil)
      ;; label in a type signature
-     (,(concat "\\(->\\|[^:>=]:\\)[ \t\n]*\\(" lid "\\)[ \t]*:")
+     (,(concat "\\(->\\|:[^:>=]\\)[ \t\n]*\\(" lid "\\)[ \t]*:[^:>=]")
       2 font-lock-constant-face keep nil)
      ;; (value: type) and (value :> type)
      (,(concat "([ \t\n]*" lid "[ \t\n]*:>?[ \t\n]*\\("
-	       "\\([^()]+\\|([^()]+)\\)+\\))")
+	       "\\([^():]+\\|([^()]+)\\)+\\))")
       1 font-lock-type-face keep nil)
      ;; A method is considered a function ([self] is always a param)
      (,(concat "\\<method\\>!?\\([ \t\n]+\\(private\\|virtual\\)\\>\\)*"
@@ -2119,8 +2119,8 @@ Short cuts for interactions with the toplevel:
      (,(concat
         "\\(?:"
         (if (tuareg-editing-ls3) "\\<val\\>[ \t\n]*\\w*[ \t\n]*:\\|")
-        "[^:>=]\\):[ \t\n]*"
-        "\\(['?]*\\(->[ \t\n]*\\|[_.*: \t[:alnum:]]" ;; \n after -> only
+        "[^:]:[^:>=]\\)[ \t\n]*"
+        "\\(['?]*\\(->[ \t\n]*\\|:[^:>=]\\|[_.* \t[:alnum:]]"
 	"\\|(['?]*[->_.,* \t:[:alnum:]]*)"
 	"\\|\\[[_'`<>|[:alnum:] \t]+\\]\\)\\{1,500\\}\\)\\>")
       1 font-lock-type-face keep nil)
