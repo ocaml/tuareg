@@ -5,11 +5,11 @@
 ;; Licensed under the GNU General Public License.
 
 ;; Author: Albert Cohen <Albert.Cohen@inria.fr>
-;;	Sam Steingold <sds@gnu.org>
-;;	Christophe Troestler <Christophe.Troestler@umons.ac.be>
-;;	Till Varoquaux <till@pps.jussieu.fr>
-;;	Sean McLaughlin <seanmcl@gmail.com>
-;;	Stefan Monnier <monnier@iro.umontreal.ca>
+;;      Sam Steingold <sds@gnu.org>
+;;      Christophe Troestler <Christophe.Troestler@umons.ac.be>
+;;      Till Varoquaux <till@pps.jussieu.fr>
+;;      Sean McLaughlin <seanmcl@gmail.com>
+;;      Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Created: 8 Jan 1997
 ;; Version: 2.0.6
 ;; Package-Requires: ((caml "3.12.0.1"))
@@ -78,17 +78,17 @@
   (eval-when-compile
     (with-temp-buffer
       (cond ((file-directory-p ".git")
-	     (progn
-	       (insert "git: ")
-	       (call-process "git" nil t nil "log" "--pretty=%h" "-1")))
-	    ((file-directory-p ".hg")
-	     (call-process "hg" nil t nil "id" "-i" "--debug"))
-	    ((file-directory-p ".svn")
+             (progn
+               (insert "git: ")
+               (call-process "git" nil t nil "log" "--pretty=%h" "-1")))
+            ((file-directory-p ".hg")
+             (call-process "hg" nil t nil "id" "-i" "--debug"))
+            ((file-directory-p ".svn")
              (let ((process-environment
                     (cons "LANG=C" process-environment)))
                (shell-command "svn info | grep Revision: | sed 's/Revision: //'" t)))
-	    ((file-directory-p ".bzr")
-	     (shell-command "bzr log -l -1 | grep revno:" t)))
+            ((file-directory-p ".bzr")
+             (shell-command "bzr log -l -1 | grep revno:" t)))
       (unless (zerop (buffer-size))
         (buffer-substring-no-properties
          (point-min) (1- (point-max))))))
@@ -97,7 +97,7 @@
 (defconst tuareg-mode-version
   (let ((version "Tuareg Version 2.0.6"))
     (if (null tuareg-mode-revision)
-	version
+        version
       (concat version " (" tuareg-mode-revision ")")
       ))
   "         Copyright (C) 1997-2006 Albert Cohen, all rights reserved.
@@ -864,9 +864,9 @@ alignment and can thus lead to surprises."
            ("'s" . ,(decode-char 'ucs 963))
            ("'t" . ,(decode-char 'ucs 964))
            ("'x" . ,(decode-char 'ucs 958))))
-	((and (fboundp 'make-char) (fboundp 'charsetp) (charsetp 'symbol))
-	 `(("fun" . ,(make-char 'symbol 108))
-	   ("sqrt" . ,(make-char 'symbol 214))
+        ((and (fboundp 'make-char) (fboundp 'charsetp) (charsetp 'symbol))
+         `(("fun" . ,(make-char 'symbol 108))
+           ("sqrt" . ,(make-char 'symbol 214))
            ("not" . ,(make-char 'symbol 216))
            ("&&" . ,(make-char 'symbol 217))
            ("or" . ,(make-char 'symbol 218))
@@ -1259,7 +1259,7 @@ For use on `electric-indent-functions'."
                      (decls "class" decls)
                      (decls "val" decls) (decls "external" decls)
                      (decls "open" decls) (decls "include" decls)
-		     (decls "DEFINE" decls)
+                     (decls "DEFINE" decls)
                      (exception)
                      (def)
                      ;; Hack: at the top-level, a "let D in E" can appear in
@@ -1403,7 +1403,7 @@ For use on `electric-indent-functions'."
          (reverse
           '((nonassoc "." "#")
             ;; function application, constructor application, assert, lazy
-            ;; - -. (prefix)	–
+            ;; - -. (prefix)    –
             (right "**…" "lsl" "lsr" "asr")
             (nonassoc "*…" "/…" "%…" "mod" "land" "lor" "lxor")
             (left "+…" "-…")
@@ -1549,7 +1549,7 @@ Return values can be
     (let* ((pos (point))
            (telltale '("type" "let" "module" "class" "and" "external"
                        "val" "method" "DEFINE" "="
-		       "if" "then" "else" "->" ";" ))
+                       "if" "then" "else" "->" ";" ))
            (nearest (tuareg-smie--search-backward telltale)))
       (cond
        ((and (member nearest '("{" ";"))
@@ -1572,7 +1572,7 @@ Return values can be
             (setq nearest (tuareg-smie--search-backward telltale)))
           nil))
        ((not (member nearest '("type" "let" "module" "class" "and"
-			       "external" "val" "method" "DEFINE")))
+                               "external" "val" "method" "DEFINE")))
         "=…")
        ((and (member nearest '("type" "module"))
              (member (tuareg-smie--backward-token) '("with" "and"))) "c=")
@@ -1685,18 +1685,18 @@ Return values can be
       (:list-intro (member token '("fun")))
       (:before
        (cond
-	((equal token "d=") (smie-rule-parent 2))
-	((member token '("fun" "match"))
+        ((equal token "d=") (smie-rule-parent 2))
+        ((member token '("fun" "match"))
          (if (and (not (smie-rule-bolp)) (smie-rule-prev-p "d="))
              (smie-rule-parent tuareg-default-indent)))
-	((equal token "then") (smie-rule-parent))
-	((equal token "if") (if (and (not (smie-rule-bolp))
-				     (smie-rule-prev-p "else"))
-				(smie-rule-parent)))
-	((and (equal token "with") (smie-rule-parent-p "{"))
-	 (smie-rule-parent))
+        ((equal token "then") (smie-rule-parent))
+        ((equal token "if") (if (and (not (smie-rule-bolp))
+                                     (smie-rule-prev-p "else"))
+                                (smie-rule-parent)))
+        ((and (equal token "with") (smie-rule-parent-p "{"))
+         (smie-rule-parent))
         ;; Align the "with" of "module type A = B \n with ..." w.r.t "module".
-	((and (equal token "m-with") (smie-rule-parent-p "d="))
+        ((and (equal token "m-with") (smie-rule-parent-p "d="))
          (save-excursion
            (smie-backward-sexp token)
            (goto-char (nth 1 (smie-backward-sexp 'halfsexp)))
@@ -1732,30 +1732,30 @@ Return values can be
               2))
         ((equal token "->")
          (cond
-	  ((and (smie-rule-parent-p "with")
-		;; Align with "with" but only if it's the only branch (often
-		;; the case in try..with), since otherwise subsequent
-		;; branches can't be both indented well and aligned.
-		(save-excursion
-		  (and (not (equal "|" (nth 2 (smie-forward-sexp "|"))))
-		       ;; Since we may misparse "if..then.." we need to
-		       ;; double check that smie-forward-sexp indeed got us
-		       ;; to the right place.
-		       (equal (nth 2 (smie-backward-sexp "|")) "with"))))
-	   (smie-rule-parent 2))
-	  ((smie-rule-parent-p "|") tuareg-match-clause-indent)
-	  (t 0)))
+          ((and (smie-rule-parent-p "with")
+                ;; Align with "with" but only if it's the only branch (often
+                ;; the case in try..with), since otherwise subsequent
+                ;; branches can't be both indented well and aligned.
+                (save-excursion
+                  (and (not (equal "|" (nth 2 (smie-forward-sexp "|"))))
+                       ;; Since we may misparse "if..then.." we need to
+                       ;; double check that smie-forward-sexp indeed got us
+                       ;; to the right place.
+                       (equal (nth 2 (smie-backward-sexp "|")) "with"))))
+           (smie-rule-parent 2))
+          ((smie-rule-parent-p "|") tuareg-match-clause-indent)
+          (t 0)))
         ((equal token ":")
          (cond
           ((smie-rule-parent-p "val" "external") (smie-rule-parent 2))
           ((smie-rule-parent-p "module") (smie-rule-parent))
           (t 2)))
-	((equal token "in") tuareg-in-indent) ;;(if (smie-rule-hanging-p)
-	((equal token "with")
-	 (cond
-	  ;; ((smie-rule-next-p "|") 2)
-	  ((smie-rule-parent-p "{") nil)
-	  (t (+ 2 tuareg-with-indent))))
+        ((equal token "in") tuareg-in-indent) ;;(if (smie-rule-hanging-p)
+        ((equal token "with")
+         (cond
+          ;; ((smie-rule-next-p "|") 2)
+          ((smie-rule-parent-p "{") nil)
+          (t (+ 2 tuareg-with-indent))))
         ((or (member token '("." "t->" "]"))
              (consp (nth 2 (assoc token tuareg-smie-grammar)))) ;; Closer.
          nil)
@@ -2026,14 +2026,14 @@ Short cuts for interactions with the toplevel:
 (defun tuareg-current-fun-name ()
   (save-excursion
     (let ((count tuareg-max-name-components)
-	  fullname name)
+          fullname name)
       (end-of-line)
       (while (and (> count 0)
-		  (setq name (tuareg-beginning-of-defun)))
-	(decf count)
-	(setq fullname (if fullname (concat name "." fullname) name))
-	;; Skip all other declarations that we find at the same level.
-	(tuareg-skip-siblings))
+                  (setq name (tuareg-beginning-of-defun)))
+        (decf count)
+        (setq fullname (if fullname (concat name "." fullname) name))
+        ;; Skip all other declarations that we find at the same level.
+        (tuareg-skip-siblings))
       fullname)))
 
 (defun tuareg-install-font-lock ()
@@ -2055,28 +2055,28 @@ Short cuts for interactions with the toplevel:
                              "initializer" "let" "rec" "object" "and" "begin"
                              "end"))
                "\\>\\|with[ \t\n]+\\(type\\|module\\)\\>"
-	       "\\|\\(method\\|val\\)\\>!?"
-	       "\\([ \t\n]\\(virtual\\|private\\)\\>\\)*\\)")
+               "\\|\\(method\\|val\\)\\>!?"
+               "\\([ \t\n]\\(virtual\\|private\\)\\>\\)*\\)")
       0 tuareg-font-lock-governing-face nil nil)
      (,(concat "\\<\\("
-	       (regexp-opt '("DEFINE" "IFDEF" "IFNDEF" "THEN" "ENDIF"
-			     "INCLUDE" "__FILE__" "__LOCATION__"))
-	       "\\)\\>")
+               (regexp-opt '("DEFINE" "IFDEF" "IFNDEF" "THEN" "ENDIF"
+                             "INCLUDE" "__FILE__" "__LOCATION__"))
+               "\\)\\>")
       0 font-lock-preprocessor-face nil nil)
      ,@(and tuareg-support-metaocaml
             '(("\\.<\\|>\\.\\|\\.~\\|\\.!"
                0 tuareg-font-lock-multistage-face nil nil)))
      ("\\<\\(false\\|true\\)\\>" 0 font-lock-constant-face nil nil)
      (,(regexp-opt '("as" "do" "of" "done" "downto" "else" "for" "if"
-		     "mutable" "new" "private"
-		     "then" "to" "try" "when" "while" "match" "with"
-		     "lazy" "exception" "assert" "fun" "function") 'words)
+                     "mutable" "new" "private"
+                     "then" "to" "try" "when" "while" "match" "with"
+                     "lazy" "exception" "assert" "fun" "function") 'words)
       0 font-lock-keyword-face nil nil)
      ,@(if (tuareg-editing-ls3)
            `(("\\<\\(merge\\|emit\\|period\\)\\>"
               0 font-lock-keyword-face nil nil)))
      (,(regexp-opt '("failwith" "failwithf" "exit" "invalid_arg"
-		     "parser" "raise") 'words)
+                     "parser" "raise") 'words)
       0 font-lock-builtin-face nil nil)
      (,(concat
          "[][;,()|{}]\\|[-@^!:*=<>&/%+~?#]\\.?\\|\\.\\.\\.*\\|"
@@ -2094,11 +2094,11 @@ Short cuts for interactions with the toplevel:
       2 font-lock-constant-face keep nil)
      ;; (value: type) and (value :> type)
      (,(concat "( *\\<" lid "\\> *:>? *[\t\n]? *"
-     	       "\\(\\([^():\n\t]+\\|([^()\n\t]+)\\)+\\))")
+               "\\(\\([^():\n\t]+\\|([^()\n\t]+)\\)+\\))")
       1 font-lock-type-face keep nil)
      ;; A method is considered a function ([self] is always a param)
      (,(concat "\\<method\\>!?\\( *[\t\n]? *\\(private\\|virtual\\)\\>\\)*"
-     	       " *[\t\n]? *\\([_[:lower:]]\\(\\w\\|['_]\\)*\\)")
+               " *[\t\n]? *\\([_[:lower:]]\\(\\w\\|['_]\\)*\\)")
       3 font-lock-function-name-face keep nil)
      (,(concat
         "\\<\\(val\\>!?\\( +\\(mutable\\|virtual\\)\\>\\)*"
@@ -2121,24 +2121,24 @@ Short cuts for interactions with the toplevel:
         (if (tuareg-editing-ls3) "\\<val\\> *[\t\n]? *\\w* *[\t\n]? *:\\|")
         "[^:]:\\) *[\t\n]? *"
         "\\([^:>=]\\(['?]*\\(-> *[\t\n]? *\\|:[^:>=]\\|[_.* \t[:alnum:]]"
-     	"\\|(['?]*[->_.,* \t:[:alnum:]]*)"
-     	"\\|\\[[_'`<>|[:alnum:] \t]+\\]\\)\\{1,500\\}\\)\\)\\>")
+        "\\|(['?]*[->_.,* \t:[:alnum:]]*)"
+        "\\|\\[[_'`<>|[:alnum:] \t]+\\]\\)\\{1,500\\}\\)\\)\\>")
       1 font-lock-type-face keep nil)
      (,(concat
         "\\<\\("
         (if (tuareg-editing-ls3) "reset\\|do\\|")
         "val\\>\\( *[\t\n]? *mutable\\)?\\|method\\|and\\|class"
-     	"\\|let\\>\\( *[\t\n]? *"
-     	(if (tuareg-editing-ls3) "\\(?:rec\\|clock\\|node\\|static\\)" "rec")
-     	"\\)?\\)\\> *[\t\n]? *\\(\\("
-     	lid "\\|([ \t]*" lid "[ \t]*:[->~_' \t(),.[:word:]]+)\\|\\?" lid
-     	;; FIXME: how to match multiple lines (until "=") efficiently?
-     	"\\|\\?(" lid "=[->[:word:]'_. \t,.:\"]+)"
-     	"\\|[>~_(),.[:space:]]\\)+\\)")
+        "\\|let\\>\\( *[\t\n]? *"
+        (if (tuareg-editing-ls3) "\\(?:rec\\|clock\\|node\\|static\\)" "rec")
+        "\\)?\\)\\> *[\t\n]? *\\(\\("
+        lid "\\|([ \t]*" lid "[ \t]*:[->~_' \t(),.[:word:]]+)\\|\\?" lid
+        ;; FIXME: how to match multiple lines (until "=") efficiently?
+        "\\|\\?(" lid "=[->[:word:]'_. \t,.:\"]+)"
+        "\\|[>~_(),.[:space:]]\\)+\\)")
       4 font-lock-variable-name-face keep nil)
      (,(concat
         "\\<\\(open\\|\\(class\\>\\( *[\t\n]? *type\\)?\\)"
-	"\\( *[\t\n]? *\\<virtual\\)?"
+        "\\( *[\t\n]? *\\<virtual\\)?"
         "\\|inherit\\|include\\|module\\( *[\t\n]? *\\<\\(type\\|rec\\)\\)?"
         "\\|type\\)\\> *[\t\n]? *"
         "\\(['~?]*\\([->_.* \t]\\|\\w\\|(['~?]*\\([->_.,* \t]\\|\\w\\)*)\\)*\\)")
@@ -4217,13 +4217,13 @@ otherwise return non-nil."
   (let ((name buffer-file-name))
     (when (string-match "\\`\\(.*\\)\\.ml\\([il]\\)?\\'" name)
       (let ((mod-name (tuareg-match-string 1 name))
-	    (e (tuareg-match-string 2 name)))
-	(cond
-	 ((string= e "i")
-	  (unless (tuareg--try-find-alternate-file mod-name ".mll" 'no-create)
-	    (tuareg--try-find-alternate-file mod-name ".ml")))
-	 (t
-	  (tuareg--try-find-alternate-file mod-name ".mli")))))))
+            (e (tuareg-match-string 2 name)))
+        (cond
+         ((string= e "i")
+          (unless (tuareg--try-find-alternate-file mod-name ".mll" 'no-create)
+            (tuareg--try-find-alternate-file mod-name ".ml")))
+         (t
+          (tuareg--try-find-alternate-file mod-name ".mli")))))))
 
 (define-skeleton tuareg-insert-class-form
   "Insert a nicely formatted class-end form, leaving a mark after end."
