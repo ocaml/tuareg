@@ -2087,63 +2087,64 @@ Short cuts for interactions with the toplevel:
            (regexp-opt '("asr" "asl" "lsr" "lsl" "or" "lor" "land"
                          "lxor" "not" "lnot" "mod" "of" "ref") 'words)))
        0 tuareg-font-lock-operator-face nil nil)
-     ("[?~]\\<\\([_[:alpha:]]\\w*\\)[ \t\n]*:[^:>=]"
+     ("[?~]\\<\\([_[:alpha:]]\\w*\\) *[\t\n]? *:[^:>=]"
       1 font-lock-constant-face keep nil)
      ;; label in a type signature
-     (,(concat "\\(->\\|:[^:>=]\\)[ \t\n]*\\(" lid "\\)[ \t]*:[^:>=]")
+     (,(concat "\\(->\\|:[^:>=]\\) *[\t\n]? *\\(" lid "\\)[ \t]*:[^:>=]")
       2 font-lock-constant-face keep nil)
      ;; (value: type) and (value :> type)
-     (,(concat "([ \t\n]*" lid "[ \t\n]*:>?[ \t\n]*\\("
-	       "\\([^():]+\\|([^()]+)\\)+\\))")
+     (,(concat "( *\\<" lid "\\> *:>? *[\t\n]? *"
+     	       "\\(\\([^():\n\t]+\\|([^()\n\t]+)\\)+\\))")
       1 font-lock-type-face keep nil)
      ;; A method is considered a function ([self] is always a param)
-     (,(concat "\\<method\\>!?\\([ \t\n]+\\(private\\|virtual\\)\\>\\)*"
-	       "[ \t\n]*\\([_[:lower:]]\\(\\w\\|['_]\\)*\\)")
+     (,(concat "\\<method\\>!?\\( *[\t\n]? *\\(private\\|virtual\\)\\>\\)*"
+     	       " *[\t\n]? *\\([_[:lower:]]\\(\\w\\|['_]\\)*\\)")
       3 font-lock-function-name-face keep nil)
      (,(concat
-        "\\<\\(val\\>!?\\([ \t\n]+\\(mutable\\|virtual\\)\\>\\)*"
+        "\\<\\(val\\>!?\\( +\\(mutable\\|virtual\\)\\>\\)*"
         "\\|external\\>\\|and\\>\\|class\\>"
         (if (tuareg-editing-ls3)
-            "\\|let\\([ \t\n]+\\(?:rec\\|clock\\|node\\|static\\)\\)?"
-          "\\|let\\([ \t\n]+rec\\)?\\>")
-        "\\)[ \t\n]*\\([_[:lower:]]\\(\\w\\|[._]\\)*\\)\\>[ \t\n]*"
-        "\\(\\(\\w\\|[->()_?~.'*:]\\)+\\|=[ \t\n]*fun\\(ction\\)?\\>\\)")
+            "\\|let\\( *[\t\n]? *\\(?:rec\\|clock\\|node\\|static\\)\\)?"
+          "\\|let\\( +rec\\)?\\>")
+        "\\) *[\t\n]? *\\([_[:lower:]]\\(\\w\\|[._]\\)*\\)\\> *[\t\n]? *"
+        "\\(\\(\\w\\|[->()_?~.'*:]\\)+\\|= *[\t\n]? *fun\\(ction\\)?\\>\\)")
       5 font-lock-function-name-face keep nil)
      (,(concat "\\<function[ \t\n]+\\(" lid "\\)")
       1 font-lock-variable-name-face keep nil)
      ;; "type lid" anywhere (e.g. "let f (type t) x =") introduces a new type
-     (,(concat "type[ \t\n]+\\(" lid "\\)")
+     (,(concat "\\<type\\> *[\t\n]? *\\(\\<" lid "\\>\\)")
       1 font-lock-type-face keep nil)
-     (,(concat "\\<fun\\>\\(\\(\\w\\|[_ \t\n(),*~?:=]\\)+\\)[ \t\n]*->")
+     (,(concat "\\<fun\\>\\(\\(\\w\\|[_ \t\n(),*~?:=]\\)+\\) *[\t\n]? *->")
       1 font-lock-variable-name-face keep nil)
      (,(concat
         "\\(?:"
-        (if (tuareg-editing-ls3) "\\<val\\>[ \t\n]*\\w*[ \t\n]*:\\|")
-        "[^:]:[^:>=]\\)[ \t\n]*"
-        "\\(['?]*\\(->[ \t\n]*\\|:[^:>=]\\|[_.* \t[:alnum:]]"
-	"\\|(['?]*[->_.,* \t:[:alnum:]]*)"
-	"\\|\\[[_'`<>|[:alnum:] \t]+\\]\\)\\{1,500\\}\\)\\>")
+        (if (tuareg-editing-ls3) "\\<val\\> *[\t\n]? *\\w* *[\t\n]? *:\\|")
+        "[^:]:\\) *[\t\n]? *"
+        "\\([^:>=]\\(['?]*\\(-> *[\t\n]? *\\|:[^:>=]\\|[_.* \t[:alnum:]]"
+     	"\\|(['?]*[->_.,* \t:[:alnum:]]*)"
+     	"\\|\\[[_'`<>|[:alnum:] \t]+\\]\\)\\{1,500\\}\\)\\)\\>")
       1 font-lock-type-face keep nil)
      (,(concat
         "\\<\\("
         (if (tuareg-editing-ls3) "reset\\|do\\|")
-        "val\\([ \t\n]+mutable\\)?\\|method\\|and\\|class"
-	"\\|let\\([ \t\n]+"
-	(if (tuareg-editing-ls3) "\\(?:rec\\|clock\\|node\\|static\\)" "rec")
-	"\\)?\\)\\>[ \t\n]*\\(\\("
-	lid "\\|([ \t]*" lid "[ \t]*:[->~_' \t(),.[:word:]]+)\\|\\?" lid
-	;; FIXME: how to match multiple lines (until "=") efficiently?
-	"\\|\\?(" lid "=[->[:word:]'_. \t,.:\"]+)"
-	"\\|[>~_(),.[:space:]]\\)+\\)")
+        "val\\>\\( *[\t\n]? *mutable\\)?\\|method\\|and\\|class"
+     	"\\|let\\>\\( *[\t\n]? *"
+     	(if (tuareg-editing-ls3) "\\(?:rec\\|clock\\|node\\|static\\)" "rec")
+     	"\\)?\\)\\> *[\t\n]? *\\(\\("
+     	lid "\\|([ \t]*" lid "[ \t]*:[->~_' \t(),.[:word:]]+)\\|\\?" lid
+     	;; FIXME: how to match multiple lines (until "=") efficiently?
+     	"\\|\\?(" lid "=[->[:word:]'_. \t,.:\"]+)"
+     	"\\|[>~_(),.[:space:]]\\)+\\)")
       4 font-lock-variable-name-face keep nil)
      (,(concat
-        "\\<\\(open\\|\\(class\\([ \t\n]+type\\)?\\)\\([ \t\n]+virtual\\)?"
-        "\\|inherit\\|include\\|module\\([ \t\n]+\\(type\\|rec\\)\\)?"
-        "\\|type\\)\\>[ \t\n]*"
+        "\\<\\(open\\|\\(class\\>\\( *[\t\n]? *type\\)?\\)"
+	"\\( *[\t\n]? *\\<virtual\\)?"
+        "\\|inherit\\|include\\|module\\( *[\t\n]? *\\<\\(type\\|rec\\)\\)?"
+        "\\|type\\)\\> *[\t\n]? *"
         "\\(['~?]*\\([->_.* \t]\\|\\w\\|(['~?]*\\([->_.,* \t]\\|\\w\\)*)\\)*\\)")
       7 font-lock-type-face keep nil)
      ("\\<\\([A-Z]\\w*\\>\\)[ \t]*\\." 1 font-lock-type-face keep nil)
-     ("\\<exception\\>[ \t\n]*\\(\\<[_[:alpha:]]\\w*\\>\\)"
+     ("\\<exception\\> *[\t\n]? *\\(\\<[_[:alpha:]]\\w*\\>\\)"
       1 font-lock-variable-name-face keep nil)
      ("^#\\w+\\>" 0 font-lock-preprocessor-face t nil)
      ,@(and tuareg-font-lock-symbols
