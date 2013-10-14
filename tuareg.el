@@ -2094,7 +2094,7 @@ Short cuts for interactions with the toplevel:
       2 font-lock-constant-face keep nil)
      ;; (value: type) and (value :> type)
      (,(concat "( *\\<" lid "\\> *:>? *[\t\n]? *"
-               "\\(\\([^():\n\t]+\\|([^()\n\t]+)\\)+\\))")
+               "\\(\\([[:alnum:] '*.]+\\|([[:alnum:], '*.]+)\\)+\\))")
       1 font-lock-type-face keep nil)
      ;; A method is considered a function ([self] is always a param)
      (,(concat "\\<method\\>!?\\( *[\t\n]? *\\(private\\|virtual\\)\\>\\)*"
