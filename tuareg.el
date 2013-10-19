@@ -2078,6 +2078,14 @@ Short cuts for interactions with the toplevel:
      (,(regexp-opt '("failwith" "failwithf" "exit" "invalid_arg"
                      "parser" "raise") 'words)
       0 font-lock-builtin-face nil nil)
+     ("\\([?~]\\<[_[:alpha:]]\\w*\\) *[\t\n]? *:[^:>=]"
+      1 font-lock-constant-face keep nil)
+     ;; label in a type signature
+     (,(concat "\\(->\\|:[^:>=]\\) *[\t\n]? *\\(" lid "\\)[ \t]*:[^:>=]")
+      2 font-lock-constant-face keep nil)
+     (,(concat "( *\\<" lid "\\> *:>? *[\t\n]? *"
+               "\\(\\([[:alnum:] '*.]+\\|([[:alnum:], '*.]+)\\)+\\))")
+      1 font-lock-type-face keep nil)
      (,(concat
          "[][;,()|{}]\\|[-@^!:*=<>&/%+~?#]\\.?\\|\\.\\.\\.*\\|"
          (if (tuareg-editing-ls3)
@@ -2087,15 +2095,7 @@ Short cuts for interactions with the toplevel:
            (regexp-opt '("asr" "asl" "lsr" "lsl" "or" "lor" "land"
                          "lxor" "not" "lnot" "mod" "of" "ref") 'words)))
        0 tuareg-font-lock-operator-face nil nil)
-     ("[?~]\\<\\([_[:alpha:]]\\w*\\) *[\t\n]? *:[^:>=]"
-      1 font-lock-constant-face keep nil)
-     ;; label in a type signature
-     (,(concat "\\(->\\|:[^:>=]\\) *[\t\n]? *\\(" lid "\\)[ \t]*:[^:>=]")
-      2 font-lock-constant-face keep nil)
      ;; (value: type) and (value :> type)
-     (,(concat "( *\\<" lid "\\> *:>? *[\t\n]? *"
-               "\\(\\([[:alnum:] '*.]+\\|([[:alnum:], '*.]+)\\)+\\))")
-      1 font-lock-type-face keep nil)
      ;; A method is considered a function ([self] is always a param)
      (,(concat "\\<method\\>!?\\( *[\t\n]? *\\(private\\|virtual\\)\\>\\)*"
                " *[\t\n]? *\\([_[:lower:]]\\(\\w\\|['_]\\)*\\)")
@@ -2118,8 +2118,8 @@ Short cuts for interactions with the toplevel:
       1 font-lock-variable-name-face keep nil)
      (,(concat
         "\\(?:"
-        (if (tuareg-editing-ls3) "\\<val\\> *[\t\n]? *\\w* *[\t\n]? *:\\|")
-        "[^:]:\\) *[\t\n]? *"
+        (if (tuareg-editing-ls3) "\\<val\\> *\\w+ *[\t\n]? *:\\|")
+        "[^~?]\\<\\w+ *:\\) *[\t\n]? *"
         "\\([^:>=]\\(['?]*\\(-> *[\t\n]? *\\|:[^:>=]\\|[_.* \t[:alnum:]]"
         "\\|(['?]*[->_.,* \t:[:alnum:]]*)"
         "\\|\\[[_'`<>|[:alnum:] \t]+\\]\\)\\{1,500\\}\\)\\)\\>")
