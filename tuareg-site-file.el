@@ -102,8 +102,8 @@ Run an OCaml toplevel process. I/O via buffer `*ocaml-toplevel*'.
 
 ;;;***
 
-;;;### (autoloads nil nil ("tuareg-light.el") (21122 7940 365297
-;;;;;;  584000))
+;;;### (autoloads nil nil ("tuareg-light.el") (21122 8234 510219
+;;;;;;  207000))
 
 ;;;***
 

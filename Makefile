@@ -8,10 +8,11 @@ DIST_NAME = tuareg-$(VERSION)
 TARBALL = $(DIST_NAME).tar.gz
 OPAM_DIR = tuareg.$(VERSION)
 
-ELS = tuareg.el ocamldebug.el tuareg-site-file.el
+SOURCES = tuareg.el ocamldebug.el
+ELS = $(SOURCES) tuareg-site-file.el
 ELC = $(ELS:.el=.elc)
 
-# Installation directory:
+INSTALL_FILES = $(ELS) $(ELC)
 INSTALL_DIR ?= $(shell opam config var prefix)/share/tuareg
 
 DIST_FILES += $(ELS) Makefile README
@@ -35,10 +36,10 @@ elc : $(ELC)
 %.elc : %.el
 	$(EMACS) --batch --no-init-file -f batch-byte-compile $<
 
-install : $(ELC)
+install : $(INSTALL_FILES)
 	-$(INSTALL_RM_R) $(INSTALL_DIR)
 	$(INSTALL_MKDIR) $(INSTALL_DIR)
-	$(INSTALL_CP) $(ELS) $(ELC) $(INSTALL_DIR)/
+	$(INSTALL_CP) $(INSTALL_FILES) $(INSTALL_DIR)/
 	$(POST_INSTALL_HOOK)
 
 uninstall :
@@ -61,7 +62,7 @@ check : sample.ml.test
 	  --eval '(write-region (point-min) (point-max) "$@")'
 	$(DIFF) $< $@ || true
 
-tuareg-site-file.el: refresh
+tuareg-site-file.el: $(SOURCES)
 	(echo ";;; $@ --- Automatically extracted autoloads.";\
 	 echo ";;; Code:";\
 	 echo "(add-to-list 'load-path";\
