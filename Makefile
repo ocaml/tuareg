@@ -5,22 +5,27 @@ DESCRIPTION = $(shell grep ';;; tuareg.el ---' tuareg.el \
 REQUIREMENTS = $(shell grep ';; Package-Requires:' tuareg.el \
 	| sed 's/;; Package-Requires: *\(.\+\).*/\1/')
 DIST_NAME = tuareg-$(VERSION)
+TARBALL = $(DIST_NAME).tar.gz
+OPAM_DIR = tuareg.$(VERSION)
 
-ELS = tuareg.el ocamldebug.el
+ELS = tuareg.el ocamldebug.el tuareg-site-file.el
 ELC = $(ELS:.el=.elc)
+
+# Installation directory:
+INSTALL_DIR ?= $(shell opam config var prefix)/share/tuareg
 
 DIST_FILES += $(ELS) Makefile README
 
-EMACS = emacs
+EMACS ?= emacs
 
 #ENABLE_SMIE = --eval '(setq tuareg-use-smie t)'
-RM = rm -rf
-CP = cp -f
+RM ?= rm -f
+CP ?= cp -f
 LN = ln
 DIFF = diff -u -B
 
-INSTALL_RM_R = $(RM)
-INSTALL_MKDIR = mkdir
+INSTALL_RM_R = $(RM) -r
+INSTALL_MKDIR = mkdir -p
 INSTALL_CP = $(CP)
 
 all : elc tuareg-site-file.el
@@ -28,41 +33,16 @@ all : elc tuareg-site-file.el
 elc : $(ELC)
 
 %.elc : %.el
-	$(EMACS) -batch $(NOINIT) -f batch-byte-compile $<
+	$(EMACS) --batch --no-init-file -f batch-byte-compile $<
 
-# ifneq ($(realpath .hg),)
-# POST_INSTALL_HOOK = $(RM) $(VERSION_FILE)
-# MAKE_VERSION_FILE = hg id -i | fgrep -v '+' >/dev/null || \
-#         (echo 'uncommitted changes' >&2; exit 1); \
-#         hg id -i --debug > $(VERSION_FILE)
-# else
-# ifneq ($(realpath .svn),)
-# POST_INSTALL_HOOK = $(RM) $(VERSION_FILE)
-# MAKE_VERSION_FILE = svn info | grep Revision: | sed 's/Revision: //' > $(VERSION_FILE)
-# else
-# ifneq ($(realpath .bzr),)
-# POST_INSTALL_HOOK = $(RM) $(VERSION_FILE)
-# MAKE_VERSION_FILE = bzr log -l -1 | grep revno: > $(VERSION_FILE)
-# else
-# ifneq ($(realpath $(VERSION_FILE)),)
-# POST_INSTALL_HOOK =
-# MAKE_VERSION_FILE = @echo "Using \"$(VERSION_FILE)\" in the distribution."
-# else
-# POST_INSTALL_HOOK =
-# MAKE_VERSION_FILE = @(echo "missing \"$(VERSION_FILE)\" in the distribution?" >&2; exit 1)
-# endif
-# endif
-# endif
-# endif
+install : $(ELC)
+	-$(INSTALL_RM_R) $(INSTALL_DIR)
+	$(INSTALL_MKDIR) $(INSTALL_DIR)
+	$(INSTALL_CP) $(ELS) $(ELC) $(INSTALL_DIR)/
+	$(POST_INSTALL_HOOK)
 
-# install : $(ELC) $(VERSION_FILE)
-#         fgrep `cat $(VERSION_FILE)` tuareg.elc >/dev/null 2>&1 || \
-#          ($(RM) tuareg.elc; $(MAKE) tuareg.elc)
-#         $(INSTALL_RM_R) ${DEST}
-#         $(INSTALL_MKDIR) ${DEST}
-#         for f in $(ELS) $(ELC) $(VERSION_FILE); do $(INSTALL_CP) $$f $(DEST)/$$f; done
-#         $(POST_INSTALL_HOOK)
-
+uninstall :
+	-test -d $(INSTALL_DIR) && $(INSTALL_RM_R) $(INSTALL_DIR)
 
 .PHONY: refresh
 refresh:
@@ -89,19 +69,24 @@ tuareg-site-file.el: refresh
 	 echo "") >$@
 	$(EMACS) --batch --eval '(setq generated-autoload-file "'`pwd`'/$@")' -f batch-update-autoloads "."
 
-.PHONY: dist tar
-dist: $(DIST_NAME).tar.gz
-tar: $(DIST_NAME).tar
+dist distrib: $(TARBALL)
 
-$(DIST_NAME).tar.gz $(DIST_NAME).tar: $(DIST_FILES)
+$(TARBALL): $(DIST_FILES)
 	mkdir -p $(DIST_NAME)
 	for f in $(DIST_FILES); do $(LN) $$f $(DIST_NAME); done
 	echo '(define-package "tuareg" "$(VERSION)" "$(DESCRIPTION)" ' "'"'$(REQUIREMENTS))' > $(DIST_NAME)/tuareg-pkg.el
 	tar acvf $@ $(DIST_NAME)
-	$(RM) -rf $(DIST_NAME)
+	$(RM) -r $(DIST_NAME)
+
+opam: $(TARBALL)
+	$(INSTALL_MKDIR) $(OPAM_DIR)
+	$(CP) -a $(filter-out %~, $(wildcard opam/*)) $(OPAM_DIR)
+	echo "archive: \"`pwd`/$(TARBALL)\"" > $(OPAM_DIR)/url
+	echo "checksum: \"`md5sum $(TARBALL) | cut -d ' ' -f 1`\"" \
+	  >> $(OPAM_DIR)/url
 
 clean :
 	$(RM) $(ELC) "$(DIST_NAME).tar.gz" "$(DIST_NAME).tar"
-#         $(POST_INSTALL_HOOK)
+	$(RM) -r tuareg.$(VERSION)
 
-# .PHONY : all elc clean install force check distrib dist
+.PHONY : all elc clean install uninstall check distrib dist opam
