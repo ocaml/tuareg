@@ -1,9 +1,9 @@
 VERSION = $(shell grep ';; Version:' tuareg.el \
-	| sed 's/;; Version: *\([0-9.]\+\).*/\1/')
+	| sed 's/;; Version: *\([0-9.]*\).*/\1/')
 DESCRIPTION = $(shell grep ';;; tuareg.el ---' tuareg.el \
 	| sed 's/[^-]*--- *\([^.]*\).*/\1/')
 REQUIREMENTS = $(shell grep ';; Package-Requires:' tuareg.el \
-	| sed 's/;; Package-Requires: *\(.\+\).*/\1/')
+	| sed 's/;; Package-Requires: *\(.*\)/\1/')
 DIST_NAME = tuareg-$(VERSION)
 TARBALL = $(DIST_NAME).tar.gz
 OPAM_DIR = tuareg.$(VERSION)
