@@ -20,7 +20,7 @@ the ocamldebug commands `cd DIR' and `directory'.
 ;;;***
 
 ;;;### (autoloads (tuareg-run-ocaml tuareg-mode) "tuareg" "tuareg.el"
-;;;;;;  (21189 22919 886079 817000))
+;;;;;;  (21189 28865 986630 634000))
 ;;; Generated autoloads from tuareg.el
 (add-to-list 'auto-mode-alist '("\\.ml[iylp]?\\'" . tuareg-mode))
 (dolist (ext '(".cmo" ".cmx" ".cma" ".cmxa" ".cmi" ".annot"))
@@ -100,10 +100,14 @@ Run an OCaml toplevel process. I/O via buffer `*ocaml-toplevel*'.
 
 (defalias 'run-ocaml 'tuareg-run-ocaml)
 
+(add-to-list 'interpreter-mode-alist '("ocamlrun" . tuareg-mode))
+
+(add-to-list 'interpreter-mode-alist '("ocaml" . tuareg-mode))
+
 ;;;***
 
-;;;### (autoloads nil nil ("tuareg-light.el") (21189 25767 233265
-;;;;;;  173000))
+;;;### (autoloads nil nil ("tuareg-light.el") (21189 29123 107021
+;;;;;;  162000))
 
 ;;;***
 

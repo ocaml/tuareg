@@ -39,12 +39,13 @@
 ;; mark at the end.  Under Emacs, the program fragment is temporarily
 ;; hilighted.
 ;;
-;; M-x tuareg-run-ocaml starts an OCaml toplevel with input and output in
-;; an Emacs buffer named `*ocaml-toplevel*. This gives you the full
-;; power of Emacs to edit the input to the OCaml toplevel. This mode is
-;; based on comint so you get all the usual comint features, including
-;; command history. A hook named `tuareg-interactive-mode-hook' may be
-;; used for customization.
+;; M-x tuareg-run-ocaml (or simply `run-ocaml') starts an OCaml
+;; toplevel with input and output in an Emacs buffer named
+;; `*ocaml-toplevel*. This gives you the full power of Emacs to edit
+;; the input to the OCaml toplevel. This mode is based on comint so
+;; you get all the usual comint features, including command history. A
+;; hook named `tuareg-interactive-mode-hook' may be used for
+;; customization.
 ;;
 ;; Typing C-c C-e in a buffer in tuareg mode sends the current phrase
 ;; (containing the point) to the OCaml toplevel, and evaluates it.  If
@@ -4397,6 +4398,11 @@ Short cuts for interactions with the toplevel:
 
 ;;;###autoload
 (defalias 'run-ocaml 'tuareg-run-ocaml)
+
+;;;###autoload
+(add-to-list 'interpreter-mode-alist '("ocamlrun" . tuareg-mode))
+;;;###autoload
+(add-to-list 'interpreter-mode-alist '("ocaml" . tuareg-mode))
 
 (defun tuareg-run-process-if-needed (&optional cmd)
   "Run an OCaml toplevel process if needed, with an optional command name.
