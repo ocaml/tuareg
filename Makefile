@@ -15,7 +15,7 @@ ELC = $(ELS:.el=.elc)
 INSTALL_FILES = $(ELS) $(ELC)
 INSTALL_DIR ?= $(shell opam config var prefix)/share/tuareg
 
-DIST_FILES += $(ELS) Makefile README
+DIST_FILES += $(ELS) Makefile README.md
 
 EMACS ?= emacs
 
