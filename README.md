@@ -1,4 +1,4 @@
-Tuareg: An Emacs OCaml mode
+Tuareg: an Emacs OCaml mode
 ===========================
 
 This archive contains files to help editing [OCaml](http://ocaml.org/)
@@ -6,23 +6,23 @@ code, to highlight important parts of the code, to run an OCaml
 toplevel, and to run the OCaml debugger within Emacs.
 
 Contents
-========
+--------
 
-`README`         — This file.
-`HISTORY`        — Differences with previous versions.
-`tuareg.el`      — A major mode for editing OCaml code in Emacs.
-`ocamldebug.el`  — To run the OCaml debugger under Emacs.
+`README`         — This file.  
+`HISTORY`        — Differences with previous versions.  
+`tuareg.el`      — A major mode for editing OCaml code in Emacs.  
+`ocamldebug.el`  — To run the OCaml debugger under Emacs.  
 `sample.ml`      — Sample file to check the indentation engine.
 
 Install
-=======
+-------
 
 See `tuareg.el`.
 
 	
 
 Configuration
-=============
+-------------
 
 Add the following line near the beginning of your ~/.emacs file:
 
@@ -37,12 +37,12 @@ on SMIE was written.  To deactivate it, add (setq tuareg-use-smie nil)
 to the top-level of your `.emacs` file.
 
 Usage
-=====
+-----
 
 See `tuareg.el`.
 
 Customization
-=============
+-------------
 
 The standard Emacs customization tool can be used to configure
 Tuareg options.  It is available from the Options menu and Tuareg's
@@ -57,7 +57,7 @@ You should then add to your configuration file something like:
       (lambda () ... ; your customization code ))
 
 Sample Customizations
-=====================
+---------------------
 
 Here are random examples of customization you might like to put in
 your ~/.emacs file:
@@ -74,12 +74,12 @@ your ~/.emacs file:
               (lambda () (auto-fill-mode 1)))
     
 Features, Known Bugs
-====================
+--------------------
 
 Cf. online help.
 
 Thanks
-======
+------
 
 Ian Zimmerman for the previous mode, compilation interface and
 debugger enhancement.
@@ -115,7 +115,7 @@ Jane Street took over maintenance based on Albert Cohen's version 1.46
 (later retracted by him), and released its first version as 2.0.
 
 Reporting
-=========
+---------
 
 The official Tuareg home page is located at:
 <https://forge.ocamlcore.org/projects/tuareg/>.
