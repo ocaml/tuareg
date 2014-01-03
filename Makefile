@@ -13,7 +13,7 @@ ELS = $(SOURCES) tuareg-site-file.el
 ELC = $(ELS:.el=.elc)
 
 INSTALL_FILES = $(ELS) $(ELC)
-INSTALL_DIR ?= $(shell opam config var prefix)/share/tuareg
+INSTALL_DIR ?= $(shell opam config var share)/emacs/site-lisp/tuareg
 
 DIST_FILES += $(ELS) Makefile README.md
 

@@ -1,7 +1,7 @@
 opam-version: "1"
 maintainer: "Christophe.Troestler@umons.ac.be"
 build: [
-  [make "install" "INSTALL_DIR=%{prefix}%/share/tuareg"]
+  [make "install" "INSTALL_DIR=%{share}%/emacs/site-lisp/tuareg"]
 ]
 remove: [
   [make "uninstall"]
