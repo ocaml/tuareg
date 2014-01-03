@@ -17,7 +17,12 @@ INSTALL_DIR ?= $(shell opam config var share)/emacs/site-lisp/tuareg
 
 DIST_FILES += $(ELS) Makefile README.md
 
+EMACSFORMACOSX = /Applications/Emacs.app/Contents/MacOS/Emacs
+ifeq ($(wildcard $(EMACSFORMACOSX)),$(EMACSFORMACOSX))
+EMACS ?= $(EMACSFORMACOSX)
+else
 EMACS ?= emacs
+endif
 
 #ENABLE_SMIE = --eval '(setq tuareg-use-smie t)'
 RM ?= rm -f
