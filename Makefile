@@ -13,7 +13,7 @@ ELS = $(SOURCES) tuareg-site-file.el
 ELC = $(ELS:.el=.elc)
 
 INSTALL_FILES = $(ELS) $(ELC)
-INSTALL_DIR ?= $(shell opam config var share)/emacs/site-lisp/tuareg
+INSTALL_DIR ?= $(shell opam config var share)/emacs/site-lisp
 
 DIST_FILES += $(ELS) Makefile README.md
 
@@ -42,13 +42,13 @@ elc : $(ELC)
 	$(EMACS) --batch --no-init-file -f batch-byte-compile $<
 
 install : $(INSTALL_FILES)
-	-$(INSTALL_RM_R) $(INSTALL_DIR)
 	$(INSTALL_MKDIR) $(INSTALL_DIR)
 	$(INSTALL_CP) $(INSTALL_FILES) $(INSTALL_DIR)/
 	$(POST_INSTALL_HOOK)
 
 uninstall :
-	-test -d $(INSTALL_DIR) && $(INSTALL_RM_R) $(INSTALL_DIR)
+	-test -d $(INSTALL_DIR) && \
+	  $(INSTALL_RM_R) $(addprefix $(INSTALL_DIR)/, $(INSTALL_FILES))
 
 .PHONY: refresh
 refresh:
