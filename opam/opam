@@ -8,9 +8,14 @@ remove: [
 ]
 depends: []
 post-messages: [
-"Please add in ~/.emacs.d/init.el or ~/.emacs to following lines:
-    (add-to-list 'load-path \"INSTALL_DIR\")
+"If you have not yet done so, please add in ~/.emacs.d/init.el or
+in ~/.emacs to following lines:
+    (add-to-list 'load-path
+      (let ((share (shell-command-to-string "opam config var share")))
+        (concat (replace-regexp-in-string "\n$" "" share)
+                "/emacs/site-lisp/tuareg")))
     (load \"tuareg-site-file\")
-where you must replace INSTALL_DIR by the value displayed during the
-above installation"
+Note that the location of Tuareg will be determined when Emacs starts.
+If you switch compilers, make sure this package is installed in all of
+them so Emacs can always find it."
   {success} ]
