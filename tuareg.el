@@ -1423,11 +1423,12 @@ For use on `electric-indent-functions'."
              (setq tok (tuareg-smie--backward-token))
              (if (not (zerop (length tok)))
                  (not (member tok tokens))
-               (condition-case err
-                   (progn (backward-sexp) t)
-                 (scan-error
-                  (setq tok (buffer-substring (nth 3 err) (1+ (nth 3 err))))
-                  nil)))))
+	       (unless (bobp)
+		 (condition-case err
+		     (progn (backward-sexp) t)
+		   (scan-error
+		    (setq tok (buffer-substring (nth 3 err) (1+ (nth 3 err))))
+		    nil))))))
     tok))
 
 (defconst tuareg-smie--type-label-leader
