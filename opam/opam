@@ -6,7 +6,7 @@ build: [
 remove: [
   [make "uninstall"]
 ]
-depends: []
+depends: ["caml-mode"]
 post-messages: [
 "If you have not yet done so, please add in ~/.emacs.d/init.el or
 in ~/.emacs to following lines:
