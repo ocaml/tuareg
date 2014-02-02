@@ -939,6 +939,7 @@ Regexp match data 0 points to the chars."
   (let ((st (make-syntax-table)))
     (modify-syntax-entry ?_ "_" st)
     (modify-syntax-entry ?. "_" st)     ;Make qualified names a single symbol.
+    (modify-syntax-entry ?# "_" st)     ;Make name#method a single symbol
     (modify-syntax-entry ?? ". p" st)
     (modify-syntax-entry ?~ ". p" st)
     ;; See http://caml.inria.fr/pub/docs/manual-ocaml/lex.html.
@@ -1402,7 +1403,7 @@ For use on `electric-indent-functions'."
          ;; Precedence of operators.
          ;; http://caml.inria.fr/pub/docs/manual-ocaml/expr.html
          (reverse
-          '((nonassoc "." "#")
+          '((nonassoc ".")
             ;; function application, constructor application, assert, lazy
             ;; - -. (prefix)    –
             (right "**…" "lsl" "lsr" "asr")
