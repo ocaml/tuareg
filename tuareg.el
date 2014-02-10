@@ -938,7 +938,7 @@ Regexp match data 0 points to the chars."
 (defvar tuareg-mode-syntax-table
   (let ((st (make-syntax-table)))
     (modify-syntax-entry ?_ "_" st)
-    (modify-syntax-entry ?. "_" st)     ;Make qualified names a single symbol.
+    (modify-syntax-entry ?. "'" st)     ;Make qualified names a single symbol.
     (modify-syntax-entry ?# "_" st)     ;Make name#method a single symbol
     (modify-syntax-entry ?? ". p" st)
     (modify-syntax-entry ?~ ". p" st)
@@ -970,7 +970,7 @@ Regexp match data 0 points to the chars."
      (modify-syntax-entry ?_ "w" tuareg-mode-syntax-table)
      (unwind-protect (progn ,@body)
        ;; Switch back to the interactive syntax.
-       (modify-syntax-entry ?. "_" tuareg-mode-syntax-table)
+       (modify-syntax-entry ?. "'" tuareg-mode-syntax-table)
        (modify-syntax-entry ?' "_" tuareg-mode-syntax-table)
        (modify-syntax-entry ?_ "_" tuareg-mode-syntax-table))))
 
@@ -1202,7 +1202,8 @@ For use on `electric-indent-functions'."
                            tuareg-electric-indent-keywords))
                                            (tuareg-in-indentation-p)))))))
 
-;;; SMIE
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;				 SMIE
 
 ;; TODO:
 ;; - Obey tuareg-*-indent customization variables.
