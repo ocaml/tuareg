@@ -357,7 +357,7 @@ the default is 1.")
 ;; Automatic indentation
 ;; Using abbrev-mode and electric keys
 
-(defcustom tuareg-use-abbrev-mode t
+(defcustom tuareg-use-abbrev-mode nil
   "*Non-nil means electrically indent lines starting with leading keywords.
 Leading keywords are such as `end', `done', `else' etc.
 It makes use of `abbrev-mode'.
