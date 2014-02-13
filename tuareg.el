@@ -262,7 +262,7 @@ For example, setting this variable to 0 leads to the following indentation:
 
 To modify the indentation of lines lead by `|' you need to modify the
 indentation variables for `with', `function', and possibly
-for `type' as well. For example, setting them to 0 (and leaving
+for `type' as well.  For example, setting them to 0 (and leaving
 `tuareg-pipe-extra-unindent' to its default value) yields:
   match ... with
     X -> ...
@@ -387,7 +387,7 @@ setting this variable to nil."
 `>' before an object-closing `}'.
 
 Many people find electric keys irritating, so you can disable them by
-setting this variable to nil. You should probably have this on,
+setting this variable to nil.  You should probably have this on,
 though, if you also have `tuareg-electric-indent' on."
   :group 'tuareg :type 'boolean)
 
@@ -633,8 +633,6 @@ Valid names are `browse-url', `browse-url-firefox', etc."
   (goto-char (or (nth 8 (syntax-ppss)) (point))))
 (defun tuareg-ppss-beginning-of-literal-or-comment-fast ()
   (goto-char (or (nth 8 (syntax-ppss)) (point-min))))
-;; FIXME: not clear if moving out of a string/comment counts as 1 or no.
-(defalias 'tuareg-backward-up-list 'backward-up-list)
 
 ;; non-PPSS definitions
 (defun tuareg-!ppss-in-literal-p ()
@@ -800,7 +798,10 @@ Valid names are `browse-url', `browse-url-firefox', etc."
 (defalias 'tuareg-backward-up-list
     ;; FIXME: not clear if moving out of a string/comment counts as 1 or no.
     (eval-and-compile (if tuareg-use-syntax-ppss
-                          'backward-up-list
+			  (lambda ()
+			    (condition-case nil
+				(backward-up-list)
+			      (scan-error (goto-char (point-min)))))
                           'tuareg-!ppss-backward-up-list)))
 
 (defun tuareg-false-=-p ()
@@ -1211,10 +1212,8 @@ For use on `electric-indent-functions'."
 ;; - Use it by default (when possible).
 ;; - Move the old indentation code to a separate file.
 
-(defvar tuareg-use-smie nil)
-
-(when (require 'smie nil 'noerror)
-  (setq tuareg-use-smie t))
+(require 'smie nil 'noerror)
+(defvar tuareg-use-smie (featurep 'smie))
 
 (defconst tuareg-smie-grammar
   ;; Problems:
@@ -1892,7 +1891,7 @@ Return values can be
   "Major mode for editing OCaml code.
 
 Dedicated to Emacs and XEmacs, version 21 and higher.  Provides
-automatic indentation and compilation interface. Performs font/color
+automatic indentation and compilation interface.  Performs font/color
 highlighting using Font-Lock.  It is designed for OCaml but handles
 Caml Light as well.
 
@@ -1903,7 +1902,7 @@ You have better byte-compile tuareg.el.
 
 For customization purposes, you should use `tuareg-mode-hook'
 \(run for every file) or `tuareg-load-hook' (run once) and not patch
-the mode itself. You should add to your configuration file something like:
+the mode itself.  You should add to your configuration file something like:
   (add-hook 'tuareg-mode-hook
             (lambda ()
                ... ; your customization code
@@ -1930,7 +1929,7 @@ For the best indentation experience, some elementary rules must be followed.
     in a top level.)
   - Long sequences of `and's may slow down indentation slightly, since
     some computations (few) require to go back to the beginning of the
-    sequence. Some very long nested blocks may also lead to slow
+    sequence.  Some very long nested blocks may also lead to slow
     processing of `end's, `else's, `done's...
   - Multiline strings are handled properly, but you may prefer string
     concatenation `^' to break long strings (the C-j keystroke can help).
@@ -1944,7 +1943,7 @@ Known bugs:
   - When writing a line with mixed code and comments, avoid putting
     comments at the beginning or middle of the text. More precisely,
     writing comments immediately after `=' or parentheses then writing
-    some more code on the line leads to indentation errors. You may write
+    some more code on the line leads to indentation errors.  You may write
     `let x (* blah *) = blah' but should avoid `let x = (* blah *) blah'.
 
 Short cuts for the Tuareg mode:
@@ -2015,12 +2014,12 @@ Short cuts for interactions with the toplevel:
 
 (defun tuareg-beginning-of-defun ()
   (when (tuareg-find-matching-starter tuareg-starters-syms)
-    (save-excursion (tuareg-smie-forward-token)
-                    (forward-comment (point-max))
-                    (let ((name (tuareg-smie-forward-token)))
-                      (if (not (member name '("rec" "type")))
-                          name
+	(save-excursion (tuareg-smie-forward-token)
                         (forward-comment (point-max))
+                        (let ((name (tuareg-smie-forward-token)))
+                          (if (not (member name '("rec" "type")))
+                              name
+                            (forward-comment (point-max))
                         (tuareg-smie-forward-token))))))
 
 (defcustom tuareg-max-name-components 3
@@ -4394,7 +4393,7 @@ Short cuts for interactions with the toplevel:
 
 ;;;###autoload
 (defun tuareg-run-ocaml ()
-  "Run an OCaml toplevel process. I/O via buffer `*ocaml-toplevel*'."
+  "Run an OCaml toplevel process.  I/O via buffer `*ocaml-toplevel*'."
   (interactive)
   (tuareg-run-process-if-needed)
   (display-buffer tuareg-interactive-buffer-name))
@@ -4733,7 +4732,7 @@ Short cuts for interaction within the toplevel:
     (define-key map [mouse-2] 'tuareg-library-mouse-find-file)
     map))
 
-(defun tuareg-browse-library()
+(defun tuareg-browse-library ()
   "Browse the OCaml library."
   (interactive)
   (let ((buf-name "*ocaml-library*") (opoint)
@@ -4933,10 +4932,8 @@ for a quick jump via the definitions menu."
   (speedbar-add-supported-extension
    '(".ml" ".mli" ".mll" ".mly" ".ls")))
 
-(defvar tuareg-load-hook nil
-  "This hook is run when Tuareg is loaded in. It is a good place to put
-key-bindings or hack Font-Lock keywords...")
-
+;; Keep it for backward compatibility, but users should use
+;; (with-)eval-after-load instead.
 (run-hooks 'tuareg-load-hook)
 
 (provide 'tuareg)
