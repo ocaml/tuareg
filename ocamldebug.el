@@ -748,10 +748,9 @@ representation is simply concatenated with the COMMAND."
   ;; Record info on the last prompt in the buffer and its position.
   (with-current-buffer ocamldebug-current-buffer
     (goto-char (process-mark (get-buffer-process ocamldebug-current-buffer)))
-    (let ((pt (point)))
       (beginning-of-line)
       (when (looking-at comint-prompt-regexp)
-        (set-marker ocamldebug-delete-prompt-marker (point)))))
+      (set-marker ocamldebug-delete-prompt-marker (point))))
   (let ((cmd (cond
 	      (arg (concat command " " (int-to-string arg)))
 	      (fmt (ocamldebug-format-command

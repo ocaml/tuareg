@@ -616,7 +616,7 @@ Valid names are `browse-url', `browse-url-firefox', etc."
 
 ;; PPSS definitions
 (defun tuareg-ppss-in-literal-or-comment () (error "tuareg uses PPSS"))
-(defun tuareg-ppss-fontify (beg end) (error "tuareg uses PPSS"))
+(defun tuareg-ppss-fontify (_beg _end) (error "tuareg uses PPSS"))
 (defun tuareg-ppss-in-literal-p ()
   "Return non-nil if point is inside an OCaml literal."
   (nth 3 (syntax-ppss)))
@@ -826,6 +826,9 @@ Valid names are `browse-url', `browse-url-firefox', etc."
 This may sound like a neat trick, but note that it can change the
 alignment and can thus lead to surprises."
   :group 'tuareg :type 'boolean)
+(when (fboundp 'prettify-symbols-mode)
+  (make-obsolete-variable 'tuareg-font-lock-symbols
+                          'prettify-symbols-mode "Emacs-24.4"))
 
 (defvar tuareg-font-lock-symbols-alist
   (cond ((fboundp 'decode-char) ;; or a unicode font.
@@ -1770,10 +1773,10 @@ Return values can be
   ;; semantically a higher position since it applies to all fields.
   (save-excursion
     (forward-char 1)
-    (let ((parent-data (smie-backward-sexp 'halfsexp)))
-      (when (looking-at "\\(?:\\sw\\|\\s_\\)+\\.[ \t]*$")
-        (smie-backward-sexp 'halfsexp)
-        (cons 'column (current-column))))))
+    (smie-backward-sexp 'halfsexp)
+    (when (looking-at "\\(?:\\sw\\|\\s_\\)+\\.[ \t]*$")
+      (smie-backward-sexp 'halfsexp)
+      (cons 'column (current-column)))))
 
 (defun tuareg-smie--monadic-rule (token)
   ;; When trying to indent a >>=, try to look back to find any earlier
@@ -1788,14 +1791,13 @@ Return values can be
                       ((car parent-data) (member (nth 2 parent-data) '("->")))
                       ((member (nth 2 parent-data) '(";" "d=")) nil)
                       ((equal (nth 2 parent-data) "fun")
-                       (let ((pos (point)))
-                         (if (member (tuareg-smie--backward-token)
-                                     '(">>|" ">>=" ">>>"))
-                             (progn
-                               (setq indent (cons 'column
-                                                  (smie-indent-virtual)))
-                               nil)
-                           t))))))
+                       (if (member (tuareg-smie--backward-token)
+                                   '(">>|" ">>=" ">>>"))
+                           (progn
+                             (setq indent (cons 'column
+                                                (smie-indent-virtual)))
+                             nil)
+                         t)))))
                indent)))
       ;; In "foo >>= fun x => bar" indent `bar' relative to `foo'.
       (and (equal token "fun") (not (smie-rule-bolp))
@@ -1866,6 +1868,8 @@ Return values can be
         (set (make-local-variable 'add-log-current-defun-function)
              'tuareg-current-fun-name))
     (set (make-local-variable 'indent-line-function) #'tuareg-indent-command))
+  (set (make-local-variable 'prettify-symbols-alist)
+       tuareg-font-lock-symbols-alist)
   (tuareg-install-font-lock)
   (set (make-local-variable 'open-paren-in-column-0-is-defun-start) nil)
 
@@ -1973,7 +1977,7 @@ Short cuts for interactions with the toplevel:
   (tuareg--common-mode-setup)
   (unless tuareg-use-syntax-ppss
     (add-hook 'before-change-functions 'tuareg-before-change-function nil t))
-  (unless (fboundp 'comment-normalize-vars)
+  (when (fboundp 'tuareg-auto-fill-function)
     ;; Emacs-21's newcomment.el provides this functionality by default.
     (set (make-local-variable 'normal-auto-fill-function)
          #'tuareg-auto-fill-function))
@@ -3277,7 +3281,7 @@ Returns t iff skipped to indentation."
             (not (looking-at tuareg-operator-regexp))))
          (current-column))))))
 
-(defun tuareg-compute-arrow-indent (start-pos)
+(defun tuareg-compute-arrow-indent ()
   (let (kwop pos)
     (save-excursion (setq kwop (tuareg-find-arrow-match) pos (point)))
     (cond ((string= kwop "|")
@@ -3320,7 +3324,7 @@ Returns t iff skipped to indentation."
            ;; (see example in sample.ml)
            ;; the problem is that we cannot skip an expression backwards.
            ;; workaround: wrap code in parens
-           (destructuring-bind (indent kwop point)
+           (destructuring-bind (indent kwop _point)
                (tuareg-semicolon-indent-kwop-point)
              (- indent
                 (if (string= kwop "in")
@@ -3496,7 +3500,7 @@ Returns t iff skipped to indentation."
              (+ tuareg-default-indent
                 (tuareg-indent-from-paren leading-operator start-pos))))
           ((looking-at "->")
-           (tuareg-compute-arrow-indent start-pos))
+           (tuareg-compute-arrow-indent))
           ((looking-at (tuareg-give-keyword-regexp))
            (tuareg-compute-keyword-indent kwop leading-operator start-pos))
           ((and (string= kwop "=") (not (tuareg-false-=-p))
@@ -4300,7 +4304,7 @@ otherwise return non-nil."
 (defvar tuareg-interactive-last-phrase-pos-in-source 0)
 (defvar tuareg-interactive-last-phrase-pos-in-toplevel 0)
 
-(defun tuareg-interactive-filter (text)
+(defun tuareg-interactive-filter (_text)
   (when (eq major-mode 'tuareg-interactive-mode)
     (save-excursion
       (when (>= comint-last-input-end comint-last-input-start)
