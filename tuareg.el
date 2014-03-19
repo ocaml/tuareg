@@ -2102,7 +2102,6 @@ Short cuts for interactions with the toplevel:
            (regexp-opt '("asr" "asl" "lsr" "lsl" "or" "lor" "land"
                          "lxor" "not" "lnot" "mod" "of" "ref") 'words)))
        0 tuareg-font-lock-operator-face nil nil)
-     ;; (value: type) and (value :> type)
      ;; A method is considered a function ([self] is always a param)
      (,(concat "\\<method\\>!?\\( *[\t\n]? *\\(private\\|virtual\\)\\>\\)*"
                " *[\t\n]? *\\([_[:lower:]]\\(\\w\\|['_]\\)*\\)")
@@ -2127,7 +2126,7 @@ Short cuts for interactions with the toplevel:
         "\\(?:"
         (if (tuareg-editing-ls3) "\\<val\\> *\\w+ *[\t\n]? *:\\|")
         "[^~?]\\<\\w+ *:\\) *[\t\n]? *"
-        "\\([^:>=]\\(['?]*\\(-> *[\t\n]? *\\|:[^:>=]\\|[_.* \t[:alnum:]]"
+        "\\([^:>=\"]\\(['?]*\\(-> *[\t\n]? *\\|:[^:>=\"]\\|[_.* \t[:alnum:]]"
         "\\|(['?]*[->_.,* \t:[:alnum:]]*)"
         "\\|\\[[_'`<>|[:alnum:] \t]+\\]\\)\\{1,500\\}\\)\\)\\>")
       1 font-lock-type-face keep nil)
