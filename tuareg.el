@@ -2056,13 +2056,13 @@ Short cuts for interactions with the toplevel:
                        "\\)\\>")
               0 tuareg-font-lock-governing-face nil nil)))
      (,(concat "\\<\\("
-               (regexp-opt '("external" "open" "include" "sig" "struct"
+               (regexp-opt '("external" "include" "sig" "struct"
                              "module" "functor" "type"
                              "virtual" "constraint" "class" "in" "inherit"
                              "initializer" "let" "rec" "object" "and" "begin"
                              "end"))
                "\\>\\|with[ \t\n]+\\(type\\|module\\)\\>"
-               "\\|\\(method\\|val\\)\\>!?"
+               "\\|\\(open\\|method\\|val\\)\\>!?"
                "\\([ \t\n]\\(virtual\\|private\\)\\>\\)*\\)")
       0 tuareg-font-lock-governing-face nil nil)
      (,(concat "\\<\\("
