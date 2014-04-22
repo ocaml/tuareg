@@ -2066,7 +2066,7 @@ Short cuts for interactions with the toplevel:
                "\\([ \t\n]\\(virtual\\|private\\)\\>\\)*\\)")
       0 tuareg-font-lock-governing-face nil nil)
      (,(concat "\\<\\("
-               (regexp-opt '("DEFINE" "IFDEF" "IFNDEF" "THEN" "ENDIF"
+               (regexp-opt '("DEFINE" "IFDEF" "IFNDEF" "THEN" "ELSE" "ENDIF"
                              "INCLUDE" "__FILE__" "__LOCATION__"))
                "\\)\\>")
       0 font-lock-preprocessor-face nil nil)
