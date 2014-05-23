@@ -2055,6 +2055,8 @@ Short cuts for interactions with the toplevel:
                                      "reset" "every"))
                        "\\)\\>")
               0 tuareg-font-lock-governing-face nil nil)))
+     ("\\<module +type +of\\>"
+      0 tuareg-font-lock-governing-face nil nil)
      (,(concat "\\<\\("
                (regexp-opt '("external" "include" "sig" "struct"
                              "module" "functor" "type"
