@@ -3261,6 +3261,7 @@ Returns t iff skipped to indentation."
           (+ (tuareg-add-default-indent leading-operator)
              (current-column)
              (- tuareg-pipe-extra-unindent)
+             tuareg-match-clause-indent
              tuareg-default-indent))
          (t
           (+ (tuareg-paren-or-indentation-column)
@@ -3288,7 +3289,9 @@ Returns t iff skipped to indentation."
     (save-excursion (setq kwop (tuareg-find-arrow-match) pos (point)))
     (cond ((string= kwop "|")
            (tuareg-find-arrow-match)
-           (+ (current-column) tuareg-default-indent))
+           (+ (current-column)
+              tuareg-default-indent
+              tuareg-match-clause-indent))
           ((or (string= kwop "val")
                (string= kwop "let"))
            (goto-char pos)
