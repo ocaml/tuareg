@@ -346,7 +346,7 @@ the default is 1.")
         when cond ->
       clause")
 
-(defcustom tuareg-type-indent 0 ;tuareg-default-indent
+(defcustom tuareg-type-indent tuareg-default-indent
   "*How many spaces to indent from a `type' keyword."
   :group 'tuareg :type 'integer)
 
@@ -3437,8 +3437,10 @@ Returns t iff skipped to indentation."
                        tuareg-default-indent)
                       (t (goto-char start-pos)
                          (beginning-of-line)
-                         (+ (tuareg-add-default-indent
-                             (looking-at "[ \t]*[\[|]"))
+                         ;; A first sum constructor without a preceding `|'
+                         ;; needs extra indentation to be aligned with the other
+                         ;; constructors.
+                         (+ (if (looking-at "[ \t]*[A-Z]") 2 0)
                             tuareg-type-indent))))
                ((looking-at tuareg-=-indent-regexp-1)
                 (let ((matched-string (tuareg-match-string 0)))
@@ -3520,7 +3522,8 @@ Returns t iff skipped to indentation."
 
 (defun tuareg-compute-pipe-indent (matching-kwop old-point)
   (cond
-    ((string= matching-kwop "|")
+    ((or (string= matching-kwop "|")
+         (string= matching-kwop "["))
      (tuareg-back-to-paren-or-indentation)
      (current-column))
     ((and (string= matching-kwop "=")
