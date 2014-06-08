@@ -3261,6 +3261,7 @@ Returns t iff skipped to indentation."
           (+ (tuareg-add-default-indent leading-operator)
              (current-column)
              (- tuareg-pipe-extra-unindent)
+             tuareg-match-clause-indent
              tuareg-default-indent))
          (t
           (+ (tuareg-paren-or-indentation-column)
