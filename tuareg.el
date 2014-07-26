@@ -1709,7 +1709,7 @@ Return values can be
            (cons 'column (+ 2 (current-column)))))
         ;; Treat purely syntactic block-constructs as being part of their
         ;; parent, when the opening statement is hanging.
-        ((member token '("let" "(" "[" "{" "struct" "begin"))
+        ((member token '("let" "(" "[" "{" "sig" "struct" "begin"))
          (when (and (smie-rule-hanging-p)
                     (apply #'smie-rule-prev-p
                            tuareg-smie--exp-operator-leader))
