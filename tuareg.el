@@ -1612,10 +1612,11 @@ Return values can be
         (let (nearest)
           (while (progn
                    (setq nearest (tuareg-smie--search-backward
-                                  '("with" "|" "fun" "type" ":" "of")))
+                                  '("with" "|" "fun" "functor"
+				    "type" ":" "of")))
                    (and (equal nearest ":")
                         (tuareg-smie--label-colon-p))))
-          (if (member nearest '("with" "|" "fun"))
+          (if (member nearest '("with" "|" "fun" "functor"))
               tok "t->"))))
      ;; Handle "module type" and mod-constraint's "with/and type".
      ((equal tok "type")
