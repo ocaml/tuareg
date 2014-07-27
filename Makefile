@@ -8,7 +8,7 @@ DIST_NAME = tuareg-$(VERSION)
 TARBALL = $(DIST_NAME).tar.gz
 OPAM_DIR = tuareg.$(VERSION)
 
-SOURCES = tuareg.el ocamldebug.el
+SOURCES = tuareg.el tuareg_indent.el ocamldebug.el
 ELS = $(SOURCES) tuareg-site-file.el
 ELC = $(ELS:.el=.elc)
 
@@ -39,7 +39,7 @@ all : elc tuareg-site-file.el
 elc : $(ELC)
 
 %.elc : %.el
-	$(EMACS) --batch --no-init-file -f batch-byte-compile $<
+	$(EMACS) --batch -L . --no-init-file -f batch-byte-compile $<
 
 install : $(INSTALL_FILES)
 	$(INSTALL_MKDIR) $(INSTALL_DIR)
