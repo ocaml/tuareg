@@ -2794,6 +2794,8 @@ Short cuts for interaction within the toplevel:
        tuareg-with-caml-mode-p]
      [ "Show fully qualified ident at point" caml-types-show-ident
        tuareg-with-caml-mode-p]
+     [ "Show the kind of call at point" caml-types-show-call
+       tuareg-with-caml-mode-p]
      "---"
      [ "Complete identifier" caml-complete
        tuareg-with-caml-mode-p]

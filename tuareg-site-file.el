@@ -3,8 +3,8 @@
 (add-to-list 'load-path
              (or (file-name-directory load-file-name) (car load-path)))
 
-;;;### (autoloads (ocamldebug) "ocamldebug" "ocamldebug.el" (21004
-;;;;;;  40040 237491 510000))
+;;;### (autoloads (ocamldebug) "ocamldebug" "ocamldebug.el" (21289
+;;;;;;  25149 485562 840000))
 ;;; Generated autoloads from ocamldebug.el
 
 (autoload 'ocamldebug "ocamldebug" "\
@@ -20,7 +20,7 @@ the ocamldebug commands `cd DIR' and `directory'.
 ;;;***
 
 ;;;### (autoloads (tuareg-run-ocaml tuareg-mode) "tuareg" "tuareg.el"
-;;;;;;  (21189 28865 986630 634000))
+;;;;;;  (21460 65510 558295 692000))
 ;;; Generated autoloads from tuareg.el
 (add-to-list 'auto-mode-alist '("\\.ml[iylp]?\\'" . tuareg-mode))
 (dolist (ext '(".cmo" ".cmx" ".cma" ".cmxa" ".cmi" ".annot"))
@@ -106,8 +106,8 @@ Run an OCaml toplevel process.  I/O via buffer `*ocaml-toplevel*'.
 
 ;;;***
 
-;;;### (autoloads nil nil ("tuareg-light.el") (21189 29123 107021
-;;;;;;  162000))
+;;;### (autoloads nil nil ("tuareg-light.el" "tuareg_indent.el")
+;;;;;;  (21460 65517 72036 927000))
 
 ;;;***
 
