@@ -1737,7 +1737,7 @@ Return values can be
         ((equal token "d=")
          (and (smie-rule-parent-p "type")
               (not (smie-rule-next-p "["))
-              2))
+              0))
         ((equal token "->")
          (cond
           ((and (smie-rule-parent-p "with")
