@@ -1717,7 +1717,8 @@ Return values can be
            (if (let ((openers '("{" "(" "{<" "[" "[|")))
                  (or (apply #'smie-rule-prev-p openers)
                      (not (apply #'smie-rule-parent-p openers))))
-               (smie-rule-parent)
+               (let ((offset (if (equal token "(") 0 tuareg-default-indent)))
+                 (smie-rule-parent offset))
              ;; In "{ a = (", "{" and "a =" are not part of the same
              ;; syntax rule, so "(" is part of "a =" but not of the
              ;; surrounding "{".
