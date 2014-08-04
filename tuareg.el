@@ -505,6 +505,13 @@ Valid names are `browse-url', `browse-url-firefox', etc."
 (defvar tuareg-font-lock-governing-face
   'tuareg-font-lock-governing-face)
 
+(defface tuareg-font-lock-module-face
+  '((t (:inherit font-lock-type-face)))
+  "Face description for module keywords."
+  :group 'tuareg-faces)
+(defvar tuareg-font-lock-module-face
+  'tuareg-font-lock-module-face)
+
 (defface tuareg-font-lock-constructor-face
   '((t (:inherit font-lock-constant-face)))
   "Face description for constructors."
@@ -2190,7 +2197,7 @@ Short cuts for interactions with the toplevel:
         "\\|type\\)\\>" tuareg--whitespace-re
         "\\(['~?]*\\([->_.* \t]\\|\\w\\|(['~?]*\\([->_.,* \t]\\|\\w\\)*)\\)*\\)")
       7 font-lock-type-face keep nil)
-     ("\\<\\([A-Z]\\w*\\>\\)[ \t]*\\." 1 font-lock-type-face keep nil)
+     ("\\<\\([A-Z]\\w*\\>\\)[ \t]*\\." 1 tuareg-font-lock-module-face keep nil)
      ("\\<\\([[:upper:]]\\(\\w\\|'\\)*\\)\\>"
       0 tuareg-font-lock-constructor-face keep nil)
      (,(concat "\\<exception\\>" tuareg--whitespace-re
