@@ -2085,6 +2085,11 @@ Short cuts for interactions with the toplevel:
             '(("\\.<\\|>\\.\\|\\.~\\|\\.!"
                0 tuareg-font-lock-multistage-face nil nil)))
      ("\\<\\(false\\|true\\)\\>" 0 font-lock-constant-face nil nil)
+     (,(regexp-opt '("array" "bool" "char" "exn" "float" "format" "format4"
+                     "int" "int32" "int64" "lazy_t" "list" "nativeint"
+                     "option" "string" "unit")
+                   'words)
+      0 font-lock-type-face nil nil)
      (,(regexp-opt '("as" "do" "of" "done" "downto" "else" "for" "if"
                      "mutable" "new" "private"
                      "then" "to" "try" "when" "while" "match" "with"
