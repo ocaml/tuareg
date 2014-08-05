@@ -96,7 +96,7 @@
   "Tuareg revision from the control system used.")
 
 (defconst tuareg-mode-version
-  (let ((version "Tuareg Version 2.0.6"))
+  (let ((version "Tuareg Version 2.0.8"))
     (if (null tuareg-mode-revision)
         version
       (concat version " (" tuareg-mode-revision ")")
