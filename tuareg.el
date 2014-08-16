@@ -1792,7 +1792,7 @@ Return values can be
                      (cond
                       ((car parent-data) (member (nth 2 parent-data) '("->")))
                       ((member (nth 2 parent-data) '(";" "d=")) nil)
-                      ((equal (nth 2 parent-data) "fun")
+                      ((member (nth 2 parent-data) '("fun" '"function"))
                        (if (member (tuareg-smie--backward-token)
                                    '(">>|" ">>=" ">>>"))
                            (progn
@@ -1802,7 +1802,7 @@ Return values can be
                          t)))))
                indent)))
       ;; In "foo >>= fun x => bar" indent `bar' relative to `foo'.
-      (and (equal token "fun") (not (smie-rule-bolp))
+      (and (member token '("fun" "function")) (not (smie-rule-bolp))
            (save-excursion
              (let ((prev (tuareg-smie-backward-token)))
                ;; FIXME: Should we use the same loop as above?
