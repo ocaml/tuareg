@@ -2526,6 +2526,7 @@ Short cuts for interactions with the toplevel:
   (set (make-local-variable 'comment-start) "(* ")
   (set (make-local-variable 'comment-end) " *)")
   (set (make-local-variable 'comment-start-skip) "(\\*+[ \t]*")
+  (set (make-local-variable 'comint-prompt-read-only) t)
 
   (tuareg--common-mode-setup)
   (when (or tuareg-interactive-input-font-lock
