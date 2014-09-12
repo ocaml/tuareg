@@ -2480,12 +2480,7 @@ otherwise return non-nil."
                       (put-text-property
                        (+ comint-last-input-start beg)
                        (+ comint-last-input-start end)
-                       'face 'tuareg-font-lock-error-face))))))))
-	(save-excursion
-	  (goto-char (point-max))
-	  (re-search-backward comint-prompt-regexp comint-last-output-start t)
-	  (let ((inhibit-read-only t))
-	    (put-text-property (1- (point)) (point-max) 'read-only t)))))))
+                       'face 'tuareg-font-lock-error-face))))))))))))
 
 (easy-menu-define
   tuareg-interactive-mode-menu tuareg-interactive-mode-map
