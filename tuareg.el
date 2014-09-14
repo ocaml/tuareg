@@ -2291,7 +2291,7 @@ Short cuts for interactions with the toplevel:
 
 
 ;; Pre-SMIE indentation functions
-(load "tuareg_indent")
+(require 'tuareg_indent)
 
 (autoload 'ocaml-module-alist "caml-help")
 (autoload 'ocaml-visible-modules "caml-help")

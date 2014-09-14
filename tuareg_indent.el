@@ -1,4 +1,23 @@
-;; Indentation, pre-SMIE code
+;;; tuareg_indent.el --- Old (pre-SMIE) indentation code for tuarge-mode
+
+;; This software is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This software is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;;; Code:
+
+(eval-when-compile (require 'tuareg))   ;For tuareg-with-internal-syntax.
 
 (defun tuareg-ro (&rest words) (concat "\\<" (regexp-opt words t) "\\>"))
 
@@ -1576,7 +1595,8 @@ by |, insert one |."
                                           (not (char-equal
                                                 (save-excursion
                                                   (tuareg-backward-char)
-                                                  (preceding-char)) ?\[))))))
+                                                  (preceding-char))
+                                                ?\[))))))
          (electric (and tuareg-electric-indent
                         (not (and (boundp 'electric-indent-mode)
                                   electric-indent-mode))
@@ -1888,3 +1908,7 @@ or indent all lines in the current phrase."
           (indent-region begpoint endpoint nil))
       (let ((pair (tuareg-discover-phrase)))
         (indent-region (nth 0 pair) (nth 1 pair) nil)))))
+
+(provide 'tuareg_indent)
+
+;;; tuareg_indent.el ends here
