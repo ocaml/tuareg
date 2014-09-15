@@ -2290,9 +2290,6 @@ Short cuts for interactions with the toplevel:
   "Regular expression matching the error messages produced by OCaml.")
 
 
-;; Pre-SMIE indentation functions
-(require 'tuareg_indent)
-
 (autoload 'ocaml-module-alist "caml-help")
 (autoload 'ocaml-visible-modules "caml-help")
 (autoload 'ocaml-module-symbols "caml-help")
@@ -3087,6 +3084,11 @@ for a quick jump via the definitions menu."
 (run-hooks 'tuareg-load-hook)
 
 (provide 'tuareg)
+
+;; Pre-SMIE indentation functions.
+;; Load it after providing `tuareg' to avoid circular dependencies.
+(require 'tuareg_indent)
+
 ;; For compatibility with caml support modes
 ;; you may also link caml.el to tuareg.el
 (provide 'caml)

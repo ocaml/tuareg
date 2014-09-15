@@ -17,7 +17,8 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'tuareg))   ;For tuareg-with-internal-syntax.
+(eval-when-compile (require 'cl))
+(require 'tuareg)
 
 (defun tuareg-ro (&rest words) (concat "\\<" (regexp-opt words t) "\\>"))
 
