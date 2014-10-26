@@ -15,6 +15,9 @@ let server_comments request t =
     parser
     every
 
+let qs1 = {| quoted string |}   (* (issue #24) *)
+let qs2 = {eof| other quoted string   |noteof}  |eof}
+    
 let x =
   let open M in
   let x = 5 in

@@ -1070,19 +1070,35 @@ Regexp match data 0 points to the chars."
        (1 "\"") (2 "\""))
       ("\\(<\\)\\(?:<\\S.\\|:[[:alpha:]]+<\\)"
        (1 (prog1 "|" (tuareg--syntax-quotation end))))
+      ("\\({\\)[a-z_]*|"
+       (1 (prog1 "|" (tuareg--syntax-quotation end))))
       )
      start end)))
 
 (defun tuareg--syntax-quotation (end)
-  (when (eq t (nth 3 (syntax-ppss)))
-    ;; We're indeed inside a quotation.
-    (when (re-search-forward ">>" end t)
-      (put-text-property (1- (point)) (point)
-                         'syntax-table (string-to-syntax "|")))))
+  (let ((ppss (syntax-ppss)))
+    (when (eq t (nth 3 ppss))
+      (ecase (char-after (nth 8 ppss))
+        (?<
+         ;; We're indeed inside a quotation.
+         (when (re-search-forward ">>" end t)
+           (put-text-property (1- (point)) (point)
+                              'syntax-table (string-to-syntax "|"))))
+        (?\{
+         ;; We're inside a quoted string
+         ;; http://caml.inria.fr/pub/docs/manual-ocaml/extn.html#sec244
+         (let ((id (save-excursion
+                     (goto-char (1+ (nth 8 ppss)))
+                     (buffer-substring (point)
+                                       (progn (skip-chars-forward "a-z_")
+                                              (point))))))
+           (when (search-forward (concat "|" id "}") end t)
+             (put-text-property (1- (point)) (point)
+                                'syntax-table (string-to-syntax "|")))))))))
 
 (defun tuareg-font-lock-syntactic-face-function (state)
   (if (nth 3 state)
-      (if (eq t (nth 3 state))
+      (if (and (eq t (nth 3 state)) (eq ?< (char-after (nth 8 state))))
           font-lock-preprocessor-face font-lock-string-face)
     (let ((start (nth 8 state)))
       (if (and (> (point-max) (+ start 2))
