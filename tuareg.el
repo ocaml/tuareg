@@ -11,7 +11,7 @@
 ;;      Sean McLaughlin <seanmcl@gmail.com>
 ;;      Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Created: 8 Jan 1997
-;; Version: 2.0.8
+;; Version: 2.0.9
 ;; Package-Requires: ((caml "3.12.0.1"))
 ;; Keywords: ocaml languages
 ;; URL: http://forge.ocamlcore.org/projects/tuareg/
@@ -96,7 +96,7 @@
   "Tuareg revision from the control system used.")
 
 (defconst tuareg-mode-version
-  (let ((version "Tuareg Version 2.0.8"))
+  (let ((version "Tuareg Version 2.0.9"))
     (if (null tuareg-mode-revision)
         version
       (concat version " (" tuareg-mode-revision ")")
