@@ -1112,6 +1112,160 @@ Regexp match data 0 points to the chars."
 (defvar tuareg-font-lock-keywords ()
   "Font-Lock patterns for Tuareg mode.")
 
+(defconst tuareg--whitespace-re
+  ;; FIXME: Why's not just "[ \t\n]*"?
+  ;; It used to be " *[\t\n]? *" but this is inefficient since it can match
+  ;; N spaces in N+1 different ways :-(
+  " *\\(?:[\t\n] *\\)?")
+
+(defun tuareg-install-font-lock ()
+  (let ((lid "[_[:lower:]][_'[:alnum:]]*"))
+  (setq
+   tuareg-font-lock-keywords
+   `(,@(if (tuareg-editing-ls3)
+           `((,(concat "\\<\\(let[ \t\n]+"
+                       (regexp-opt '("clock" "node" "static")) "\\|"
+                       (regexp-opt '("present" "automaton" "where" "match"
+                                     "with" "do" "done" "unless" "until"
+                                     "reset" "every"))
+                       "\\)\\>")
+              0 tuareg-font-lock-governing-face nil nil)))
+     ("\\<module +type +of\\>"
+      0 tuareg-font-lock-governing-face nil nil)
+     (,(concat "\\<\\("
+               (regexp-opt '("external" "include" "sig" "struct"
+                             "module" "functor" "type"
+                             "virtual" "constraint" "class" "in" "inherit"
+                             "initializer" "let" "rec" "object" "and" "begin"
+                             "end"))
+               "\\>\\|with[ \t\n]+\\(type\\|module\\) \\>"
+               "\\|\\(open\\|method\\|val\\)\\>!?"
+               "\\([ \t\n]\\(virtual\\|private\\)\\>\\)*\\)")
+      0 tuareg-font-lock-governing-face nil nil)
+     (,(concat "\\<\\("
+               (regexp-opt '("DEFINE" "IFDEF" "IFNDEF" "THEN" "ELSE" "ENDIF"
+                             "INCLUDE" "__FILE__" "__LOCATION__"))
+               "\\)\\>")
+      0 font-lock-preprocessor-face nil nil)
+     ,@(and tuareg-support-metaocaml
+            '(("\\.<\\|>\\.\\|\\.~\\|\\.!"
+               0 tuareg-font-lock-multistage-face nil nil)))
+     ("\\<\\(false\\|true\\)\\>" 0 font-lock-constant-face nil nil)
+     (,(regexp-opt '("as" "do" "of" "done" "downto" "else" "for" "if"
+                     "mutable" "new" "private"
+                     "then" "to" "try" "when" "while" "match" "with"
+                     "lazy" "exception" "assert" "fun" "function")
+                   'words)
+      0 font-lock-keyword-face nil nil)
+     ,@(if (tuareg-editing-ls3)
+           `(("\\<\\(merge\\|emit\\|period\\)\\>"
+              0 font-lock-keyword-face nil nil)))
+     (,(regexp-opt '("failwith" "failwithf" "exit" "invalid_arg"
+                     "parser" "raise")
+                   'words)
+      0 font-lock-builtin-face nil nil)
+     (,(concat "\\([?~]\\<[_[:alpha:]]\\w*\\)" tuareg--whitespace-re ":[^:>=]")
+      1 font-lock-constant-face keep nil)
+     ;; label in a type signature
+     (,(concat "\\(->\\|:[^:>=]\\)" tuareg--whitespace-re
+               "\\(" lid "\\)[ \t]*:[^:>=]")
+      2 font-lock-constant-face keep nil)
+     (,(concat "( *\\<" lid "\\> *:>?" tuareg--whitespace-re
+               "\\(\\([[:alnum:] '*.]+\\|([[:alnum:], '*.]+)\\)+\\))")
+      1 font-lock-type-face keep nil)
+     (,(concat
+         "[][;,()|{}]\\|[-@^!:*=<>&/%+~?#]\\.?\\|\\.\\.\\.*\\|"
+         (if (tuareg-editing-ls3)
+             (regexp-opt '("asr" "asl" "lsr" "lsl" "or" "lor" "and" "land"
+                           "lxor" "not" "lnot" "mod" "of" "ref"
+                           "fby" "pre" "last" "at")
+                         'words)
+           (regexp-opt '("asr" "asl" "lsr" "lsl" "or" "lor" "land"
+                         "lxor" "not" "lnot" "mod" "of" "ref")
+                       'words)))
+       0 tuareg-font-lock-operator-face nil nil)
+     ;; A method is considered a function ([self] is always a param)
+     (,(concat "\\<method\\>!?\\(" tuareg--whitespace-re
+               "\\(private\\|virtual\\)\\>\\)*" tuareg--whitespace-re
+               "\\([_[:lower:]]\\(\\w\\|['_]\\)*\\)")
+      3 font-lock-function-name-face keep nil)
+     (,(concat
+        "\\<\\(val\\>!?\\( +\\(mutable\\|virtual\\)\\>\\)*"
+        "\\|external\\>\\|and\\>\\|class\\>"
+        (if (tuareg-editing-ls3)
+            (concat "\\|let\\(" tuareg--whitespace-re
+                    "\\(?:rec\\|clock\\|node\\|static\\)\\)?")
+          "\\|let\\( +rec\\)?\\>")
+        "\\)" tuareg--whitespace-re
+        "\\([_[:lower:]]\\(\\w\\|[._]\\)*\\)\\>" tuareg--whitespace-re
+        "\\(\\(\\w\\|[->()_?~.'*:]\\)+\\|=" tuareg--whitespace-re
+        "fun\\(ction\\)?\\>\\)")
+      5 font-lock-function-name-face keep nil)
+     (,(concat "\\<function[ \t\n]+\\(" lid "\\)")
+      1 font-lock-variable-name-face keep nil)
+     ;; "type lid" anywhere (e.g. "let f (type t) x =") introduces a new type
+     (,(concat "\\<type\\>" tuareg--whitespace-re "\\(\\<" lid "\\>\\)")
+      1 font-lock-type-face keep nil)
+     (,(concat "\\<fun\\>\\(\\(\\w\\|[_ \t\n(),*~?:=]\\)+\\)"
+               tuareg--whitespace-re "->")
+      1 font-lock-variable-name-face keep nil)
+     (,(concat
+        "\\(?:"
+        (if (tuareg-editing-ls3)
+            (concat "\\<val\\> *\\w+" tuareg--whitespace-re ":\\|"))
+        "[^~?]\\<\\w+ *:\\)" tuareg--whitespace-re
+        "\\([^:>=\"]\\(\\?[_.* \t[:alnum:]']+"
+        "\\|[_.* \t[:alnum:]']"
+        "\\|->" tuareg--whitespace-re
+	"\\|:[^:>=\"]"
+        "\\|([->_.,* \t:?[:alnum:]]+)"
+        "\\|\\[[_'`<>|[:alnum:] \t]+\\]\\)\\{1,500\\}\\)\\>")
+      1 font-lock-type-face keep nil)
+     (,(concat
+        "\\<\\("
+        (if (tuareg-editing-ls3) "reset\\|do\\|")
+        "val\\>\\(" tuareg--whitespace-re "mutable\\)?\\|method\\|and\\|class"
+        "\\|let\\>\\(" tuareg--whitespace-re
+        (if (tuareg-editing-ls3) "\\(?:rec\\|clock\\|node\\|static\\)" "rec")
+        "\\)?\\)\\>" tuareg--whitespace-re "\\(\\("
+        lid "\\|([ \t]*" lid "[ \t]*:[->~_' \t(),.[:word:]]+)\\|\\?" lid
+        ;; FIXME: how to match multiple lines (until "=") efficiently?
+        "\\|\\?(" lid "=[->[:word:]'_. \t,.:\"]+)"
+        "\\|[>~_(),.[:space:]]\\)+\\)")
+      4 font-lock-variable-name-face keep nil)
+     (,(concat
+        "\\<\\(open\\|\\(class\\>\\(" tuareg--whitespace-re "type\\)?\\)"
+        "\\(" tuareg--whitespace-re "\\<virtual\\)?"
+        "\\|inherit\\|include\\|module\\(" tuareg--whitespace-re
+        "\\<\\(type\\|rec\\)\\)?"
+        "\\|type\\)\\>" tuareg--whitespace-re
+        "\\(['~?]*\\([->_.* \t]\\|\\w\\|(['~?]*\\([->_.,* \t]\\|\\w\\)*)\\)*\\)")
+      7 font-lock-type-face keep nil)
+     ("\\<\\([A-Z]\\w*\\>\\)[ \t]*\\." 1 font-lock-type-face keep nil)
+     (,(concat "\\<exception\\>" tuareg--whitespace-re
+               "\\(\\<[_[:alpha:]]\\w*\\>\\)")
+      1 font-lock-variable-name-face keep nil)
+     ("^#\\w+\\>" 0 font-lock-preprocessor-face t nil)
+     ,@(and tuareg-font-lock-symbols
+            (tuareg-font-lock-symbols-keywords)))))
+  (setq font-lock-defaults
+        `(tuareg-font-lock-keywords
+          ,(not tuareg-use-syntax-ppss) nil
+          ,tuareg-font-lock-syntax nil
+          ,@(unless (fboundp 'tuareg-syntax-propertize)
+              '((font-lock-syntactic-keywords
+                 . tuareg-font-lock-syntactic-keywords)
+                (parse-sexp-lookup-properties . t)))
+          (font-lock-syntactic-face-function
+           . tuareg-font-lock-syntactic-face-function)
+          ,@(unless tuareg-use-syntax-ppss
+              '((font-lock-fontify-region-function
+                 . tuareg-fontify-region)))))
+  (when (and (boundp 'font-lock-fontify-region-function)
+             (not tuareg-use-syntax-ppss))
+    (set (make-local-variable 'font-lock-fontify-region-function)
+         'tuareg-fontify-region)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                    Keymap
 
@@ -2061,160 +2215,6 @@ Short cuts for interactions with the toplevel:
         ;; Skip all other declarations that we find at the same level.
         (tuareg-skip-siblings))
       fullname)))
-
-(defconst tuareg--whitespace-re
-  ;; FIXME: Why's not just "[ \t\n]*"?
-  ;; It used to be " *[\t\n]? *" but this is inefficient since it can match
-  ;; N spaces in N+1 different ways :-(
-  " *\\(?:[\t\n] *\\)?")
-
-(defun tuareg-install-font-lock ()
-  (let ((lid "[_[:lower:]][_'[:alnum:]]*"))
-  (setq
-   tuareg-font-lock-keywords
-   `(,@(if (tuareg-editing-ls3)
-           `((,(concat "\\<\\(let[ \t\n]+"
-                       (regexp-opt '("clock" "node" "static")) "\\|"
-                       (regexp-opt '("present" "automaton" "where" "match"
-                                     "with" "do" "done" "unless" "until"
-                                     "reset" "every"))
-                       "\\)\\>")
-              0 tuareg-font-lock-governing-face nil nil)))
-     ("\\<module +type +of\\>"
-      0 tuareg-font-lock-governing-face nil nil)
-     (,(concat "\\<\\("
-               (regexp-opt '("external" "include" "sig" "struct"
-                             "module" "functor" "type"
-                             "virtual" "constraint" "class" "in" "inherit"
-                             "initializer" "let" "rec" "object" "and" "begin"
-                             "end"))
-               "\\>\\|with[ \t\n]+\\(type\\|module\\)\\>"
-               "\\|\\(open\\|method\\|val\\)\\>!?"
-               "\\([ \t\n]\\(virtual\\|private\\)\\>\\)*\\)")
-      0 tuareg-font-lock-governing-face nil nil)
-     (,(concat "\\<\\("
-               (regexp-opt '("DEFINE" "IFDEF" "IFNDEF" "THEN" "ELSE" "ENDIF"
-                             "INCLUDE" "__FILE__" "__LOCATION__"))
-               "\\)\\>")
-      0 font-lock-preprocessor-face nil nil)
-     ,@(and tuareg-support-metaocaml
-            '(("\\.<\\|>\\.\\|\\.~\\|\\.!"
-               0 tuareg-font-lock-multistage-face nil nil)))
-     ("\\<\\(false\\|true\\)\\>" 0 font-lock-constant-face nil nil)
-     (,(regexp-opt '("as" "do" "of" "done" "downto" "else" "for" "if"
-                     "mutable" "new" "private"
-                     "then" "to" "try" "when" "while" "match" "with"
-                     "lazy" "exception" "assert" "fun" "function")
-                   'words)
-      0 font-lock-keyword-face nil nil)
-     ,@(if (tuareg-editing-ls3)
-           `(("\\<\\(merge\\|emit\\|period\\)\\>"
-              0 font-lock-keyword-face nil nil)))
-     (,(regexp-opt '("failwith" "failwithf" "exit" "invalid_arg"
-                     "parser" "raise")
-                   'words)
-      0 font-lock-builtin-face nil nil)
-     (,(concat "\\([?~]\\<[_[:alpha:]]\\w*\\)" tuareg--whitespace-re ":[^:>=]")
-      1 font-lock-constant-face keep nil)
-     ;; label in a type signature
-     (,(concat "\\(->\\|:[^:>=]\\)" tuareg--whitespace-re
-               "\\(" lid "\\)[ \t]*:[^:>=]")
-      2 font-lock-constant-face keep nil)
-     (,(concat "( *\\<" lid "\\> *:>?" tuareg--whitespace-re
-               "\\(\\([[:alnum:] '*.]+\\|([[:alnum:], '*.]+)\\)+\\))")
-      1 font-lock-type-face keep nil)
-     (,(concat
-         "[][;,()|{}]\\|[-@^!:*=<>&/%+~?#]\\.?\\|\\.\\.\\.*\\|"
-         (if (tuareg-editing-ls3)
-             (regexp-opt '("asr" "asl" "lsr" "lsl" "or" "lor" "and" "land"
-                           "lxor" "not" "lnot" "mod" "of" "ref"
-                           "fby" "pre" "last" "at")
-                         'words)
-           (regexp-opt '("asr" "asl" "lsr" "lsl" "or" "lor" "land"
-                         "lxor" "not" "lnot" "mod" "of" "ref")
-                       'words)))
-       0 tuareg-font-lock-operator-face nil nil)
-     ;; A method is considered a function ([self] is always a param)
-     (,(concat "\\<method\\>!?\\(" tuareg--whitespace-re
-               "\\(private\\|virtual\\)\\>\\)*" tuareg--whitespace-re
-               "\\([_[:lower:]]\\(\\w\\|['_]\\)*\\)")
-      3 font-lock-function-name-face keep nil)
-     (,(concat
-        "\\<\\(val\\>!?\\( +\\(mutable\\|virtual\\)\\>\\)*"
-        "\\|external\\>\\|and\\>\\|class\\>"
-        (if (tuareg-editing-ls3)
-            (concat "\\|let\\(" tuareg--whitespace-re
-                    "\\(?:rec\\|clock\\|node\\|static\\)\\)?")
-          "\\|let\\( +rec\\)?\\>")
-        "\\)" tuareg--whitespace-re
-        "\\([_[:lower:]]\\(\\w\\|[._]\\)*\\)\\>" tuareg--whitespace-re
-        "\\(\\(\\w\\|[->()_?~.'*:]\\)+\\|=" tuareg--whitespace-re
-        "fun\\(ction\\)?\\>\\)")
-      5 font-lock-function-name-face keep nil)
-     (,(concat "\\<function[ \t\n]+\\(" lid "\\)")
-      1 font-lock-variable-name-face keep nil)
-     ;; "type lid" anywhere (e.g. "let f (type t) x =") introduces a new type
-     (,(concat "\\<type\\>" tuareg--whitespace-re "\\(\\<" lid "\\>\\)")
-      1 font-lock-type-face keep nil)
-     (,(concat "\\<fun\\>\\(\\(\\w\\|[_ \t\n(),*~?:=]\\)+\\)"
-               tuareg--whitespace-re "->")
-      1 font-lock-variable-name-face keep nil)
-     (,(concat
-        "\\(?:"
-        (if (tuareg-editing-ls3)
-            (concat "\\<val\\> *\\w+" tuareg--whitespace-re ":\\|"))
-        "[^~?]\\<\\w+ *:\\)" tuareg--whitespace-re
-        "\\([^:>=\"]\\(\\?[_.* \t[:alnum:]']+"
-        "\\|[_.* \t[:alnum:]']"
-        "\\|->" tuareg--whitespace-re
-	"\\|:[^:>=\"]"
-        "\\|([->_.,* \t:?[:alnum:]]+)"
-        "\\|\\[[_'`<>|[:alnum:] \t]+\\]\\)\\{1,500\\}\\)\\>")
-      1 font-lock-type-face keep nil)
-     (,(concat
-        "\\<\\("
-        (if (tuareg-editing-ls3) "reset\\|do\\|")
-        "val\\>\\(" tuareg--whitespace-re "mutable\\)?\\|method\\|and\\|class"
-        "\\|let\\>\\(" tuareg--whitespace-re
-        (if (tuareg-editing-ls3) "\\(?:rec\\|clock\\|node\\|static\\)" "rec")
-        "\\)?\\)\\>" tuareg--whitespace-re "\\(\\("
-        lid "\\|([ \t]*" lid "[ \t]*:[->~_' \t(),.[:word:]]+)\\|\\?" lid
-        ;; FIXME: how to match multiple lines (until "=") efficiently?
-        "\\|\\?(" lid "=[->[:word:]'_. \t,.:\"]+)"
-        "\\|[>~_(),.[:space:]]\\)+\\)")
-      4 font-lock-variable-name-face keep nil)
-     (,(concat
-        "\\<\\(open\\|\\(class\\>\\(" tuareg--whitespace-re "type\\)?\\)"
-        "\\(" tuareg--whitespace-re "\\<virtual\\)?"
-        "\\|inherit\\|include\\|module\\(" tuareg--whitespace-re
-        "\\<\\(type\\|rec\\)\\)?"
-        "\\|type\\)\\>" tuareg--whitespace-re
-        "\\(['~?]*\\([->_.* \t]\\|\\w\\|(['~?]*\\([->_.,* \t]\\|\\w\\)*)\\)*\\)")
-      7 font-lock-type-face keep nil)
-     ("\\<\\([A-Z]\\w*\\>\\)[ \t]*\\." 1 font-lock-type-face keep nil)
-     (,(concat "\\<exception\\>" tuareg--whitespace-re
-               "\\(\\<[_[:alpha:]]\\w*\\>\\)")
-      1 font-lock-variable-name-face keep nil)
-     ("^#\\w+\\>" 0 font-lock-preprocessor-face t nil)
-     ,@(and tuareg-font-lock-symbols
-            (tuareg-font-lock-symbols-keywords)))))
-  (setq font-lock-defaults
-        `(tuareg-font-lock-keywords
-          ,(not tuareg-use-syntax-ppss) nil
-          ,tuareg-font-lock-syntax nil
-          ,@(unless (fboundp 'tuareg-syntax-propertize)
-              '((font-lock-syntactic-keywords
-                 . tuareg-font-lock-syntactic-keywords)
-                (parse-sexp-lookup-properties . t)))
-          (font-lock-syntactic-face-function
-           . tuareg-font-lock-syntactic-face-function)
-          ,@(unless tuareg-use-syntax-ppss
-              '((font-lock-fontify-region-function
-                 . tuareg-fontify-region)))))
-  (when (and (boundp 'font-lock-fontify-region-function)
-             (not tuareg-use-syntax-ppss))
-    (set (make-local-variable 'font-lock-fontify-region-function)
-         'tuareg-fontify-region)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               Error processing
