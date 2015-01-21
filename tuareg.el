@@ -1112,6 +1112,14 @@ Regexp match data 0 points to the chars."
 (defvar tuareg-font-lock-keywords ()
   "Font-Lock patterns for Tuareg mode.")
 
+(defconst tuareg-font-lock-syntax
+  ;; Note: as a general rule, changing syntax-table during font-lock
+  ;; is a potential problem for syntax-ppss.
+  `((?_ . "w") (?' . "w")
+    ,@(unless tuareg-use-syntax-ppss
+        '((?` . ".") (?\" . ".") (?\( . ".") (?\) . ".") (?* . "."))))
+  "Syntax changes for Font-Lock.")
+
 (defconst tuareg--whitespace-re
   ;; FIXME: Why's not just "[ \t\n]*"?
   ;; It used to be " *[\t\n]? *" but this is inefficient since it can match
@@ -1329,14 +1337,6 @@ Regexp match data 0 points to the chars."
       (define-key map [?\C-c ?\t] 'tuareg-complete))
     map)
   "Keymap used in Tuareg mode.")
-
-(defconst tuareg-font-lock-syntax
-  ;; Note: as a general rule, changing syntax-table during font-lock
-  ;; is a potential problem for syntax-ppss.
-  `((?_ . "w") (?' . "w")
-    ,@(unless tuareg-use-syntax-ppss
-        '((?` . ".") (?\" . ".") (?\( . ".") (?\) . ".") (?* . "."))))
-  "Syntax changes for Font-Lock.")
 
 (defvar tuareg-electric-indent-keywords
   '("module" "class" "functor" "object" "type" "val" "inherit"
