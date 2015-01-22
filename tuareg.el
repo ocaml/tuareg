@@ -530,6 +530,13 @@ Valid names are `browse-url', `browse-url-firefox', etc."
 (defvar tuareg-font-lock-operator-face
   'tuareg-font-lock-operator-face)
 
+(defface tuareg-font-lock-module-face
+  '((t (:inherit font-lock-type-face))); backward compatibility
+  "Face description modules and module paths."
+  :group 'tuareg-faces)
+(defvar tuareg-font-lock-module-face
+  'tuareg-font-lock-module-face)
+
 (defface tuareg-font-lock-error-face
   '((t (:foreground "yellow" :background "red" :bold t)))
   "Face description for all errors reported to the source."
@@ -1210,7 +1217,7 @@ Regexp match data 0 points to the chars."
       (2 font-lock-type-face))
      (,(concat "\\<\\(with +module\\) +\\(" module-path "\\)")
       (1 tuareg-font-lock-governing-face keep)
-      (2 font-lock-type-face))
+      (2 tuareg-font-lock-module-face))
      ;; "!", "mutable", "virtual" treated as governing keywords
      (,(concat "\\<\\(\\(?:val" (if (tuareg-editing-ls3) "\\|reset\\|do")
                "\\)!? +\\(?:mutable\\(?: +virtual\\)?\\>"
@@ -1236,11 +1243,11 @@ Regexp match data 0 points to the chars."
       1 font-lock-constant-face)
      (,(concat "\\<open\\(! +\\|\\>\\)\\( *" module-path "\\)?")
       (1 tuareg-font-lock-governing-face)
-      (2 font-lock-type-face keep t))
+      (2 tuareg-font-lock-module-face keep t))
      (,(regexp-opt '("failwith" "failwithf" "exit" "at_exit" "invalid_arg"
                      "parser" "raise" "ref" "ignore") 'words)
       . font-lock-builtin-face)
-     (,(concat module-path "\\.") . font-lock-type-face)
+     (,(concat module-path "\\.") . tuareg-font-lock-module-face)
      (,(concat
          "[][;,()|{}]\\|[-@^!:*=<>&/%+~?#]\\.?\\|\\.\\.\\.*\\|"
          (regexp-opt
@@ -1257,14 +1264,14 @@ Regexp match data 0 points to the chars."
      (,(concat "\\<external +\\(" lid "\\)")  1 font-lock-function-name-face)
      (,(concat "\\<exception +\\(" uid "\\)") 1 font-lock-variable-name-face)
      (,(concat "\\<module\\(?: +type\\)?\\(?: +rec\\)?\\> *\\(" uid "\\)")
-      1 font-lock-type-face)
+      1 tuareg-font-lock-module-face)
      ;;; let-bindings
      (,(concat let-binding " *\\(" lid "\\) *\\(?:: *\\([^=]+\\)\\)?= *"
                "fun\\(?:ction\\)?\\>")
       (1 font-lock-function-name-face nil t)
       (2 font-lock-type-face keep t))
      (,(concat let-binding " *" simple-patt " *\\(?:: *\\([^=]+\\)\\)?=")
-      (1 font-lock-type-face nil t)
+      (1 tuareg-font-lock-module-face nil t)
       (2 font-lock-variable-name-face keep t)
       (3 font-lock-type-face keep t))
      (,(concat let-binding " *\\(" lid "\\)" gvars "?")
@@ -1287,7 +1294,6 @@ Regexp match data 0 points to the chars."
       1 font-lock-type-face)
      ;; "val" without "!", "mutable" or "virtual"
      (,(concat "\\<val +\\(" lid "\\)") 1 font-lock-function-name-face)
-     ;;  1 font-lock-type-face keep)
      (,(concat "\\<\\("
                (regexp-opt '("DEFINE" "IFDEF" "IFNDEF" "THEN" "ELSE" "ENDIF"
                              "INCLUDE" "__FILE__" "__LOCATION__"))
