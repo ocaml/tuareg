@@ -14,7 +14,7 @@
 ;; Version: 2.0.9
 ;; Package-Requires: ((caml "3.12.0.1"))
 ;; Keywords: ocaml languages
-;; URL: http://forge.ocamlcore.org/projects/tuareg/
+;; URL: https://github.com/ocaml/tuareg
 ;; EmacsWiki: TuaregMode
 
 ;;; Commentary:
