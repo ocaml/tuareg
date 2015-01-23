@@ -2106,7 +2106,7 @@ Return values can be
   (when (boundp 'post-self-insert-hook)
     (add-hook 'post-self-insert-hook #'tuareg--electric-close-vector nil t)))
 
-;;;###autoload(add-to-list 'auto-mode-alist '("\\.ml[iylp]?\\'" . tuareg-mode))
+;;;###autoload(add-to-list 'auto-mode-alist '("\\.ml[ip]?\\'" . tuareg-mode))
 ;;;###autoload(dolist (ext '(".cmo" ".cmx" ".cma" ".cmxa" ".cmi"
 ;;;###autoload                ".annot" ".cmt" ".cmti"))
 ;;;###autoload  (add-to-list 'completion-ignored-extensions ext))
@@ -2433,8 +2433,7 @@ otherwise return non-nil."
             (e (tuareg-match-string 2 name)))
         (cond
          ((string= e "i")
-          (unless (tuareg--try-find-alternate-file mod-name ".mll" 'no-create)
-            (tuareg--try-find-alternate-file mod-name ".ml")))
+            (tuareg--try-find-alternate-file mod-name ".ml"))
          (t
           (tuareg--try-find-alternate-file mod-name ".mli")))))))
 
