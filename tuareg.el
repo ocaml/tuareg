@@ -1156,6 +1156,11 @@ Regexp match data 0 points to the chars."
          (typeconstr (concat "\\(?:" module-path "\\.\\)?" lid))
          (constructor (concat "\\(?:\\(?:" module-path "\\.\\)?" uid
                               "\\|`" id "\\)"))
+         (extended-module-name (concat uid "\\(?: *(" balanced-braces ")\\)*"))
+         (extended-module-path
+          (concat extended-module-name
+                  "\\(?: *\\. *" extended-module-name "\\)*"))
+         (modtype-path (concat "\\(?:" extended-module-path "\\.\\)*" id))
          (typevar "'[A-Za-z_][A-Za-z0-9_']*\\>")
          (typeparam (concat "[+-]?" typevar))
          (typeparams (concat "\\(?:" typeparam "\\|( *"
@@ -1208,14 +1213,16 @@ Regexp match data 0 points to the chars."
                     (push "emit" kwd)  (push "period" kwd)))
          (regexp-opt kwd 'words))
       . font-lock-keyword-face)
-     ;; "with" treated as a governing keyword
-     (,(concat "\\<\\(with +type\\>\\) *\\(" typeconstr "\\)?")
+     ;; with type: "with" treated as a governing keyword
+     (,(concat "\\<\\(\\(?:with\\|and\\) +type\\>\\) *\\(" typeconstr "\\)?")
       (1 tuareg-font-lock-governing-face keep)
       (2 font-lock-type-face keep t))
-     (,(concat "\\<\\(with +module\\>\\) *\\(" module-path "\\)?")
+     (,(concat "\\<\\(\\(?:with\\|and\\) +module\\>\\) *\\(?:\\(" module-path
+               "\\) *\\)?\\(?:= *\\(" extended-module-path "\\)\\)?")
       (1 tuareg-font-lock-governing-face keep)
-      (2 tuareg-font-lock-module-face keep t))
-     ;; "module type of" module-expr
+      (2 tuareg-font-lock-module-face keep t)
+      (3 tuareg-font-lock-module-face keep t))
+     ;; "module type of" module-expr (here "of" is a governing keyword)
      ("\\<module +type +of\\>"
       0 tuareg-font-lock-governing-face keep)
      (,(concat "\\<module +type +of +\\(" module-path "\\)?")
