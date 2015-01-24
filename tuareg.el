@@ -1203,7 +1203,7 @@ Regexp match data 0 points to the chars."
      ,@(if (tuareg-editing-ls3)
            `((,(concat "\\<\\(let[ \t]+" let-ls3 "\\)\\>")
               . tuareg-font-lock-governing-face)))
-     (,(let ((kwd '("as" "do" "of" "done" "downto" "else" "for" "if"
+     (,(let ((kwd '("as" "do" "done" "downto" "else" "for" "if"
                     "then" "to" "try" "when" "while" "match" "new"
                     "lazy" "assert" "fun" "function" "exception")))
          (if (tuareg-editing-ls3)
@@ -1212,12 +1212,17 @@ Regexp match data 0 points to the chars."
          (regexp-opt kwd 'words))
       . font-lock-keyword-face)
      ;; "with" treated as a governing keyword
-     (,(concat "\\<\\(with +type\\) +\\(" typeconstr "\\)")
+     (,(concat "\\<\\(with +type\\>\\) *\\(" typeconstr "\\)?")
       (1 tuareg-font-lock-governing-face keep)
-      (2 font-lock-type-face))
-     (,(concat "\\<\\(with +module\\) +\\(" module-path "\\)")
+      (2 font-lock-type-face keep t))
+     (,(concat "\\<\\(with +module\\>\\) *\\(" module-path "\\)?")
       (1 tuareg-font-lock-governing-face keep)
-      (2 tuareg-font-lock-module-face))
+      (2 tuareg-font-lock-module-face keep t))
+     ;; "module type of" module-expr
+     ("\\<module +type +of\\>"
+      0 tuareg-font-lock-governing-face keep)
+     (,(concat "\\<module +type +of +\\(" module-path "\\)?")
+      1 tuareg-font-lock-module-face keep t)
      ;; "!", "mutable", "virtual" treated as governing keywords
      (,(concat "\\<\\(\\(?:val" (if (tuareg-editing-ls3) "\\|reset\\|do")
                "\\)!? +\\(?:mutable\\(?: +virtual\\)?\\>"
@@ -1232,7 +1237,7 @@ Regexp match data 0 points to the chars."
       (1 tuareg-font-lock-governing-face t t)
       (2 font-lock-function-name-face nil t)) ; method name
      ;; Other uses of "with", "mutable", "private", "virtual"
-     (,(regexp-opt '("with" "mutable" "private" "virtual") 'words)
+     (,(regexp-opt '("of" "with" "mutable" "private" "virtual") 'words)
       . font-lock-keyword-face)
      ;;; labels
      (,(concat "\\([?~]" lid "\\)" tuareg--whitespace-re ":[^:>=]")
