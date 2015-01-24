@@ -532,10 +532,17 @@ Valid names are `browse-url', `browse-url-firefox', etc."
 
 (defface tuareg-font-lock-module-face
   '((t (:inherit font-lock-type-face))); backward compatibility
-  "Face description modules and module paths."
+  "Face description for modules and module paths."
   :group 'tuareg-faces)
 (defvar tuareg-font-lock-module-face
   'tuareg-font-lock-module-face)
+
+(defface tuareg-font-lock-constructor-face
+  '((t (:inherit default)))
+  "Face description for constructors of (polymorphic) variants and exceptions."
+  :group 'tuareg-faces)
+(defvar tuareg-font-lock-constructor-face
+  'tuareg-font-lock-constructor-face)
 
 (defface tuareg-font-lock-error-face
   '((t (:foreground "yellow" :background "red" :bold t)))
@@ -1335,6 +1342,9 @@ Regexp match data 0 points to the chars."
      ;;; "type lid" anywhere (e.g. "let f (type t) x =") introduces a new type
      (,(concat "\\<type\\>" tuareg--whitespace-re "\\(" typedef "\\)")
       1 font-lock-type-face keep)
+     ;; Constructors
+     (,(concat "`" id) . tuareg-font-lock-constructor-face)
+     (,(concat "\\(" uid "\\)[^.]")  1 tuareg-font-lock-constructor-face)
      ,@(and tuareg-font-lock-symbols
             (tuareg-font-lock-symbols-keywords)))))
   (setq font-lock-defaults
