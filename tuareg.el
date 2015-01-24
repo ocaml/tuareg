@@ -2221,7 +2221,7 @@ Short cuts for interactions with the toplevel:
   (when (and tuareg-use-abbrev-mode
              (not (and (boundp 'electric-indent-mode) electric-indent-mode)))
     (abbrev-mode 1))
-  (message nil))
+  (run-mode-hooks 'tuareg-load-hook))
 
 (defconst tuareg-starters-syms
   '("module" "type" "let" "d-let" "and"))
@@ -3154,10 +3154,6 @@ for a quick jump via the definitions menu."
 (when (require 'speedbar nil t)
   (speedbar-add-supported-extension
    '(".ml" ".mli" ".mll" ".mly" ".ls")))
-
-;; Keep it for backward compatibility, but users should use
-;; (with-)eval-after-load instead.
-(run-hooks 'tuareg-load-hook)
 
 (provide 'tuareg)
 
