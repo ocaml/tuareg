@@ -1141,9 +1141,6 @@ Regexp match data 0 points to the chars."
   ;; N spaces in N+1 different ways :-(
   " *\\(?:[\t\n] *\\)?")
 
-(defun tuareg- (end)
-  )
-
 (defun tuareg-install-font-lock ()
   (let* ((id "\\<[A-Za-z_][A-Za-z0-9_']*\\>")
          (lid "\\<[a-z_][A-Za-z0-9_']*\\>")
@@ -1246,7 +1243,7 @@ Regexp match data 0 points to the chars."
      (,(concat "\\(?:->\\|:[^:>=]\\)" tuareg--whitespace-re
                "\\(" lid "\\)[ \t]*:[^:>=]")
       1 font-lock-constant-face)
-     (,(concat "\\<open\\(! +\\|\\>\\)\\( *" module-path "\\)?")
+     (,(concat "\\<open\\(! +\\|\\> *\\)\\(" module-path "\\)?")
       (1 tuareg-font-lock-governing-face)
       (2 tuareg-font-lock-module-face keep t))
      (,(regexp-opt '("failwith" "failwithf" "exit" "at_exit" "invalid_arg"
