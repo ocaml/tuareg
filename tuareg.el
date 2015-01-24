@@ -1280,23 +1280,27 @@ Regexp match data 0 points to the chars."
       1 font-lock-type-face keep)
      (,(concat "\\<external +\\(" lid "\\)")  1 font-lock-function-name-face)
      (,(concat "\\<exception +\\(" uid "\\)") 1 font-lock-variable-name-face)
-     ;; (M: S) -- only color S here
-     (,(concat "( *" uid " *: *\\(" modtype-path "\\) *)")
+     (,(concat "\\<module\\(?: +type\\)?\\(?: +rec\\)?\\> *\\(" uid "\\)")
+      1 tuareg-font-lock-module-face)
+     ;; (M: S) -- only color S here (may be "A.T with type t = s")
+     (,(concat "( *" uid " *: *\\("
+               modtype-path "\\(?: *\\<with\\>" balanced-braces "\\)?\\) *)")
       1 tuareg-font-lock-module-face keep)
      (,(concat "\\<include +\\(" extended-module-path "\\|( *"
                extended-module-path " *: *" balanced-braces " *)\\)")
       1 tuareg-font-lock-module-face keep)
-     (,(concat "\\<module\\(?: +type\\)?\\(?: +rec\\)?\\> *\\(" uid "\\)")
-      1 tuareg-font-lock-module-face)
      ;; module type A = B
      (,(concat "\\<module +type +" id " *= *\\(" modtype-path "\\)")
       1 tuareg-font-lock-module-face keep)
      ;; module A(B: _)(C: _) : D = E, including "module A : E"
-     (,(concat "\\<module +" uid " *\\(\\(?:( *" uid " *: *" modtype-path
-               " *) *\\)*\\)\\(?::" tuareg--whitespace-re "\\(" modtype-path
+     (,(concat "\\<module +" uid tuareg--whitespace-re
+               "\\(\\(?:( *" uid " *: *"
+               modtype-path "\\(?: *\\<with\\>" balanced-braces "\\)?"
+               " *)" tuareg--whitespace-re "\\)*\\)\\(?::"
+               tuareg--whitespace-re "\\(" modtype-path
                "\\) *\\)?\\(?:=" tuareg--whitespace-re
                "\\(" extended-module-path "\\)\\)?")
-      (1 font-lock-variable-name-face keep t); functor (module) variable
+      (1 font-lock-variable-name-face keep); functor (module) variable
       (2 tuareg-font-lock-module-face keep t)
       (3 tuareg-font-lock-module-face keep t))
      (,(concat "\\<functor\\> *( *\\(" uid "\\) *: *\\(" modtype-path "\\) *)")
