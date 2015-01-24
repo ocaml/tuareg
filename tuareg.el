@@ -1156,7 +1156,8 @@ Regexp match data 0 points to the chars."
          (typeconstr (concat "\\(?:" module-path "\\.\\)?" lid))
          (constructor (concat "\\(?:\\(?:" module-path "\\.\\)?" uid
                               "\\|`" id "\\)"))
-         (extended-module-name (concat uid "\\(?: *(" balanced-braces ")\\)*"))
+         (extended-module-name
+          (concat uid "\\(?: *([ A-Z]" balanced-braces ")\\)*"))
          (extended-module-path
           (concat extended-module-name
                   "\\(?: *\\. *" extended-module-name "\\)*"))
@@ -1272,10 +1273,28 @@ Regexp match data 0 points to the chars."
       1 font-lock-type-face keep)
      (,(concat "\\<external +\\(" lid "\\)")  1 font-lock-function-name-face)
      (,(concat "\\<exception +\\(" uid "\\)") 1 font-lock-variable-name-face)
-     (,(concat "\\<include +\\(" module-path "\\)")
+     ;; (M: S) -- only color S here
+     (,(concat "( *" uid " *: *\\(" modtype-path "\\) *)")
+      1 tuareg-font-lock-module-face keep)
+     (,(concat "\\<include +\\(" extended-module-path "\\|( *"
+               extended-module-path " *: *" balanced-braces " *)\\)")
       1 tuareg-font-lock-module-face keep)
      (,(concat "\\<module\\(?: +type\\)?\\(?: +rec\\)?\\> *\\(" uid "\\)")
       1 tuareg-font-lock-module-face)
+     ;; module type A = B
+     (,(concat "\\<module +type +" id " *= *\\(" modtype-path "\\)")
+      1 tuareg-font-lock-module-face keep)
+     ;; module A(B: _)(C: _) : D = E, including "module A : E"
+     (,(concat "\\<module +" uid " *\\(\\(?:( *" uid " *: *" modtype-path
+               " *) *\\)*\\)\\(?::" tuareg--whitespace-re "\\(" modtype-path
+               "\\) *\\)?\\(?:=" tuareg--whitespace-re
+               "\\(" extended-module-path "\\)\\)?")
+      (1 font-lock-variable-name-face keep t); functor (module) variable
+      (2 tuareg-font-lock-module-face keep t)
+      (3 tuareg-font-lock-module-face keep t))
+     (,(concat "\\<functor\\> *( *\\(" uid "\\) *: *\\(" modtype-path "\\) *)")
+      (1 font-lock-variable-name-face keep); functor (module) variable
+      (2 tuareg-font-lock-module-face keep))
      ;;; let-bindings
      (,(concat let-binding " *\\(" lid "\\) *\\(?:: *\\([^=]+\\)\\)?= *"
                "fun\\(?:ction\\)?\\>")
