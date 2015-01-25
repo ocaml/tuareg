@@ -1276,7 +1276,7 @@ Regexp match data 0 points to the chars."
           'words))
       . tuareg-font-lock-operator-face)
      ;;; (lid: t) and (lid :> t)
-     (,(concat "( *" lid " *:>?\n? *\\(" balanced-braces "\\))")
+     (,(concat "( *" lid " *:>?[ \n('_A-Za-z]\\(" balanced-braces "\\))")
       1 font-lock-type-face keep)
      (,(concat "\\<external +\\(" lid "\\)")  1 font-lock-function-name-face)
      (,(concat "\\<exception +\\(" uid "\\)") 1 font-lock-variable-name-face)
