@@ -1184,10 +1184,8 @@ Regexp match data 0 points to the chars."
                               "\\)?\\|and\\)\\>"))
          ;; group of variables
          (gvars (concat "\\(\\(?:" tuareg--whitespace-re
-                        "\\(?:" lid "\\|()\\|" constructor "\\|" tuple
-                        "\\|(" lid " *:" balanced-braces
-                        ")\\|[~?]" lid "\\|[~?](" balanced-braces ")"
-                        "\\|( *type +" lid " *)"
+                        "\\(?:" lid "\\|()\\|" tuple ; = any balanced (...)
+                        "\\|[~?]\\(?:" lid "\\|(" balanced-braces ")\\)"
                         "\\)\\)+\\)"))
          ;; group for possible class param
          (class-gparams
