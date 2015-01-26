@@ -1175,9 +1175,6 @@ Regexp match data 0 points to the chars."
                              typeparam " *\\(?:, *" typeparam " *\\)*)\\)"))
          (typedef (concat "\\(?:" typeparams " *\\)?" lid))
          ;; Define 2 groups: possible path, variables
-         (simple-patt
-          (concat "*\\(?:\\(" module-path "\\.\\)?" uid " *\\)?\\("
-                  unbraced-tuple "\\|" tuple "\\)"))
          (let-ls3 (regexp-opt '("clock" "node" "static"
                                 "present" "automaton" "where" "match"
                                 "with" "do" "done" "unless" "until"
@@ -1264,6 +1261,7 @@ Regexp match data 0 points to the chars."
      (,(regexp-opt '("failwith" "failwithf" "exit" "at_exit" "invalid_arg"
                      "parser" "raise" "ref" "ignore") 'words)
       . font-lock-builtin-face)
+     ;; module paths A.B.
      (,(concat module-path "\\.") . tuareg-font-lock-module-face)
      (,(concat
          "[][;,()|{}]\\|[-@^!:*=<>&/%+~?#]\\.?\\|\\.\\.\\.*\\|"
@@ -1306,15 +1304,25 @@ Regexp match data 0 points to the chars."
      (,(concat "\\<functor\\> *( *\\(" uid "\\) *: *\\(" modtype-path "\\) *)")
       (1 font-lock-variable-name-face keep); functor (module) variable
       (2 tuareg-font-lock-module-face keep))
+     ;;; "type lid" anywhere (e.g. "let f (type t) x =") introduces a new type
+     (,(concat "\\<type\\>" tuareg--whitespace-re "\\(" typedef "\\)")
+      1 font-lock-type-face keep)
+     ;; Constructors
+     (,(concat "`" id) . tuareg-font-lock-constructor-face)
+     (,(concat "\\(" uid "\\)[^.]")  1 tuareg-font-lock-constructor-face)
      ;;; let-bindings
      (,(concat let-binding " *\\(" lid "\\) *\\(?:: *\\([^=]+\\)\\)?= *"
                "fun\\(?:ction\\)?\\>")
       (1 font-lock-function-name-face nil t)
       (2 font-lock-type-face keep t))
-     (,(concat let-binding " *" simple-patt " *\\(?:: *\\([^=]+\\)\\)?=")
-      (1 tuareg-font-lock-module-face nil t)
-      (2 font-lock-variable-name-face keep t)
-      (3 font-lock-type-face keep t))
+     (,(let* ((maybe-constr (concat "\\(?:" constructor " *\\)?"))
+              (var (concat maybe-constr "\\(?:" lid "\\|" tuple "\\)"))
+              (simple-patt (concat var "\\(?: *, *" var "\\)*")))
+         (concat let-binding " *\\(" simple-patt
+                 "\\) *\\(?:: *\\([^=]+\\)\\)?="))
+      ;; module paths, types, constructors already colored by the above
+      (1 font-lock-variable-name-face keep)
+      (2 font-lock-type-face keep t))
      (,(concat let-binding " *\\(" lid "\\)" gvars "?")
       (1 font-lock-function-name-face nil t)
       (2 font-lock-variable-name-face keep t))
@@ -1343,12 +1351,6 @@ Regexp match data 0 points to the chars."
      ,@(and tuareg-support-metaocaml
             '(("\\.<\\|>\\.\\|\\.~\\|\\.!"
                0 tuareg-font-lock-multistage-face nil nil)))
-     ;;; "type lid" anywhere (e.g. "let f (type t) x =") introduces a new type
-     (,(concat "\\<type\\>" tuareg--whitespace-re "\\(" typedef "\\)")
-      1 font-lock-type-face keep)
-     ;; Constructors
-     (,(concat "`" id) . tuareg-font-lock-constructor-face)
-     (,(concat "\\(" uid "\\)[^.]")  1 tuareg-font-lock-constructor-face)
      ,@(and tuareg-font-lock-symbols
             (tuareg-font-lock-symbols-keywords)))))
   (setq font-lock-defaults
