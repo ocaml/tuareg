@@ -1239,10 +1239,9 @@ Regexp match data 0 points to the chars."
      ("\\<class\\>\\(?: +type\\>\\)?\\( +virtual\\>\\)?"
       1 tuareg-font-lock-governing-face nil t)
      ;; "private" treated as governing keyword
-     (,(concat "\\<method!? +\\(private\\(?: +virtual\\)?\\>"
-               "\\|virtual\\(?: +private\\)?\\>\\)?\\( *" lid "\\)?")
-      (1 tuareg-font-lock-governing-face t t)
-      (2 font-lock-function-name-face nil t)) ; method name
+     (,(concat "\\<method!?\\(?: +\\(private\\(?: +virtual\\)?"
+               "\\|virtual\\(?: +private\\)?\\)\\>\\)?")
+      1 tuareg-font-lock-governing-face keep t)
      ;; Other uses of "with", "mutable", "private", "virtual"
      (,(regexp-opt '("of" "with" "mutable" "private" "virtual") 'words)
       . font-lock-keyword-face)
@@ -1272,7 +1271,7 @@ Regexp match data 0 points to the chars."
           'words))
       . tuareg-font-lock-operator-face)
      ;;; (lid: t) and (lid :> t)
-     (,(concat "( *" lid " *:>?[ \n('_A-Za-z]\\(" balanced-braces "\\))")
+     (,(concat "( *" lid " *:>?\\([ \n'_A-Za-z]" balanced-braces "\\))")
       1 font-lock-type-face keep)
      (,(concat "\\<external +\\(" lid "\\)")  1 font-lock-function-name-face)
      (,(concat "\\<exception +\\(" uid "\\)") 1 font-lock-variable-name-face)
@@ -1333,6 +1332,13 @@ Regexp match data 0 points to the chars."
       (2 font-lock-function-name-face))
      (,(concat class-gparams " *" lid gvars "? *=")
       2 font-lock-variable-name-face keep t)
+     ;; "method": long match first to capture the method name
+     (,(concat "\\<method!? +\\(?:private +\\(?:virtual +\\)?"
+               "\\|virtual +\\(?:private +\\)?\\)\\(" lid "\\)")
+      1 font-lock-function-name-face keep t); method name
+     (,(concat "\\<method!? +\\(" lid "\\)" gvars "?")
+      (1 font-lock-function-name-face keep t); method name
+      (2 font-lock-variable-name-face keep t))
      (,(concat "\\<object *(\\(" lid "\\) *\\(?:: *\\("
                balanced-braces "\\)\\)?)")
       (1 font-lock-variable-name-face)
