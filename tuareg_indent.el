@@ -1881,7 +1881,8 @@ or indent all lines in the current phrase."
                              (forward-line -1))
                            (max cobpoint (point))))
                (coepoint (save-excursion
-                           (while (tuareg-in-comment-p)
+                           (while (and (tuareg-in-comment-p)
+                                       (< (point) (point-max)))
                              (re-search-forward "\\*)" nil 'end))
                            (point)))
                (endpoint (save-excursion
