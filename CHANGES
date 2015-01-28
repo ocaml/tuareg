@@ -1,0 +1,10 @@
+2.0.9 (master):
+* Do not activate Tuareg for .mll and .mly files.
+* Toplevel prompt is readonly.
+* Font-lock code completely rewritten (avoids several hangs).  New faces
+  `tuareg-font-lock-module-face', `tuareg-font-lock-constructor-face',
+  and `tuareg-font-lock-line-number-face'.
+* Non-closed comment does not cause M-q to hang.
+* New variables `caml-types-build-dirs' and `caml-types-annot-dir' for
+  a more versatile specification of .annot files.  (Submitted back to
+  caml-mode.)
