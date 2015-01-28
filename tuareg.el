@@ -142,6 +142,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                       User customizable variables
 
+(require 'smie nil 'noerror)
+(defvar tuareg-use-smie (featurep 'smie)
+  "Whether to use SMIE as the indentation engine.")
+
 ;; Use the standard `customize' interface or `tuareg-mode-hook' to
 ;; Configure these variables
 
@@ -1399,12 +1403,14 @@ Regexp match data 0 points to the chars."
     (define-key map [(backspace)] 'backward-delete-char-untabify)
     (define-key map [(control c) (home)]
       'tuareg-move-inside-module-or-class-opening)
-    (define-key map [(control c) (control down)] 'tuareg-next-phrase)
-    (define-key map [(control c) (control up)] 'tuareg-previous-phrase)
-    (define-key map [(meta control down)]  'tuareg-next-phrase)
-    (define-key map [(meta control up)] 'tuareg-previous-phrase)
-    (define-key map [(meta control n)]  'tuareg-next-phrase)
-    (define-key map [(meta control p)] 'tuareg-previous-phrase)
+    (unless tuareg-use-smie
+      (define-key map [(control c) (control down)] 'tuareg-next-phrase)
+      (define-key map [(control c) (control up)] 'tuareg-previous-phrase)
+      (define-key map [(meta control down)]  'tuareg-next-phrase)
+      (define-key map [(meta control up)] 'tuareg-previous-phrase)
+      (define-key map [(meta control n)]  'tuareg-next-phrase)
+      (define-key map [(meta control p)] 'tuareg-previous-phrase)
+      )
     (define-key map [(meta control h)] 'tuareg-mark-phrase)
     (define-key map "\C-c`" 'tuareg-interactive-next-error-source)
     (define-key map "\C-c?" 'tuareg-interactive-next-error-source)
@@ -1479,9 +1485,6 @@ For use on `electric-indent-functions'."
 ;; - Fix use of tuareg-indent-command in tuareg-auto-fill-insert-leading-star.
 ;; - Use it by default (when possible).
 ;; - Move the old indentation code to a separate file.
-
-(require 'smie nil 'noerror)
-(defvar tuareg-use-smie (featurep 'smie))
 
 (defconst tuareg-smie-grammar
   ;; Problems:
