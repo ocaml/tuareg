@@ -78,18 +78,10 @@
 (defconst tuareg-mode-revision
   (eval-when-compile
     (with-temp-buffer
-      (cond ((file-directory-p ".git")
-             (progn
-               (insert "git: ")
-               (call-process "git" nil t nil "log" "--pretty=%h" "-1")))
-            ((file-directory-p ".hg")
-             (call-process "hg" nil t nil "id" "-i" "--debug"))
-            ((file-directory-p ".svn")
-             (let ((process-environment
-                    (cons "LANG=C" process-environment)))
-               (shell-command "svn info | grep Revision: | sed 's/Revision: //'" t)))
-            ((file-directory-p ".bzr")
-             (shell-command "bzr log -l -1 | grep revno:" t)))
+      (if (file-directory-p ".git")
+           (progn
+             (insert "git: ")
+             (call-process "git" nil t nil "log" "--pretty=%h" "-1")))
       (unless (zerop (buffer-size))
         (buffer-substring-no-properties
          (point-min) (1- (point-max))))))
