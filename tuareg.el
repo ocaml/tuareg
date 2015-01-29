@@ -550,7 +550,7 @@ Valid names are `browse-url', `browse-url-firefox', etc."
 (defface tuareg-font-lock-interactive-output-face
   '((((background light))
      (:foreground "blue4"))
-    (t (:foreground "cyan")))
+    (t (:foreground "grey")))
   "Face description for all toplevel outputs."
   :group 'tuareg-faces)
 (defvar tuareg-font-lock-interactive-output-face
