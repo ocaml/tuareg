@@ -8,3 +8,4 @@
 * New variables `caml-types-build-dirs' and `caml-types-annot-dir' for
   a more versatile specification of .annot files.  (Submitted back to
   caml-mode.)
+* Fix toplevel highlighting of output and errors.

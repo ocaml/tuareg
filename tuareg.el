@@ -134,7 +134,7 @@
   (require 'derived))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                             Import types and help features
+;;                    Import types and help features
 
 (defvar tuareg-with-caml-mode-p
   (and (require 'caml-types nil t) (require 'caml-help nil t)))
@@ -2385,25 +2385,6 @@ Short cuts for interactions with the toplevel:
 ;;        (setq beg (+ (point) beg) end (+ (point) end))
 ;;        (goto-char beg) (push-mark end t t)))))
 
-(defvar tuareg-interactive-error-regexp
-  (concat "\\(\\("
-          "Toplevel input:"
-          "\\|Entr.e interactive:"
-          "\\|Characters [0-9-]*:"
-          "\\|The global value [^ ]* is referenced before being defined."
-          "\\|La valeur globale [^ ]* est utilis.e avant d'.tre d.finie."
-          "\\|Reference to undefined global"
-          "\\|The C primitive \"[^\"]*\" is not available."
-          "\\|La primitive C \"[^\"]*\" est inconnue."
-          "\\|Cannot find \\(the compiled interface \\)?file"
-          "\\|L'interface compil.e [^ ]* est introuvable."
-          "\\|Le fichier [^ ]* est introuvable."
-          "\\|Exception non rattrap.e:"
-          "\\|Uncaught exception:"
-          "\\)[^#]*\\)" )
-  "Regular expression matching the error messages produced by OCaml.")
-
-
 (autoload 'ocaml-module-alist "caml-help")
 (autoload 'ocaml-visible-modules "caml-help")
 (autoload 'ocaml-module-symbols "caml-help")
@@ -2548,9 +2529,15 @@ otherwise return non-nil."
 
 (defconst tuareg-interactive-buffer-name "*ocaml-toplevel*")
 
-(defconst tuareg-interactive-toplevel-error-regexp
-  "[ \t]*Characters \\([0-9]+\\)-\\([0-9]+\\):"
-  "Regexp matching the char numbers in ocaml toplevel's error messages.")
+(defconst tuareg-interactive-error-range-regexp
+  "[ \t]*Characters \\([0-9]+\\)-\\([1-9][0-9]*\\):\n"
+  "Regexp matching the char numbers in OCaml toplevel's error messages.")
+
+(defconst tuareg-interactive-error-regexp
+  "\n\\(Error: [^#]*\\)")
+(defconst tuareg-interactive-exception-regexp
+  "\\(Exception: [^#]*\\)")
+
 (defvar tuareg-interactive-last-phrase-pos-in-source 0)
 (defvar tuareg-interactive-last-phrase-pos-in-toplevel 0)
 
@@ -2572,25 +2559,32 @@ otherwise return non-nil."
                                 comint-last-input-end t)
             (add-text-properties
              comint-last-input-end (point)
-             '(face tuareg-font-lock-interactive-output-face))))
+             '(font-lock-face tuareg-font-lock-interactive-output-face))))
         (when tuareg-interactive-error-font-lock
           (save-excursion
             (goto-char comint-last-input-end)
-            (while (re-search-forward tuareg-interactive-error-regexp () t)
-              (let ((matchbeg (match-beginning 1))
-                    (matchend (match-end 1)))
-                (save-excursion
-                  (goto-char matchbeg)
-                  (put-text-property
-                   matchbeg matchend
-                   'face 'tuareg-font-lock-interactive-error-face)
-                  (when (looking-at tuareg-interactive-toplevel-error-regexp)
-                    (let ((beg (string-to-number (tuareg-match-string 1)))
-                          (end (string-to-number (tuareg-match-string 2))))
-                      (put-text-property
-                       (+ comint-last-input-start beg)
-                       (+ comint-last-input-start end)
-                       'face 'tuareg-font-lock-error-face))))))))))))
+            (cond
+             ((looking-at tuareg-interactive-error-range-regexp)
+              (let ((beg (string-to-number (tuareg-match-string 1)))
+                    (end (string-to-number (tuareg-match-string 2))))
+                (put-text-property
+                 (+ comint-last-input-start beg)
+                 (+ comint-last-input-start end)
+                 'font-lock-face 'tuareg-font-lock-error-face))
+              (goto-char comint-last-input-end)
+              (when (re-search-forward tuareg-interactive-error-regexp)
+                (let ((errbeg (match-beginning 1))
+                      (errend (match-end 1)))
+                (put-text-property
+                 errbeg errend
+                 'font-lock-face 'tuareg-font-lock-interactive-error-face))))
+             ((looking-at tuareg-interactive-exception-regexp)
+              (let ((errbeg (match-beginning 1))
+                    (errend (match-end 1)))
+                (put-text-property
+                 errbeg errend
+                 'font-lock-face 'tuareg-font-lock-interactive-error-face)))
+             )))))))
 
 (easy-menu-define
   tuareg-interactive-mode-menu tuareg-interactive-mode-map
