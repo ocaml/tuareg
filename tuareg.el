@@ -157,28 +157,12 @@
 
 ;; Comments
 
-(defcustom tuareg-indent-leading-comments t
-  "*If true, indent leading comment lines (starting with `(*') like others."
+(defcustom tuareg-leading-star-in-doc nil
+  "*Enable automatic intentation of documentation comments of the form
+        (**
+         * ...
+         *)"
   :group 'tuareg :type 'boolean)
-
-(defcustom tuareg-indent-comments t
-  "*If true, automatically align multi-line comments."
-  :group 'tuareg :type 'boolean)
-
-(defcustom tuareg-comment-end-extra-indent 0
-  "*How many spaces to indent a leading comment end `*)'.
-If you expect comments to be indented like
-        (*
-          ...
-         *)
-even without leading `*', use `tuareg-comment-end-extra-indent' = 1."
-  :group 'tuareg
-  :type '(radio :extra-offset 8
-                :format "%{Comment End Extra Indent%}:
-   Comment alignment:\n%v"
-                (const :tag "align with `(' in comment opening" 0)
-                (const :tag "align with `*' in comment opening" 1)
-                (integer :tag "custom alignment" 0)))
 
 (defcustom tuareg-support-leading-star-comments t
   "*Enable automatic intentation of comments of the form
@@ -194,13 +178,6 @@ indented like
           ...
          *)
 \(without leading `*'), set `tuareg-comment-end-extra-indent' to 1."
-  :group 'tuareg :type 'boolean)
-
-(defcustom tuareg-leading-star-in-doc nil
-  "*Enable automatic intentation of documentation comments of the form
-        (**
-         * ...
-         *)"
   :group 'tuareg :type 'boolean)
 
 ;; Indentation defaults
@@ -234,95 +211,11 @@ if it has to."
                (when (derived-mode-p 'tuareg-mode 'tuareg-interactive-mode)
                  (tuareg-install-font-lock)))))))
 
-(defcustom tuareg-let-always-indent t
-  "*If true, enforce indentation is at least `tuareg-let-indent' after a `let'.
-
-As an example, set it to nil when you have `tuareg-with-indent' set to 0,
-and you want `let x = match ... with' and `match ... with' indent the
-same way."
-  :group 'tuareg :type 'boolean)
-
-(defcustom tuareg-pipe-extra-unindent tuareg-default-indent
-  "*Extra backward indent for OCaml lines starting with the `|' operator.
-
-It is NOT the variable controlling the indentation of the `|' itself:
-this value is automatically added to `function', `with', `parse' and
-some cases of `type' keywords to leave enough space for `|' backward
-indentation.
-
-For example, setting this variable to 0 leads to the following indentation:
-  match ... with
-    X -> ...
-    | Y -> ...
-    | Z -> ...
-
-To modify the indentation of lines lead by `|' you need to modify the
-indentation variables for `with', `function', and possibly
-for `type' as well.  For example, setting them to 0 (and leaving
-`tuareg-pipe-extra-unindent' to its default value) yields:
-  match ... with
-    X -> ...
-  | Y -> ...
-  | Z -> ..."
-  :group 'tuareg :type 'integer)
-
-(defcustom tuareg-class-indent tuareg-default-indent
-  "*How many spaces to indent from a `class' keyword."
-  :group 'tuareg :type 'integer)
-
-(defcustom tuareg-sig-struct-align t
-  "*Align `sig' and `struct' keywords with `module'."
-  :group 'tuareg :type 'boolean)
-
-(defcustom tuareg-sig-struct-indent tuareg-default-indent
-  "*How many spaces to indent from a `sig' or `struct' keyword."
-  :group 'tuareg :type 'integer)
-
-(defcustom tuareg-method-indent tuareg-default-indent
-  "*How many spaces to indent from a `method' keyword."
-  :group 'tuareg :type 'integer)
-
-(defcustom tuareg-begin-indent tuareg-default-indent
-  "*How many spaces to indent from a `begin' keyword."
-  :group 'tuareg :type 'integer)
-
-(defcustom tuareg-for-while-indent tuareg-default-indent
-  "*How many spaces to indent from a `for' or `while' keyword."
-  :group 'tuareg :type 'integer)
-
-(defcustom tuareg-do-indent tuareg-default-indent
-  "*How many spaces to indent from a `do' keyword."
-  :group 'tuareg :type 'integer)
-
-(defcustom tuareg-fun-indent tuareg-default-indent
-  "*How many spaces to indent from a `fun' keyword."
-  :group 'tuareg :type 'integer)
-
-(defcustom tuareg-function-indent 0 ;tuareg-default-indent
-  "*How many spaces to indent from a `function' keyword."
-  :group 'tuareg :type 'integer)
-
-(defcustom tuareg-if-then-else-indent tuareg-default-indent
-  "*How many spaces to indent from an `if', `then' or `else' keyword."
-  :group 'tuareg :type 'integer)
-
-(defcustom tuareg-let-indent tuareg-default-indent
-  "*How many spaces to indent from a `let' keyword."
-  :group 'tuareg :type 'integer)
-
 (defcustom tuareg-in-indent 0 ; tuareg-default-indent
   "*How many spaces to indent from a `in' keyword.
 Upstream <http://caml.inria.fr/resources/doc/guides/guidelines.en.html>
 recommends 0, and this is what we default to since 2.0.1
 instead of the historical `tuareg-default-indent'."
-  :group 'tuareg :type 'integer)
-
-(defcustom tuareg-match-indent tuareg-default-indent
-  "*How many spaces to indent from a `match' keyword."
-  :group 'tuareg :type 'integer)
-
-(defcustom tuareg-try-indent tuareg-default-indent
-  "*How many spaces to indent from a `try' keyword."
   :group 'tuareg :type 'integer)
 
 (defcustom tuareg-with-indent 0
@@ -341,14 +234,6 @@ the default is 1.")
    | patt
         when cond ->
       clause")
-
-(defcustom tuareg-type-indent tuareg-default-indent
-  "*How many spaces to indent from a `type' keyword."
-  :group 'tuareg :type 'integer)
-
-(defcustom tuareg-val-indent tuareg-default-indent
-  "*How many spaces to indent from a `val' keyword."
-  :group 'tuareg :type 'integer)
 
 ;; Automatic indentation
 ;; Using abbrev-mode and electric keys
@@ -377,15 +262,6 @@ setting this variable to nil."
 (when (fboundp 'electric-indent-mode)
   (make-obsolete-variable 'tuareg-electric-indent
                           'electric-indent-mode "Emacs-24.1"))
-
-(defcustom tuareg-electric-close-vector t
-  "*Non-nil means electrically insert `|' before a vector-closing `]' or
-`>' before an object-closing `}'.
-
-Many people find electric keys irritating, so you can disable them by
-setting this variable to nil.  You should probably have this on,
-though, if you also have `tuareg-electric-indent' on."
-  :group 'tuareg :type 'boolean)
 
 ;; Tuareg-Interactive
 ;; Configure via `tuareg-mode-hook'
@@ -436,7 +312,7 @@ them to the OCaml toplevel."
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-manual-url
-  "http://pauillac.inria.fr/ocaml/htmlman/index.html"
+  "http://caml.inria.fr/pub/docs/manual-ocaml/"
   "*URL to the OCaml reference manual."
   :group 'tuareg :type 'string)
 
@@ -454,13 +330,16 @@ Valid names are `browse-url', `browse-url-firefox', etc."
   :group 'tuareg :type 'integer)
 
 (defvar tuareg-options-list
-  '(("Automatic indentation of leading keywords" . 'tuareg-use-abbrev-mode)
+  `(("Automatic indentation of leading keywords" . 'tuareg-use-abbrev-mode)
     ("Automatic indentation of ), ] and }" . 'tuareg-electric-indent)
-    ("Automatic matching of [| and {<" . 'tuareg-electric-close-vector)
+    ,@(unless tuareg-use-smie
+        '("Automatic matching of [| and {<" . 'tuareg-electric-close-vector))
     "---"
-    ("Indent body of comments" . 'tuareg-indent-comments)
-    ("Indent first line of comments" . 'tuareg-indent-leading-comments)
-    ("Leading-`*' comment style" . 'tuareg-support-leading-star-comments))
+    ,@(unless tuareg-use-smie
+        '(("Indent body of comments" . 'tuareg-indent-comments)
+          ("Indent first line of comments" . 'tuareg-indent-leading-comments)
+          ("Leading-`*' comment style" . 'tuareg-support-leading-star-comments)
+          )))
   "*List of menu-configurable Tuareg options.")
 
 (defvar tuareg-interactive-options-list
