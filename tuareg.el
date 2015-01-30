@@ -2192,34 +2192,9 @@ You can append it to your `.emacs' or use it as a tutorial.
 `M-x ocamldebug' FILE starts the OCaml debugger ocamldebug on the executable
 FILE, with input and output in an Emacs buffer named *ocamldebug-FILE*.
 
-A Tuareg Interactive Mode to evaluate expressions in a toplevel is included.
-Type `M-x tuareg-run-ocaml' or see special-keys below.
-
-For the best indentation experience, some elementary rules must be followed.
-  - Because the `function' keyword has a special indentation (to handle
-    case matches) use the `fun' keyword when no case match is performed.
-  - In OCaml, `;;' is no longer necessary for correct indentation,
-    except before top level phrases not introduced by `type', `val', `let'
-    etc. (i.e., phrases used for their side-effects or to be executed
-    in a top level.)
-  - Long sequences of `and's may slow down indentation slightly, since
-    some computations (few) require to go back to the beginning of the
-    sequence.  Some very long nested blocks may also lead to slow
-    processing of `end's, `else's, `done's...
-  - Multiline strings are handled properly, but you may prefer string
-    concatenation `^' to break long strings (the C-j keystroke can help).
-  - Comment indentation is often a matter of taste and context, yet
-    sophisticated heuristics provide reasonable indentation in most cases.
-    When inserting a comment right before the code it refers to, it is
-    generally expected that this comment will be aligned with the folowing
-    code; to enforce this, leave a blank line before the comment.
-
-Known bugs:
-  - When writing a line with mixed code and comments, avoid putting
-    comments at the beginning or middle of the text. More precisely,
-    writing comments immediately after `=' or parentheses then writing
-    some more code on the line leads to indentation errors.  You may write
-    `let x (* blah *) = blah' but should avoid `let x = (* blah *) blah'.
+A Tuareg Interactive Mode to evaluate expressions in a toplevel is
+included.  Type `M-x tuareg-run-ocaml' or simply `M-x run-ocaml' or see
+special-keys below.
 
 Short cuts for the Tuareg mode:
 \\{tuareg-mode-map}
@@ -2230,8 +2205,9 @@ Short cuts for interactions with the toplevel:
   ;; Initialize the Tuareg menu
   (tuareg-build-menu)
 
-  ;; Initialize indentation regexps
-  (tuareg-make-indentation-regexps)
+  (unless tuareg-use-smie
+    ;; Initialize indentation regexps
+    (tuareg-make-indentation-regexps))
 
   (set (make-local-variable 'paragraph-start)
        (concat "^[ \t]*$\\|\\*)$\\|" page-delimiter))
