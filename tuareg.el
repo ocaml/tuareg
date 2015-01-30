@@ -2697,7 +2697,7 @@ current phrase else insert a newline and indent."
         (message "No syntax or typing error in last phrase.")
       (setq beg (+ tuareg-interactive-last-phrase-pos-in-toplevel beg)
             end (+ tuareg-interactive-last-phrase-pos-in-toplevel end))
-      (move-overlay tuareg-interactive-next-error-olv)
+      (move-overlay tuareg-interactive-next-error-olv beg end)
       (unwind-protect
           (sit-for 60 t)
         (delete-overlay tuareg-interactive-next-error-olv))
