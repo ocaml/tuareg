@@ -2768,7 +2768,7 @@ current phrase else insert a newline and indent."
     (with-current-buffer tuareg-interactive-buffer-name
       (goto-char tuareg-interactive-last-phrase-pos-in-toplevel)
       (setq error-pos
-            (re-search-forward tuareg-interactive-toplevel-error-regexp
+            (re-search-forward tuareg-interactive-error-range-regexp
                                (point-max) t))
       (when error-pos
         (setq beg (string-to-number (tuareg-match-string 1))
@@ -2778,7 +2778,8 @@ current phrase else insert a newline and indent."
       (setq beg (+ tuareg-interactive-last-phrase-pos-in-source beg)
             end (+ tuareg-interactive-last-phrase-pos-in-source end))
       (goto-char beg)
-      (put-text-property beg end 'face 'tuareg-font-lock-error-face))))
+      (put-text-property beg end 'font-lock-face
+                         'tuareg-font-lock-error-face))))
 
 (defun tuareg-interactive-next-error-toplevel ()
   (interactive)
@@ -2786,7 +2787,7 @@ current phrase else insert a newline and indent."
     (save-excursion
       (goto-char tuareg-interactive-last-phrase-pos-in-toplevel)
       (setq error-pos
-            (re-search-forward tuareg-interactive-toplevel-error-regexp
+            (re-search-forward tuareg-interactive-error-range-regexp
                                (point-max) t))
       (when error-pos
         (setq beg (string-to-number (tuareg-match-string 1))
@@ -2795,7 +2796,8 @@ current phrase else insert a newline and indent."
         (message "No syntax or typing error in last phrase.")
       (setq beg (+ tuareg-interactive-last-phrase-pos-in-toplevel beg)
             end (+ tuareg-interactive-last-phrase-pos-in-toplevel end))
-      (put-text-property beg end 'face 'tuareg-font-lock-error-face)
+      (put-text-property beg end 'font-lock-face
+                         'tuareg-font-lock-error-face)
       (goto-char beg))))
 
 (defun tuareg-interrupt-ocaml ()
