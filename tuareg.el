@@ -2361,6 +2361,40 @@ otherwise return non-nil."
   nil
   \n "try" > \n _ \n "with" > \n)
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                               OPAM
+
+(defconst tuareg-opam-compilers
+  (cons "~/.opam/system"
+        (directory-files "~/.opam" t "[0-9]+\\.[0-9]+\\.[0-9]+")))
+
+(defvar tuareg-opam
+  (let ((opam (executable-find "opam")))
+    (if opam opam
+      (let ((opam (locate-file "bin/opam" tuareg-opam-compilers)))
+        (if (file-executable-p opam) opam)))) ; or nil
+  "The full path of the opam executable.")
+
+(when tuareg-opam
+  (setq tuareg-interactive-program
+        (concat tuareg-opam " config exec -- ocaml"))
+
+  (defun tuareg-opam-config-env()
+    (let* ((get-env (concat tuareg-opam " config env"))
+           (opam-env (shell-command-to-string get-env)))
+      (replace-regexp-in-string "; *export.*$" "" opam-env)))
+
+  ;; OPAM compilation — one must update to the current compiler
+  ;; before launching the compilation.
+  (defadvice compile (before tuareg-compile-opam activate)
+      "Run opam to update environment variables."
+      (let* ((env (opam-config-env)))
+	(set (make-local-variable 'compilation-environment)
+	     ;; Quotes MUST be removed.
+	     (split-string (replace-regexp-in-string "\"" "" env)))))
+  )
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                            Tuareg interactive mode
 
