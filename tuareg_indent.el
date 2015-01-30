@@ -1792,48 +1792,50 @@ module/class are considered enclosed in this module/class."
       (goto-char old-point))
     (tuareg-find-phrase-beginning)))
 
-(defun tuareg-discover-phrase (&optional quiet stop-at-and)
-  (end-of-line)
-  (let ((end (point)) (case-fold-search nil))
-   (tuareg-with-internal-syntax
-    (tuareg-find-phrase-beginning stop-at-and)
-    (when (> (point) end) (setq end (point)))
-    (save-excursion
-      (let ((begin (point)) (cpt 0) (lines-left 0) (stop)
-            (inside-module-or-class (tuareg-inside-module-or-class-p))
-            (looking-block
-             (looking-at tuareg-inside-module-or-class-opening-full)))
-        (if (and looking-block inside-module-or-class)
-            (progn
-              (setq begin (nth 0 inside-module-or-class))
-              (setq end (nth 2 inside-module-or-class))
-              (goto-char end))
-          (if inside-module-or-class
-              (progn
-                (setq stop (save-excursion
-                             (goto-char (nth 1 inside-module-or-class))
-                             (line-beginning-position)))
-                (if (< stop end) (setq stop (point-max))))
-            (setq stop (point-max)))
-          (save-restriction
-            (goto-char end)
-            (while (and (= lines-left 0)
-                        (or (not inside-module-or-class) (< (point) stop))
-                        (<= (save-excursion
-                              (tuareg-find-phrase-beginning stop-at-and)) end))
-              (unless quiet
-                (setq cpt (1+ cpt))
-                (when (= 8 cpt)
-                  (message "Looking for enclosing phrase...")))
-              (setq end (point))
-              (tuareg-skip-to-end-of-phrase)
-              (narrow-to-region (line-beginning-position) (point-max))
-              (goto-char end)
-              (setq lines-left (forward-line 1)))))
-        (when (>= cpt 8) (message "Looking for enclosing phrase... done."))
-        (save-excursion (tuareg-skip-blank-and-comments) (setq end (point)))
-        (tuareg-skip-back-blank-and-comments)
-        (list begin (point) end))))))
+(unless tuareg-use-smie
+  (defun tuareg-discover-phrase (&optional quiet stop-at-and)
+    (end-of-line)
+    (let ((end (point)) (case-fold-search nil))
+      (tuareg-with-internal-syntax
+       (tuareg-find-phrase-beginning stop-at-and)
+       (when (> (point) end) (setq end (point)))
+       (save-excursion
+         (let ((begin (point)) (cpt 0) (lines-left 0) (stop)
+               (inside-module-or-class (tuareg-inside-module-or-class-p))
+               (looking-block
+                (looking-at tuareg-inside-module-or-class-opening-full)))
+           (if (and looking-block inside-module-or-class)
+               (progn
+                 (setq begin (nth 0 inside-module-or-class))
+                 (setq end (nth 2 inside-module-or-class))
+                 (goto-char end))
+             (if inside-module-or-class
+                 (progn
+                   (setq stop (save-excursion
+                                (goto-char (nth 1 inside-module-or-class))
+                                (line-beginning-position)))
+                   (if (< stop end) (setq stop (point-max))))
+               (setq stop (point-max)))
+             (save-restriction
+               (goto-char end)
+               (while (and (= lines-left 0)
+                           (or (not inside-module-or-class) (< (point) stop))
+                           (<= (save-excursion
+                                 (tuareg-find-phrase-beginning stop-at-and))
+                               end))
+                 (unless quiet
+                   (setq cpt (1+ cpt))
+                   (when (= 8 cpt)
+                     (message "Looking for enclosing phrase...")))
+                 (setq end (point))
+                 (tuareg-skip-to-end-of-phrase)
+                 (narrow-to-region (line-beginning-position) (point-max))
+                 (goto-char end)
+                 (setq lines-left (forward-line 1)))))
+           (when (>= cpt 8) (message "Looking for enclosing phrase... done."))
+           (save-excursion (tuareg-skip-blank-and-comments) (setq end (point)))
+           (tuareg-skip-back-blank-and-comments)
+           (list begin (point) end)))))))
 
 (defun tuareg-mark-phrase ()
   "Put mark at end of this OCaml phrase, point at beginning.

@@ -1760,6 +1760,8 @@ For use on `electric-indent-functions'."
           (point))))
 
 (defun tuareg-smie-forward-token ()
+  "Move the point at the end of the next token and return the SMIE name
+of the token."
   (let ((tok (tuareg-smie--forward-token)))
     (cond
      ((zerop (length tok))
@@ -2738,6 +2740,18 @@ current phrase else insert a newline and indent."
               (insert (concat text ";;")))))))
     (when tuareg-display-buffer-on-eval
       (display-buffer tuareg-interactive-buffer-name))))
+
+(if tuareg-use-smie
+    (defun tuareg-discover-phrase (&optional quiet stop-at-and)
+      "Return a triplet '(begin end end-with-comments)."
+      (save-excursion
+        (end-of-line)
+        (tuareg-beginning-of-defun)
+        (let ((begin (point)))
+          (smie-forward-sexp 'halfsexp)
+          (let ((end (point)))
+            (forward-comment 5)
+            (list begin end (point)))))))
 
 (defun tuareg-narrow-to-phrase ()
   "Narrow the editting window to the surrounding OCaml phrase (or block)."
