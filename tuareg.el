@@ -2762,6 +2762,11 @@ current phrase else insert a newline and indent."
   (interactive)
   (tuareg-eval-region (point-min) (point-max)))
 
+(defvar tuareg-interactive-next-error-olv (make-overlay 1 1))
+(overlay-put tuareg-interactive-next-error-olv
+             'face 'tuareg-font-lock-error-face)
+(delete-overlay tuareg-interactive-next-error-olv)
+
 (defun tuareg-interactive-next-error-source ()
   (interactive)
   (let ((error-pos) (beg 0) (end 0))
@@ -2778,8 +2783,11 @@ current phrase else insert a newline and indent."
       (setq beg (+ tuareg-interactive-last-phrase-pos-in-source beg)
             end (+ tuareg-interactive-last-phrase-pos-in-source end))
       (goto-char beg)
-      (put-text-property beg end 'font-lock-face
-                         'tuareg-font-lock-error-face))))
+      (move-overlay tuareg-interactive-next-error-olv beg end)
+      (unwind-protect
+          (sit-for 60 t)
+        (delete-overlay tuareg-interactive-next-error-olv))
+      )))
 
 (defun tuareg-interactive-next-error-toplevel ()
   (interactive)
@@ -2796,8 +2804,10 @@ current phrase else insert a newline and indent."
         (message "No syntax or typing error in last phrase.")
       (setq beg (+ tuareg-interactive-last-phrase-pos-in-toplevel beg)
             end (+ tuareg-interactive-last-phrase-pos-in-toplevel end))
-      (put-text-property beg end 'font-lock-face
-                         'tuareg-font-lock-error-face)
+      (move-overlay tuareg-interactive-next-error-olv)
+      (unwind-protect
+          (sit-for 60 t)
+        (delete-overlay tuareg-interactive-next-error-olv))
       (goto-char beg))))
 
 (defun tuareg-interrupt-ocaml ()
