@@ -2654,12 +2654,31 @@ current phrase else insert a newline and indent."
     (when tuareg-display-buffer-on-eval
       (display-buffer tuareg-interactive-buffer-name))))
 
-(if tuareg-use-smie
+(when tuareg-use-smie
+  (defconst tuareg-beginning-of-phrase-syms
+    '("module" "open" "type" "d-let"))
+
+  (defun tuareg--beginning-of-phrase ()
+      (interactive)
+      (while
+          (let ((td (smie-backward-sexp 'halfsexp)))
+            (cond
+             ((member (nth 2 td) tuareg-beginning-of-phrase-syms)
+              (goto-char (nth 1 td))
+              nil)
+             ((null td)
+              (let ((tk (tuareg-smie-backward-token)))
+                ;; Stop if in the list
+                (not (member tk tuareg-beginning-of-phrase-syms))))
+             ((and (car td) (not(numberp (car td))))
+              (unless (bobp) (goto-char (nth 1 td)) t))
+             (t t)))))
+
     (defun tuareg-discover-phrase (&optional quiet stop-at-and)
       "Return a triplet '(begin end end-with-comments)."
       (save-excursion
         (end-of-line)
-        (tuareg-beginning-of-defun)
+        (tuareg--beginning-of-phrase)
         (let ((begin (point)))
           (smie-forward-sexp 'halfsexp)
           (let ((end (point)))
