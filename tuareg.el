@@ -2463,7 +2463,7 @@ otherwise return non-nil."
                  (+ comint-last-input-start end)
                  'font-lock-face 'tuareg-font-lock-error-face))
               (goto-char comint-last-input-end)
-              (when (re-search-forward tuareg-interactive-error-regexp)
+              (when (re-search-forward tuareg-interactive-error-regexp nil t)
                 (let ((errbeg (match-beginning 1))
                       (errend (match-end 1)))
                 (put-text-property
