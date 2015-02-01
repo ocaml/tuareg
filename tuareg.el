@@ -2388,7 +2388,7 @@ otherwise return non-nil."
   ;; before launching the compilation.
   (defadvice compile (before tuareg-compile-opam activate)
       "Run opam to update environment variables."
-      (let* ((env (opam-config-env)))
+      (let* ((env (tuareg-opam-config-env)))
 	(set (make-local-variable 'compilation-environment)
 	     ;; Quotes MUST be removed.
 	     (split-string (replace-regexp-in-string "\"" "" env)))))
