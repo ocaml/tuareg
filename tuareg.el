@@ -2367,13 +2367,14 @@ otherwise return non-nil."
 (defconst tuareg-opam-compilers
   (when (file-directory-p "~/.opam")
     (cons "~/.opam/system"
-          (directory-files "~/.opam" t "[0-9]+\\.[0-9]+\\.[0-9]+"))))
+          (directory-files "~/.opam" t "[0-9]+\\.[0-9]+\\.[0-9]+")))
+  "The list of OPAM directories for the installed compilers.")
 
 (defvar tuareg-opam
   (let ((opam (executable-find "opam")))
     (if opam opam
       (let ((opam (locate-file "bin/opam" tuareg-opam-compilers)))
-        (and opam (file-executable-p opam) opam)))) ; or nil
+        (if (and opam (file-executable-p opam)) opam)))) ; or nil
   "The full path of the opam executable.")
 
 (when tuareg-opam
