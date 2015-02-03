@@ -2394,6 +2394,18 @@ otherwise return non-nil."
 	(set (make-local-variable 'compilation-environment)
 	     ;; Quotes MUST be removed.
 	     (split-string (replace-regexp-in-string "\"" "" env)))))
+
+  (eval-after-load "merlin"
+    (defun merlin-command ()
+      "Return path of ocamlmerlin binary using the opam executable
+detected by Tuareg"
+      (if (equal merlin-command 'opam)
+          (let* ((opam (concat tuareg-opam " config var bin"))
+                 (bin (replace-regexp-in-string
+                       "\n$" "" (shell-command-to-string opam)))
+                 (merlin (concat bin "/ocamlmerlin")))
+            (if (file-executable-p merlin) merlin "ocamlmerlin"))
+        merlin-command)))
   )
 
 
