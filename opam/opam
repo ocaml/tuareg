@@ -1,15 +1,19 @@
-opam-version: "1"
+opam-version: "1.2"
+name: "tuareg"
 maintainer: "Christophe.Troestler@umons.ac.be"
-build: [
-  [make "install" "INSTALL_DIR=%{share}%/emacs/site-lisp"]
+authors: [
+  "Albert Cohen <Albert.Cohen@prism.uvsq.fr>"
+  "Sam Steingold <sds@gnu.org>"
+  "Christophe Troestler <Christophe.Troestler@umons.ac.be>"
+  "Stefan Monnier <monnier@iro.umontreal.ca>"
 ]
-remove: [
-  [make "uninstall"]
-]
-depends: ["caml-mode"]
-post-messages: [
-"If you have not yet done so, please add in ~/.emacs.d/init.el or
-in ~/.emacs to following lines:
-    (add-to-list 'load-path \"%{share}%/emacs/site-lisp\")
-"
-  {success} ]
+homepage: "https://forge.ocamlcore.org/projects/tuareg/"
+bug-reports: "https://forge.ocamlcore.org/tracker/?group_id=43"
+dev-repo: "https://github.com/ocaml/tuareg.git"
+build: [make "tuareg-site-file.el"]
+#depends: ["caml-mode"]
+post-messages: "
+If you have not yet done so, please add in ~/.emacs.d/init.el or
+in ~/.emacs to following line:
+    (load \"%{share}%/emacs/site-lisp/tuareg-site-file\")
+" {success}
