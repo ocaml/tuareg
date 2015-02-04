@@ -1195,9 +1195,11 @@ Regexp match data 0 points to the chars."
       ;; module paths, types, constructors already colored by the above
       (1 font-lock-variable-name-face keep)
       (2 font-lock-type-face keep t))
-     (,(concat let-binding " *\\(" lid "\\)" gvars "?")
+     (,(concat let-binding " *\\(" lid "\\)" gvars "?\\(?: *:"
+               tuareg--whitespace-re "\\([a-z_]\\|[^ =][^=]*[^ =]\\) *=\\)?")
       (1 font-lock-function-name-face nil t)
-      (2 font-lock-variable-name-face keep t))
+      (2 font-lock-variable-name-face keep t)
+      (3 font-lock-type-face keep t))
      (,(concat "\\<function\\>" tuareg--whitespace-re "\\(" lid "\\)")
       1 font-lock-variable-name-face)
      (,(concat "\\<fun +" gvars " *->")
