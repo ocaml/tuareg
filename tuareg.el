@@ -2672,7 +2672,12 @@ current phrase else insert a newline and indent."
 
 (when tuareg-use-smie
   (defconst tuareg-beginning-of-phrase-syms
-    '("module" "open" "type" "d-let"))
+    '("module" "open" "include" "type" "d-let"))
+
+  (defconst tuareg-beginning-of-phrase-syms-re
+    (concat (regexp-opt '("open" "include") 'words) " *")
+    "A regular expression matching tokens at beginning of a phrase for
+which `smie-backward-sexp' returns `nil'.")
 
   (defun tuareg--beginning-of-phrase ()
     (while
@@ -2681,10 +2686,11 @@ current phrase else insert a newline and indent."
            ((member (nth 2 td) tuareg-beginning-of-phrase-syms)
             (goto-char (nth 1 td))
             nil)
-           ((null td)
-            (let ((tk (tuareg-smie-backward-token)))
-              ;; Stop if in the list
-              (not (member tk tuareg-beginning-of-phrase-syms))))
+           ;; When we are after, say, "open X", `td' is `nil'
+           ((and (null td)
+                 (looking-back tuareg-beginning-of-phrase-syms-re))
+            (tuareg-smie-backward-token)
+            nil)
            ((and (car td) (not(numberp (car td))))
             (unless (bobp) (goto-char (nth 1 td)) t))
            (t t)))))
