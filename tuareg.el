@@ -333,7 +333,7 @@ Valid names are `browse-url', `browse-url-firefox', etc."
   `(("Automatic indentation of leading keywords" . 'tuareg-use-abbrev-mode)
     ("Automatic indentation of ), ] and }" . 'tuareg-electric-indent)
     ,@(unless tuareg-use-smie
-        '("Automatic matching of [| and {<" . 'tuareg-electric-close-vector))
+        '(("Automatic matching of [| and {<" . 'tuareg-electric-close-vector)))
     "---"
     ,@(unless tuareg-use-smie
         '(("Indent body of comments" . 'tuareg-indent-comments)
