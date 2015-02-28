@@ -25,9 +25,9 @@
 
 ;; Installation:
 ;; If you have permissions to the local `site-lisp' directory, you
-;; only have to copy `tuareg.el' and `ocamldebug.el' Otherwise, copy
-;; `tuareg.el' and `ocamldebug.el' to a local directory and add the
-;; following line to your `.emacs'
+;; only have to copy `tuareg.el', `tuareg_indent.el', `ocamldebug.el'
+;; and `tuareg-site-file.el'.  Otherwise, copy the previous files
+;; to a local directory and add the following line to your `.emacs':
 ;;
 ;; (add-to-list 'load-path "DIR")
 
