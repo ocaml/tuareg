@@ -1,5 +1,6 @@
 share_root: [
   "tuareg.el" {"emacs/site-lisp/tuareg.el"}
+  "tuareg_indent.el" {"emacs/site-lisp/tuareg_indent.el"}
   "ocamldebug.el" {"emacs/site-lisp/ocamldebug.el"}
   "tuareg-site-file.el" {"emacs/site-lisp/tuareg-site-file.el"}
 ]
