@@ -1032,6 +1032,10 @@ Regexp match data 0 points to the chars."
           (let ((b "\\(?:[^()]\\|(")
                 (e ")\\)*"))
             (concat b b b "[^()]*" e e e)))
+         (balanced-braces-no-string
+          (let ((b "\\(?:[^()\"]\\|(")
+                (e ")\\)*"))
+            (concat b b b "[^()\"]*" e e e)))
          (unbraced-tuple (concat lid " *\\(?:, *" lid " *\\)*"))
          (tuple (concat "(" balanced-braces ")")); much more than tuple!
          (module-path (concat uid "\\(?:\\." uid "\\)*"))
@@ -1146,7 +1150,8 @@ Regexp match data 0 points to the chars."
           'words))
       . tuareg-font-lock-operator-face)
      ;;; (lid: t) and (lid :> t)
-     (,(concat "( *" lid " *:>?\\([ \n'_A-Za-z]" balanced-braces "\\))")
+     (,(concat "( *" lid " *:>?\\([ \n'_A-Za-z]"
+               balanced-braces-no-string "\\))")
       1 font-lock-type-face keep)
      (,(concat "\\<external +\\(" lid "\\)")  1 font-lock-function-name-face)
      (,(concat "\\<exception +\\(" uid "\\)") 1 font-lock-variable-name-face)
