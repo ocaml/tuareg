@@ -1064,7 +1064,9 @@ Regexp match data 0 points to the chars."
          ;; group of variables
          (gvars (concat "\\(\\(?:" tuareg--whitespace-re
                         "\\(?:" lid "\\|()\\|" tuple ; = any balanced (...)
-                        "\\|[~?]\\(?:" lid "\\|(" balanced-braces ")\\)"
+                        "\\|[~?]\\(?:" lid
+                        "\\(?::\\(?:" lid "\\|(" balanced-braces ")\\)\\)?"
+                        "\\|(" balanced-braces ")\\)"
                         "\\)\\)+\\)"))
          ;; group for possible class param
          (class-gparams
@@ -1200,7 +1202,7 @@ Regexp match data 0 points to the chars."
       ;; module paths, types, constructors already colored by the above
       (1 font-lock-variable-name-face keep)
       (2 font-lock-type-face keep t))
-     (,(concat let-binding " *\\(" lid "\\)" gvars "?\\(?: *:"
+     (,(concat let-binding " *\\(" lid "\\)" gvars "?\\(?: +:"
                tuareg--whitespace-re "\\([a-z_]\\|[^ =][^=]*[^ =]\\) *=\\)?")
       (1 font-lock-function-name-face nil t)
       (2 font-lock-variable-name-face keep t)
