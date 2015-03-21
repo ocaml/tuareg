@@ -118,7 +118,7 @@ Reporting
 ---------
 
 The official Tuareg home page is located at:
-<https://forge.ocamlcore.org/projects/tuareg/>.
+<https://github.com/ocaml/tuareg>.
 
 Bug reports & patches: use the tracker:
-<https://forge.ocamlcore.org/tracker/?group_id=43>.
+<https://github.com/ocaml/tuareg/issues>.
