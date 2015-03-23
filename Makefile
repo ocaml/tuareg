@@ -15,7 +15,7 @@ ELC = $(ELS:.el=.elc)
 INSTALL_FILES = $(ELS) $(ELC)
 INSTALL_DIR ?= $(shell opam config var share)/emacs/site-lisp
 
-DIST_FILES += $(ELS) Makefile README.md
+DIST_FILES += $(ELS) Makefile README.md tuareg.install
 
 EMACSFORMACOSX = /Applications/Emacs.app/Contents/MacOS/Emacs
 ifeq ($(wildcard $(EMACSFORMACOSX)),$(EMACSFORMACOSX))
