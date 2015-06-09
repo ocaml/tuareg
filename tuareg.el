@@ -2406,7 +2406,8 @@ otherwise return non-nil."
       (let* ((env (tuareg-opam-config-env)))
 	(set (make-local-variable 'compilation-environment)
 	     ;; Quotes MUST be removed.
-	     (split-string (replace-regexp-in-string "\"" "" env)))))
+	     (split-string (replace-regexp-in-string "\"" "" env)
+                           "[\f\n\r]+" t))))
 
   (eval-after-load "merlin"
     (defun merlin-command ()
