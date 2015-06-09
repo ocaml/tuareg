@@ -503,12 +503,16 @@ Valid names are `browse-url', `browse-url-firefox', etc."
 
 (defvar tuareg-cache-stop (point-min))
 (make-variable-buffer-local 'tuareg-cache-stop)
+
 (defvar tuareg-cache nil)
 (make-variable-buffer-local 'tuareg-cache)
+
 (defvar tuareg-cache-local nil)
 (make-variable-buffer-local 'tuareg-cache-local)
+
 (defvar tuareg-cache-last-local nil)
 (make-variable-buffer-local 'tuareg-cache-last-local)
+
 (defvar tuareg-last-loc (cons nil nil))
 
 ;; PPSS definitions
