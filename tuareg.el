@@ -3182,7 +3182,7 @@ for a quick jump via the definitions menu."
 
 (when (require 'speedbar nil t)
   (speedbar-add-supported-extension
-   '(".ml" ".mli" ".mll" ".mly" ".ls")))
+   '(".ml" ".mli" ".mll" ".mly" ".mlp" ".ls")))
 
 (provide 'tuareg)
 
