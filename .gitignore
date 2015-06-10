@@ -3,3 +3,5 @@
 *.tar.gz
 /tuareg.*/
 /opam/url
+commit.txt
+RCS/

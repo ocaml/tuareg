@@ -10,6 +10,7 @@
 ;;      Till Varoquaux <till@pps.jussieu.fr>
 ;;      Sean McLaughlin <seanmcl@gmail.com>
 ;;      Stefan Monnier <monnier@iro.umontreal.ca>
+;;      Andreas Röhler <andreas.roehler@easy-emacs.de
 ;; Created: 8 Jan 1997
 ;; Version: 2.0.9
 ;; Package-Requires: ((caml "3.12.0.1"))
@@ -30,7 +31,6 @@
 ;; to a local directory and add the following line to your `.emacs':
 ;;
 ;; (add-to-list 'load-path "DIR")
-
 
 ;;; Usage:
 ;; Tuareg allows you to run batch OCaml compilations from Emacs (using
@@ -71,7 +71,6 @@
 ;; GNU General Public License for more details.
 
 ;;; Code:
-
 
 (eval-when-compile (require 'cl))
 (require 'easymenu)
@@ -449,6 +448,41 @@ Valid names are `browse-url', `browse-url-firefox', etc."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                            Support definitions
 
+(defun tuareg-in-literal-p ()
+  "Return position, if inside or at opening delimiter.
+
+Otherwise return nil. "
+  (interactive)
+  (let* ((pps (parse-partial-sexp (point-min) (point)))
+	 (erg (and (nth 3 pps) (nth 8 pps)))
+	 (la (unless (or erg (eobp)) (when (eq (char-syntax (char-after)) 34)
+			   (point)))))
+    (setq erg (or erg la))
+    (when (interactive-p) (message "%s" erg))
+    erg))
+
+(defun tuareg-in-comment-p ()
+  "Return the beginning of current line's comment, if inside. "
+  (let* ((pps (parse-partial-sexp (point-min) (point)))
+	 (erg (and (nth 4 pps) (nth 8 pps))))
+    (unless erg
+      (and (eq (car (syntax-after (point))) 11)
+	   (setq erg (point))))
+    erg))
+
+(defun tuareg-in-literal-or-comment-p ()
+  "If inside a literal or comment, return beginning position. "
+  (or (tuareg-in-literal-p) (tuareg-in-comment-p)))
+
+(defun tuareg-beginning-of-literal-or-comment ()
+  "Skips to the beginning of the current literal or comment (or buffer)."
+  (interactive)
+  (let ((erg (tuareg-in-literal-or-comment-p)))
+    (when erg (goto-char erg))))
+
+(defun tuareg-beginning-of-literal-or-comment-fast ()
+  (goto-char (or (nth 8 (parse-partial-sexp (point-min) (point))) (point-min))))
+
 (defun tuareg-leading-star-p ()
   (and tuareg-support-leading-star-comments
        (save-excursion ; this function does not make sense outside of a comment
@@ -517,147 +551,7 @@ Valid names are `browse-url', `browse-url-firefox', etc."
 (defvar tuareg-last-loc (cons nil nil))
 
 ;; PPSS definitions
-(defun tuareg-ppss-in-literal-or-comment () (error "tuareg uses PPSS"))
-
-(defun tuareg-ppss-fontify (_beg _end) (error "tuareg uses PPSS"))
-
-(defun tuareg-ppss-in-literal-p ()
-  "Return non-nil if point is inside an OCaml literal."
-  (nth 3 (syntax-ppss)))
-
-(defun tuareg-ppss-in-comment-p ()
-  "Return non-nil if point is inside or right before an OCaml comment."
-  (or (nth 4 (syntax-ppss))
-      (looking-at "[ \t]*(\\*")))
-
-(defun tuareg-ppss-in-literal-or-comment-p ()
-  "Return non-nil if point is inside an OCaml literal or comment."
-  (nth 8 (syntax-ppss)))
-
-(defun tuareg-ppss-beginning-of-literal-or-comment ()
-  "Skips to the beginning of the current literal or comment (or buffer)."
-  (interactive)
-  (goto-char (or (nth 8 (syntax-ppss)) (point))))
-
-(defun tuareg-ppss-beginning-of-literal-or-comment-fast ()
-  (goto-char (or (nth 8 (syntax-ppss)) (point-min))))
-
-;; non-PPSS definitions
-(defun tuareg-!ppss-in-literal-p ()
-  "Return non-nil if point is inside an OCaml literal."
-  (car (tuareg-in-literal-or-comment)))
-
-(defun tuareg-!ppss-in-comment-p ()
-  "Return non-nil if point is inside an OCaml comment."
-  (cdr (tuareg-in-literal-or-comment)))
-
-(defun tuareg-!ppss-in-literal-or-comment-p ()
-  "Return non-nil if point is inside an OCaml literal or comment."
-  (tuareg-in-literal-or-comment)
-  (or (car tuareg-last-loc) (cdr tuareg-last-loc)))
-
-(defun tuareg-!ppss-in-literal-or-comment ()
-  "Return the pair `((tuareg-in-literal-p) . (tuareg-in-comment-p))'."
-  (if (and (<= (point) tuareg-cache-stop) tuareg-cache)
-      (progn
-        (if (or (not tuareg-cache-local) (not tuareg-cache-last-local)
-                (and (>= (point) (caar tuareg-cache-last-local))))
-            (setq tuareg-cache-local tuareg-cache))
-        (while (and tuareg-cache-local (< (point) (caar tuareg-cache-local)))
-          (setq tuareg-cache-last-local tuareg-cache-local
-                tuareg-cache-local (cdr tuareg-cache-local)))
-        (setq tuareg-last-loc
-              (if tuareg-cache-local
-                  (cons (eq (cadar tuareg-cache-local) 'b)
-                        (> (cddar tuareg-cache-local) 0))
-                  (cons nil nil))))
-    (let ((flag t) (op (point)) (mp (min (point) (1- (point-max))))
-          (balance 0) (end-of-comment nil))
-      (while (and tuareg-cache (<= tuareg-cache-stop (caar tuareg-cache)))
-        (setq tuareg-cache (cdr tuareg-cache)))
-      (if tuareg-cache
-          (if (eq (cadar tuareg-cache) 'b)
-              (progn
-                (setq tuareg-cache-stop (1- (caar tuareg-cache)))
-                (goto-char tuareg-cache-stop)
-                (setq balance (cddar tuareg-cache))
-                (setq tuareg-cache (cdr tuareg-cache)))
-            (setq balance (cddar tuareg-cache))
-            (setq tuareg-cache-stop (caar tuareg-cache))
-            (goto-char tuareg-cache-stop)
-            (skip-chars-forward "("))
-          (goto-char (point-min)))
-      (skip-chars-backward "\\\\*")
-      (while flag
-        (if end-of-comment (setq balance 0 end-of-comment nil))
-        (skip-chars-forward "^\\\\'`\"(\\*")
-        (cond
-          ((looking-at "\\\\")
-           (tuareg-forward-char 2))
-          ((looking-at "'\\([^\n\\']\\|\\\\[^ \t\n][^ \t\n]?[^ \t\n]?\\)'")
-           (setq tuareg-cache (cons (cons (1+ (point)) (cons 'b balance))
-                                    tuareg-cache))
-           (goto-char (match-end 0))
-           (setq tuareg-cache (cons (cons (point) (cons 'e balance))
-                                    tuareg-cache)))
-          ((and
-            tuareg-support-camllight
-            (looking-at "`\\([^\n\\']\\|\\\\[^ \t\n][^ \t\n]?[^ \t\n]?\\)`"))
-           (setq tuareg-cache (cons (cons (1+ (point)) (cons 'b balance))
-                                    tuareg-cache))
-           (goto-char (match-end 0))
-           (setq tuareg-cache (cons (cons (point) (cons 'e balance))
-                                    tuareg-cache)))
-          ((looking-at "\"")
-           (tuareg-forward-char)
-           (setq tuareg-cache (cons (cons (point) (cons 'b balance))
-                                    tuareg-cache))
-           (skip-chars-forward "^\\\\\"")
-           (while (looking-at "\\\\")
-             (tuareg-forward-char 2) (skip-chars-forward "^\\\\\""))
-           (tuareg-forward-char)
-           (setq tuareg-cache (cons (cons (point) (cons 'e balance))
-                                    tuareg-cache)))
-          ((looking-at "(\\*")
-           (setq balance (1+ balance))
-           (setq tuareg-cache (cons (cons (point) (cons nil balance))
-                                    tuareg-cache))
-           (tuareg-forward-char 2))
-          ((looking-at "\\*)")
-           (tuareg-forward-char 2)
-           (if (> balance 1)
-               (progn
-                 (setq balance (1- balance))
-                 (setq tuareg-cache (cons (cons (point) (cons nil balance))
-                                          tuareg-cache)))
-               (setq end-of-comment t)
-               (setq tuareg-cache (cons (cons (point) (cons nil 0))
-                                        tuareg-cache))))
-          (t (tuareg-forward-char)))
-        (setq flag (<= (point) mp)))
-      (setq tuareg-cache-local tuareg-cache
-            tuareg-cache-stop (point))
-      (goto-char op)
-      (if tuareg-cache (tuareg-in-literal-or-comment)
-          (setq tuareg-last-loc (cons nil nil))
-          tuareg-last-loc))))
-
-(defun tuareg-!ppss-beginning-of-literal-or-comment ()
-  "Skips to the beginning of the current literal or comment (or buffer)."
-  (interactive)
-  (when (tuareg-in-literal-or-comment-p)
-    (tuareg-beginning-of-literal-or-comment-fast)))
-
-(defun tuareg-!ppss-beginning-of-literal-or-comment-fast ()
-  (while (and tuareg-cache-local
-              (or (eq 'b (cadar tuareg-cache-local))
-                  (> (cddar tuareg-cache-local) 0)))
-    (setq tuareg-cache-last-local tuareg-cache-local
-          tuareg-cache-local (cdr tuareg-cache-local)))
-  (if tuareg-cache-last-local
-      (goto-char (caar tuareg-cache-last-local))
-    (goto-char (point-min)))
-  (when (eq 'b (cadar tuareg-cache-last-local)) (tuareg-backward-char)))
+(defun tuareg-fontify (_beg _end) (error "tuareg uses PPSS"))
 
 (defun tuareg-!ppss-backward-up-list ()
   "Safe up-list regarding comments, literals and errors."
@@ -677,42 +571,10 @@ Valid names are `browse-url', `browse-url-firefox', etc."
                (setq balance (1+ balance)))))
       (setq op (point)))))
 
-(defalias 'tuareg-in-literal-or-comment
-  ;; FIXME: These eval-and-compile have no effect.  Maybe eval-when-compile
-  ;; was intended?
-  (eval-and-compile (if tuareg-use-syntax-ppss
-                        'tuareg-ppss-in-literal-or-comment
-                      'tuareg-!ppss-in-literal-or-comment)))
-
 (defalias 'tuareg-fontify
     (eval-and-compile (if tuareg-use-syntax-ppss
-                          'tuareg-ppss-fontify
+                          'tuareg-fontify
                           'tuareg-!ppss-fontify)))
-
-(defalias 'tuareg-in-literal-p
-    (eval-and-compile (if tuareg-use-syntax-ppss
-                          'tuareg-ppss-in-literal-p
-                          'tuareg-!ppss-in-literal-p)))
-
-(defalias 'tuareg-in-comment-p
-    (eval-and-compile (if tuareg-use-syntax-ppss
-                          'tuareg-ppss-in-comment-p
-                          'tuareg-!ppss-in-comment-p)))
-
-(defalias 'tuareg-in-literal-or-comment-p
-    (eval-and-compile (if tuareg-use-syntax-ppss
-                          'tuareg-ppss-in-literal-or-comment-p
-                          'tuareg-!ppss-in-literal-or-comment-p)))
-
-(defalias 'tuareg-beginning-of-literal-or-comment
-    (eval-and-compile (if tuareg-use-syntax-ppss
-                          'tuareg-ppss-beginning-of-literal-or-comment
-                          'tuareg-!ppss-beginning-of-literal-or-comment)))
-
-(defalias 'tuareg-beginning-of-literal-or-comment-fast
-    (eval-and-compile (if tuareg-use-syntax-ppss
-                          'tuareg-ppss-beginning-of-literal-or-comment-fast
-                          'tuareg-!ppss-beginning-of-literal-or-comment-fast)))
 
 (defalias 'tuareg-backward-up-list
     ;; FIXME: not clear if moving out of a string/comment counts as 1 or no.
@@ -2316,7 +2178,6 @@ Short cuts for interactions with the toplevel:
                 (not tuareg-with-caml-mode-p))
       (list beg end table))))
 
-
 (autoload 'caml-complete "caml-help")
 
 (defun tuareg-complete (arg)
@@ -2445,7 +2306,6 @@ detected by Tuareg"
             (if (file-executable-p merlin) merlin "ocamlmerlin"))
         merlin-command)))
   )
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                            Tuareg interactive mode
