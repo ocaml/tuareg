@@ -74,6 +74,14 @@
 
 (eval-when-compile (require 'cl))
 (require 'easymenu)
+(require 'custom)
+(require 'compile)
+(require 'comint)
+(require 'smie nil 'noerror)
+(require 'speedbar nil 'noerror)
+
+(require 'tuareg_indent)
+
 
 (defconst tuareg-mode-revision
   (eval-when-compile
@@ -142,14 +150,11 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                       User customizable variables
 
-(require 'smie nil 'noerror)
 (defvar tuareg-use-smie (featurep 'smie)
   "Whether to use SMIE as the indentation engine.")
 
 ;; Use the standard `customize' interface or `tuareg-mode-hook' to
 ;; Configure these variables
-
-(require 'custom)
 
 (defgroup tuareg nil
   "Support for the OCaml language."
@@ -570,11 +575,6 @@ Otherwise return nil. "
               ((looking-at "[]})]")
                (setq balance (1+ balance)))))
       (setq op (point)))))
-
-(defalias 'tuareg-fontify
-    (eval-and-compile (if tuareg-use-syntax-ppss
-                          'tuareg-fontify
-                          'tuareg-!ppss-fontify)))
 
 (defalias 'tuareg-backward-up-list
     ;; FIXME: not clear if moving out of a string/comment counts as 1 or no.
@@ -2074,8 +2074,6 @@ Short cuts for interactions with the toplevel:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               Error processing
 
-(require 'compile)
-
 ;; In some versions of Emacs, the regexps in
 ;; compilation-error-regexp-alist do not match the error messages when
 ;; the language is not English.  Hence we add a regexp.
@@ -2311,8 +2309,6 @@ detected by Tuareg"
 ;;                            Tuareg interactive mode
 
 ;; Augment Tuareg mode with an OCaml toplevel.
-
-(require 'comint)
 
 (defvar tuareg-interactive-mode-map
   (let ((map (copy-keymap comint-mode-map)))
@@ -3040,15 +3036,11 @@ for a quick jump via the definitions menu."
 (eval-when-compile
   (autoload 'speedbar-add-supported-extension "speedbar"))
 
-(when (require 'speedbar nil t)
+(when (featurep 'speedbar)
   (speedbar-add-supported-extension
    '(".ml" ".mli" ".mll" ".mly" ".mlp" ".ls")))
 
 (provide 'tuareg)
-
-;; Pre-SMIE indentation functions.
-;; Load it after providing `tuareg' to avoid circular dependencies.
-(require 'tuareg_indent)
 
 ;; For compatibility with caml support modes
 ;; you may also link caml.el to tuareg.el
