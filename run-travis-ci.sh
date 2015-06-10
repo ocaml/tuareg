@@ -29,7 +29,7 @@ TUAREGMODE=$PDIR/tuareg.el
 
 echo "\$TUAREGMODE: $TUAREGMODE"
 
-SETUP=$TESTDIR/setup-ert-tests.el
+SETUP=$TESTDIR/tuareg-setup-ert-tests.el
 
 TEST1=$TESTDIR/tuareg-test.el
 

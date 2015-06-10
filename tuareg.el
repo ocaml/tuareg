@@ -80,8 +80,6 @@
 (require 'smie nil 'noerror)
 (require 'speedbar nil 'noerror)
 
-(require 'tuareg_indent)
-
 
 (defconst tuareg-mode-revision
   (eval-when-compile
@@ -602,6 +600,11 @@ Otherwise return nil. "
 
 ;; Originally by Stefan Monnier
 
+
+(defcustom tuareg-max-name-components 3
+  "Maximum number of components to use for the current function name."
+  :type 'integer)
+
 (defcustom tuareg-font-lock-symbols nil
   "*Display fun and -> and such using symbols in fonts.
 This may sound like a neat trick, but note that it can change the
@@ -688,6 +691,7 @@ alignment and can thus lead to surprises."
            ("'t" . ,(make-char 'symbol 116))
            ("'x" . ,(make-char 'symbol 120))))))
 
+
 (defun tuareg-font-lock-compose-symbol (alist)
   "Compose a sequence of ascii chars into a symbol.
 Regexp match data 0 points to the chars."
@@ -760,62 +764,65 @@ Regexp match data 0 points to the chars."
        (modify-syntax-entry ?' "_" tuareg-mode-syntax-table)
        (modify-syntax-entry ?_ "_" tuareg-mode-syntax-table))))
 
+;; 
+
+(require 'tuareg_indent)
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                  Font-Lock
 
 (defvar tuareg-doc-face 'font-lock-doc-face)
 
-(unless tuareg-use-syntax-ppss
+(defun tuareg-fontify-buffer ()
+  (font-lock-default-fontify-buffer)
+  (tuareg-fontify (point-min) (point-max)))
 
-  (defun tuareg-fontify-buffer ()
-    (font-lock-default-fontify-buffer)
-    (tuareg-fontify (point-min) (point-max)))
+(defun tuareg-fontify-region (begin end &optional verbose)
+  (font-lock-default-fontify-region begin end verbose)
+  (tuareg-fontify begin end))
 
-  (defun tuareg-fontify-region (begin end &optional verbose)
-    (font-lock-default-fontify-region begin end verbose)
-    (tuareg-fontify begin end))
+(defun tuareg-fontify (begin end)
+  (when (eq major-mode 'tuareg-mode)
+    (save-excursion
+      (tuareg-with-internal-syntax
 
-  (defun tuareg-fontify (begin end)
-    (when (eq major-mode 'tuareg-mode)
-      (save-excursion
-       (tuareg-with-internal-syntax
+       (let ((case-fold-search nil)
+	     (modified (buffer-modified-p))) ; Emacs hack (see below)
+	 (goto-char begin)
+	 (setq begin (line-beginning-position))
+	 (goto-char (1- end))
+	 (end-of-line)
+	 ;; Dirty hack to trick `font-lock-default-unfontify-region'
+	 (forward-line 2)
+	 (setq end (point))
 
-        (let ((case-fold-search nil)
-              (modified (buffer-modified-p))) ; Emacs hack (see below)
-          (goto-char begin)
-          (setq begin (line-beginning-position))
-          (goto-char (1- end))
-          (end-of-line)
-          ;; Dirty hack to trick `font-lock-default-unfontify-region'
-          (forward-line 2)
-          (setq end (point))
-
-          (while (> end begin)
-            (goto-char (1- end))
-            (tuareg-in-literal-or-comment)
-            (cond
-              ((cdr tuareg-last-loc)
-               (tuareg-beginning-of-literal-or-comment)
-               (put-text-property (max begin (point)) end 'face
-                                  (if (looking-at
-                                       "(\\*[Tt][Ee][Xx]\\|(\\*\\*[^*]")
-                                      tuareg-doc-face
-                                      'font-lock-comment-face))
-               (setq end (1- (point))))
-              ((car tuareg-last-loc)
-               (tuareg-beginning-of-literal-or-comment)
-               (put-text-property (max begin (point)) end 'face
-                                  'font-lock-string-face)
-               (setq end (point)))
-              (t (while (and tuareg-cache-local
-                             (or (> (caar tuareg-cache-local) end)
-                                 (eq 'b (cadar tuareg-cache-local))))
-                   (setq tuareg-cache-local (cdr tuareg-cache-local)))
-                 (setq end (if tuareg-cache-local
-                               (caar tuareg-cache-local) begin)))))
-          (unless modified (set-buffer-modified-p nil)))
-        ))))
-  ) ;; end tuareg-use-syntax-ppss
+	 (while (> end begin)
+	   (goto-char (1- end))
+	   (tuareg-in-literal-or-comment)
+	   (cond
+	    ((cdr tuareg-last-loc)
+	     (tuareg-beginning-of-literal-or-comment)
+	     (put-text-property (max begin (point)) end 'face
+				(if (looking-at
+				     "(\\*[Tt][Ee][Xx]\\|(\\*\\*[^*]")
+				    tuareg-doc-face
+				  'font-lock-comment-face))
+	     (setq end (1- (point))))
+	    ((car tuareg-last-loc)
+	     (tuareg-beginning-of-literal-or-comment)
+	     (put-text-property (max begin (point)) end 'face
+				'font-lock-string-face)
+	     (setq end (point)))
+	    (t (while (and tuareg-cache-local
+			   (or (> (caar tuareg-cache-local) end)
+			       (eq 'b (cadar tuareg-cache-local))))
+		 (setq tuareg-cache-local (cdr tuareg-cache-local)))
+	       (setq end (if tuareg-cache-local
+			     (caar tuareg-cache-local) begin)))))
+	 (unless modified (set-buffer-modified-p nil)))
+       ))))
+;; end tuareg-use-syntax-ppss
 
 (defconst tuareg-font-lock-syntactic-keywords
   ;; Char constants start with ' but ' can also appear in identifiers.
@@ -2053,10 +2060,6 @@ Short cuts for interactions with the toplevel:
                               name
                             (forward-comment (point-max))
                         (tuareg-smie-forward-token))))))
-
-(defcustom tuareg-max-name-components 3
-  "Maximum number of components to use for the current function name."
-  :type 'integer)
 
 (defun tuareg-current-fun-name ()
   (save-excursion

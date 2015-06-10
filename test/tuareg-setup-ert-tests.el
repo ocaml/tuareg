@@ -1,4 +1,4 @@
-;;; setup-ert-tests.el --- Provide needed forms
+;;; tuareg-setup-ert-tests.el --- Provide needed forms
 
 ;; Copyright (C) 2014  Andreas Roehler
 
@@ -26,7 +26,7 @@
 ;; (sit-for 0.1 t)
 
 
-;; (require 'tuareg-mode)
+(require 'tuareg)
 
 (defvar tuareg-debug-p nil
   "Avoid error")
@@ -62,5 +62,5 @@ BODY is code to be executed within the temp buffer.  Point is
        ;; (message "ERT %s" (point))
        ,@body)))
 
-(provide 'setup-ert-tests)
-;; setup-ert-tests.el ends here
+(provide 'tuareg-setup-ert-tests)
+;; tuareg-setup-ert-tests.el ends here

@@ -25,6 +25,9 @@
 
 ;;; Code:
 
+(require 'tuareg)
+(require 'tuareg-setup-ert-tests)
+
 (ert-deftest tuareg-ert-in-comment-p-test ()
   (tuareg-test-with-temp-buffer
       "(* "
@@ -36,10 +39,10 @@
 * "
     (should (tuareg-in-comment-p))))
 
-(ert-deftest tuareg-ert-in-string-p-test ()
+(ert-deftest tuareg-ert-in-literal-p-test ()
   (tuareg-test-with-temp-buffer
       "\" "
-    (should (tuareg-in-string-p))))
+    (should (tuareg-in-literal-p))))
 
 (provide 'tuareg-test)
 ;;; tuareg-test.el ends here
