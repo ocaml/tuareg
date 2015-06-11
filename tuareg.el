@@ -80,7 +80,6 @@
 (require 'smie nil 'noerror)
 (require 'speedbar nil 'noerror)
 
-
 (defconst tuareg-mode-revision
   (eval-when-compile
     (with-temp-buffer
@@ -313,6 +312,18 @@ them to the OCaml toplevel."
 (defcustom tuareg-display-buffer-on-eval t
   "*Non nil means pop up the OCaml toplevel when evaluating code."
   :group 'tuareg :type 'boolean)
+
+(defcustom tuareg-verbose-p nil
+ "Some reports, default is nil. "
+
+:type 'boolean
+:group 'tuareg)
+
+(defcustom tuareg-debug-p nil
+ "Some reports in case of debugging, default is nil. "
+
+:type 'boolean
+:group 'tuareg)
 
 (defcustom tuareg-manual-url
   "http://caml.inria.fr/pub/docs/manual-ocaml/"
@@ -600,7 +611,6 @@ Otherwise return nil. "
 
 ;; Originally by Stefan Monnier
 
-
 (defcustom tuareg-max-name-components 3
   "Maximum number of components to use for the current function name."
   :type 'integer)
@@ -691,7 +701,6 @@ alignment and can thus lead to surprises."
            ("'t" . ,(make-char 'symbol 116))
            ("'x" . ,(make-char 'symbol 120))))))
 
-
 (defun tuareg-font-lock-compose-symbol (alist)
   "Compose a sequence of ascii chars into a symbol.
 Regexp match data 0 points to the chars."
@@ -764,10 +773,10 @@ Regexp match data 0 points to the chars."
        (modify-syntax-entry ?' "_" tuareg-mode-syntax-table)
        (modify-syntax-entry ?_ "_" tuareg-mode-syntax-table))))
 
-;; 
-
+;;
 (require 'tuareg_indent)
-
+(require 'tuareg-intern)
+(require 'tuareg-move)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                  Font-Lock

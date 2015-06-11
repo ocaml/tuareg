@@ -32,6 +32,7 @@ echo "\$TUAREGMODE: $TUAREGMODE"
 SETUP=$TESTDIR/tuareg-setup-ert-tests.el
 
 TEST1=$TESTDIR/tuareg-test.el
+TEST2=$TESTDIR/tuareg-move-test.el
 
 if [ -s emacs24 ]; then
     EMACS=emacs24
@@ -41,4 +42,4 @@ fi
 
 echo "\$EMACS: $EMACS"
 
-$EMACS -Q --batch --eval "(message (emacs-version))" --eval "(add-to-list 'load-path \"$PDIR/\")" --eval "(add-to-list 'load-path \"$TESTDIR/\")" -load $SETUP -load $TUAREGMODE -l $TEST1 -f ert-run-tests-batch-and-exit
+$EMACS -Q --batch --eval "(message (emacs-version))" --eval "(add-to-list 'load-path \"$PDIR/\")" --eval "(add-to-list 'load-path \"$TESTDIR/\")" -load $SETUP -load $TUAREGMODE -l $TEST1 -l $TEST2 -f ert-run-tests-batch-and-exit
