@@ -298,10 +298,7 @@ Returns position if successful, nil otherwise "
 (defun tuareg-forward-top-level ()
   "Go to end of a top-level form.
 
-Returns position if successful, nil otherwise
-
-Referring python program structures see for example:
-http://docs.python.org/reference/compound_stmts.html"
+Returns position if successful, nil otherwise"
   (interactive)
   (let ((orig (point))
         erg)
@@ -317,10 +314,7 @@ http://docs.python.org/reference/compound_stmts.html"
 (defun tuareg-forward-top-level-bol ()
   "Go to beginning of line after end of a top-level form.
 
-Returns position if successful, nil otherwise
-
-Referring python program structures see for example:
-http://docs.python.org/reference/compound_stmts.html"
+Returns position if successful, nil otherwise"
   (interactive)
   (let ((orig (point))
         erg last)
