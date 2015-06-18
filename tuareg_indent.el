@@ -49,6 +49,31 @@ even without leading `*', use `tuareg-comment-end-extra-indent' = 1."
                 (integer :tag "custom alignment" 0)))
 
 
+;; Comments
+
+(defcustom tuareg-leading-star-in-doc nil
+  "*Enable automatic intentation of documentation comments of the form
+        (**
+         * ...
+         *)"
+  :group 'tuareg :type 'boolean)
+
+(defcustom tuareg-support-leading-star-comments t
+  "*Enable automatic intentation of comments of the form
+        (*
+         * ...
+         *)
+Documentation comments (** *) are not concerned by this variable
+unless `tuareg-leading-star-in-doc' is also set.
+
+If you do not set this variable and still expect comments to be
+indented like
+        (*
+          ...
+         *)
+\(without leading `*'), set `tuareg-comment-end-extra-indent' to 1."
+  :group 'tuareg :type 'boolean)
+
 ;; Indentation defaults
 
 (defcustom tuareg-let-always-indent t
@@ -142,17 +167,6 @@ for `type' as well.  For example, setting them to 0 (and leaving
 (defcustom tuareg-val-indent tuareg-default-indent
   "*How many spaces to indent from a `val' keyword."
   :group 'tuareg :type 'integer)
-
-;; Automatic indentation
-
-(defcustom tuareg-electric-close-vector t
-  "*Non-nil means electrically insert `|' before a vector-closing `]' or
-`>' before an object-closing `}'.
-
-Many people find electric keys irritating, so you can disable them by
-setting this variable to nil.  You should probably have this on,
-though, if you also have `tuareg-electric-indent' on."
-  :group 'tuareg :type 'boolean)
 
 ;; Tuareg-Interactive
 
@@ -369,6 +383,25 @@ delimiters.  For synchronous programming.")
   (unless pos (setq pos (point)))
   (and (char-equal ?> (char-before pos))
        (char-equal ?> (char-before (1- pos)))))
+
+(defun tuareg-in-literal-p ()
+  "Return non-nil if point is inside an OCaml literal."
+  (nth 3 (syntax-ppss)))
+
+(defun tuareg-in-comment-p ()
+  "Return non-nil if point is inside or right before an OCaml comment."
+  (or (nth 4 (syntax-ppss))
+      (looking-at "[ \t]*(\\*")))
+
+(defun tuareg-beginning-of-literal-or-comment ()
+  "Skips to the beginning of the current literal or comment (or buffer)."
+  (interactive)
+  (goto-char (or (nth 8 (syntax-ppss)) (point))))
+
+(defun tuareg-beginning-of-literal-or-comment-fast ()
+  ;; FIXME: Rename this function, since it's not a faster version of
+  ;; tuareg-beginning-of-literal-or-comment.
+  (goto-char (or (nth 8 (syntax-ppss)) (point-min))))
 
 (defconst tuareg-meaningful-word-regexp
   "[^ \t\n_[:alnum:]]\\|\\<\\(\\w\\|_\\)+\\>\\|\\*)")
@@ -698,6 +731,18 @@ If found, return the actual text of the keyword or operator."
   (if (tuareg-editing-ls3)
       tuareg-=-stop-regexp-ls3
     tuareg-=-stop-regexp))
+
+(defun tuareg-false-=-p ()
+  "Is the underlying `=' the first/second letter of an operator?"
+  (or (memq (preceding-char) '(?: ?> ?< ?=))
+      (char-equal ?= (char-after (1+ (point))))))
+
+(defun tuareg-at-phrase-break-p ()
+  "Is the underlying `;' a phrase break?"
+  (and (char-equal ?\; (following-char))
+       (or (and (not (eobp))
+                (char-equal ?\; (char-after (1+ (point)))))
+           (char-equal ?\; (preceding-char)))))
 
 (defun tuareg-find-=-match ()
   (let ((kwop (tuareg-find-kwop
@@ -1536,6 +1581,55 @@ Returns t iff skipped to indentation."
   (tuareg-skip-blank-and-comments)
   (current-column))
 
+(defmacro tuareg-with-internal-syntax (&rest body)
+  `(progn
+     ;; Switch to a modified internal syntax.
+     (modify-syntax-entry ?. "w" tuareg-mode-syntax-table)
+     (modify-syntax-entry ?' "w" tuareg-mode-syntax-table)
+     (modify-syntax-entry ?_ "w" tuareg-mode-syntax-table)
+     (unwind-protect (progn ,@body)
+       ;; Switch back to the interactive syntax.
+       (modify-syntax-entry ?. "'" tuareg-mode-syntax-table)
+       (modify-syntax-entry ?' "_" tuareg-mode-syntax-table)
+       (modify-syntax-entry ?_ "_" tuareg-mode-syntax-table))))
+
+(defun tuareg-leading-star-p ()
+  (and tuareg-support-leading-star-comments
+       (save-excursion ; this function does not make sense outside of a comment
+         (tuareg-beginning-of-literal-or-comment)
+         (and (or tuareg-leading-star-in-doc
+                  (not (looking-at "(\\*[Tt][Ee][Xx]\\|(\\*\\*")))
+              (progn
+                (forward-line 1)
+                (back-to-indentation)
+                (looking-at "\\*[^)]"))))))
+
+(defun tuareg-auto-fill-insert-leading-star (&optional leading-star)
+  (let ((point-leading-comment (looking-at "(\\*")) (return-leading nil))
+    (save-excursion
+      (back-to-indentation)
+      (when tuareg-electric-indent
+        (when (and (tuareg-in-comment-p)
+                   (or leading-star
+                       (tuareg-leading-star-p)))
+          (unless (looking-at "(?\\*")
+            (insert-before-markers "* "))
+          (setq return-leading t))
+        (unless point-leading-comment
+          ;; Use optional argument to break recursion
+          (tuareg-indent-command t))))
+    return-leading))
+
+(unless (fboundp 'comment-normalize-vars) ;I.e. Only Emacs<21 (or XEmacs?).
+  (defun tuareg-auto-fill-function ()
+    (unless (tuareg-in-literal-p)
+      (let ((leading-star
+             (and (not (char-equal ?\n last-command-event))
+                  (tuareg-auto-fill-insert-leading-star))))
+        (do-auto-fill)
+        (unless (char-equal ?\n last-command-event)
+          (tuareg-auto-fill-insert-leading-star leading-star))))))
+
 (defun tuareg-indent-command (&optional from-leading-star)
   "Indent the current line in Tuareg mode.
 
@@ -1572,7 +1666,8 @@ Compute new indentation based on OCaml syntax."
                (if (save-excursion
                      (forward-line 1)
                      (back-to-indentation)
-                     (looking-at "*")) 1
+                     (looking-at "*"))
+                   1
                  tuareg-comment-end-extra-indent))
           (+ (current-column) tuareg-comment-end-extra-indent)))
        (tuareg-indent-comments
@@ -1636,129 +1731,6 @@ Compute new indentation based on OCaml syntax."
       (goto-char (max (point) split-mark))
       (set-marker split-mark nil))))
 
-(defun tuareg-electric-pipe ()
-  "If inserting a | operator at beginning of line, reindent the line."
-  (interactive "*")
-  (let ((electric (and tuareg-electric-indent
-                       (not (and (boundp 'electric-indent-mode)
-                                 electric-indent-mode))
-                       (tuareg-in-indentation-p)
-                       (not (tuareg-in-literal-p))
-                       (not (tuareg-in-comment-p)))))
-    (self-insert-command 1)
-    (and electric
-         (not (and (char-equal ?| (preceding-char))
-                   (save-excursion
-                     (tuareg-backward-char)
-                     (tuareg-find-pipe-match)
-                     (not (looking-at (tuareg-give-match-pipe-kwop-regexp))))))
-         (indent-according-to-mode))))
-
-(defun tuareg-electric-rp ()
-  "If inserting a ) operator or a comment-end at beginning of line,
-reindent the line."
-  (interactive "*")
-  (let ((electric (and tuareg-electric-indent
-                       (not (and (boundp 'electric-indent-mode)
-                                 electric-indent-mode))
-                       (or (tuareg-in-indentation-p)
-                           (char-equal ?* (preceding-char)))
-                       (not (tuareg-in-literal-p))
-                       (or (not (tuareg-in-comment-p))
-                           (save-excursion
-                             (back-to-indentation)
-                             (looking-at "\\*"))))))
-    (self-insert-command 1)
-    (and electric
-         (indent-according-to-mode))))
-
-(defun tuareg--electric-close-vector ()
-  ;; Function for use on post-self-insert-hook.
-  (when tuareg-electric-close-vector
-    (let ((inners (cdr (assq last-command-event
-                             '((?\} ?> "{<") (?\] ?| "\\[|"))))))
-      (and inners
-           (eq (char-before) last-command-event) ;; Sanity check.
-           (not (eq (car inners) (char-before (1- (point)))))
-           (not (tuareg-in-literal-or-comment-p))
-           (save-excursion
-             (when (ignore-errors (backward-sexp 1) t)
-               (looking-at (nth 1 inners))))
-           (save-excursion
-             (goto-char (1- (point)))
-             (insert (car inners)))))))
-
-(defun tuareg-electric-rc ()
-  "If inserting a } operator at beginning of line, reindent the line.
-
-Reindent also if } is inserted after a > operator at beginning of line.
-Also, if the matching { is followed by a < and this } is not preceded
-by >, insert one >."
-  (interactive "*")
-  (let* ((prec (preceding-char))
-         (look-bra (and tuareg-electric-close-vector
-                        (not (boundp 'post-self-insert-hook))
-                        (not (tuareg-in-literal-or-comment-p))
-                        (not (char-equal ?> prec))))
-         (electric (and tuareg-electric-indent
-                        (not (and (boundp 'electric-indent-mode)
-                                  electric-indent-mode))
-                        (or (tuareg-in-indentation-p)
-                            (and (char-equal ?> prec)
-                                 (save-excursion (tuareg-backward-char)
-                                                 (tuareg-in-indentation-p))))
-                        (not (tuareg-in-literal-or-comment-p)))))
-    (self-insert-command 1)
-    (when look-bra
-      (save-excursion
-        (let ((inserted-char
-               (save-excursion
-                 (tuareg-backward-char)
-                 (tuareg-backward-up-list)
-                 (cond ((looking-at "{<") ">")
-                       (t "")))))
-          (tuareg-backward-char)
-          (insert inserted-char))))
-    (when electric (indent-according-to-mode))))
-
-(defun tuareg-electric-rb ()
-  "If inserting a ] operator at beginning of line, reindent the line.
-
-Reindent also if ] is inserted after a | operator at beginning of line.
-Also, if the matching [ is followed by a | and this ] is not preceded
-by |, insert one |."
-  (interactive "*")
-  (let* ((prec (preceding-char))
-         (look-pipe-or-bra (and tuareg-electric-close-vector
-                                (not (boundp 'post-self-insert-hook))
-                                (not (tuareg-in-literal-or-comment-p))
-                                (not (and (char-equal ?| prec)
-                                          (not (char-equal
-                                                (save-excursion
-                                                  (tuareg-backward-char)
-                                                  (preceding-char))
-                                                ?\[))))))
-         (electric (and tuareg-electric-indent
-                        (not (and (boundp 'electric-indent-mode)
-                                  electric-indent-mode))
-                        (or (tuareg-in-indentation-p)
-                            (and (char-equal ?| prec)
-                                 (save-excursion (tuareg-backward-char)
-                                                 (tuareg-in-indentation-p))))
-                        (not (tuareg-in-literal-or-comment-p)))))
-    (self-insert-command 1)
-    (when look-pipe-or-bra
-      (save-excursion
-        (let ((inserted-char
-               (save-excursion
-                 (tuareg-backward-char)
-                 (tuareg-backward-up-list)
-                 (cond ((looking-at "\\[|") "|")
-                       (t "")))))
-          (tuareg-backward-char)
-          (insert inserted-char))))
-    (when electric (indent-according-to-mode))))
-
 (defun tuareg-abbrev-hook ()
   "If inserting a leading keyword at beginning of line, reindent the line."
   (unless (or (and (boundp 'electric-indent-mode) electric-indent-mode)
@@ -1782,12 +1754,7 @@ by |, insert one |."
       (goto-char (+ (point) (length kwop))))))
 
 (defun tuareg-skip-blank-and-comments ()
-  (if tuareg-use-syntax-ppss
-      (forward-comment (point-max))
-    (skip-syntax-forward " ")
-    (while (and (not (eobp)) (tuareg-in-comment-p)
-                (search-forward "*)" nil t))
-      (skip-syntax-forward " "))))
+  (forward-comment (point-max)))
 
 (defun tuareg-skip-back-blank-and-comments ()
   (skip-syntax-backward " ")
@@ -1904,7 +1871,7 @@ by |, insert one |."
           (when (tuareg-search-forward-end)
             (tuareg-backward-char 3)
             (when (looking-at "\\<end\\>")
-              (tuareg-forward-char 3)
+              (forward-char 3)
               (setq end (point))
               (setq and-end (point))
               (tuareg-skip-blank-and-comments)
@@ -1913,7 +1880,7 @@ by |, insert one |."
                 (when (tuareg-search-forward-end)
                   (tuareg-backward-char 3)
                   (when (looking-at "\\<end\\>")
-                    (tuareg-forward-char 3)
+                    (forward-char 3)
                     (setq and-end (point))
                     (tuareg-skip-blank-and-comments)))
                 (when (<= (point) and-end)
