@@ -1837,6 +1837,7 @@ Return values can be
     (add-hook 'post-self-insert-hook #'tuareg--electric-close-vector nil t)))
 
 ;;;###autoload(add-to-list 'auto-mode-alist '("\\.ml[ip]?\\'" . tuareg-mode))
+;;;###autoload(add-to-list 'auto-mode-alist '("\\.eliomi?\\'" . tuareg-mode))
 ;;;###autoload(dolist (ext '(".cmo" ".cmx" ".cma" ".cmxa" ".cmi"
 ;;;###autoload                ".annot" ".cmt" ".cmti"))
 ;;;###autoload  (add-to-list 'completion-ignored-extensions ext))
