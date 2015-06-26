@@ -988,10 +988,10 @@ Regexp match data 0 points to the chars."
       (define-key map [?\C-c mouse-1] 'caml-types-mouse-ignore)
       (define-key map [?\C-c down-mouse-1] 'caml-types-explore)
       ;; Trigger caml-help
-      (define-key map [?\C-c ?i] 'ocaml-add-path)
+      (define-key map [?\C-c ?\C-i] 'ocaml-add-path)
       (define-key map [?\C-c ?\[] 'ocaml-open-module)
       (define-key map [?\C-c ?\]] 'ocaml-close-module)
-      (define-key map [?\C-c ?h] 'caml-help)
+      (define-key map [?\C-c ?\C-h] 'caml-help)
       (define-key map [?\C-c ?\t] 'tuareg-complete))
     map)
   "Keymap used in Tuareg mode.")
