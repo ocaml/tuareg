@@ -1622,7 +1622,7 @@ Return values can be
    ((and (eq kind :after) (member token '("." ";"))
          (smie-rule-parent-p "with")
          (tuareg-smie--with-module-fields-rule)))
-   ;; Special indentation for monadic >>>, >>|, and >>= operators.
+   ;; Special indentation for monadic >>>, >>|, >>=, and >|= operators.
    ((and (eq kind :before) (tuareg-smie--monadic-rule token)))
    ((member token '(";" "|" "," "and" "m-and"))
     (cond
@@ -1735,10 +1735,16 @@ Return values can be
       (smie-backward-sexp 'halfsexp)
       (cons 'column (current-column)))))
 
+(defconst tuareg-smie--monadic-operators '(">>|" ">>=" ">>>" ">|=")
+  "Monadic infix operators")
+
+(defconst tuareg-smie--monadic-op-re
+  (regexp-opt tuareg-smie--monadic-operators))
+
 (defun tuareg-smie--monadic-rule (token)
   ;; When trying to indent a >>=, try to look back to find any earlier
   ;; >>= in a sequence of "monadic steps".
-  (or (and (equal token ">…") (looking-at ">>[>=|]")
+  (or (and (equal token ">…") (looking-at tuareg-smie--monadic-op-re)
            (save-excursion
              (tuareg-smie--forward-token)
              (let ((indent nil))
@@ -1749,7 +1755,7 @@ Return values can be
                       ((member (nth 2 parent-data) '(";" "d=")) nil)
                       ((member (nth 2 parent-data) '("fun" '"function"))
                        (if (member (tuareg-smie--backward-token)
-                                   '(">>|" ">>=" ">>>"))
+                                   '(">>|" ">>=" ">>>" ">|="))
                            (progn
                              (setq indent (cons 'column
                                                 (smie-indent-virtual)))
@@ -1761,7 +1767,7 @@ Return values can be
            (save-excursion
              (let ((prev (tuareg-smie-backward-token)))
                ;; FIXME: Should we use the same loop as above?
-               (and (equal prev ">…") (looking-at ">>[>=|]")
+               (and (equal prev ">…") (looking-at tuareg-smie--monadic-op-re)
                     (progn (smie-backward-sexp prev)
                            (cons 'column (current-column)))))))))
 
