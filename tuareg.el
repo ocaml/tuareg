@@ -1624,6 +1624,9 @@ Return values can be
          (tuareg-smie--with-module-fields-rule)))
    ;; Special indentation for monadic >>>, >>|, >>=, and >|= operators.
    ((and (eq kind :before) (tuareg-smie--monadic-rule token)))
+   ((and (equal token "and")
+	 (smie-rule-parent-p "type"))
+    0)
    ((member token '(";" "|" "," "and" "m-and"))
     (cond
      ((and (eq kind :before) (member token '("|" ";"))
@@ -1707,6 +1710,7 @@ Return values can be
                        (equal (nth 2 (smie-backward-sexp "|")) "with"))))
            (smie-rule-parent 2))
           ((smie-rule-parent-p "|") tuareg-match-clause-indent)
+          ((smie-rule-parent-p "fun") tuareg-fun-indent)
           (t 0)))
         ((equal token ":")
          (cond
