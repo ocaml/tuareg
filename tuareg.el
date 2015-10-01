@@ -1272,7 +1272,10 @@ by |, insert one |."
               (iddef (id "f=" exp1))
               (branches (branches "|" branches) (branch))
               (branch (patterns "->" exp1))
-              (patterns (pattern) (pattern "when" exp1))
+              (patterns (pattern) (pattern "when" exp1)
+                        ;; Since OCaml 4.02, `match' expressions allow
+                        ;; `exception' branches.
+                        ("exception-case" pattern))
               (pattern (id) (pattern "as" id) (pattern "," pattern))
               (class-body (class-body "inherit" class-body)
                           (class-body "method" class-body)
@@ -1452,7 +1455,8 @@ of the token."
         (goto-char (match-end 0))
         (match-string 0)))
      ((or (member tok '("let" "=" "->"
-                        "module" "class" "open" "type" "with" "and"))
+                        "module" "class" "open" "type" "with" "and"
+                        "exception"))
           ;; http://caml.inria.fr/pub/docs/manual-ocaml/expr.html lists
           ;; the tokens whose precedence is based on their prefix.
           (memq (aref tok 0) '(?* ?/ ?% ?+ ?- ?@ ?^ ?= ?< ?> ?| ?& ?$)))
@@ -1610,6 +1614,9 @@ Return values can be
             "label:"
           (goto-char pos)
           tok)))
+     ((equal tok "exception")
+      (if (save-excursion (equal (tuareg-smie--backward-token) "|"))
+          "exception-case" tok))
      ((string-match "\\`[[:alpha:]_].*\\.\\'"  tok)
       (forward-char (1- (length tok))) ".")
      (t tok))))
@@ -2497,20 +2504,26 @@ which `smie-backward-sexp' returns `nil'.")
 
   (defun tuareg--beginning-of-phrase ()
     (while
-        (let ((td (smie-backward-sexp 'halfsexp)))
-          (cond
-           ((member (nth 2 td) tuareg-beginning-of-phrase-syms)
-            (goto-char (nth 1 td))
-            nil)
-           ;; When we are after, say, "open X", `td' is `nil'
-           ((and (null td)
-                 (looking-back tuareg-beginning-of-phrase-syms-re
-                               (line-beginning-position)))
-            (tuareg-smie-backward-token)
-            nil)
-           ((and (car td) (not (numberp (car td))))
-            (unless (bobp) (goto-char (nth 1 td)) t))
-           (t t)))))
+        (if (save-excursion
+              (member (tuareg-smie-backward-token)
+                      tuareg-beginning-of-phrase-syms))
+            (progn
+              (tuareg-smie-backward-token)
+              nil)
+          (let ((td (smie-backward-sexp 'halfsexp)))
+            (cond
+             ((member (nth 2 td) tuareg-beginning-of-phrase-syms)
+              (goto-char (nth 1 td))
+              nil)
+             ;; When we are after, say, "open X", `td' is `nil'
+             ((and (null td)
+                   (looking-back tuareg-beginning-of-phrase-syms-re
+                                 (line-beginning-position)))
+              (tuareg-smie-backward-token)
+              nil)
+             ((and (car td) (not (numberp (car td))))
+              (unless (bobp) (goto-char (nth 1 td)) t))
+             (t t))))))
 
   (defun tuareg-discover-phrase (&optional _quiet _stop-at-and)
     "Return a triplet (BEGIN END END-WITH-COMMENTS)."
@@ -2834,6 +2847,10 @@ Short cuts for interaction within the toplevel:
 
 (defconst tuareg-identifier-regexp (concat "\\<" tuareg--id-regexp "\\>"))
 
+(defmacro tuareg-reset-and-kwop (kwop)
+  `(when (and ,kwop (string= ,kwop "and"))
+     (setq ,kwop (tuareg-find-and-match)))) ;FIXME: In tuareg_indent.el!
+
 (defun tuareg-imenu-create-index ()
   (let ((cpt (if (fboundp 'make-progress-reporter)
                  (make-progress-reporter "Searching definitions..."
@@ -2845,7 +2862,7 @@ Short cuts for interaction within the toplevel:
     (while (not (eobp))
       (when (looking-at tuareg-definitions-regexp)
         (setq kw (tuareg-match-string 0))
-        (save-match-data (tuareg-reset-and-kwop kw));FIXME: In tuareg_indent.el!
+        (save-match-data (tuareg-reset-and-kwop kw))
         (when (member kw '("exception" "val"))
           (setq kw "let"))
         ;; Skip optional elements
@@ -2873,15 +2890,18 @@ Short cuts for interaction within the toplevel:
       (goto-char (1+ (point)))          ;Don't signal error at EOB.
       (let ((old-point (point))
             (last-and (progn (tuareg-next-phrase t t) (point))))
-        (when (< last-and old-point) (error "Scan error"))
-        (save-excursion
-          (while (and (re-search-backward "\\<and\\>" old-point t)
-                      (not (tuareg-in-literal-or-comment-p))
-                      ;; FIXME: Only defined in tuareg_indent.el!
-                      (save-excursion (tuareg-find-and-match)
-                                      (>= old-point (point))))
-            (setq last-and (point))))
-        (goto-char last-and)))
+        (if (< last-and old-point)
+            (progn
+              (message "¡tuareg-next-phrase moved backward from %S!" old-point)
+              (goto-char old-point))
+          (save-excursion
+            (while (and (re-search-backward "\\<and\\>" old-point t)
+                        (not (tuareg-in-literal-or-comment-p))
+                        ;; FIXME: Only defined in tuareg_indent.el!
+                        (save-excursion (tuareg-find-and-match)
+                                        (>= old-point (point))))
+              (setq last-and (point))))
+          (goto-char last-and))))
     (if (integerp cpt)
         (message "Searching definitions... done")
       (progress-reporter-done cpt))

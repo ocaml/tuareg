@@ -343,6 +343,9 @@ let rec count_append l1 l2 count =
        (if count > 1000
         then slow_append tl l2
         else count_append tl l2 (count + 1))
+  (* New in OCaml-4.02.  *)
+  | exception Not_Found ->
+     l2
 
 
 let x =

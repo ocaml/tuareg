@@ -904,10 +904,6 @@ If found, return the actual text of the keyword or operator."
 (defun tuareg-find-semicolon-match (&optional leading-semi-colon)
   (car (tuareg-semicolon-indent-kwop-point leading-semi-colon)))
 
-(defmacro tuareg-reset-and-kwop (kwop)
-  `(when (and ,kwop (string= ,kwop "and"))
-     (setq ,kwop (tuareg-find-and-match))))
-
 (defconst tuareg-phrase-regexp-1 (tuareg-ro "module" "type"))
 (defconst tuareg-phrase-regexp-2 (tuareg-ro "and" "let" "module" "with"))
 (defconst tuareg-phrase-regexp-3
