@@ -1,3 +1,6 @@
+After 2.0.9:
+* New indentation config var for SMIE: tuareg-indent-align-with-first-arg.
+
 2.0.9 (master):
 * Do not activate Tuareg for .mll and .mly files.
 * Toplevel prompt is readonly.

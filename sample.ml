@@ -31,10 +31,15 @@ let test1 = with_connection (fun conn ->
               )
               toto
 
+(* The two "let"s below are indented under the assumption that
+   tuareg-indent-align-with-first-arg is nil!  *)
+let x = List.map (fun x => 5)
+          my list
+
 let x =
-  logf `Info "User %s has %i new messages"
-       (Uid.to_string uid)
-       (List.length new_messages);
+  logf `Info "User %s has %i new messages" ba
+    (Uid.to_string uid)
+    (List.length new_messages);
 
 let x =
   let open M in

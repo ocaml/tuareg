@@ -1828,6 +1828,60 @@ Return values can be
     (goto-char (1+ (nth 8 (syntax-ppss))))
     (current-column)))
 
+(defcustom tuareg-indent-align-with-first-arg t
+  "Non-nil if indentation should try to align arguments on the first one.
+With a non-nil value you get
+
+    let x = List.map (fun x => 5)
+                     my list
+
+whereas with a non value you get
+
+    let x = List.map (fun x => 5)
+              my list"
+  :type 'boolean)
+
+(defun tuareg-smie--args ()
+  ;; FIXME: This is largely copy&pasted from smie.el.  SMIE should offer a way
+  ;; to hook into smie-indent-exps in order to control that behavior.
+  (unless (or tuareg-indent-align-with-first-arg
+              (nth 8 (syntax-ppss))
+              (looking-at comment-start-skip)
+              (numberp (nth 1 (save-excursion (smie-indent-forward-token))))
+              (numberp (nth 2 (save-excursion (smie-indent-backward-token)))))
+    (save-excursion
+      (let ((positions nil)
+            arg)
+        (while (and (null (car (smie-backward-sexp)))
+                    (push (point) positions)
+                    (not (smie-indent--bolp))))
+        (save-excursion
+          ;; Figure out if the atom we just skipped is an argument rather
+          ;; than a function.
+          (setq arg
+                (or (null (car (smie-backward-sexp)))
+                    (funcall smie-rules-function :list-intro
+                             (funcall smie-backward-token-function)))))
+        (cond
+         ((null positions)
+          ;; We're the first expression of the list.  In that case, the
+          ;; indentation should be (have been) determined by its context.
+          nil)
+         (arg
+          ;; There's a previous element, and it's not special (it's not
+          ;; the function), so let's just align with that one.
+          (goto-char (car positions))
+          (smie-indent--current-column))
+         (t
+          ;; There's no previous arg at BOL.  Align with the function.
+          (goto-char (car positions))
+          (+ (smie-indent--offset 'args)
+             ;; We used to use (smie-indent-virtual), but that
+             ;; doesn't seem right since it might then indent args less than
+             ;; the function itself.
+             (smie-indent--current-column))))))))
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                              The major mode
 
@@ -1871,6 +1925,7 @@ expansion at run-time, if the run-time version of Emacs does know this macro."
             ;; hasn't provided any alternative so far :-(
             (add-function :before (local 'smie--hanging-eolp-function)
                           #'tuareg--hanging-eolp-advice)))
+        (add-hook 'smie-indent-functions #'tuareg-smie--args nil t)
         (add-hook 'smie-indent-functions #'tuareg-smie--inside-string nil t)
         (set (make-local-variable 'add-log-current-defun-function)
              'tuareg-current-fun-name))
