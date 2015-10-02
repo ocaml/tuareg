@@ -17,7 +17,25 @@ let server_comments request t =
 
 let qs1 = {| quoted string |}   (* (issue #24) *)
 let qs2 = {eof| other quoted string   |noteof}  |eof}
-    
+
+(* ocp-indent does it as follows:
+let test1 = with_connection (fun conn ->
+    do_something conn x;
+    ...
+  )
+    toto
+ *)
+let test1 = with_connection (fun conn ->
+                do_something conn x;
+                ...
+              )
+              toto
+
+let x =
+  logf `Info "User %s has %i new messages"
+       (Uid.to_string uid)
+       (List.length new_messages);
+
 let x =
   let open M in
   let x = 5 in
@@ -116,6 +134,7 @@ type t = [                              (* Comment.  *)
 ]
 
 type t = a
+and typey = 4
 and x = b
 
 module M = struct
@@ -375,8 +394,8 @@ let foo =
   )
 
 let quux list = List.map list ~f:(fun item ->
-  print_item item
-)
+                    print_item item
+                  )
 
 let foo x = function
   | Some _ -> true

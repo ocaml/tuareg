@@ -131,9 +131,6 @@
       (read-from-minibuffer prompt initial-input nil nil
                             (or history 'shell-command-history))))
 
-(unless (fboundp 'derived-mode-p) ;; in derived.el in emacs21
-  (require 'derived))
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                    Import types and help features
 
@@ -1255,7 +1252,7 @@ by |, insert one |."
                     (exp1 ";" exp1)
                     ("match" exp "with" branches)
                     ("function" branches)
-                    ("fun" patterns "->" exp1)
+                    ("fun" patterns* "->" exp1)
                     ("try" exp "with" branches)
                     ("let" defs "in" exp1)
                     ("object" class-body "end")
@@ -1272,6 +1269,7 @@ by |, insert one |."
               (iddef (id "f=" exp1))
               (branches (branches "|" branches) (branch))
               (branch (patterns "->" exp1))
+              (patterns* ("-dlpd-" patterns*) (patterns)) ;See use of "-dlpd-".
               (patterns (pattern) (pattern "when" exp1)
                         ;; Since OCaml 4.02, `match' expressions allow
                         ;; `exception' branches.
@@ -1445,8 +1443,7 @@ by |, insert one |."
           (point))))
 
 (defun tuareg-smie-forward-token ()
-  "Move the point at the end of the next token and return the SMIE name
-of the token."
+  "Move point to the end of the next token and return its SMIE name."
   (let ((tok (tuareg-smie--forward-token)))
     (cond
      ((zerop (length tok))
@@ -1454,6 +1451,8 @@ of the token."
           tok
         (goto-char (match-end 0))
         (match-string 0)))
+     ((and (equal tok "|") (looking-at "\\]")) (forward-char 1) "|]")
+     ((and (equal tok ">") (looking-at "}")) (forward-char 1) ">}")
      ((or (member tok '("let" "=" "->"
                         "module" "class" "open" "type" "with" "and"
                         "exception"))
@@ -1475,8 +1474,6 @@ of the token."
                      tuareg-smie--type-label-leader)))
       (forward-char 1)
       "label:")
-     ((and (equal tok "|") (looking-at "\\]")) (forward-char 1) "|]")
-     ((and (equal tok ">") (looking-at "}")) (forward-char 1) ">}")
      ((string-match "\\`[[:alpha:]_].*\\.\\'"  tok)
       (forward-char -1) (substring tok 0 -1))
      (t tok))))
@@ -1541,6 +1538,7 @@ Return values can be
        (t "d=")))))
 
 (defun tuareg-smie-backward-token ()
+  "Move point to the beginning of the next token and return its SMIE name."
   (let ((tok (tuareg-smie--backward-token)))
     (cond
      ;; Distinguish a let expression from a let declaration.
@@ -1615,7 +1613,7 @@ Return values can be
           (goto-char pos)
           tok)))
      ((equal tok "exception")
-      (if (save-excursion (equal (tuareg-smie--backward-token) "|"))
+      (if (save-excursion (member (tuareg-smie--backward-token) '("|" "with")))
           "exception-case" tok))
      ((string-match "\\`[[:alpha:]_].*\\.\\'"  tok)
       (forward-char (1- (length tok))) ".")
@@ -1714,6 +1712,18 @@ Return values can be
                        (equal (nth 2 (smie-backward-sexp "|")) "with"))))
            (smie-rule-parent 2))
           ((smie-rule-parent-p "|") tuareg-match-clause-indent)
+          ;; Special case for "CPS style" code.
+          ;; https://github.com/ocaml/tuareg/issues/5.
+          ((smie-rule-parent-p "fun")
+           (save-excursion
+             (smie-backward-sexp "->")
+             (if (eq ?\( (char-before))
+                 (cons 'column
+                       (+ tuareg-default-indent
+                          (progn
+                            (backward-char 1)
+                            (smie-indent-virtual))))
+               0)))
           (t 0)))
         ((equal token ":")
          (cond
@@ -1821,6 +1831,25 @@ Return values can be
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                              The major mode
 
+(defmacro tuareg--eval-when-macrop (f form)
+  "Execute FORM but only when F is `fboundp' (because it's a macro).
+If F is not bound yet, then keep the code un-expanded and perform the
+expansion at run-time, if the run-time version of Emacs does know this macro."
+  (declare (debug (symbolp body)) (indent 1))
+  (if (fboundp f) form                  ;Macro expanded at compile-time.
+    `(if (fboundp ',f) (eval ',form)))) ;Macro expanded at run-time.
+
+(defun tuareg--hanging-eolp-advice ()
+  "Recognize \"fun ..args.. ->\" at EOL as being hanging."
+  (when (looking-at "fun\\_>")
+    (smie-indent-forward-token)
+    ;; We define a special "-dlpd-" token
+    ;; ("-dummy-left-pattern-delimiter-") in the grammar
+    ;; specifically so as to be able to make the right
+    ;; call to smie-forward-sexp here.
+    (if (equal "->" (nth 2 (smie-forward-sexp "-dlpd-")))
+        (smie-indent-forward-token))))
+
 (defun tuareg--common-mode-setup ()
   (setq local-abbrev-table tuareg-mode-abbrev-table)
   (when (fboundp 'tuareg-syntax-propertize)
@@ -1835,6 +1864,13 @@ Return values can be
         (smie-setup tuareg-smie-grammar #'tuareg-smie-rules
                     :forward-token #'tuareg-smie-forward-token
                     :backward-token #'tuareg-smie-backward-token)
+        (tuareg--eval-when-macrop add-function
+          (when (boundp 'smie--hanging-eolp-function)
+            ;; FIXME: As its name implies, smie--hanging-eolp-function
+            ;; is not to be used by packages like us, but SMIE's maintainer
+            ;; hasn't provided any alternative so far :-(
+            (add-function :before (local 'smie--hanging-eolp-function)
+                          #'tuareg--hanging-eolp-advice)))
         (add-hook 'smie-indent-functions #'tuareg-smie--inside-string nil t)
         (set (make-local-variable 'add-log-current-defun-function)
              'tuareg-current-fun-name))
@@ -1909,9 +1945,9 @@ Short cuts for interactions with the toplevel:
   ;; Initialize the Tuareg menu
   (tuareg-build-menu)
 
-  (unless tuareg-use-smie
+  ;; (unless tuareg-use-smie
     ;; Initialize indentation regexps
-    (tuareg-make-indentation-regexps))
+    (tuareg-make-indentation-regexps) ;;)
 
   (set (make-local-variable 'paragraph-start)
        (concat "^[ \t]*$\\|\\*)$\\|" page-delimiter))
@@ -2495,12 +2531,13 @@ current phrase else insert a newline and indent."
 
 (when tuareg-use-smie
   (defconst tuareg-beginning-of-phrase-syms
-    '("module" "open" "include" "type" "d-let"))
-
-  (defconst tuareg-beginning-of-phrase-syms-re
-    (concat (regexp-opt '("open" "include") 'words) " *")
-    "A regular expression matching tokens at beginning of a phrase for
-which `smie-backward-sexp' returns `nil'.")
+    (let* ((prec (cdr (assoc "d-let" tuareg-smie-grammar)))
+           (syms (delq nil
+                       (mapcar (lambda (x) (if (equal (cdr x) prec) (car x)))
+                               tuareg-smie-grammar))))
+      (dolist (k '(";;"))
+        (setq syms (delete k syms)))
+      syms))
 
   (defun tuareg--beginning-of-phrase ()
     (while
@@ -2515,12 +2552,6 @@ which `smie-backward-sexp' returns `nil'.")
              ((member (nth 2 td) tuareg-beginning-of-phrase-syms)
               (goto-char (nth 1 td))
               nil)
-             ;; When we are after, say, "open X", `td' is `nil'
-             ((and (null td)
-                   (looking-back tuareg-beginning-of-phrase-syms-re
-                                 (line-beginning-position)))
-              (tuareg-smie-backward-token)
-              nil)
              ((and (car td) (not (numberp (car td))))
               (unless (bobp) (goto-char (nth 1 td)) t))
              (t t))))))
@@ -2528,12 +2559,18 @@ which `smie-backward-sexp' returns `nil'.")
   (defun tuareg-discover-phrase (&optional _quiet _stop-at-and)
     "Return a triplet (BEGIN END END-WITH-COMMENTS)."
     (save-excursion
-      (end-of-line)
-      (tuareg--beginning-of-phrase)
-      (let ((begin (point)))
-        (smie-forward-sexp 'halfsexp)
-        (let ((end (point)))
-          (forward-comment 5)           ;FIXME: Why 5?
+      (let ((pos (point)))
+        (end-of-line)
+        (tuareg--beginning-of-phrase)
+        (let ((begin (point))
+              end)
+          (while (progn
+                   (smie-forward-sexp 'halfsexp)
+                   (setq end (point))
+                   (forward-comment (point-max))
+                   (< (point) pos))
+            ;; Looks like tuareg--beginning-of-phrase went too far back!
+            (setq begin (point)))
           (list begin end (point)))))))
 
 (defun tuareg-narrow-to-phrase ()
@@ -2889,6 +2926,7 @@ Short cuts for interaction within the toplevel:
       ;; Skip to next phrase or next top-level `and'
       (goto-char (1+ (point)))          ;Don't signal error at EOB.
       (let ((old-point (point))
+            ;; FIXME: tuareg-next-phrase is in tuareg_indent.el!
             (last-and (progn (tuareg-next-phrase t t) (point))))
         (if (< last-and old-point)
             (progn
@@ -2916,6 +2954,7 @@ Short cuts for interaction within the toplevel:
 (defun tuareg-list-definitions ()
   "Parse the buffer and gather toplevel definitions
 for a quick jump via the definitions menu."
+  ;; FIXME: Why not just use the standard imenu menu?
   (interactive)
   (let ((defs (save-excursion (tuareg-imenu-create-index)))
         menu)
@@ -2965,13 +3004,13 @@ for a quick jump via the definitions menu."
       (let (lists)
         (while list
           (let ((beg (substring (elt (car list) 0) 0 1))
-                (end (substring (elt (car tail) 0) 0 1)))
-            (setq lists (cons
-                         (cons (format "%s %s-%s" title beg end) list)
-                         lists))
+                (end (substring (elt (car (or tail (last list))) 0) 0 1)))
+            (push (cons (format "%s %s-%s" title beg end) list)
+                  lists)
             (setq list (cdr tail))
-            (setcdr tail nil)
-            (setq tail (nthcdr tuareg-definitions-max-items list))))
+	    (when tail
+	      (setcdr tail nil)
+	      (setq tail (nthcdr tuareg-definitions-max-items list)))))
         (nreverse lists)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
