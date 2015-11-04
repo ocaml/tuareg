@@ -13,6 +13,7 @@ bug-reports: "https://github.com/ocaml/tuareg/issues"
 dev-repo: "https://github.com/ocaml/tuareg.git"
 build: [
   [make "tuareg-site-file.el"]
+  [make "elc"] { os != "darwin" }
 ]
 depends: "caml-mode"
 depexts: [
