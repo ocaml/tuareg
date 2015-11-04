@@ -31,6 +31,10 @@ let test1 = with_connection (fun conn ->
               )
               toto
 
+let x = match y with            (* Issue #71 *)
+  | A | B ->
+     do_something ()
+
 (* The two "let"s below are indented under the assumption that
    tuareg-indent-align-with-first-arg is nil!  *)
 let x = List.map (fun x => 5)

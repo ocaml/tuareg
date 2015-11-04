@@ -1274,7 +1274,8 @@ by |, insert one |."
                         ;; Since OCaml 4.02, `match' expressions allow
                         ;; `exception' branches.
                         ("exception-case" pattern))
-              (pattern (id) (pattern "as" id) (pattern "," pattern))
+              (pattern (id) (pattern "as" id) (pattern "|-or" pattern)
+                       (pattern "," pattern))
               (class-body (class-body "inherit" class-body)
                           (class-body "method" class-body)
                           (class-body "initializer" class-body)
@@ -1301,10 +1302,7 @@ by |, insert one |."
             '((nonassoc "as") (assoc "t->") (assoc "*…"))
             ;; Pattern precedence rules.
             ;; http://caml.inria.fr/pub/docs/manual-ocaml/patterns.html
-            ;; Note that we don't include "|" because its precedence collides
-            ;; with the one of the | used between branches and resolving the
-            ;; conflict in the lexer is not worth the trouble.
-            '((nonassoc "as") (assoc ",") (assoc "::"))
+            '((nonassoc "as") (assoc "|-or") (assoc ",") (assoc "::"))
             ;; Resolve "{a=(1;b=2)}" vs "{(a=1);(b=2)}".
             '((nonassoc ";") (nonassoc "f="))
             ;; Resolve "(function a -> b) | c -> d".
@@ -1597,6 +1595,11 @@ Return values can be
         (match-string 0)))
      ((and (equal tok "|") (eq (char-before) ?\[)) (forward-char -1) "[|")
      ((and (equal tok "<") (eq (char-before) ?\{)) (forward-char -1) "{<")
+     ((equal tok "|")
+      ;; Check if it's the | of an or-pattern, since it has a slightly
+      ;; different precedence (see Issue #71 for an example).
+      (if (member (nth 2 (smie-backward-sexp "|-or")) '("(" "|"))
+          "|-or" tok))
      ;; Some infix operators get a precedence based on their prefix, so we
      ;; collapse them into a canonical representative.
      ;; See http://caml.inria.fr/pub/docs/manual-ocaml/expr.html.
@@ -1871,7 +1874,9 @@ whereas with a non value you get
           ;; There's a previous element, and it's not special (it's not
           ;; the function), so let's just align with that one.
           (goto-char (car positions))
-          (smie-indent--current-column))
+          (if (fboundp 'smie-indent--current-column)
+              (smie-indent--current-column)
+            (current-column)))
          (t
           ;; There's no previous arg at BOL.  Align with the function.
           (goto-char (car positions))
@@ -1879,7 +1884,9 @@ whereas with a non value you get
              ;; We used to use (smie-indent-virtual), but that
              ;; doesn't seem right since it might then indent args less than
              ;; the function itself.
-             (smie-indent--current-column))))))))
+             (if (fboundp 'smie-indent--current-column)
+                 (smie-indent--current-column)
+               (current-column)))))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
