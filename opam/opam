@@ -15,7 +15,9 @@ build: [
   [make "tuareg-site-file.el"]
   [make "elc"] { os != "darwin" }
 ]
-depends: "caml-mode"
+depopts: [
+  "caml-mode"
+]
 depexts: [
   [["debian"] ["emacs-nox"]]
   [["ubuntu"] ["emacs"]]
