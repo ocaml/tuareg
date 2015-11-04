@@ -34,7 +34,7 @@ INSTALL_RM_R = $(RM) -r
 INSTALL_MKDIR = mkdir -p
 INSTALL_CP = $(CP)
 
-all : elc tuareg-site-file.el
+all : tuareg-site-file.el
 
 elc : $(ELC)
 
