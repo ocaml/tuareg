@@ -1648,14 +1648,19 @@ Return values can be
      (t (smie-rule-separator kind))))
    (t
     (case kind
-      (:elem (if (eq token 'basic) tuareg-default-indent))
+      (:elem (cond
+              ((eq token 'basic) tuareg-default-indent)
+              ;; The default tends to indent much too deep.
+              ((eq token 'empty-line-token) ";")))
       (:list-intro (member token '("fun")))
       (:before
        (cond
         ((equal token "d=") (smie-rule-parent 2))
         ((member token '("fun" "match"))
-         (if (and (not (smie-rule-bolp)) (smie-rule-prev-p "d="))
-             (smie-rule-parent tuareg-default-indent)))
+         (and (not (smie-rule-bolp))
+              (cond ((smie-rule-prev-p "d=")
+                     (smie-rule-parent tuareg-default-indent))
+                    ((smie-rule-prev-p "begin") (smie-rule-parent)))))
         ((equal token "then") (smie-rule-parent))
         ((equal token "if") (if (and (not (smie-rule-bolp))
                                      (smie-rule-prev-p "else"))

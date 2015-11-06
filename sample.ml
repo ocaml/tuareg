@@ -35,6 +35,11 @@ let x = match y with            (* Issue #71 *)
   | A | B ->
      do_something ()
 
+let x =
+  begin match y with
+  | A -> 1                       (* Issue #73 *)
+  end
+
 (* The two "let"s below are indented under the assumption that
    tuareg-indent-align-with-first-arg is nil!  *)
 let x = List.map (fun x => 5)
