@@ -222,11 +222,10 @@ instead of the historical `tuareg2-default-indent'."
                 (back-to-indentation)
                 (looking-at "\\*[^)]"))))))
 
-(defun tuareg2-auto-fill-insert-leading-star (&optional leading-star)
-  (let ((point-leading-comment (looking-at "(\\*")) (return-leading nil))
-    (save-excursion
-      (back-to-indentation))
-    return-leading))
+(defun tuareg2-auto-fill-insert-leading-star (&optional _leading-star)
+  (save-excursion
+    (back-to-indentation))
+  nil)
 
 (defun tuareg2-auto-fill-function ()
   (unless (tuareg2-in-literal-p)
@@ -428,6 +427,10 @@ Regexp match data 0 points to the chars."
 ;; Initially empty, set in `tuareg2-install-font-lock'
 (defvar tuareg2-font-lock-keywords ()
   "Font-Lock patterns for Tuareg2 mode.")
+
+(defconst tuareg2-font-lock-syntax
+  `((?_ . "w") (?` . "."))
+  "Syntax changes for Font-Lock.")
 
 (defun tuareg2-install-font-lock ()
   (setq
@@ -1186,6 +1189,8 @@ If found, return the actual text of the keyword or operator."
 (defconst tuareg2-phrase-regexp-3
   (tuareg2-ro "and" "end" "every" "in" "with"))
 
+(defconst tuareg2-false-type-regexp (tuareg2-ro "and" "class" "module" "with"))
+
 (defun tuareg2-looking-at-false-type ()
   (save-excursion
     (tuareg2-find-meaningful-word)
@@ -1346,8 +1351,6 @@ Returns t iff skipped to indentation."
     (tuareg2-find-module)
     (looking-at "\\<module\\>\\|(")))
 
-(defconst tuareg2-false-type-regexp (tuareg2-ro "and" "class" "module" "with"))
-
 (defun tuareg2-looking-at-in-let ()
   (save-excursion
     (string= (tuareg2-find-meaningful-word) "in")))
@@ -1484,7 +1487,7 @@ Returns t iff skipped to indentation."
             (not (looking-at tuareg2-operator-regexp))))
          (current-column))))))
 
-(defun tuareg2-compute-arrow-indent (start-pos)
+(defun tuareg2-compute-arrow-indent ()
   (let (kwop pos)
     (save-excursion (setq kwop (tuareg2-find-arrow-match) pos (point)))
     (cond ((string= kwop "|")
@@ -1509,7 +1512,7 @@ Returns t iff skipped to indentation."
              (tuareg2-back-to-paren-or-indentation)
              (current-column)))
           ((tuareg2-monadic-operator-p kwop)
-           (destructuring-bind (indent kwop point)
+           (destructuring-bind (indent kwop _point)
                (tuareg2-semicolon-indent-kwop-point)
              (- indent
                 (if (string= kwop "in")
@@ -1684,7 +1687,7 @@ Returns t iff skipped to indentation."
              (+ tuareg2-default-indent
                 (tuareg2-indent-from-paren leading-operator start-pos))))
           ((looking-at "->")
-           (tuareg2-compute-arrow-indent start-pos))
+           (tuareg2-compute-arrow-indent))
           ((looking-at (tuareg2-keyword-regexp))
            (tuareg2-compute-keyword-indent kwop leading-operator start-pos))
           ((and (string= kwop "=") (not (tuareg2-false-=-p))
@@ -1808,6 +1811,36 @@ Returns t iff skipped to indentation."
     (forward-char (length match)))
   (tuareg2-skip-blank-and-comments)
   (current-column))
+
+;;----------------------------------------------------------------------------;;
+;; Syntax table                                                               ;;
+;;----------------------------------------------------------------------------;;
+
+(defvar tuareg2-mode-syntax-table
+  (let ((st (make-syntax-table)))
+    (modify-syntax-entry ?_ "_" st)
+    (modify-syntax-entry ?? ". p" st)
+    (modify-syntax-entry ?~ ". p" st)
+    (modify-syntax-entry ?: "." st)
+    ;; FIXME: Should be "_" rather than "w"!
+    (modify-syntax-entry ?' "w" st) ; ' is part of identifiers (for primes).
+    (modify-syntax-entry ?\" "\"" st) ; " is a string delimiter
+    (modify-syntax-entry ?\\ "\\" st)
+    (modify-syntax-entry ?*  ". 23" st)
+    (modify-syntax-entry ?\( "()1n" st)
+    (modify-syntax-entry ?\) ")(4n" st)
+    st)
+  "Syntax table in use in Tuareg2 mode buffers.")
+
+(defmacro tuareg2-with-internal-syntax (&rest body)
+  `(progn
+     ;; Switch to a modified internal syntax.
+     (modify-syntax-entry ?. "w" tuareg2-mode-syntax-table)
+     (modify-syntax-entry ?_ "w" tuareg2-mode-syntax-table)
+     (unwind-protect (progn ,@body)
+       ;; Switch back to the interactive syntax.
+       (modify-syntax-entry ?. "." tuareg2-mode-syntax-table)
+       (modify-syntax-entry ?_ "_" tuareg2-mode-syntax-table))))
 
 (defun tuareg2-indent-command (&optional from-leading-star)
   "Indent the current line in Tuareg2 mode.
@@ -2239,41 +2272,6 @@ or indent all lines in the current phrase."
     (define-key map "\C-c.t" 'tuareg2-insert-try-form)
     map)
   "Keymap used in Tuareg2 mode.")
-
-(defconst tuareg2-font-lock-syntax
-  `((?_ . "w") (?` . "."))
-  "Syntax changes for Font-Lock.")
-
-;;----------------------------------------------------------------------------;;
-;; Syntax table                                                               ;;
-;;----------------------------------------------------------------------------;;
-
-(defvar tuareg2-mode-syntax-table
-  (let ((st (make-syntax-table)))
-    (modify-syntax-entry ?_ "_" st)
-    (modify-syntax-entry ?? ". p" st)
-    (modify-syntax-entry ?~ ". p" st)
-    (modify-syntax-entry ?: "." st)
-    (modify-syntax-entry ?' "w" st) ; ' is part of words (for primes).
-    (modify-syntax-entry ?\" "\"" st) ; " is a string delimiter
-    (modify-syntax-entry ?\\ "\\" st)
-    (modify-syntax-entry ?*  ". 23" st)
-    (condition-case nil
-        (progn
-          (modify-syntax-entry ?\( "()1n" st)
-          (modify-syntax-entry ?\) ")(4n" st)))
-    st)
-  "Syntax table in use in Tuareg2 mode buffers.")
-
-(defmacro tuareg2-with-internal-syntax (&rest body)
-  `(progn
-     ;; Switch to a modified internal syntax.
-     (modify-syntax-entry ?. "w" tuareg2-mode-syntax-table)
-     (modify-syntax-entry ?_ "w" tuareg2-mode-syntax-table)
-     (unwind-protect (progn ,@body)
-       ;; Switch back to the interactive syntax.
-       (modify-syntax-entry ?. "." tuareg2-mode-syntax-table)
-       (modify-syntax-entry ?_ "_" tuareg2-mode-syntax-table))))
 
 (defun tuareg2-complete (arg)
   "Completes qualified ocaml identifiers."
