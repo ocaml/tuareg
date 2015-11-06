@@ -1840,12 +1840,12 @@ Return values can be
   "Non-nil if indentation should try to align arguments on the first one.
 With a non-nil value you get
 
-    let x = List.map (fun x => 5)
+    let x = List.map (fun x -> 5)
                      my list
 
 whereas with a non value you get
 
-    let x = List.map (fun x => 5)
+    let x = List.map (fun x -> 5)
               my list"
   :type 'boolean)
 

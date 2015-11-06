@@ -42,7 +42,7 @@ let x =
 
 (* The two "let"s below are indented under the assumption that
    tuareg-indent-align-with-first-arg is nil!  *)
-let x = List.map (fun x => 5)
+let x = List.map (fun x -> 5)
           my list
 
 let x =
