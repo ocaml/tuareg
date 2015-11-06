@@ -8,7 +8,7 @@ toplevel, and to run the OCaml debugger within Emacs.
 Contents
 --------
 
-`README`         — This file.  
+`README.md`      — This file.  
 `HISTORY`        — Differences with previous versions.  
 `tuareg.el`      — A major mode for editing OCaml code in Emacs.  
 `ocamldebug.el`  — To run the OCaml debugger under Emacs.  
@@ -17,36 +17,84 @@ Contents
 Install
 -------
 
-See `tuareg.el`.
+The easier way to install Tuareg is though
+[`opam`](http://opam.ocaml.org/):
 
-	
+    opam install tuareg
 
-Configuration
--------------
+and follow the instructions given at the end of the `opam`
+installation.
 
-Add the following line near the beginning of your ~/.emacs file:
+There are versions of Tuareg in [Melpa](http://melpa.milkbox.net/) and
+in [Marmalade](https://marmalade-repo.org/) but they may be older.
 
-    (load "/where/ever/you/put/tuareg-mode/tuareg-site-file")
-  
+If you want to install from the Git checkout, just add to your
+`~/.emacs` or `~/.emacs.d/init.el` the line:
+
+    (load "path-to-git-checkout-dir/tuareg-site-file")
+
+If you want to byte compile the files, issue `make elc`.  If you do
+this in Darwin, make sure that the version of Emacs displayed at the
+end of `make elc` is the sole that you use (the `.elc` files may not
+be compatible with other versions of Emacs installed on your system).
+
+
+Usage & Configuration
+---------------------
+
 The Tuareg major mode is triggered by visiting a file with extension
-.ml, .mli, .mly, .mll, and .mlp or manually by M-x tuareg-mode. It
-gives you the correct syntax table for the OCaml language.
+`.ml`, `.mli`, `.mly`, `.mll`, and `.mlp` or manually by `M-x
+tuareg-mode`.
 
-Thanks to the work of Stefan Monnier, a new indentation engine based
-on SMIE was written.  To deactivate it, add (setq tuareg-use-smie nil)
-to the top-level of your `.emacs` file.
+Start the OCaml toplevel with `M-x run-ocaml`.  You can evaluate a
+phrase in your buffer by typing `C-c C-e` when the cursor is on it (it
+will start the OCaml toplevel if needed).
 
-Usage
------
+Run the OCaml debugger with `M-x ocamldebug FILE`.
 
-See `tuareg.el`.
 
 Customization
 -------------
 
-The standard Emacs customization tool can be used to configure
-Tuareg options.  It is available from the Options menu and Tuareg's
-Customize sub-menu.
+- By default, Tuareg will align the arguments of functions as follows:
+
+        function_name arg1
+                      arg2
+
+  If you prefer that arguments on the second line be indented w.r.t.
+  the function name, put `(setq tuareg-indent-align-with-first-arg nil)`
+  in your `~/.emacs.d/init.el` file.  This may be convenient if you use
+  the following style:
+
+        function_name (fun x ->
+            do_something
+          )
+          arg2
+
+  In both cases, if there are no argument on the line following the
+  function name, the indentation will be:
+
+        function_name
+          arg1
+          arg2
+
+- Emacs ≥ 24.4 turned on [electric-indent-mode][] mode by default.  If
+  you do not like it, set `electric-indent-mode` to `nil`.
+
+  [electric-indent-mode]: https://www.gnu.org/software/emacs/manual/html_node/emacs/Indent-Convenience.html
+
+Thanks to the work of Stefan Monnier, a new indentation engine based on
+[SMIE](https://www.gnu.org/software/emacs/manual/html_node/elisp/SMIE.html)
+was written.  This changes the indentation somewhat w.r.t. the
+previous earlier versions of `tuareg`.  If you do not want that, add
+`(setq tuareg-use-smie nil)` to your `.emacs` file.  Be aware however
+that the older indentation engine will eventually be removed.
+
+
+The standard Emacs customization tool can be used to configure Tuareg
+options.  It is available from the Options menu and Tuareg's Customize
+sub-menu.  Note that, at the moment, both customization options
+pertaining to the SMIE indentation mode and the old one are present.
 
 You may also customize the appearance of OCaml code by twiddling the
 variables listed at the start of tuareg.el (preferably using
@@ -56,19 +104,8 @@ You should then add to your configuration file something like:
     (add-hook 'tuareg-mode-hook
       (lambda () ... ; your customization code ))
 
-Sample Customizations
----------------------
+For example:
 
-Here are random examples of customization you might like to put in
-your ~/.emacs file:
-
-    ;; Indent `=' like a standard keyword.
-    (setq tuareg-lazy-= t)
-    ;; Indent [({ like standard keywords.
-    (setq tuareg-lazy-paren t)
-    ;; No indentation after `in' keywords.
-    (setq tuareg-in-indent 0)
-    
     (add-hook 'tuareg-mode-hook
               ;; Turn on auto-fill minor mode.
               (lambda () (auto-fill-mode 1)))
