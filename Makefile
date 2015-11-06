@@ -18,10 +18,15 @@ INSTALL_DIR ?= $(shell opam config var share)/emacs/site-lisp
 DIST_FILES += $(ELS) Makefile README.md tuareg.install
 
 EMACSFORMACOSX = /Applications/Emacs.app/Contents/MacOS/Emacs
+AQUAMACS = /Applications/Aquamacs.app
 ifeq ($(wildcard $(EMACSFORMACOSX)),$(EMACSFORMACOSX))
 EMACS ?= $(EMACSFORMACOSX)
 else
+ifeq ($(wildcard $(AQUAMACS)),$(AQUAMACS))
+EMACS ?= $(AQUAMACS)
+else
 EMACS ?= emacs
+endif
 endif
 
 #ENABLE_SMIE = --eval '(setq tuareg-use-smie t)'
@@ -40,6 +45,7 @@ elc : $(ELC)
 
 %.elc : %.el
 	$(EMACS) --batch -L . --no-init-file -f batch-byte-compile $<
+	@echo "Files byte-compiled using $(EMACS)"
 
 install : $(INSTALL_FILES)
 	$(INSTALL_MKDIR) $(INSTALL_DIR)
