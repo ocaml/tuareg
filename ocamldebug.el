@@ -747,10 +747,11 @@ representation is simply concatenated with the COMMAND."
 (defun ocamldebug-call-1 (command &optional fmt arg)
   ;; Record info on the last prompt in the buffer and its position.
   (with-current-buffer ocamldebug-current-buffer
-    (goto-char (process-mark (get-buffer-process ocamldebug-current-buffer)))
+    (save-excursion
+      (goto-char (process-mark (get-buffer-process ocamldebug-current-buffer)))
       (beginning-of-line)
       (when (looking-at comint-prompt-regexp)
-      (set-marker ocamldebug-delete-prompt-marker (point))))
+        (set-marker ocamldebug-delete-prompt-marker (point)))))
   (let ((cmd (cond
 	      (arg (concat command " " (int-to-string arg)))
 	      (fmt (ocamldebug-format-command
