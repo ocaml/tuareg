@@ -65,13 +65,15 @@ check : sample.ml.test
 	@echo ====Indent $*====
 	-$(RM) $@
 	$(EMACS) --batch -q --no-site-file $(ENABLE_SMIE) \
-	  --load tuareg.elc $< \
+	  --load tuareg-site-file.el $< \
 	  --eval '(setq indent-tabs-mode nil)' \
 	  --eval '(defun ask-user-about-lock (file opponent) nil)' \
 	  --eval '(indent-region (point-min) (point-max) nil)' \
 	  --eval '(indent-region (point-min) (point-max) nil)' \
 	  --eval '(write-region (point-min) (point-max) "$@")'
 	$(DIFF) $< $@ || true
+
+indent-test: indent-test.ml.test
 
 tuareg-site-file.el: $(SOURCES)
 	(echo ";;; $@ --- Automatically extracted autoloads.";\

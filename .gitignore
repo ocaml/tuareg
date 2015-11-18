@@ -1,4 +1,5 @@
 *.elc
+*.test
 *-autoloads.el
 *-pkg.el
 *~
