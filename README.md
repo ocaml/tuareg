@@ -25,7 +25,7 @@ The easier way to install Tuareg is though
 and follow the instructions given at the end of the `opam`
 installation.
 
-There are versions of Tuareg in [Melpa](http://melpa.milkbox.net/) and
+There are versions of Tuareg in [Melpa](https://melpa.org/) and
 in [Marmalade](https://marmalade-repo.org/) but they may be older.
 
 If you want to install from the Git checkout, just add to your
