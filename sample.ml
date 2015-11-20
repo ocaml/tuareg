@@ -126,9 +126,9 @@ type t = [ `Foo of int
          | `Bar of string ]
 
 type t =
-| A
-| B
-| C
+  | A
+  | B  (* issue #76 *)
+  | C
 with sexp
 
 type t = | A
@@ -136,16 +136,16 @@ type t = | A
          | C
 
 type t = [
-| `A
-| `B
-| `C
-]
+  | `A
+  | `B
+  | `C
+  ]
 
 type t = [                              (* Comment.  *)
-| `A
-| `B
-| `C
-]
+  | `A
+  | `B
+  | `C
+  ]
 
 type t = a
 and typey = 4
@@ -153,34 +153,38 @@ and x = b
 
 module M = struct
   type t =
-  | A
-  | B
-  | C
+    | A
+    | B
+    | C
   with sexp
 
   type s = [
-  | `A
-  | `B
-  | `C
-  ]
+    | `A
+    | `B
+    | `C
+    ]
 
   type u =
-  | D
-  | E
+    | D
+    | E
   with sexp
 end
 
 module N =
 struct
   type u =
-  | D
-  | E
+    | D
+    | E
   with sexp
 end
 
 type m =
-| T
+  | T
 with sexp
+
+let f = function
+  | A -> 1
+  | B | C -> 2
 
 ;; (* http://caml.inria.fr/mantis/view.php?id=4334 *)
 type foo =
@@ -473,11 +477,11 @@ let d x = function
      I chose with "match" because it looks otherwise odd and is more
      consistent with the "try" alignments above.  *)
   | A -> (match x with
-         | X ->
-            false
-         | Y -> true
-         |  Z ->
-             false)
+          | X ->
+             false
+          | Y -> true
+          |  Z ->
+              false)
   | B -> false
 
 let a f = function
@@ -487,17 +491,17 @@ let a f = function
     2
   |      C ->
     (function
-    |  X  ->
-      a
-    | Y ->
-      b) 12
+     |  X  ->
+         a
+     | Y ->
+        b) 12
   | D ->
-    (match z with
-     | 4 -> 3
-     |  5 -> 7)
+     (match z with
+      | 4 -> 3
+      |  5 -> 7)
 
 let x = foo ~f:(fun _ -> 0              (* Comment.  *)
-)
+          )
 
 let f x =
   (let y = x in
@@ -583,11 +587,11 @@ let () =
 let () =
   try f a
   with A () ->
-    ()
-  | B () ->
-    ()
-  |     C () ->
-    ()
+       ()
+     | B () ->
+        ()
+     |     C () ->
+            ()
 
 let f errors input =
   let ( @@ ) string bool = if not bool then errors := string :: !errors in
