@@ -35,6 +35,10 @@ let x = match y with            (* Issue #71 *)
   | A | B ->
      do_something ()
 
+let x = match y, z with
+  | A, (B | C)
+  | X, Y -> do_something()      (* Issue #78 *)
+
 let x =
   begin match y with
   | A -> 1                       (* Issue #73 *)
