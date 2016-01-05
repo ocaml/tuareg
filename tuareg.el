@@ -2083,6 +2083,8 @@ Short cuts for interactions with the toplevel:
   ;; `ocamlc' counts columns from 0, contrary to other tools which start at 1.
   (set (make-local-variable 'compilation-first-column) 0)
   (set (make-local-variable 'compilation-error-screen-columns) nil)
+  ;; TABs should NOT be used in OCaml files:
+  (setq indent-tabs-mode nil)
   (tuareg--common-mode-setup)
   (when (fboundp 'tuareg-auto-fill-function)
     ;; Emacs-21's newcomment.el provides this functionality by default.
