@@ -828,7 +828,12 @@ Regexp match data 0 points to the chars."
           'words))
       . tuareg-font-lock-operator-face)
      ;;; (lid: t) and (lid :> t)
-     (,(concat "( *" balanced-braces " *:>?\\([ \n'_A-Za-z]"
+     ;;; If `t' is longer then one word, require a space before.  Not only
+     ;;; this is more readable but it also avoids that `~label:expr var`
+     ;;; is taken as a type annotation when surrounded by parentheses.
+     (,(concat "(" balanced-braces-no-end-colon ":>?\\(['_A-Za-z]+\\))")
+      1 font-lock-type-face keep)
+     (,(concat "(" balanced-braces-no-end-colon ":>? \\([ \n'_A-Za-z]"
                balanced-braces-no-string "\\))")
       1 font-lock-type-face keep)
      (,(concat "\\<external +\\(" lid "\\)")  1 font-lock-function-name-face)
