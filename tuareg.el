@@ -700,8 +700,8 @@ Regexp match data 0 points to the chars."
   (let* ((id "\\<[A-Za-z_][A-Za-z0-9_']*\\>")
          (lid "\\<[a-z_][A-Za-z0-9_']*\\>")
          (uid "\\<[A-Z][A-Za-z0-9_']*\\>")
-         ;; Matches corresponding braces for 3 levels.
-         (balanced-braces ; needs a closing brace
+         ;; Matches braces balanced on max 3 levels.
+         (balanced-braces
           (let ((b "\\(?:[^()]\\|(")
                 (e ")\\)*"))
             (concat b b b "[^()]*" e e e)))
@@ -709,6 +709,11 @@ Regexp match data 0 points to the chars."
           (let ((b "\\(?:[^()\"]\\|(")
                 (e ")\\)*"))
             (concat b b b "[^()\"]*" e e e)))
+         (balanced-braces-no-end-colon ; non-empty
+          (let ((b "\\(?:[^()]\\|(")
+                (e ")\\)*"))
+            (concat "\\(?:[^():]\\|:+\\(?:[^:()]\\|(" b b "[^()]*" e e ")\\)"
+                    "\\|(" b b "[^()]*" e e e)))
          (tuple (concat "(" balanced-braces ")")); much more than tuple!
          (module-path (concat uid "\\(?:\\." uid "\\)*"))
          (typeconstr (concat "\\(?:" module-path "\\.\\)?" lid))
