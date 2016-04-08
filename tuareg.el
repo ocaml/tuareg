@@ -747,6 +747,12 @@ Regexp match data 0 points to the chars."
   (setq
    tuareg-font-lock-keywords
    `(("^#[0-9]+ *\\(?:\"[^\"]+\"\\)?" 0 tuareg-font-lock-line-number-face t)
+     ;; cppo
+     (,(concat "^ *#" (regexp-opt '("define" "undef" "if" "ifdef" "ifndef"
+				    "else" "elif" "endif" "include"
+				    "warning" "error" "ext" "endext")
+				  'words))
+      . font-lock-preprocessor-face)
      ("\\<\\(false\\|true\\)\\>" . font-lock-constant-face)
      ;; "type" to introduce a local abstract type considered a keyword
      (,(concat "( *\\(type\\) +\\(" lid "\\) *)")
