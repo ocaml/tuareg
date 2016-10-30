@@ -386,7 +386,7 @@ delimiters.  For synchronous programming.")
 
 (defun tuareg-in-literal-p ()
   "Return non-nil if point is inside an OCaml literal."
-  (nth 3 (syntax-ppss)))
+  (eq (nth 3 (syntax-ppss)) 34))
 
 (defun tuareg-in-comment-p ()
   "Return non-nil if point is inside or right before an OCaml comment."
