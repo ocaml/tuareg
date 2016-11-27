@@ -2413,8 +2413,10 @@ otherwise return non-nil."
 
 (defconst tuareg-opam-compilers
   (when (file-directory-p "~/.opam")
-    (cons "~/.opam/system"
-          (directory-files "~/.opam" t "[0-9]+\\.[0-9]+\\.[0-9]+")))
+    (let ((c (directory-files "~/.opam" t "[0-9]+\\.[0-9]+\\.[0-9]+")))
+      (if (file-directory-p "~/.opam/system")
+	  (cons "~/.opam/system" p)
+	p)))
   "The list of OPAM directories for the installed compilers.")
 
 (defvar tuareg-opam
@@ -2437,11 +2439,14 @@ error message as a string)."
                                   shell-command-switch command))))))
     (if (= return-value 0) return-string nil)))
 
-(defun tuareg-opam-config-env()
-  "Return a list of lists of the form (n v) where n is the name
-of the environment variable and v its value (both being strings).
-If opam is not found or terminates with an error, `nil' is returned."
-  (let* ((get-env (concat tuareg-opam " config env --sexp"))
+(defun tuareg-opam-config-env (&optional switch)
+  "Get the opam environment for the given switch (or the default
+switch if none is provied) and return a list of lists of the
+form (n v) where n is the name of the environment variable and v
+its value (both being strings).  If opam is not found or the
+switch is not installed, `nil' is returned."
+  (let* ((switch (if switch (concat " --switch " switch)))
+	 (get-env (concat tuareg-opam " config env --sexp" switch))
 	 (opam-env (tuareg-shell-command-to-string get-env)))
     (if opam-env
 	(car (read-from-string opam-env)))))
