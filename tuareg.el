@@ -343,6 +343,20 @@ Valid names are `browse-url', `browse-url-firefox', etc."
 ;;   (e.g., ocaml vs. metaocaml buffers)
 ;; (make-variable-buffer-local 'tuareg-interactive-program)
 
+(defvar tuareg-opam-insinuate nil
+  "By default, Tuareg will use the environment that Emacs was
+launched in.  That environment may not contain an OCaml
+compiler (say, because Emacs was launched graphically and the
+path is set in ~/.bashrc) and will remain unchanged when one
+issue an \"opam switch\" in a shell.  If this variable is set to
+t, Tuareg will try to use opam to set the right environment for
+`compile', `run-ocaml' and `merlin-mode' based on the current
+opam switch at the time the command is run (provided opam is
+found).  You may also use `tuareg-opam-update-env' to set the
+environment for another compiler from within emacs (without
+changing the opam switch)."
+  :group 'tuareg :type 'boolean)
+
 (defgroup tuareg-faces nil
   "Special faces for the Tuareg mode."
   :group 'tuareg)
@@ -2481,7 +2495,7 @@ switch is not installed, `nil' is returned."
       (message "Switch %s does not exist (or opam not found)" switch))))
 
 
-(when tuareg-opam
+(when (and tuareg-opam-insinuate tuareg-opam)
   (setq tuareg-interactive-program
         (concat tuareg-opam " config exec -- ocaml"))
 
