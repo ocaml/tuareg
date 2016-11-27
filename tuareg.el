@@ -425,6 +425,26 @@ Valid names are `browse-url', `browse-url-firefox', etc."
 (defvar tuareg-font-lock-interactive-error-face
   'tuareg-font-lock-interactive-error-face)
 
+(defface tuareg-font-lock-attribute-face
+  (if tuareg-faces-inherit-p
+      '((t :inherit font-lock-preprocessor-face))
+    '((((background light)) (:foreground "DodgerBlue2"))
+      (t (:foreground "LightSteelBlue"))))
+  "Face description for OCaml atribute annotations."
+  :group 'tuareg-faces)
+(defvar tuareg-font-lock-attribute-face
+  'tuareg-font-lock-attribute-face)
+
+(defface tuareg-font-lock-extension-node-face
+  (if tuareg-faces-inherit-p
+      '((t :inherit font-lock-preprocessor-face))
+    '((((background light)) (:foreground "DodgerBlue2"))
+      (t (:foreground "LightSteelBlue"))))
+  "Face description for OCaml extension nodes."
+  :group 'tuareg-faces)
+(defvar tuareg-font-lock-extension-node-face
+  'tuareg-font-lock-extension-node-face)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                            Support definitions
 
@@ -700,6 +720,9 @@ Regexp match data 0 points to the chars."
   (let* ((id "\\<[A-Za-z_][A-Za-z0-9_']*\\>")
          (lid "\\<[a-z_][A-Za-z0-9_']*\\>")
          (uid "\\<[A-Z][A-Za-z0-9_']*\\>")
+	 (attr-id1 "\\<[A-Za-z_][A-Za-z0-9_']*\\>")
+	 (attr-id (concat attr-id1 "\\(?:\\." attr-id1 "\\)*"))
+	 (maybe-infix-attr (concat "\\(?:%" attr-id "\\)*"))
          ;; Matches braces balanced on max 3 levels.
          (balanced-braces
           (let ((b "\\(?:[^()]\\|(")
@@ -714,6 +737,12 @@ Regexp match data 0 points to the chars."
                 (e ")\\)*"))
             (concat "\\(?:[^():]\\|:+\\(?:[^:()]\\|(" b b "[^()]*" e e ")\\)"
                     "\\|(" b b "[^()]*" e e e)))
+	 (balanced-brackets
+          (let ((b "\\(?:[^][]\\|\\[")
+                (e "\\]\\)*"))
+            (concat b b b "[^][]*" e e e)))
+	 (maybe-infix-ext
+	  (concat "\\(?:\\[@" attr-id balanced-brackets "\\]\\)*"))
          (tuple (concat "(" balanced-braces ")")); much more than tuple!
          (module-path (concat uid "\\(?:\\." uid "\\)*"))
          (typeconstr (concat "\\(?:" module-path "\\.\\)?" lid))
@@ -735,9 +764,9 @@ Regexp match data 0 points to the chars."
                                 "present" "automaton" "where" "match"
                                 "with" "do" "done" "unless" "until"
                                 "reset" "every")))
-         (let-binding (concat "\\<\\(?:let\\(?: +"
-                              (if (tuareg-editing-ls3) let-ls3 "rec")
-                              "\\)?\\|and\\)\\>"))
+         (let-binding (concat "\\<\\(?:let" maybe-infix-attr "\\(?: +"
+			       (if (tuareg-editing-ls3) let-ls3 "rec")
+			       "\\)?\\|and\\)\\>"))
          ;; group of variables
          (gvars (concat "\\(\\(?:" tuareg--whitespace-re
                         "\\(?:" lid "\\|()\\|" tuple ; = any balanced (...)
@@ -752,6 +781,16 @@ Regexp match data 0 points to the chars."
   (setq
    tuareg-font-lock-keywords
    `(("^#[0-9]+ *\\(?:\"[^\"]+\"\\)?" 0 tuareg-font-lock-line-number-face t)
+     ;; Attributes
+     (,(concat "\\[@\\(?:@@?\\)?" attr-id balanced-brackets "\\]")
+      . tuareg-font-lock-attribute-face)
+     ;; Extension nodes
+     (,(concat "\\[%%?" attr-id "\\]")
+      . tuareg-font-lock-extension-node-face)
+     (,(concat "\\<" (regexp-opt '("let" "begin" "module" "val"
+				   "fun" "function"))
+	       "\\(" maybe-infix-attr "\\)")
+      1 tuareg-font-lock-extension-node-face)
      ;; cppo
      (,(concat "^ *#" (regexp-opt '("define" "undef" "if" "ifdef" "ifndef"
 				    "else" "elif" "endif" "include"
@@ -795,7 +834,8 @@ Regexp match data 0 points to the chars."
      (,(concat "\\<module +type +of +\\(" module-path "\\)?")
       1 tuareg-font-lock-module-face keep t)
      ;; "!", "mutable", "virtual" treated as governing keywords
-     (,(concat "\\<\\(\\(?:val" (if (tuareg-editing-ls3) "\\|reset\\|do")
+     (,(concat "\\<\\(\\(?:val" maybe-infix-attr maybe-infix-ext
+	       (if (tuareg-editing-ls3) "\\|reset\\|do")
                "\\)!? +\\(?:mutable\\(?: +virtual\\)?\\>"
                "\\|virtual\\(?: +mutable\\)?\\>\\)\\|val!\\)\\( *" lid "\\)?")
       (1 tuareg-font-lock-governing-face keep)
@@ -849,7 +889,8 @@ Regexp match data 0 points to the chars."
       1 font-lock-type-face keep)
      (,(concat "\\<external +\\(" lid "\\)")  1 font-lock-function-name-face)
      (,(concat "\\<exception +\\(" uid "\\)") 1 font-lock-variable-name-face)
-     (,(concat "\\<module\\(?: +type\\)?\\(?: +rec\\)?\\> *\\(" uid "\\)")
+     (,(concat "\\<module" maybe-infix-attr maybe-infix-ext
+	       "\\(?: +type\\)?\\(?: +rec\\)?\\> *\\(" uid "\\)")
       1 tuareg-font-lock-module-face)
      ;; (M: S) -- only color S here (may be "A.T with type t = s")
      (,(concat "( *" uid " *: *\\("
@@ -899,9 +940,10 @@ Regexp match data 0 points to the chars."
       (1 font-lock-function-name-face nil t)
       (2 font-lock-variable-name-face keep t)
       (3 font-lock-type-face keep t))
-     (,(concat "\\<function\\>" tuareg--whitespace-re "\\(" lid "\\)")
+     (,(concat "\\<function\\>" maybe-infix-attr maybe-infix-ext
+	       tuareg--whitespace-re "\\(" lid "\\)")
       1 font-lock-variable-name-face)
-     (,(concat "\\<fun +" gvars " *->")
+     (,(concat "\\<fun" maybe-infix-attr maybe-infix-ext " +" gvars " *->")
       1 font-lock-variable-name-face keep nil)
      (,(concat class-gparams " *\\(" lid "\\)")
       (1 font-lock-type-face keep t)
@@ -922,7 +964,8 @@ Regexp match data 0 points to the chars."
      (,(concat "\\<object *( *\\(" typevar "\\|_\\) *)")
       1 font-lock-type-face)
      ;; "val" without "!", "mutable" or "virtual"
-     (,(concat "\\<val +\\(" lid "\\)") 1 font-lock-function-name-face)
+     (,(concat "\\<val" maybe-infix-attr maybe-infix-ext
+	       " +\\(" lid "\\)") 1 font-lock-function-name-face)
      (,(concat "\\<\\("
                (regexp-opt '("DEFINE" "IFDEF" "IFNDEF" "THEN" "ELSE" "ENDIF"
                              "INCLUDE" "__FILE__" "__LOCATION__"))
