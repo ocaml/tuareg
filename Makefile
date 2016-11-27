@@ -23,7 +23,7 @@ ifeq ($(wildcard $(EMACSFORMACOSX)),$(EMACSFORMACOSX))
 EMACS ?= $(EMACSFORMACOSX)
 else
 ifeq ($(wildcard $(AQUAMACS)),$(AQUAMACS))
-EMACS ?= $(AQUAMACS)
+EMACS ?= open -a $(AQUAMACS)
 else
 EMACS ?= emacs
 endif
