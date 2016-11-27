@@ -722,7 +722,7 @@ Regexp match data 0 points to the chars."
          (uid "\\<[A-Z][A-Za-z0-9_']*\\>")
 	 (attr-id1 "\\<[A-Za-z_][A-Za-z0-9_']*\\>")
 	 (attr-id (concat attr-id1 "\\(?:\\." attr-id1 "\\)*"))
-	 (maybe-infix-attr (concat "\\(?:%" attr-id "\\)*"))
+	 (maybe-infix-attr (concat "\\(?:%" attr-id "\\)?")); at most 1
          ;; Matches braces balanced on max 3 levels.
          (balanced-braces
           (let ((b "\\(?:[^()]\\|(")
@@ -743,6 +743,8 @@ Regexp match data 0 points to the chars."
             (concat b b b "[^][]*" e e e)))
 	 (maybe-infix-ext
 	  (concat "\\(?:\\[@" attr-id balanced-brackets "\\]\\)*"))
+	 (maybe-infix-attr+ext
+	  (concat maybe-infix-attr maybe-infix-ext))
          (tuple (concat "(" balanced-braces ")")); much more than tuple!
          (module-path (concat uid "\\(?:\\." uid "\\)*"))
          (typeconstr (concat "\\(?:" module-path "\\.\\)?" lid))
@@ -764,9 +766,9 @@ Regexp match data 0 points to the chars."
                                 "present" "automaton" "where" "match"
                                 "with" "do" "done" "unless" "until"
                                 "reset" "every")))
-         (let-binding (concat "\\<\\(?:let" maybe-infix-attr "\\(?: +"
-			       (if (tuareg-editing-ls3) let-ls3 "rec")
-			       "\\)?\\|and\\)\\>"))
+         (let-binding (concat "\\<\\(?:let" maybe-infix-attr+ext
+			      "\\(?: +" (if (tuareg-editing-ls3) let-ls3 "rec")
+			       "\\)?\\|and\\) +"))
          ;; group of variables
          (gvars (concat "\\(\\(?:" tuareg--whitespace-re
                         "\\(?:" lid "\\|()\\|" tuple ; = any balanced (...)
@@ -785,9 +787,9 @@ Regexp match data 0 points to the chars."
      (,(concat "\\[@\\(?:@@?\\)?" attr-id balanced-brackets "\\]")
       . tuareg-font-lock-attribute-face)
      ;; Extension nodes
-     (,(concat "\\[%%?" attr-id "\\]")
+     (,(concat "\\[%%?" attr-id balanced-brackets "\\]")
       . tuareg-font-lock-extension-node-face)
-     (,(concat "\\<" (regexp-opt '("let" "begin" "module" "val"
+     (,(concat "\\<" (regexp-opt '("let" "begin" "module" "val" "val!"
 				   "fun" "function"))
 	       "\\(" maybe-infix-attr "\\)")
       1 tuareg-font-lock-extension-node-face)
@@ -834,10 +836,11 @@ Regexp match data 0 points to the chars."
      (,(concat "\\<module +type +of +\\(" module-path "\\)?")
       1 tuareg-font-lock-module-face keep t)
      ;; "!", "mutable", "virtual" treated as governing keywords
-     (,(concat "\\<\\(\\(?:val" maybe-infix-attr maybe-infix-ext
+     (,(concat "\\<\\(\\(?:val" maybe-infix-attr+ext
 	       (if (tuareg-editing-ls3) "\\|reset\\|do")
                "\\)!? +\\(?:mutable\\(?: +virtual\\)?\\>"
-               "\\|virtual\\(?: +mutable\\)?\\>\\)\\|val!\\)\\( *" lid "\\)?")
+               "\\|virtual\\(?: +mutable\\)?\\>\\)\\|val!"
+	       maybe-infix-attr+ext "\\)\\( *" lid "\\)?")
       (1 tuareg-font-lock-governing-face keep)
       (2 font-lock-variable-name-face nil t))
      ("\\<class\\>\\(?: +type\\>\\)?\\( +virtual\\>\\)?"
@@ -889,7 +892,7 @@ Regexp match data 0 points to the chars."
       1 font-lock-type-face keep)
      (,(concat "\\<external +\\(" lid "\\)")  1 font-lock-function-name-face)
      (,(concat "\\<exception +\\(" uid "\\)") 1 font-lock-variable-name-face)
-     (,(concat "\\<module" maybe-infix-attr maybe-infix-ext
+     (,(concat "\\<module" maybe-infix-attr+ext
 	       "\\(?: +type\\)?\\(?: +rec\\)?\\> *\\(" uid "\\)")
       1 tuareg-font-lock-module-face)
      ;; (M: S) -- only color S here (may be "A.T with type t = s")
@@ -923,27 +926,27 @@ Regexp match data 0 points to the chars."
      (,(concat "`" id) . tuareg-font-lock-constructor-face)
      (,(concat "\\(" uid "\\)[^.]")  1 tuareg-font-lock-constructor-face)
      ;;; let-bindings
-     (,(concat let-binding " *\\(" lid "\\) *\\(?:: *\\([^=]+\\)\\)?= *"
+     (,(concat let-binding "\\(" lid "\\) *\\(?:: *\\([^=]+\\)\\)?= *"
                "fun\\(?:ction\\)?\\>")
       (1 font-lock-function-name-face nil t)
       (2 font-lock-type-face keep t))
      (,(let* ((maybe-constr (concat "\\(?:" constructor " *\\)?"))
               (var (concat maybe-constr "\\(?:" lid "\\|" tuple "\\)"))
               (simple-patt (concat var "\\(?: *, *" var "\\)*")))
-         (concat let-binding " *\\(" simple-patt
+         (concat let-binding "\\(" simple-patt
                  "\\) *\\(?:: *\\([^=]+\\)\\)?="))
       ;; module paths, types, constructors already colored by the above
       (1 font-lock-variable-name-face keep)
       (2 font-lock-type-face keep t))
-     (,(concat let-binding " *\\(" lid "\\)" gvars "?\\(?: +:"
+     (,(concat let-binding "\\(" lid "\\)" gvars "?\\(?: +:"
                tuareg--whitespace-re "\\([a-z_]\\|[^ =][^=]*[^ =]\\) *=\\)?")
       (1 font-lock-function-name-face nil t)
       (2 font-lock-variable-name-face keep t)
       (3 font-lock-type-face keep t))
-     (,(concat "\\<function\\>" maybe-infix-attr maybe-infix-ext
+     (,(concat "\\<function\\>" maybe-infix-attr+ext
 	       tuareg--whitespace-re "\\(" lid "\\)")
       1 font-lock-variable-name-face)
-     (,(concat "\\<fun" maybe-infix-attr maybe-infix-ext " +" gvars " *->")
+     (,(concat "\\<fun" maybe-infix-attr+ext " +" gvars " *->")
       1 font-lock-variable-name-face keep nil)
      (,(concat class-gparams " *\\(" lid "\\)")
       (1 font-lock-type-face keep t)
@@ -964,7 +967,7 @@ Regexp match data 0 points to the chars."
      (,(concat "\\<object *( *\\(" typevar "\\|_\\) *)")
       1 font-lock-type-face)
      ;; "val" without "!", "mutable" or "virtual"
-     (,(concat "\\<val" maybe-infix-attr maybe-infix-ext
+     (,(concat "\\<val" maybe-infix-attr+ext
 	       " +\\(" lid "\\)") 1 font-lock-function-name-face)
      (,(concat "\\<\\("
                (regexp-opt '("DEFINE" "IFDEF" "IFNDEF" "THEN" "ELSE" "ENDIF"
