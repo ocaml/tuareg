@@ -2422,26 +2422,43 @@ otherwise return non-nil."
     (if opam opam
       (let ((opam (locate-file "bin/opam" tuareg-opam-compilers)))
         (if (and opam (file-executable-p opam)) opam)))) ; or nil
-  "The full path of the opam executable.")
+  "The full path of the opam executable or `nil' if opam wasn't found.")
+
+(defun tuareg-shell-command-to-string (command)
+  "Similar to shell-command-to-string, but returns nil when the
+process return code is not 0 (shell-command-to-string returns the
+error message as a string)."
+  (let* ((return-value 0)
+         (return-string
+          (with-output-to-string
+	    (with-current-buffer standard-output
+	      (setq return-value
+		    (process-file shell-file-name nil t nil
+                                  shell-command-switch command))))))
+    (if (= return-value 0) return-string nil)))
+
+(defun tuareg-opam-config-env()
+  "Return a list of lists of the form (n v) where n is the name
+of the environment variable and v its value (both being strings).
+If opam is not found or terminates with an error, `nil' is returned."
+  (let* ((get-env (concat tuareg-opam " config env --sexp"))
+	 (opam-env (tuareg-shell-command-to-string get-env)))
+    (if opam-env
+	(car (read-from-string opam-env)))))
 
 (when tuareg-opam
   (setq tuareg-interactive-program
         (concat tuareg-opam " config exec -- ocaml"))
-
-  (defun tuareg-opam-config-env()
-    (let* ((get-env (concat tuareg-opam " config env"))
-           (opam-env (shell-command-to-string get-env)))
-      (replace-regexp-in-string "; *export.*$" "" opam-env)))
 
   ;; OPAM compilation — one must update to the current compiler
   ;; before launching the compilation.
   (defadvice compile (before tuareg-compile-opam activate)
       "Run opam to update environment variables."
       (let* ((env (tuareg-opam-config-env)))
-	(set (make-local-variable 'compilation-environment)
-	     ;; Quotes MUST be removed.
-	     (split-string (replace-regexp-in-string "\"" "" env)
-                           "[\f\n\r]+" t))))
+	(when env
+	  (set (make-local-variable 'compilation-environment)
+	       (mapcar (lambda(v) (concat (car v) "=" (cadr v)))
+		       (tuareg-opam-config-env))))))
 
   (defvar merlin-command)
   (defun merlin-command ()
