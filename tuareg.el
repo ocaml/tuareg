@@ -1008,6 +1008,7 @@ Regexp match data 0 points to the chars."
     ;;(define-key map "\M-\C-\\" 'indent-region)
     (define-key map "\C-c\C-a" 'tuareg-find-alternate-file)
     (define-key map "\C-c\C-c" 'compile)
+    (define-key map "\C-c\C-w" 'tuareg-opam-update-env)
     (define-key map "\C-xnd" 'tuareg-narrow-to-phrase)
     (define-key map "\M-\C-x" 'tuareg-eval-phrase)
     (define-key map [remap newline-and-indent] 'tuareg-newline-and-indent)
@@ -2450,6 +2451,35 @@ switch is not installed, `nil' is returned."
 	 (opam-env (tuareg-shell-command-to-string get-env)))
     (if opam-env
 	(car (read-from-string opam-env)))))
+
+(defun tuareg-opam-installed-compilers ()
+  (let* ((cmd (concat tuareg-opam " switch -i -s"))
+	 (cpl (tuareg-shell-command-to-string cmd)))
+    (if cpl (split-string cpl) '())))
+
+(defun tuareg-opam-current-compiler ()
+  (let* ((cmd (concat tuareg-opam " switch show -s"))
+	 (cpl (tuareg-shell-command-to-string cmd)))
+    (when cpl
+      (replace-regexp-in-string "[ \t\n]*" "" cpl))))
+
+(defun tuareg-opam-update-env (switch)
+  "Update the environment to follow current OPAM switch configuration."
+  (interactive
+   (let* ((compl (tuareg-opam-installed-compilers))
+	  (current (tuareg-opam-current-compiler))
+	  (default (if current current "current"))
+	  (prompt (format "sopam switch (default: %s): " default)))
+     (list (completing-read prompt compl))))
+  (let* ((switch (if (string= switch "") nil switch))
+	 (env (tuareg-opam-config-env switch)))
+    (if env
+	(dolist (v env)
+	  (setenv (car v) (cadr v))
+	  (when (string= (car v) "PATH")
+	    (setq exec-path (split-string (cadr v) path-separator))))
+      (message "Switch %s does not exist (or opam not found)" switch))))
+
 
 (when tuareg-opam
   (setq tuareg-interactive-program
