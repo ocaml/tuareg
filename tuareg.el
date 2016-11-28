@@ -803,9 +803,9 @@ Regexp match data 0 points to the chars."
      ;; Extension nodes
      (,(concat "\\[%%?" attr-id balanced-brackets "\\]")
       . tuareg-font-lock-extension-node-face)
-     (,(concat "\\<" (regexp-opt '("let" "begin" "module" "val" "val!"
-				   "fun" "function"))
-	       "\\(" maybe-infix-attr "\\)")
+     (,(concat "\\(?:\\<" (regexp-opt '("let" "begin" "module" "val" "val!"
+					"fun" "function"))
+	       "\\|;\\)\\(" maybe-infix-attr "\\)")
       1 tuareg-font-lock-extension-node-face)
      ;; cppo
      (,(concat "^ *#" (regexp-opt '("define" "undef" "if" "ifdef" "ifndef"
