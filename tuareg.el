@@ -343,7 +343,7 @@ Valid names are `browse-url', `browse-url-firefox', etc."
 ;;   (e.g., ocaml vs. metaocaml buffers)
 ;; (make-variable-buffer-local 'tuareg-interactive-program)
 
-(defvar tuareg-opam-insinuate nil
+(defcustom tuareg-opam-insinuate nil
   "By default, Tuareg will use the environment that Emacs was
 launched in.  That environment may not contain an OCaml
 compiler (say, because Emacs was launched graphically and the
