@@ -818,6 +818,7 @@ Regexp match data 0 points to the chars."
      (,(concat "( *\\(type\\) +\\(" lid "\\) *)")
       (1 font-lock-keyword-face)
       (2 font-lock-type-face))
+     ("let +exception" . tuareg-font-lock-governing-face)
      (,(regexp-opt '("module" "include" "sig" "struct" "functor"
                      "type" "constraint" "class" "in" "inherit"
                      "method" "external" "val" "open"
