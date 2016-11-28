@@ -2846,7 +2846,9 @@ current phrase else insert a newline and indent."
         (setq end (nth 2 pair))
         (tuareg-eval-region (nth 0 pair) (nth 1 pair))))
     (when tuareg-skip-after-eval-phrase
-      (goto-char end))))
+      (goto-char end)
+      (when (looking-at ";;[ \t\n]*")
+	(goto-char (match-end 0))))))
 
 (defun tuareg-eval-buffer ()
   "Send the buffer to the Tuareg Interactive process."
