@@ -2431,8 +2431,8 @@ otherwise return non-nil."
   (when (file-directory-p "~/.opam")
     (let ((c (directory-files "~/.opam" t "[0-9]+\\.[0-9]+\\.[0-9]+")))
       (if (file-directory-p "~/.opam/system")
-	  (cons "~/.opam/system" p)
-	p)))
+	  (cons "~/.opam/system" c)
+	c)))
   "The list of OPAM directories for the installed compilers.")
 
 (defvar tuareg-opam
