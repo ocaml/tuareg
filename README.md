@@ -1,3 +1,6 @@
+[![MELPA](https://melpa.org/packages/tuareg-badge.svg)](https://melpa.org/#/tuareg)
+[![LGPL v2](https://img.shields.io/badge/licence-lgpl2-blue.svg)](COPYING)
+
 Tuareg: an Emacs OCaml mode
 ===========================
 
