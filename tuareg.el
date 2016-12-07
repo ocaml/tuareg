@@ -797,12 +797,12 @@ Regexp match data 0 points to the chars."
   (setq
    tuareg-font-lock-keywords
    `(("^#[0-9]+ *\\(?:\"[^\"]+\"\\)?" 0 tuareg-font-lock-line-number-face t)
-     ;; Attributes
+     ;; Attributes (`keep' to highlight except strings & chars)
      (,(concat "\\[@\\(?:@@?\\)?" attr-id balanced-brackets "\\]")
-      . tuareg-font-lock-attribute-face)
+      0 tuareg-font-lock-attribute-face keep)
      ;; Extension nodes
      (,(concat "\\[%%?" attr-id balanced-brackets "\\]")
-      . tuareg-font-lock-extension-node-face)
+      0 tuareg-font-lock-extension-node-face keep)
      (,(concat "\\(?:\\<" (regexp-opt '("let" "begin" "module" "val" "val!"
 					"fun" "function" "match"))
 	       "\\|;\\)\\(" maybe-infix-attr "\\)")
