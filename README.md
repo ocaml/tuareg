@@ -81,6 +81,23 @@ Customization
           arg1
           arg2
 
+- To make easier to distinguish pattern-match cases containing several
+  patterns, sub-patterns are slightly indented as in
+
+        match x with
+        | A
+          | B -> ...
+        | C -> ...
+
+  If you prefer all pipes to be aligned as
+
+        match x with
+        | A
+        | B -> ...
+        | C -> ...
+
+  use `(setq tuareg-match-patterns-aligned t)`.
+
 - Emacs ≥ 24.4 turned on [electric-indent-mode][] mode by default.  If
   you do not like it, set `electric-indent-mode` to `nil`.
 
