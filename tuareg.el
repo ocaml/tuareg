@@ -2504,7 +2504,7 @@ switch is not installed, `nil' is returned."
    (let* ((compl (tuareg-opam-installed-compilers))
 	  (current (tuareg-opam-current-compiler))
 	  (default (if current current "current"))
-	  (prompt (format "sopam switch (default: %s): " default)))
+	  (prompt (format "opam switch (default: %s): " default)))
      (list (completing-read prompt compl))))
   (let* ((switch (if (string= switch "") nil switch))
 	 (env (tuareg-opam-config-env switch)))
