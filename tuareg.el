@@ -835,6 +835,18 @@ Regexp match data 0 points to the chars."
      (,(concat "( *\\(type\\) +\\(" lid "\\) *)")
       (1 font-lock-keyword-face)
       (2 font-lock-type-face))
+     ;; First class modules.  In these contexts, "val" and "module"
+     ;; are not considered as "governing" (main structure of the code).
+     (,(concat "( *\\(module\\) +\\(" module-path "\\) *: +\\("
+	       balanced-braces-no-string "\\))")
+      (1 font-lock-keyword-face)
+      (2 tuareg-font-lock-module-face)
+      (3 tuareg-font-lock-module-face))
+     (,(concat "( *\\(val\\) +\\(" balanced-braces-no-end-colon "\\) *: +\\("
+	       balanced-braces-no-string "\\))")
+      (1 font-lock-keyword-face)
+      (2 tuareg-font-lock-module-face)
+      (3 tuareg-font-lock-module-face))
      ("let +exception" . tuareg-font-lock-governing-face)
      (,(regexp-opt '("module" "include" "sig" "struct" "functor"
                      "type" "constraint" "class" "in" "inherit"
