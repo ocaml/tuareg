@@ -2054,6 +2054,39 @@ whereas with a non value you get
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                              The major mode
 
+(defun tuareg--switch-outside-build ()
+  "If the current buffer refers to a file under a _build
+directory and a corresponding file exists outside the _build
+directory, propose the user to switch to it.  Return t if the
+switch was made."
+  (let ((fpath (buffer-file-name))
+	fname
+	(p nil)
+	b)
+    (when fpath
+      (setq fpath (abbreviate-file-name fpath))
+      (while (not (or (null fpath)
+		      (string=
+		       (setq b (file-name-nondirectory
+				(setq fpath (directory-file-name fpath))))
+		       "_build")))
+	(push b p)
+	(setq fpath (file-name-directory fpath)))
+      (when fpath
+	;; Make `fpath' the path without _build.
+	(setq fpath (file-name-directory fpath))
+	(while p
+	  (setq fpath (concat (file-name-as-directory fpath) (pop p))))
+	(if (file-exists-p fpath)
+	    (when (y-or-n-p "File in _build.  Switch to corresponding \
+file outside _build? ")
+	      (kill-buffer)
+	      (find-file fpath)
+	      t)
+	  (toggle-read-only); Obsolete.  Better portable way?
+	  (message "File under _build.  C-x C-q to edit.")
+	  nil)))))
+
 (defmacro tuareg--eval-when-macrop (f form)
   "Execute FORM but only when F is `fboundp' (because it's a macro).
 If F is not bound yet, then keep the code un-expanded and perform the
@@ -2166,40 +2199,41 @@ Short cuts for the Tuareg mode:
 Short cuts for interactions with the toplevel:
 \\{tuareg-interactive-mode-map}"
 
-  ;; Initialize the Tuareg menu
-  (tuareg-build-menu)
+  (unless (tuareg--switch-outside-build)
+    ;; Initialize the Tuareg menu
+    (tuareg-build-menu)
 
-  ;; (unless tuareg-use-smie
+    ;; (unless tuareg-use-smie
     ;; Initialize indentation regexps
     (tuareg-make-indentation-regexps) ;;)
 
-  (set (make-local-variable 'paragraph-start)
-       (concat "^[ \t]*$\\|\\*)$\\|" page-delimiter))
-  (set (make-local-variable 'paragraph-separate) paragraph-start)
-  (set (make-local-variable 'require-final-newline) t)
-  (set (make-local-variable 'comment-start) "(* ")
-  (set (make-local-variable 'comment-end) " *)")
-  (set (make-local-variable 'comment-start-skip) "(\\*+[ \t]*")
-  ;(set (make-local-variable 'comment-column) 40)              ;FIXME: Why?
-  ;(set (make-local-variable 'comment-multi-line) t)           ;FIXME: Why?
-  ;; `ocamlc' counts columns from 0, contrary to other tools which start at 1.
-  (set (make-local-variable 'compilation-first-column) 0)
-  (set (make-local-variable 'compilation-error-screen-columns) nil)
-  ;; TABs should NOT be used in OCaml files:
-  (setq indent-tabs-mode nil)
-  (tuareg--common-mode-setup)
-  (when (fboundp 'tuareg-auto-fill-function)
-    ;; Emacs-21's newcomment.el provides this functionality by default.
-    (set (make-local-variable 'normal-auto-fill-function)
-         #'tuareg-auto-fill-function))
+    (set (make-local-variable 'paragraph-start)
+	 (concat "^[ \t]*$\\|\\*)$\\|" page-delimiter))
+    (set (make-local-variable 'paragraph-separate) paragraph-start)
+    (set (make-local-variable 'require-final-newline) t)
+    (set (make-local-variable 'comment-start) "(* ")
+    (set (make-local-variable 'comment-end) " *)")
+    (set (make-local-variable 'comment-start-skip) "(\\*+[ \t]*")
+    ;(set (make-local-variable 'comment-column) 40)              ;FIXME: Why?
+    ;(set (make-local-variable 'comment-multi-line) t)           ;FIXME: Why?
+    ;; `ocamlc' counts columns from 0, contrary to other tools which start at 1.
+    (set (make-local-variable 'compilation-first-column) 0)
+    (set (make-local-variable 'compilation-error-screen-columns) nil)
+    ;; TABs should NOT be used in OCaml files:
+    (setq indent-tabs-mode nil)
+    (tuareg--common-mode-setup)
+    (when (fboundp 'tuareg-auto-fill-function)
+      ;; Emacs-21's newcomment.el provides this functionality by default.
+      (set (make-local-variable 'normal-auto-fill-function)
+	   #'tuareg-auto-fill-function))
 
-  (set (make-local-variable 'imenu-create-index-function)
-       #'tuareg-imenu-create-index)
+    (set (make-local-variable 'imenu-create-index-function)
+	 #'tuareg-imenu-create-index)
 
-  (when (and tuareg-use-abbrev-mode
-             (not (and (boundp 'electric-indent-mode) electric-indent-mode)))
-    (abbrev-mode 1))
-  (run-mode-hooks 'tuareg-load-hook))
+    (when (and tuareg-use-abbrev-mode
+	       (not (and (boundp 'electric-indent-mode) electric-indent-mode)))
+      (abbrev-mode 1))
+    (run-mode-hooks 'tuareg-load-hook)))
 
 (defconst tuareg-starters-syms
   '("module" "type" "let" "d-let" "and"))
