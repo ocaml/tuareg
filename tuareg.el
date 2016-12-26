@@ -2576,17 +2576,7 @@ switch is not installed, `nil' is returned."
 	       (mapcar (lambda(v) (concat (car v) "=" (cadr v)))
 		       (tuareg-opam-config-env))))))
 
-  (defvar merlin-command)
-  (defun merlin-command ()
-    "Return path of ocamlmerlin binary using the opam executable
-detected by Tuareg"
-    (if (equal merlin-command 'opam)
-        (let* ((opam (concat tuareg-opam " config var bin"))
-               (bin (replace-regexp-in-string
-                     "\n$" "" (shell-command-to-string opam)))
-               (merlin (concat bin "/ocamlmerlin")))
-          (if (file-executable-p merlin) merlin "ocamlmerlin"))
-      merlin-command))
+  (setq merlin-command 'opam)
   )
 
 
