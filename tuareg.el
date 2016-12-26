@@ -2083,7 +2083,8 @@ switch was made."
 				(setq fpath (directory-file-name fpath))))
 		       "_build")))
 	(push b p)
-	(setq fpath (file-name-directory fpath)))
+	(let ((parent (file-name-directory fpath)))
+	  (setq fpath (if (string= parent fpath) nil parent))))
       (when fpath
 	;; Make `fpath' the path without _build.
 	(setq fpath (file-name-directory fpath))
