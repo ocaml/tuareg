@@ -28,6 +28,8 @@ post-messages: "
 If you have not yet done so, please add in ~/.emacs.d/init.el or
 in ~/.emacs to following line:
     (load \"%{share}%/emacs/site-lisp/tuareg-site-file\")
-You should consider installing \"merlin\" (completion, displaying types,...)
-or \"caml-mode\" (displaying types).
 " {success & !user-setup:installed}
+post-messages: "
+You should consider installing \"merlin\" (completion, displaying types,...)
+or \"caml-mode\" (displaying types).  See https://github.com/ocaml/tuareg
+for customization tips."
