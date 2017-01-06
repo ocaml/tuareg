@@ -742,7 +742,7 @@ Regexp match data 0 points to the chars."
   "Syntax changes for Font-Lock.")
 
 (defconst tuareg--whitespace-re
-  ;; FIXME: Why's not just "[ \t\n]*"?
+  ;; QUESTION: Why not just "[ \t\n]*"?
   ;; It used to be " *[\t\n]? *" but this is inefficient since it can match
   ;; N spaces in N+1 different ways :-(
   " *\\(?:[\t\n] *\\)?")
@@ -777,6 +777,7 @@ Regexp match data 0 points to the chars."
 	 (maybe-infix-attr+ext
 	  (concat maybe-infix-attr maybe-infix-ext))
          (tuple (concat "(" balanced-braces ")")); much more than tuple!
+	 ;; FIXME: module paths with functor applications
          (module-path (concat uid "\\(?:\\." uid "\\)*"))
          (typeconstr (concat "\\(?:" module-path "\\.\\)?" lid))
          (constructor (concat "\\(?:\\(?:" module-path "\\.\\)?" uid
