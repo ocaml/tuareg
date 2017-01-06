@@ -473,11 +473,11 @@ the ocamldebug commands `cd DIR' and `directory'."
          (name (concat "ocamldebug-" file))
          (buffer-name (concat "*" name "*")))
     (pop-to-buffer buffer-name)
-    (setq default-directory (file-name-directory pgm-path))
-    (setq ocamldebug-command-name
-	  (read-from-minibuffer "OCaml debugguer to run: "
-				ocamldebug-command-name))
     (unless (comint-check-proc buffer-name)
+      (setq default-directory (file-name-directory pgm-path))
+      (setq ocamldebug-command-name
+            (read-from-minibuffer "OCaml debugguer to run: "
+                                  ocamldebug-command-name))
       (let* ((cmdlist (tuareg-args-to-list ocamldebug-command-name))
              (cmdlist (mapcar #'substitute-in-file-name cmdlist)))
         (apply #'make-comint name
