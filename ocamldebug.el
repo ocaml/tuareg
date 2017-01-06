@@ -135,6 +135,7 @@ C-x SPACE sets break point at current line."
   (set (make-local-variable 'comint-prompt-regexp) ocamldebug-prompt-pattern)
   (set (make-local-variable 'comint-dynamic-complete-functions)
        (cons #'ocamldebug-complete comint-dynamic-complete-functions))
+  (set (make-local-variable 'comint-prompt-read-only) t)
   (set (make-local-variable 'paragraph-start) comint-prompt-regexp)
   (set (make-local-variable 'ocamldebug-last-frame-displayed-p) t)
   (set (make-local-variable 'shell-dirtrackp) t)
