@@ -1,6 +1,6 @@
 opam-version: "1.2"
 name: "tuareg"
-version: "2.1.0"
+version: "VERSION"
 maintainer: "Christophe.Troestler@umons.ac.be"
 authors: [
   "Albert Cohen <Albert.Cohen@prism.uvsq.fr>"

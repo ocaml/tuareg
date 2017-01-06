@@ -96,6 +96,9 @@ $(TARBALL): $(DIST_FILES)
 	tar acvf $@ $(DIST_NAME)
 	$(RM) -r $(DIST_NAME)
 
+opam/opam: opam/opam.in tuareg.el
+	sed -e "s/VERSION/$(VERSION)/" $< > $@
+
 opam: $(TARBALL)
 	$(INSTALL_MKDIR) $(OPAM_DIR)
 	$(CP) -a $(filter-out %~, $(wildcard opam/*)) $(OPAM_DIR)
