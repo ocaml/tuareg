@@ -1495,6 +1495,20 @@ by |, insert one |."
 		    nil))))))
     tok))
 
+(defun tuareg-smie--search-forward (tokens)
+  (let (tok)
+    (while (progn
+             (setq tok (tuareg-smie--forward-token))
+             (if (not (zerop (length tok)))
+                 (not (member tok tokens))
+	       (unless (eobp)
+		 (condition-case err
+		     (progn (forward-sexp) t)
+		   (scan-error
+		    (setq tok (buffer-substring (nth 2 err) (nth 3 err)))
+		    nil))))))
+    tok))
+
 (defconst tuareg-smie--type-label-leader
   '("->" ":" "=" ""))
 
@@ -1650,7 +1664,16 @@ Return values can be
                                "external" "val" "method" "DEFINE")))
         "=…")
        ((and (member nearest '("type" "module"))
-             (member (tuareg-smie--backward-token) '("with" "and"))) "c=")
+             ;; Maybe a module's type equality constraint?
+             (or (member (tuareg-smie--backward-token) '("with" "and"))
+                 ;; Or maybe an alias as part of a definition?
+                 (and (equal nearest "type")
+                      (goto-char (1+ pos)) ;"1+" to skip the `=' itself!
+                      (let ((tok (tuareg-smie--search-forward
+                                  (cons "=" (mapcar #'car
+                                                    tuareg-smie-grammar)))))
+                        (equal tok "=")))))
+        "c=")
        (t "d=")))))
 
 (defun tuareg-smie--:=-disambiguate ()

@@ -27,6 +27,10 @@ let server_comments request t =
           parser
           every
 
+type 'a foo = 'a option =         (* Issue #98 *)
+  | None
+  | Some of 'a
+
 let qs1 = {| quoted string |}   (* (issue #24) *)
 let qs2 = {eof| other quoted string   |noteof}  |eof}
 
