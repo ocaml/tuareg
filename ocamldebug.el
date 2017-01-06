@@ -486,8 +486,9 @@ the ocamldebug commands `cd DIR' and `directory'."
       (setq ocamldebug-command-name
             (read-from-minibuffer "OCaml debugguer to run: "
                                   ocamldebug-command-name))
-      (let* ((args (split-string-and-unquote ocamldebug-debuggee-args))
-             (cmdlist (split-string-and-unquote ocamldebug-command-name))
+      (message "Current directory is %s" default-directory)
+      (let* ((args (tuareg--split-args ocamldebug-debuggee-args))
+             (cmdlist (tuareg--split-args ocamldebug-command-name))
              (cmdlist (mapcar #'substitute-in-file-name cmdlist)))
         (apply #'make-comint name
                (car cmdlist)
@@ -498,7 +499,6 @@ the ocamldebug commands `cd DIR' and `directory'."
                             'ocamldebug-filter)
         (set-process-sentinel (get-buffer-process (current-buffer))
                               'ocamldebug-sentinel)
-        (message "Current directory is %s" default-directory)
         (ocamldebug-mode)))
   (ocamldebug-set-buffer)))
 
