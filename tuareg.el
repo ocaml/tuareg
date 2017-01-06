@@ -1652,6 +1652,23 @@ Return values can be
              (member (tuareg-smie--backward-token) '("with" "and"))) "c=")
        (t "d=")))))
 
+(defun tuareg-smie--:=-disambiguate ()
+  "Return which kind of \":=\" we've just found.
+Point is not moved and should be right in front of the equality.
+Return values can be
+  \":=\" for assignment definition,
+  \"c=\" for destructive equality constraint."
+  (save-excursion
+    (let* ((pos (point))
+           (telltale '("type" "let" "module" "class" "and" "external"
+                       "val" "method" "DEFINE" "=" ":="
+                       "if" "then" "else" "->" ";" ))
+           (nearest (tuareg-smie--search-backward telltale)))
+      (cond				;Issue #7
+       ((and (member nearest '("type" "module"))
+             (member (tuareg-smie--backward-token) '("with" "and"))) "c=")
+       (t ":=")))))
+
 (defun tuareg-smie--|-or-p ()
   "Return non-nil if we're just in front of an or pattern \"|\"."
   (save-excursion
@@ -1728,6 +1745,7 @@ Return values can be
      ;; Distinguish a defining = from a comparison-=.
      ((equal tok "=")
       (tuareg-smie--=-disambiguate))
+     ((equal tok ":=") (tuareg-smie--:=-disambiguate))
      ((zerop (length tok))
       (if (not (and (memq (char-before) '(?\} ?\]))
                     (save-excursion (forward-char -2)
