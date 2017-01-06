@@ -468,14 +468,17 @@ and source-file directory for ocamldebug.  If you wish to change this, use
 the ocamldebug commands `cd DIR' and `directory'."
   (interactive "fRun ocamldebug on file: ")
   (setq path (expand-file-name path))
-  (let ((file (file-name-nondirectory path)))
-    (pop-to-buffer (concat "*ocamldebug-" file "*"))
+  (let* ((file (file-name-nondirectory path))
+         (name (concat "ocamldebug-" file))
+         (buffer-name (concat "*" name "*")))
+    (pop-to-buffer buffer-name)
     (setq default-directory (file-name-directory path))
     (message "Current directory is %s" default-directory)
     (setq ocamldebug-command-name
 	  (read-from-minibuffer "OCaml debugguer to run: "
 				ocamldebug-command-name))
-    (make-comint (concat "ocamldebug-" file)
+    (unless (comint-check-proc buffer-name)
+        (make-comint name
 		 (substitute-in-file-name ocamldebug-command-name)
 		 nil
 		 "-emacs" "-cd" default-directory path)
@@ -483,8 +486,8 @@ the ocamldebug commands `cd DIR' and `directory'."
 			'ocamldebug-filter)
     (set-process-sentinel (get-buffer-process (current-buffer))
 			  'ocamldebug-sentinel)
-    (ocamldebug-mode)
-    (ocamldebug-set-buffer)))
+    (ocamldebug-mode))
+  (ocamldebug-set-buffer)))
 
 ;;;###autoload
 (defalias 'camldebug 'ocamldebug)
