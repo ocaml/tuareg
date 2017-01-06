@@ -460,6 +460,9 @@ around point."
 (defvar ocamldebug-command-name "ocamldebug"
   "Pathname for executing the OCaml debugger.")
 
+(defvar ocamldebug-debugee-args ""
+  "Arguments to the debuggee.")
+
 ;;;###autoload
 (defun ocamldebug (path)
   "Run ocamldebug on program FILE in buffer *ocamldebug-FILE*.
@@ -473,12 +476,18 @@ the ocamldebug commands `cd DIR' and `directory'."
     (setq default-directory (file-name-directory path))
     (message "Current directory is %s" default-directory)
     (setq ocamldebug-command-name
-	  (read-from-minibuffer "OCaml debugguer to run: "
-				ocamldebug-command-name))
-    (make-comint (concat "ocamldebug-" file)
-		 (substitute-in-file-name ocamldebug-command-name)
-		 nil
-		 "-emacs" "-cd" default-directory path)
+          (read-from-minibuffer "OCaml debugger to run: "
+                                ocamldebug-command-name))
+    (setq ocamldebug-debugee-args
+          (read-from-minibuffer "Arguments to the debuggee: "
+                                ocamldebug-debugee-args))
+    (apply #'make-comint
+           (append (list
+                    (concat "ocamldebug-" file)
+                    (substitute-in-file-name ocamldebug-command-name)
+                    nil
+                    "-emacs" "-cd" default-directory path)
+                   (split-string ocamldebug-debugee-args)))
     (set-process-filter (get-buffer-process (current-buffer))
 			'ocamldebug-filter)
     (set-process-sentinel (get-buffer-process (current-buffer))
