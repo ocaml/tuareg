@@ -1617,7 +1617,7 @@ Return values can be
   (save-excursion
     (let* ((pos (point))
            (telltale '("type" "let" "module" "class" "and" "external"
-                       "val" "method" "DEFINE" "="
+                       "val" "method" "DEFINE" "=" ":="
                        "if" "then" "else" "->" ";" ))
            (nearest (tuareg-smie--search-backward telltale)))
       (cond
@@ -1640,6 +1640,11 @@ Return values can be
                         (equal (tuareg-smie-backward-token) "t->")))
             (setq nearest (tuareg-smie--search-backward telltale)))
           nil))
+       ((and (member nearest '("=" ":="))
+             (member (tuareg-smie--search-backward telltale)
+                     '("type" "module")))
+        ;; Second equality in "type t = M.t = C" or after mod-constraint
+        "d=")
        ((not (member nearest '("type" "let" "module" "class" "and"
                                "external" "val" "method" "DEFINE")))
         "=…")
