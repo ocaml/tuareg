@@ -2767,25 +2767,13 @@ I/O via buffer `*ocaml-toplevel*'."
             (read-shell-command "OCaml toplevel to run: "
                                 tuareg-interactive-program))))
   (unless (comint-check-proc tuareg-interactive-buffer-name)
-    (let ((cmdlist (tuareg-args-to-list tuareg-interactive-program))
+    (let ((cmdlist (split-string-and-unquote tuareg-interactive-program))
           (process-connection-type nil))
       (set-buffer (apply (function make-comint) "ocaml-toplevel"
                          (car cmdlist) nil (cdr cmdlist)))
       (tuareg-interactive-mode)
       (sleep-for 1))))
 
-(defun tuareg-args-to-list (string)
-  "Split the string as a list of arguments."
-  (let ((where (string-match "[ \t]" string)))
-    (cond ((null where) (list string))
-          ((/= where 0)
-           (cons (substring string 0 where)
-                 (tuareg-args-to-list (substring string (+ 1 where)
-                                                 (length string)))))
-          (t (let ((pos (string-match "[^ \t]" string)))
-               (when pos
-                 (tuareg-args-to-list (substring string pos
-                                                 (length string)))))))))
 
 (defun tuareg-interactive-get-old-input ()
   (save-excursion
