@@ -474,20 +474,23 @@ the ocamldebug commands `cd DIR' and `directory'."
          (buffer-name (concat "*" name "*")))
     (pop-to-buffer buffer-name)
     (setq default-directory (file-name-directory path))
-    (message "Current directory is %s" default-directory)
     (setq ocamldebug-command-name
 	  (read-from-minibuffer "OCaml debugguer to run: "
 				ocamldebug-command-name))
     (unless (comint-check-proc buffer-name)
-        (make-comint name
-		 (substitute-in-file-name ocamldebug-command-name)
-		 nil
-		 "-emacs" "-cd" default-directory path)
-    (set-process-filter (get-buffer-process (current-buffer))
-			'ocamldebug-filter)
-    (set-process-sentinel (get-buffer-process (current-buffer))
-			  'ocamldebug-sentinel)
-    (ocamldebug-mode))
+      (let* ((cmdlist (tuareg-args-to-list ocamldebug-command-name))
+             (cmdlist (mapcar #'substitute-in-file-name cmdlist)))
+        (apply #'make-comint name
+               (car cmdlist)
+               nil
+               "-emacs" "-cd" default-directory
+               (append (cdr cmdlist) (list path)))
+        (set-process-filter (get-buffer-process (current-buffer))
+                            'ocamldebug-filter)
+        (set-process-sentinel (get-buffer-process (current-buffer))
+                              'ocamldebug-sentinel)
+        (message "Current directory is %s" default-directory)
+        (ocamldebug-mode)))
   (ocamldebug-set-buffer)))
 
 ;;;###autoload

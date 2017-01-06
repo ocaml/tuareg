@@ -2775,6 +2775,7 @@ I/O via buffer `*ocaml-toplevel*'."
       (sleep-for 1))))
 
 (defun tuareg-args-to-list (string)
+  "Split the string as a list of arguments."
   (let ((where (string-match "[ \t]" string)))
     (cond ((null where) (list string))
           ((/= where 0)
