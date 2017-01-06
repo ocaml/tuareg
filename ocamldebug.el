@@ -643,8 +643,12 @@ Obeying it means displaying in another window the specified file and line."
     (with-current-buffer buffer
       (save-restriction
 	(widen)
-        (setq spos (+ (point-min) schar))
-        (setq epos (+ (point-min) echar))
+        (setq spos (if (fboundp 'filepos-to-bufferpos)
+                       (filepos-to-bufferpos schar 'approximate)
+                     (+ (point-min) schar)))
+        (setq epos (if (fboundp 'filepos-to-bufferpos)
+                       (filepos-to-bufferpos echar 'approximate)
+                     (+ (point-min) echar)))
         (setq pos (if kind spos epos))
         (ocamldebug-set-current-event spos epos pos (current-buffer) kind))
       (cond ((or (< pos (point-min)) (> pos (point-max)))
