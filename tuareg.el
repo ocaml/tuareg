@@ -509,26 +509,33 @@ changing the opam switch)."
 (defcustom tuareg-font-lock-symbols nil
   "*Display fun and -> and such using symbols in fonts.
 This may sound like a neat trick, but note that it can change the
-alignment and can thus lead to surprises."
+alignment and can thus lead to surprises.  On recent Emacs >= 24.4,
+use `prettify-symbols-mode'."
   :group 'tuareg :type 'boolean)
 
 (when (fboundp 'prettify-symbols-mode)
   (make-obsolete-variable 'tuareg-font-lock-symbols
                           'prettify-symbols-mode "Emacs-24.4"))
 
-(defvar tuareg-font-lock-symbols-alist
-  (cond ((fboundp 'decode-char) ;; or a unicode font.
-         `(("fun" . ,(decode-char 'ucs 955))
-           ("sqrt" . ,(decode-char 'ucs 8730))
-           ("not" . ,(decode-char 'ucs 172))
+(defcustom tuareg-prettify-symbols-full nil
+  "It f, add fun and -> and such to be prettified with symbols.
+This may sound like a neat trick, but note that it can change the
+alignment and can thus lead to surprises.  By default, only symbols that
+do not perturb in essential ways the alignment are used.  See
+`tuareg-prettify-symbols-basic-alist' and
+`tuareg-prettify-symbols-extra-alist'."
+  :group 'tuareg :type 'boolean)
+
+(defvar tuareg-prettify-symbols-basic-alist
+  (cond ((fboundp 'decode-char) ;; use a unicode font.
+         `(("sqrt" . ,(decode-char 'ucs 8730))
            ("&&" . ,(decode-char 'ucs 8743)); 'LOGICAL AND' (U+2227)
-           ("or" . ,(decode-char 'ucs 8744)); 'LOGICAL OR' (U+2228)
-           ("||" . ,(decode-char 'ucs 8744))
-           ("[|" . ,(decode-char 'ucs 12314)) ;; 〚
-           ("|]" . ,(decode-char 'ucs 12315)) ;; 〛
-           ("*." . ,(decode-char 'ucs 215))
+           ("||" . ,(decode-char 'ucs 8744)); 'LOGICAL OR' (U+2228)
+           ("+." . ,(decode-char 'ucs 8724));DOT PLUS (U+2214)
+           ("-." . ,(decode-char 'ucs 8760));DOT MINUS (U+2238)
+           ;;("*." . ,(decode-char 'ucs 215))
+           ("*." . ,(decode-char 'ucs 8729)); BULLET OPERATOR
            ("/." . ,(decode-char 'ucs 247))
-           ("->" . ,(decode-char 'ucs 8594))
            ("<-" . ,(decode-char 'ucs 8592))
            ("<=" . ,(decode-char 'ucs 8804))
            (">=" . ,(decode-char 'ucs 8805))
@@ -536,7 +543,6 @@ alignment and can thus lead to surprises."
            ("==" . ,(decode-char 'ucs 8801))
            ("!=" . ,(decode-char 'ucs 8802))
            ("<=>" . ,(decode-char 'ucs 8660))
-           (":=" . ,(decode-char 'ucs 8656))
            ("infinity" . ,(decode-char 'ucs 8734))
            ;; Some greek letters for type parameters.
            ("'a" . ,(decode-char 'ucs 945))
@@ -556,22 +562,17 @@ alignment and can thus lead to surprises."
            ("'t" . ,(decode-char 'ucs 964))
            ("'x" . ,(decode-char 'ucs 958))))
         ((and (fboundp 'make-char) (fboundp 'charsetp) (charsetp 'symbol))
-         `(("fun" . ,(make-char 'symbol 108))
-           ("sqrt" . ,(make-char 'symbol 214))
-           ("not" . ,(make-char 'symbol 216))
+         `(("sqrt" . ,(make-char 'symbol 214))
            ("&&" . ,(make-char 'symbol 217))
-           ("or" . ,(make-char 'symbol 218))
            ("||" . ,(make-char 'symbol 218))
            ("*." . ,(make-char 'symbol 183))
            ("/." . ,(make-char 'symbol 184))
            ("<=" . ,(make-char 'symbol 163))
            ("<-" . ,(make-char 'symbol 172))
-           ("->" . ,(make-char 'symbol 174))
            (">=" . ,(make-char 'symbol 179))
            ("<>" . ,(make-char 'symbol 185))
            ("==" . ,(make-char 'symbol 186))
            ("<=>" . ,(make-char 'symbol 219))
-           (":=" . ,(make-char 'symbol 220))
            ("=>" . ,(make-char 'symbol 222))
            ("infinity" . ,(make-char 'symbol 165))
            ;; Some greek letters for type parameters.
@@ -591,6 +592,23 @@ alignment and can thus lead to surprises."
            ("'s" . ,(make-char 'symbol 115))
            ("'t" . ,(make-char 'symbol 116))
            ("'x" . ,(make-char 'symbol 120))))))
+
+(defvar tuareg-prettify-symbols-extra-alist
+  (cond ((fboundp 'decode-char) ;; use a unicode font.
+         `(("fun" . ,(decode-char 'ucs 955))
+           ("not" . ,(decode-char 'ucs 172))
+           ;;("or" . ,(decode-char 'ucs 8744)); should not be used as ||
+           ("[|" . ,(decode-char 'ucs 12314)) ;; 〚
+           ("|]" . ,(decode-char 'ucs 12315)) ;; 〛
+           ("->" . ,(decode-char 'ucs 8594))
+           (":=" . ,(decode-char 'ucs 8656))))
+         ((and (fboundp 'make-char) (fboundp 'charsetp) (charsetp 'symbol))
+          `(("fun" . ,(make-char 'symbol 108))
+            ("not" . ,(make-char 'symbol 216))
+            ;;("or" . ,(make-char 'symbol 218))
+            ("->" . ,(make-char 'symbol 174))
+            (":=" . ,(make-char 'symbol 220))))))
+
 
 (defun tuareg-font-lock-compose-symbol (alist)
   "Compose a sequence of ascii chars into a symbol.
@@ -614,8 +632,12 @@ Regexp match data 0 points to the chars."
 
 (defun tuareg-font-lock-symbols-keywords ()
   (when (fboundp 'compose-region)
-    (let ((alist nil))
-      (dolist (x tuareg-font-lock-symbols-alist)
+    (let ((alist nil)
+          (alist (if tuareg-prettify-symbols-full
+                     (append tuareg-prettify-symbols-basic-alist
+                             tuareg-prettify-symbols-extra-alist)
+                   tuareg-prettify-symbols-basic-alist)))
+      (dolist (x alist)
         (when (and (if (fboundp 'char-displayable-p)
                        (char-displayable-p (cdr x))
                      t)
@@ -2197,7 +2219,10 @@ expansion at run-time, if the run-time version of Emacs does know this macro."
              'tuareg-current-fun-name))
     (set (make-local-variable 'indent-line-function) #'tuareg-indent-command))
   (set (make-local-variable 'prettify-symbols-alist)
-       tuareg-font-lock-symbols-alist)
+       (if tuareg-prettify-symbols-full
+           (append tuareg-prettify-symbols-basic-alist
+                   tuareg-prettify-symbols-extra-alist)
+         tuareg-prettify-symbols-basic-alist))
   (tuareg-install-font-lock)
   (set (make-local-variable 'open-paren-in-column-0-is-defun-start) nil)
 
