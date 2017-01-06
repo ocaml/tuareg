@@ -2738,10 +2738,6 @@ Short cuts for interactions with the toplevel:
             tuareg-interactive-output-font-lock
             tuareg-interactive-error-font-lock)
     (font-lock-mode 1))
-  (when (boundp 'after-change-functions) ;FIXME: Why?
-    (remove-hook 'after-change-functions 'font-lock-after-change-function t))
-  (when (boundp 'pre-idle-hook)
-    (remove-hook 'pre-idle-hook 'font-lock-pre-idle-hook t))
 
   (easy-menu-add tuareg-interactive-mode-menu)
   (tuareg-update-options-menu))
