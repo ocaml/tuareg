@@ -461,6 +461,11 @@ around point."
 (defvar ocamldebug-command-name "ocamldebug"
   "Pathname for executing the OCaml debugger.")
 
+(defvar ocamldebug-debuggee-args ""
+  "Default arguments to the program being debugged (space
+separated and possibly quoted as they would be passed on the
+command line).")
+
 ;;;###autoload
 (defun ocamldebug (pgm-path)
   "Run ocamldebug on program FILE in buffer *ocamldebug-FILE*.
@@ -475,16 +480,20 @@ the ocamldebug commands `cd DIR' and `directory'."
     (pop-to-buffer buffer-name)
     (unless (comint-check-proc buffer-name)
       (setq default-directory (file-name-directory pgm-path))
+      (setq ocamldebug-debuggee-args
+            (read-from-minibuffer (format "Args for %s: " file)
+                                  ocamldebug-debuggee-args))
       (setq ocamldebug-command-name
             (read-from-minibuffer "OCaml debugguer to run: "
                                   ocamldebug-command-name))
-      (let* ((cmdlist (tuareg-args-to-list ocamldebug-command-name))
+      (let* ((args (split-string-and-unquote ocamldebug-debuggee-args))
+             (cmdlist (split-string-and-unquote ocamldebug-command-name))
              (cmdlist (mapcar #'substitute-in-file-name cmdlist)))
         (apply #'make-comint name
                (car cmdlist)
                nil
                "-emacs" "-cd" default-directory
-               (append (cdr cmdlist) (list pgm-path)))
+               (append (cdr cmdlist) (cons pgm-path args)))
         (set-process-filter (get-buffer-process (current-buffer))
                             'ocamldebug-filter)
         (set-process-sentinel (get-buffer-process (current-buffer))
