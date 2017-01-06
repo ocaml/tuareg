@@ -462,18 +462,18 @@ around point."
   "Pathname for executing the OCaml debugger.")
 
 ;;;###autoload
-(defun ocamldebug (path)
+(defun ocamldebug (pgm-path)
   "Run ocamldebug on program FILE in buffer *ocamldebug-FILE*.
 The directory containing FILE becomes the initial working directory
 and source-file directory for ocamldebug.  If you wish to change this, use
 the ocamldebug commands `cd DIR' and `directory'."
   (interactive "fRun ocamldebug on file: ")
-  (setq path (expand-file-name path))
-  (let* ((file (file-name-nondirectory path))
+  (setq pgm-path (expand-file-name pgm-path))
+  (let* ((file (file-name-nondirectory pgm-path))
          (name (concat "ocamldebug-" file))
          (buffer-name (concat "*" name "*")))
     (pop-to-buffer buffer-name)
-    (setq default-directory (file-name-directory path))
+    (setq default-directory (file-name-directory pgm-path))
     (setq ocamldebug-command-name
 	  (read-from-minibuffer "OCaml debugguer to run: "
 				ocamldebug-command-name))
@@ -484,7 +484,7 @@ the ocamldebug commands `cd DIR' and `directory'."
                (car cmdlist)
                nil
                "-emacs" "-cd" default-directory
-               (append (cdr cmdlist) (list path)))
+               (append (cdr cmdlist) (list pgm-path)))
         (set-process-filter (get-buffer-process (current-buffer))
                             'ocamldebug-filter)
         (set-process-sentinel (get-buffer-process (current-buffer))
