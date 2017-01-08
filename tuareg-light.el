@@ -3,7 +3,7 @@
 ;; Customize                                                                  ;;
 ;;----------------------------------------------------------------------------;;
 
-(require 'cl)
+(eval-when-compile (require 'cl))
 (require 'custom)
 
 (defgroup tuareg2 nil

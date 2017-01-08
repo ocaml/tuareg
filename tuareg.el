@@ -632,8 +632,7 @@ Regexp match data 0 points to the chars."
 
 (defun tuareg-font-lock-symbols-keywords ()
   (when (fboundp 'compose-region)
-    (let ((alist nil)
-          (alist (if tuareg-prettify-symbols-full
+    (let ((alist (if tuareg-prettify-symbols-full
                      (append tuareg-prettify-symbols-basic-alist
                              tuareg-prettify-symbols-extra-alist)
                    tuareg-prettify-symbols-basic-alist)))
@@ -1035,7 +1034,8 @@ Regexp match data 0 points to the chars."
       1 font-lock-type-face)
      ;; "val" without "!", "mutable" or "virtual"
      (,(concat "\\<val" maybe-infix-attr+ext
-	       " +\\(" lid "\\)") 1 font-lock-function-name-face)
+	       " +\\(" lid "\\)")
+      1 font-lock-function-name-face)
      (,(concat "\\<\\("
                (regexp-opt '("DEFINE" "IFDEF" "IFNDEF" "THEN" "ELSE" "ENDIF"
                              "INCLUDE" "__FILE__" "__LOCATION__"))
@@ -1705,8 +1705,7 @@ Return values can be
   \":=\" for assignment definition,
   \"c=\" for destructive equality constraint."
   (save-excursion
-    (let* ((pos (point))
-           (telltale '("type" "let" "module" "class" "and" "external"
+    (let* ((telltale '("type" "let" "module" "class" "and" "external"
                        "val" "method" "DEFINE" "=" ":="
                        "if" "then" "else" "->" ";" ))
            (nearest (tuareg-smie--search-backward telltale)))
@@ -1855,6 +1854,9 @@ Return values can be
           0 tuareg-with-indent))
      ((and (equal token "|") (smie-rule-bolp) (not (smie-rule-prev-p "d="))
            (smie-rule-parent-p "d="))
+      ;; FIXME: Need a comment explaining what this tries to do.
+      ;; FIXME: Should this only apply when (eq kind :before)?
+      ;; FIXME: Don't use smie--parent.
       (goto-char (cadr smie--parent))
       (smie-indent-forward-token)
       (forward-comment (point-max))
@@ -2145,7 +2147,6 @@ directory and a corresponding file exists outside the _build
 directory, propose the user to switch to it.  Return t if the
 switch was made."
   (let ((fpath (buffer-file-name))
-	fname
 	(p nil)
 	b)
     (when fpath
@@ -2653,6 +2654,7 @@ switch is not installed, `nil' is returned."
 	       (mapcar (lambda(v) (concat (car v) "=" (cadr v)))
 		       (tuareg-opam-config-env))))))
 
+  (defvar merlin-command)               ;Silence byte-compiler.
   (setq merlin-command 'opam)
   )
 

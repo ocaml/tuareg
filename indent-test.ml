@@ -27,6 +27,14 @@ let server_comments request t =
           parser
           every
 
+module Make_comp(C : Comparitor) : Comparitor_intf (* issue #7 *)
+       with type t := C.t
+        and module X = Z =
+  struct
+    type t = C.t
+    let ret = C.comp
+  end
+
 type 'a foo = 'a option =         (* Issue #98 *)
   | None
   | Some of 'a
