@@ -99,7 +99,8 @@ Customization
   use `(setq tuareg-match-patterns-aligned t)`.
 
 - Emacs ≥ 24.4 turned on [electric-indent-mode][] mode by default.  If
-  you do not like it, set `electric-indent-mode` to `nil`.
+  you do not like it, call `(electric-indent-mode 0)` in
+  `tuareg-mode-hook`.
 
   [electric-indent-mode]: https://www.gnu.org/software/emacs/manual/html_node/emacs/Indent-Convenience.html
 

@@ -15,6 +15,9 @@
 
    (when (functionp 'flyspell-prog-mode)
      (flyspell-prog-mode))
+   ;; See README
+   ;;(setq tuareg-match-patterns-aligned t)
+   ;;(electric-indent-mode 0)
    ))
 
 
