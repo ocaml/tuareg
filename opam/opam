@@ -25,8 +25,7 @@ depexts: [
   [["centos"]["emacs-nox"]]
 ]
 post-messages: "
-If you have not yet done so, please add in ~/.emacs.d/init.el or
-in ~/.emacs to following line:
+If you have not yet done so, please add the following line to ~/.emacs.d/init.el or ~/.emacs:
     (load \"%{share}%/emacs/site-lisp/tuareg-site-file\")
 " {success & !user-setup:installed}
 post-messages: "
