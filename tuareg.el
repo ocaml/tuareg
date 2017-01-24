@@ -326,11 +326,13 @@ Valid names are `browse-url', `browse-url-firefox', etc."
 (defvar tuareg-options-list
   `(("Automatic indentation of leading keywords" . 'tuareg-use-abbrev-mode)
     ("Automatic indentation of ), ] and }" . 'tuareg-electric-indent)
+    ["Prettify symbols" prettify-symbols-mode
+      :style toggle :selected prettify-symbols-mode :active t]
     ,@(unless tuareg-use-smie
         '(("Automatic matching of [| and {<" . 'tuareg-electric-close-vector)))
-    "---"
     ,@(unless tuareg-use-smie
-        '(("Indent body of comments" . 'tuareg-indent-comments)
+        '("---"
+          ("Indent body of comments" . 'tuareg-indent-comments)
           ("Indent first line of comments" . 'tuareg-indent-leading-comments)
           ("Leading-`*' comment style" . 'tuareg-support-leading-star-comments)
           )))

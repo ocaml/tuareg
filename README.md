@@ -104,6 +104,22 @@ Customization
 
   [electric-indent-mode]: https://www.gnu.org/software/emacs/manual/html_node/emacs/Indent-Convenience.html
 
+- You can turn on and off the rendering of certain sequences of
+  characters as symbols (such as `∔` and `∧` instead of `+.`and `&&`),
+  use `prettify-symbols-mode` or use the check box in the _Tuareg
+  Options_ menu.  To enable it by default when you start Tuareg, add
+  the following to your [Init File][]:
+
+        (add-hook 'tuareg-mode-hook
+                  (lambda()
+                    (when (functionp 'prettify-symbols-mode)
+                      (prettify-symbols-mode))))
+
+  If you want more symbols to be prettified (such as `->` being
+  displayed as `→`) at the expense of modifying the indentation in
+  incompatible ways with those not using that option, add `(setq
+  tuareg-prettify-symbols-full t)` to your [Init File][].
+
 Thanks to the work of Stefan Monnier, a new indentation engine based on
 [SMIE](https://www.gnu.org/software/emacs/manual/html_node/elisp/SMIE.html)
 was written.  This changes the indentation somewhat w.r.t. the
