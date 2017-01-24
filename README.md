@@ -32,7 +32,7 @@ There are versions of Tuareg in [Melpa](https://melpa.org/) and
 in [Marmalade](https://marmalade-repo.org/) but they may be older.
 
 If you want to install from the Git checkout, just add to your
-`~/.emacs` or `~/.emacs.d/init.el` the line:
+[Init File][]the line:
 
     (load "path-to-git-checkout-dir/tuareg-site-file")
 
@@ -66,7 +66,7 @@ Customization
 
   If you prefer that arguments on the second line be indented w.r.t.
   the function name, put `(setq tuareg-indent-align-with-first-arg nil)`
-  in your `~/.emacs.d/init.el` file.  This may be convenient if you use
+  in your [Init File][].  This may be convenient if you use
   the following style:
 
         function_name (fun x ->
@@ -109,7 +109,7 @@ Thanks to the work of Stefan Monnier, a new indentation engine based on
 was written.  This changes the indentation somewhat w.r.t. the
 previous versions of `tuareg`.  If you do not want that, you can use
 the _old_ indentation engine by adding `(setq tuareg-use-smie nil)` to
-your `.emacs` file.  It is discouraged however as the older
+your [Init File][].  It is discouraged however as the older
 indentation engine will _not_ be updated (unless a PR is submitted)
 and will eventually be removed.
 
@@ -134,6 +134,9 @@ For example:
               (lambda () (auto-fill-mode 1)))
 
 See [dot-emacs.el](dot-emacs.el) for some examples.
+
+[Init File]: https://www.gnu.org/software/emacs/manual/html_node/emacs/Init-File.html
+
 
 Features, Known Bugs
 --------------------
