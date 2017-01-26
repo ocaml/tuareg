@@ -432,6 +432,13 @@ changing the opam switch)."
 (defvar tuareg-font-lock-label-face
   'tuareg-font-lock-label-face)
 
+(defface tuareg-font-double-colon-face
+  '((t (:foreground "OrangeRed")))
+  "Face description for ;; which is not needed in standard code."
+  :group 'tuareg-faces)
+(defvar tuareg-font-double-colon-face
+  'tuareg-font-double-colon-face)
+
 (defface tuareg-font-lock-error-face
   '((t (:foreground "yellow" :background "red" :bold t)))
   "Face description for all errors reported to the source."
@@ -838,6 +845,7 @@ Regexp match data 0 points to the chars."
   (setq
    tuareg-font-lock-keywords
    `(("^#[0-9]+ *\\(?:\"[^\"]+\"\\)?" 0 tuareg-font-lock-line-number-face t)
+     (";;+" 0 tuareg-font-double-colon-face)
      ;; Attributes (`keep' to highlight except strings & chars)
      (,(concat "\\[@\\(?:@@?\\)?" attr-id balanced-brackets "\\]")
       0 tuareg-font-lock-attribute-face keep)
@@ -1839,6 +1847,8 @@ Return values can be
    ((and (eq kind :after) (member token '("." ";"))
          (smie-rule-parent-p "with")
          (tuareg-smie--with-module-fields-rule)))
+   ((and (eq kind :after) (equal token ";;"))
+    0)
    ;; Special indentation for monadic >>>, >>|, >>=, and >|= operators.
    ((and (eq kind :before) (tuareg-smie--monadic-rule token)))
    ((and (equal token "and") (smie-rule-parent-p "type"))
