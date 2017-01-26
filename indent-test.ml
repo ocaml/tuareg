@@ -167,8 +167,13 @@ type t = [                              (* Comment.  *)
   ]
 
 type t = a
- and typey = 4
- and x = b
+and typey = 4
+and x = b
+
+type t =
+  | A
+and u =
+  | B
 
 module M = struct
   type t =
