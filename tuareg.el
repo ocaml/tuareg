@@ -2024,7 +2024,7 @@ Return values can be
                       ((member (nth 2 parent-data) '(";" "d=")) nil)
                       ((member (nth 2 parent-data) '("fun" "function"))
                        (if (member (tuareg-smie--backward-token)
-                                   '(">>|" ">>=" ">>>" ">|="))
+                                   tuareg-smie--monadic-operators)
                            (progn
                              (setq indent (cons 'column
                                                 (smie-indent-virtual)))
