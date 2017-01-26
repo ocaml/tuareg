@@ -1733,7 +1733,7 @@ Return values can be
             (equal "|"
                    (setq tok
                          (tuareg-smie--search-backward
-                          '("|" "->" "with" "function" "=" "of" "in" "then")))))
+                          '("|" "with" "function" "=" "of" "in" "then")))))
         (cond
          ((equal tok "=")
           (not (equal (tuareg-smie--=-disambiguate) "d=")))
