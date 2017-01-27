@@ -2159,7 +2159,7 @@ whereas with a non value you get
   (forward-comment (point-max)))
 
 (when tuareg-use-smie
-  (defconst tuareg-beginning-of-phrase-syms
+  (defconst tuareg--beginning-of-phrase-syms
     (let* ((prec (cdr (assoc "d-let" tuareg-smie-grammar)))
            (syms (delq nil
                        (mapcar (lambda (x) (if (equal (cdr x) prec) (car x)))
@@ -2173,13 +2173,13 @@ whereas with a non value you get
     (while
         (if (save-excursion
               (member (tuareg-smie-backward-token)
-                      tuareg-beginning-of-phrase-syms))
+                      tuareg--beginning-of-phrase-syms))
             (progn
               (tuareg-smie-backward-token)
               nil)
           (let ((td (smie-backward-sexp 'halfsexp)))
             (cond
-             ((member (nth 2 td) tuareg-beginning-of-phrase-syms)
+             ((member (nth 2 td) tuareg--beginning-of-phrase-syms)
               (goto-char (nth 1 td))
               nil)
              ((and (car td) (not (numberp (car td))))
