@@ -2188,7 +2188,7 @@ whereas with a non value you get
               (unless (bobp) (goto-char (nth 1 td)) t))
              (t t))))))
 
-  (defun tuareg-discover-phrase (&optional _quiet _stop-at-and)
+  (defun tuareg-discover-phrase ()
     "Return a triplet (BEGIN END END-WITH-COMMENTS)."
     (save-excursion
       (let ((pos (point)))
