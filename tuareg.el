@@ -1541,6 +1541,9 @@ by |, insert one |."
 		    nil))))))
     tok))
 
+(defun tuareg--skip-blank-and-comments ()
+  (forward-comment (point-max)))
+
 (defconst tuareg-smie--type-label-leader
   '("->" ":" "=" ""))
 
@@ -1551,7 +1554,7 @@ by |, insert one |."
 (defconst tuareg-smie--float-re "[0-9]+\\(?:\\.[0-9]*\\)?\\(?:e[-+]?[0-9]+\\)")
 
 (defun tuareg-smie--forward-token ()
-  (forward-comment (point-max))
+  (tuareg--skip-blank-and-comments)
   (buffer-substring-no-properties
    (point)
    (progn (if (zerop (skip-syntax-forward "."))
@@ -1873,7 +1876,7 @@ Return values can be
       ;; FIXME: Don't use smie--parent.
       (goto-char (cadr smie--parent))
       (smie-indent-forward-token)
-      (forward-comment (point-max))
+      (tuareg--skip-blank-and-comments)
       `(column . ,(- (current-column) 2)))
      (t (smie-rule-separator kind))))
    (t
@@ -2155,9 +2158,6 @@ whereas with a non value you get
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                 Phrase movements and indentation
 
-(defun tuareg--skip-blank-and-comments ()
-  (forward-comment (point-max)))
-
 (when tuareg-use-smie
   (defconst tuareg--beginning-of-phrase-syms
     (let* ((prec (cdr (assoc "d-let" tuareg-smie-grammar)))
@@ -2199,7 +2199,7 @@ whereas with a non value you get
           (while (progn
                    (smie-forward-sexp 'halfsexp)
                    (setq end (point))
-                   (forward-comment (point-max))
+                   (tuareg--skip-blank-and-comments)
                    (< (point) pos))
             ;; Looks like tuareg--beginning-of-phrase went too far back!
             (setq begin (point)))
@@ -2423,11 +2423,11 @@ Short cuts for interactions with the toplevel:
 (defun tuareg-beginning-of-defun ()
   (when (tuareg-find-matching-starter tuareg-starters-syms)
 	(save-excursion (tuareg-smie-forward-token)
-                        (forward-comment (point-max))
+                        (tuareg--skip-blank-and-comments)
                         (let ((name (tuareg-smie-forward-token)))
                           (if (not (member name '("rec" "type")))
                               name
-                            (forward-comment (point-max))
+                            (tuareg--skip-blank-and-comments)
                         (tuareg-smie-forward-token))))))
 
 (defcustom tuareg-max-name-components 3
