@@ -2091,8 +2091,9 @@ Return values can be
 
 (defun tuareg-smie--inside-string ()
   (when (nth 3 (syntax-ppss))
-    (goto-char (1+ (nth 8 (syntax-ppss))))
-    (current-column)))
+    (save-excursion
+      (goto-char (1+ (nth 8 (syntax-ppss))))
+      (current-column))))
 
 (defcustom tuareg-indent-align-with-first-arg t
   "Non-nil if indentation should try to align arguments on the first one.
