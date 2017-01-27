@@ -1966,52 +1966,53 @@ The OCaml phrase is the phrase just before the point."
   (tuareg-skip-to-end-of-phrase)
   (tuareg-discover-phrase))
 
-(defun tuareg-indent-phrase ()
-  "Depending of the context: justify and indent a comment,
+(unless tuareg-use-smie
+  (defun tuareg-indent-phrase ()
+    "Depending of the context: justify and indent a comment,
 or indent all lines in the current phrase."
-  (interactive)
-  (save-excursion
-    (back-to-indentation)
-    (if (tuareg-in-comment-p)
-        (let* ((cobpoint (save-excursion
-                           (tuareg-beginning-of-literal-or-comment)
-                           (point)))
-               (begpoint (save-excursion
-                           (while (and (> (point) cobpoint)
-                                       (tuareg-in-comment-p)
-                                       (not (looking-at "^[ \t]*$")))
-                             (forward-line -1))
-                           (max cobpoint (point))))
-               (coepoint (save-excursion
-                           (while (and (tuareg-in-comment-p)
-                                       (< (point) (point-max)))
-                             (re-search-forward "\\*)" nil 'end))
-                           (point)))
-               (endpoint (save-excursion
-                           (re-search-forward "^[ \t]*$" coepoint 'end)
-                           (line-beginning-position 2)))
-               (leading-star (tuareg-leading-star-p)))
-          (goto-char begpoint)
-          (while (and leading-star
-                      (< (point) endpoint)
-                      (not (looking-at "^[ \t]*$")))
-            (forward-line 1)
-            (back-to-indentation)
-            (when (looking-at "\\*\\**\\([^)]\\|$\\)")
-              (delete-char 1)
-              (setq endpoint (1- endpoint))))
-          (goto-char (min (point) endpoint))
-          (fill-region begpoint endpoint)
-          (re-search-forward "\\*)" nil 'end)
-          (setq endpoint (point))
-          (when leading-star
+    (interactive)
+    (save-excursion
+      (back-to-indentation)
+      (if (tuareg-in-comment-p)
+          (let* ((cobpoint (save-excursion
+                             (tuareg-beginning-of-literal-or-comment)
+                             (point)))
+                 (begpoint (save-excursion
+                             (while (and (> (point) cobpoint)
+                                         (tuareg-in-comment-p)
+                                         (not (looking-at "^[ \t]*$")))
+                               (forward-line -1))
+                             (max cobpoint (point))))
+                 (coepoint (save-excursion
+                             (while (and (tuareg-in-comment-p)
+                                         (< (point) (point-max)))
+                               (re-search-forward "\\*)" nil 'end))
+                             (point)))
+                 (endpoint (save-excursion
+                             (re-search-forward "^[ \t]*$" coepoint 'end)
+                             (line-beginning-position 2)))
+                 (leading-star (tuareg-leading-star-p)))
             (goto-char begpoint)
-            (forward-line 1)
-            (if (< (point) endpoint)
-                (tuareg-auto-fill-insert-leading-star t)))
-          (indent-region begpoint endpoint nil))
-      (let ((pair (tuareg-discover-phrase)))
-        (indent-region (nth 0 pair) (nth 1 pair) nil)))))
+            (while (and leading-star
+                        (< (point) endpoint)
+                        (not (looking-at "^[ \t]*$")))
+              (forward-line 1)
+              (back-to-indentation)
+              (when (looking-at "\\*\\**\\([^)]\\|$\\)")
+                (delete-char 1)
+                (setq endpoint (1- endpoint))))
+            (goto-char (min (point) endpoint))
+            (fill-region begpoint endpoint)
+            (re-search-forward "\\*)" nil 'end)
+            (setq endpoint (point))
+            (when leading-star
+              (goto-char begpoint)
+              (forward-line 1)
+              (if (< (point) endpoint)
+                  (tuareg-auto-fill-insert-leading-star t)))
+            (indent-region begpoint endpoint nil))
+        (let ((pair (tuareg-discover-phrase)))
+          (indent-region (nth 0 pair) (nth 1 pair) nil))))))
 
 (provide 'tuareg_indent)
 

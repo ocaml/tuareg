@@ -2205,6 +2205,13 @@ whereas with a non value you get
             (setq begin (point)))
           (list begin end (point))))))
 
+  (defun tuareg-indent-phrase ()
+    "Depending of the context: justify and indent a comment,
+or indent all lines in the current phrase."
+    (interactive)
+    (save-excursion
+      (let ((phrase (tuareg-discover-phrase)))
+        (indent-region (car phrase) (cadr phrase)))))
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
