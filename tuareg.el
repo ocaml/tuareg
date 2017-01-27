@@ -2152,6 +2152,12 @@ whereas with a non value you get
                  (smie-indent--current-column)
                (current-column)))))))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                 Phrase movements and indentation
+
+(defun tuareg--skip-blank-and-comments ()
+  (forward-comment (point-max)))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                              The major mode
@@ -2904,7 +2910,7 @@ current phrase else insert a newline and indent."
   (setq tuareg-interactive-last-phrase-pos-in-source start)
   (save-excursion
     (goto-char start)
-    (tuareg-skip-blank-and-comments) ;; FIXME: Only defined in tuareg_indent.el!
+    (tuareg--skip-blank-and-comments)
     (setq start (point))
     (goto-char end)
     (tuareg-skip-to-end-of-phrase) ;; FIXME: Only defined in tuareg_indent.el!
@@ -3295,7 +3301,7 @@ Short cuts for interaction within the toplevel:
                0))
         (kw) (value-list) (type-list) (module-list) (class-list) (misc-list))
     (goto-char (point-min))
-    (tuareg-skip-blank-and-comments)
+    (tuareg--skip-blank-and-comments)
     (while (not (eobp))
       (when (looking-at tuareg-definitions-regexp)
         (setq kw (tuareg-match-string 0))
@@ -3304,10 +3310,10 @@ Short cuts for interaction within the toplevel:
           (setq kw "let"))
         ;; Skip optional elements
         (goto-char (match-end 0))
-        (tuareg-skip-blank-and-comments)
+        (tuareg--skip-blank-and-comments)
         (when (looking-at tuareg-definitions-bind-skip-regexp)
           (goto-char (match-end 0)))
-        (tuareg-skip-blank-and-comments)
+        (tuareg--skip-blank-and-comments)
         (when (looking-at tuareg-identifier-regexp)
           (let ((ref (cons (tuareg-match-string 0) (point-marker))))
             (if (not (integerp cpt))

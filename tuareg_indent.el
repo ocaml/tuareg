@@ -960,7 +960,7 @@ If found, return the actual text of the keyword or operator."
              (tuareg-find-phrase-indentation phrase-break))
             ((tuareg-at-phrase-break-p)
              (end-of-line)
-             (tuareg-skip-blank-and-comments)
+             (tuareg--skip-blank-and-comments)
              (current-column))
             ((string= kwop "let")
              (if (tuareg-looking-at-internal-let)
@@ -1093,7 +1093,7 @@ Returns t iff skipped to indentation."
          (captive= (and (string= kwop "=") (tuareg-captive-=)))
          (kwop-pos (point)))
     (forward-char (length kwop))
-    (tuareg-skip-blank-and-comments)
+    (tuareg--skip-blank-and-comments)
     (cond ((or (not captive=)
                (/= (point) start-pos)) ; code between paren and kwop
            (goto-char start-pos)
@@ -1129,7 +1129,7 @@ Returns t iff skipped to indentation."
           ((tuareg-find-colon-typespec start-pos)
            (if (looking-at tuareg-no-code-this-line-regexp)
                (tuareg-paren-or-indentation-indent)
-             (tuareg-skip-blank-and-comments)
+             (tuareg--skip-blank-and-comments)
              (current-column)))
           (t (tuareg-indent-from-previous-kwop))))
    ((looking-at "\\<begin\\>")
@@ -1145,7 +1145,7 @@ Returns t iff skipped to indentation."
   (while (and (not (looking-at tuareg-no-more-code-this-line-regexp))
               (< (point) old-point)) ; do not go beyond old-point
     (forward-sexp 1))
-  (tuareg-skip-blank-and-comments)
+  (tuareg--skip-blank-and-comments)
   (tuareg-back-to-paren-or-indentation))
 
 (defun tuareg-find-argument-kwop (leading-operator)
@@ -1255,7 +1255,7 @@ Returns t iff skipped to indentation."
            ;;           (point-min) t))
            ;;     0
            ;;   (goto-char (match-end 0))
-           ;;   (tuareg-skip-blank-and-comments)
+           ;;   (tuareg--skip-blank-and-comments)
            ;;   (tuareg-compute-indent))
 
            ;; this is not perfect, in particular, inside match.
@@ -1396,7 +1396,7 @@ Returns t iff skipped to indentation."
 
 (defun tuareg-indent-after-next-char ()
   (forward-char 1)
-  (tuareg-skip-blank-and-comments)
+  (tuareg--skip-blank-and-comments)
   (current-column))
 
 (defun tuareg-compute-normal-indent ()
@@ -1574,7 +1574,7 @@ Returns t iff skipped to indentation."
   (unless (and (string= match "(")
                (search-forward "->" beg-pos t))
     (forward-char (length match)))
-  (tuareg-skip-blank-and-comments)
+  (tuareg--skip-blank-and-comments)
   (current-column))
 
 (defmacro tuareg-with-internal-syntax (&rest body)
@@ -1651,7 +1651,7 @@ Compute new indentation based on OCaml syntax."
        ((looking-at "(\\*")
         (if tuareg-indent-leading-comments
             (save-excursion
-              (tuareg-skip-blank-and-comments)
+              (tuareg--skip-blank-and-comments)
               (back-to-indentation)
               (current-column))
           (current-column)))
@@ -1749,9 +1749,6 @@ Compute new indentation based on OCaml syntax."
     (let ((kwop (tuareg-find-meaningful-word)))
       (goto-char (+ (point) (length kwop))))))
 
-(defun tuareg-skip-blank-and-comments ()
-  (forward-comment (point-max)))
-
 (defun tuareg-skip-back-blank-and-comments ()
   (skip-syntax-backward " ")
   (while (save-excursion (tuareg-backward-char)
@@ -1762,7 +1759,7 @@ Compute new indentation based on OCaml syntax."
 (defun tuareg-find-phrase-beginning (&optional stop-at-and)
   "Find `real' phrase beginning and return point."
   (beginning-of-line)
-  (tuareg-skip-blank-and-comments)
+  (tuareg--skip-blank-and-comments)
   (end-of-line)
   (tuareg-skip-to-end-of-phrase)
   (let ((old-point (point)) (pt (point)))
@@ -1794,7 +1791,7 @@ Compute new indentation based on OCaml syntax."
             (tuareg-find-kwop tuareg-find-phrase-beginning-and-regexp "and")
           (tuareg-find-kwop tuareg-find-phrase-beginning-regexp))))
     (when (tuareg-at-phrase-break-p)
-      (end-of-line) (tuareg-skip-blank-and-comments))
+      (end-of-line) (tuareg--skip-blank-and-comments))
     (back-to-indentation)
     (point)))
 
@@ -1870,7 +1867,7 @@ Compute new indentation based on OCaml syntax."
               (forward-char 3)
               (setq end (point))
               (setq and-end (point))
-              (tuareg-skip-blank-and-comments)
+              (tuareg--skip-blank-and-comments)
               (while (and and-iter (looking-at "\\<and\\>"))
                 (setq and-end (point))
                 (when (tuareg-search-forward-end)
@@ -1878,7 +1875,7 @@ Compute new indentation based on OCaml syntax."
                   (when (looking-at "\\<end\\>")
                     (forward-char 3)
                     (setq and-end (point))
-                    (tuareg-skip-blank-and-comments)))
+                    (tuareg--skip-blank-and-comments)))
                 (when (<= (point) and-end)
                   (setq and-iter nil)))
               (list begin end and-end))))))))
@@ -1936,7 +1933,7 @@ module/class are considered enclosed in this module/class."
                  (goto-char end)
                  (setq lines-left (forward-line 1)))))
            (when (>= cpt 8) (message "Looking for enclosing phrase... done."))
-           (save-excursion (tuareg-skip-blank-and-comments) (setq end (point)))
+           (save-excursion (tuareg--skip-blank-and-comments) (setq end (point)))
            (tuareg-skip-back-blank-and-comments)
            (list begin (point) end)))))))
 
@@ -1957,10 +1954,10 @@ The OCaml phrase is the phrase just before the point."
     (tuareg-next-phrase quiet stop-at-and))
    ((looking-at ")")
     (forward-char 1)
-    (tuareg-skip-blank-and-comments))
+    (tuareg--skip-blank-and-comments))
    ((looking-at ";;")
     (forward-char 2)
-    (tuareg-skip-blank-and-comments))))
+    (tuareg--skip-blank-and-comments))))
 
 (defun tuareg-previous-phrase ()
   "Skip to the beginning of the previous phrase."
