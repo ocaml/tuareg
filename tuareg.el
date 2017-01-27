@@ -2158,6 +2158,52 @@ whereas with a non value you get
 (defun tuareg--skip-blank-and-comments ()
   (forward-comment (point-max)))
 
+(when tuareg-use-smie
+  (defconst tuareg-beginning-of-phrase-syms
+    (let* ((prec (cdr (assoc "d-let" tuareg-smie-grammar)))
+           (syms (delq nil
+                       (mapcar (lambda (x) (if (equal (cdr x) prec) (car x)))
+                               tuareg-smie-grammar))))
+      (dolist (k '(";;"))
+        (setq syms (delete k syms)))
+      syms))
+
+  (defun tuareg--beginning-of-phrase ()
+    "Move the point to the beginning of the OCaml phrase on which the point is."
+    (while
+        (if (save-excursion
+              (member (tuareg-smie-backward-token)
+                      tuareg-beginning-of-phrase-syms))
+            (progn
+              (tuareg-smie-backward-token)
+              nil)
+          (let ((td (smie-backward-sexp 'halfsexp)))
+            (cond
+             ((member (nth 2 td) tuareg-beginning-of-phrase-syms)
+              (goto-char (nth 1 td))
+              nil)
+             ((and (car td) (not (numberp (car td))))
+              (unless (bobp) (goto-char (nth 1 td)) t))
+             (t t))))))
+
+  (defun tuareg-discover-phrase (&optional _quiet _stop-at-and)
+    "Return a triplet (BEGIN END END-WITH-COMMENTS)."
+    (save-excursion
+      (let ((pos (point)))
+        (end-of-line)
+        (tuareg--beginning-of-phrase)
+        (let ((begin (point))
+              end)
+          (while (progn
+                   (smie-forward-sexp 'halfsexp)
+                   (setq end (point))
+                   (forward-comment (point-max))
+                   (< (point) pos))
+            ;; Looks like tuareg--beginning-of-phrase went too far back!
+            (setq begin (point)))
+          (list begin end (point))))))
+
+  )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                              The major mode
@@ -2933,49 +2979,6 @@ current phrase else insert a newline and indent."
     (when tuareg-display-buffer-on-eval
       (display-buffer tuareg-interactive-buffer-name))))
 
-(when tuareg-use-smie
-  (defconst tuareg-beginning-of-phrase-syms
-    (let* ((prec (cdr (assoc "d-let" tuareg-smie-grammar)))
-           (syms (delq nil
-                       (mapcar (lambda (x) (if (equal (cdr x) prec) (car x)))
-                               tuareg-smie-grammar))))
-      (dolist (k '(";;"))
-        (setq syms (delete k syms)))
-      syms))
-
-  (defun tuareg--beginning-of-phrase ()
-    (while
-        (if (save-excursion
-              (member (tuareg-smie-backward-token)
-                      tuareg-beginning-of-phrase-syms))
-            (progn
-              (tuareg-smie-backward-token)
-              nil)
-          (let ((td (smie-backward-sexp 'halfsexp)))
-            (cond
-             ((member (nth 2 td) tuareg-beginning-of-phrase-syms)
-              (goto-char (nth 1 td))
-              nil)
-             ((and (car td) (not (numberp (car td))))
-              (unless (bobp) (goto-char (nth 1 td)) t))
-             (t t))))))
-
-  (defun tuareg-discover-phrase (&optional _quiet _stop-at-and)
-    "Return a triplet (BEGIN END END-WITH-COMMENTS)."
-    (save-excursion
-      (let ((pos (point)))
-        (end-of-line)
-        (tuareg--beginning-of-phrase)
-        (let ((begin (point))
-              end)
-          (while (progn
-                   (smie-forward-sexp 'halfsexp)
-                   (setq end (point))
-                   (forward-comment (point-max))
-                   (< (point) pos))
-            ;; Looks like tuareg--beginning-of-phrase went too far back!
-            (setq begin (point)))
-          (list begin end (point)))))))
 
 (defun tuareg-narrow-to-phrase ()
   "Narrow the editting window to the surrounding OCaml phrase (or block)."
