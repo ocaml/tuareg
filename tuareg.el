@@ -2170,6 +2170,8 @@ whereas with a non value you get
 
   (defun tuareg--beginning-of-phrase ()
     "Move the point to the beginning of the OCaml phrase on which the point is."
+    (if (nth 3 (syntax-ppss)); in a string
+        (goto-char (nth 8 (syntax-ppss))))
     (while
         (if (save-excursion
               (member (tuareg-smie-backward-token)
