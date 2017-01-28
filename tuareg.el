@@ -2158,6 +2158,10 @@ whereas with a non value you get
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                 Phrase movements and indentation
 
+(defun tuareg--skip-double-colon ()
+  (when (looking-at ";;[ \t\n]*")
+    (goto-char (match-end 0))))
+
 (when tuareg-use-smie
   (defconst tuareg--beginning-of-phrase-syms
     (let* ((prec (cdr (assoc "d-let" tuareg-smie-grammar)))
@@ -2195,7 +2199,8 @@ whereas with a non value you get
         (end-of-line)
         (tuareg--beginning-of-phrase)
         (let ((begin (point))
-              end)
+              end
+              end-comment)
           (while (progn
                    (smie-forward-sexp 'halfsexp)
                    (setq end (point))
@@ -2203,7 +2208,12 @@ whereas with a non value you get
                    (< (point) pos))
             ;; Looks like tuareg--beginning-of-phrase went too far back!
             (setq begin (point)))
-          (list begin end (point))))))
+          (setq end-comment (point))
+          (goto-char begin)
+          ;; ";;" is not part of the phrase and neither comments
+          (tuareg--skip-double-colon)
+          (tuareg--skip-blank-and-comments)
+          (list (point) end end-comment)))))
 
   (defun tuareg-indent-phrase ()
     "Depending of the context: justify and indent a comment,
@@ -2957,37 +2967,38 @@ current phrase else insert a newline and indent."
     (indent-according-to-mode)
     (message tuareg-interactive-send-warning)))
 
-(defun tuareg-eval-region (start end)
-  "Eval the current region in the OCaml toplevel."
-  (interactive "r")
+(defun tuareg-interactive--send-region (start end)
+  "Send the region between `start' and `end' to the OCaml toplevel.
+It is assumed that the range `start'-`end' delimit valid OCaml phrases."
   (save-excursion (tuareg-run-process-if-needed))
   (comint-preinput-scroll-to-bottom)
-  (setq tuareg-interactive-last-phrase-pos-in-source start)
-  (save-excursion
-    (goto-char start)
-    (tuareg--skip-blank-and-comments)
-    (setq start (point))
-    (goto-char end)
-    (tuareg-skip-to-end-of-phrase) ;; FIXME: Only defined in tuareg_indent.el!
-    (setq end (point))
-    (let ((text (buffer-substring-no-properties start end)))
-      (goto-char end)
-      (if (string= text "")
-          (message "Cannot send empty commands to OCaml toplevel!")
-        (set-buffer tuareg-interactive-buffer-name)
+  (let* ((phrases (buffer-substring-no-properties start end))
+         (phrases-colon (concat phrases ";;")))
+    (if (string= phrases "")
+        (message "Cannot send empty commands to OCaml toplevel!")
+      (with-current-buffer tuareg-interactive-buffer-name
         (goto-char (point-max))
         (setq tuareg-interactive-last-phrase-pos-in-toplevel (point))
-        (comint-send-string tuareg-interactive-buffer-name
-                            (concat text ";;"))
+        (comint-send-string tuareg-interactive-buffer-name phrases-colon)
         (let ((pos (point)))
           (comint-send-input)
           (when tuareg-interactive-echo-phrase
             (save-excursion
               (goto-char pos)
-              (insert (concat text ";;")))))))
-    (when tuareg-display-buffer-on-eval
-      (display-buffer tuareg-interactive-buffer-name))))
+              (insert phrases-colon)))))))
+  (when tuareg-display-buffer-on-eval
+    (display-buffer tuareg-interactive-buffer-name)))
 
+(defun tuareg-eval-region (start end)
+  "Eval the current region in the OCaml toplevel."
+  (interactive "r")
+  (setq tuareg-interactive-last-phrase-pos-in-source start)
+  (save-excursion
+    (goto-char start)
+    (setq start (car (tuareg-discover-phrase)))
+    (goto-char end)
+    (setq end (cadr (tuareg-discover-phrase)))
+    (tuareg-interactive--send-region start end)))
 
 (defun tuareg-narrow-to-phrase ()
   "Narrow the editting window to the surrounding OCaml phrase (or block)."
@@ -3003,16 +3014,16 @@ current phrase else insert a newline and indent."
     (save-excursion
       (let ((pair (tuareg-discover-phrase)))
         (setq end (nth 2 pair))
-        (tuareg-eval-region (nth 0 pair) (nth 1 pair))))
+        (tuareg-interactive--send-region (nth 0 pair) (nth 1 pair))))
     (when tuareg-skip-after-eval-phrase
       (goto-char end)
-      (when (looking-at ";;[ \t\n]*")
-	(goto-char (match-end 0))))))
+      (tuareg--skip-double-colon)
+      (tuareg--skip-blank-and-comments))))
 
 (defun tuareg-eval-buffer ()
   "Send the buffer to the Tuareg Interactive process."
   (interactive)
-  (tuareg-eval-region (point-min) (point-max)))
+  (tuareg-interactive--send-region (point-min) (point-max)))
 
 (defvar tuareg-interactive-next-error-olv (make-overlay 1 1))
 
