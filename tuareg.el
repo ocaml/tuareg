@@ -2876,7 +2876,7 @@ Short cuts for interactions with the toplevel:
     (font-lock-mode 1))
   (unless tuareg-use-smie
     (display-warning
-     'tuareg "SMIE not enabled, some things may not work properly"))
+     'tuareg "SMIE not enabled, some things may not work as expected."))
 
   (easy-menu-add tuareg-interactive-mode-menu)
   (tuareg-update-options-menu))
@@ -2937,24 +2937,26 @@ I/O via buffer `*ocaml-toplevel*'."
   (indent-according-to-mode)
   (message tuareg-interactive--send-warning))
 
-(defun tuareg-interactive-send-input ()
-  "Send the current phrase to the OCaml toplevel or insert a newline.
-If the point is after \";;\", the phrase is sent to the toplevel,
+(when tuareg-use-smie
+  (defun tuareg-interactive-send-input ()
+    "Send the current phrase to the OCaml toplevel or insert a newline.
+If the point is next to \";;\", the phrase is sent to the toplevel,
 otherwise a newline is inserted and the lines are indented."
-  (interactive)
-  (cond
-   ((tuareg-in-literal-or-comment-p) (tuareg-interactive--indent-line))
-   ((or (equal ";;" (save-excursion (caddr (smie-backward-sexp))))
-        (equal ";;" (save-excursion (caddr (smie-forward-sexp)))))
-    (comint-send-input))
-   (t (tuareg-interactive--indent-line))))
+    (interactive)
+    (cond
+     ((tuareg-in-literal-or-comment-p) (tuareg-interactive--indent-line))
+     ((or (equal ";;" (save-excursion (caddr (smie-backward-sexp))))
+          (equal ";;" (save-excursion (caddr (smie-forward-sexp)))))
+      (comint-send-input))
+     (t (tuareg-interactive--indent-line))))
 
-(defun tuareg-interactive-send-input-end-of-phrase ()
-  (interactive)
-  (goto-char (point-max))
-  (unless (equal ";;" (save-excursion (caddr (smie-backward-sexp))))
-    (insert ";;"))
-  (comint-send-input))
+  (defun tuareg-interactive-send-input-end-of-phrase ()
+    (interactive)
+    (goto-char (point-max))
+    (unless (equal ";;" (save-excursion (caddr (smie-backward-sexp))))
+      (insert ";;"))
+    (comint-send-input))
+  )
 
 (defun tuareg-interactive--send-region (start end)
   "Send the region between `start' and `end' to the OCaml toplevel.

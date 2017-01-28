@@ -2014,6 +2014,35 @@ or indent all lines in the current phrase."
         (let ((pair (tuareg-discover-phrase)))
           (indent-region (nth 0 pair) (nth 1 pair) nil))))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(unless tuareg-use-smie
+  (defun tuareg-interactive-end-of-phrase ()
+    (save-excursion
+      (end-of-line)
+      (tuareg-find-meaningful-word)
+      (tuareg-find-meaningful-word)
+      (looking-at ";;")))
+
+  (defun tuareg-interactive-send-input ()
+    "Process if the current line ends with `;;' then send the
+current phrase else insert a newline."
+    (if (tuareg-interactive-end-of-phrase)
+        (progn
+          (comint-send-input)
+          (goto-char (point-max)))
+      (insert "\n")
+      (message tuareg-interactive--send-warning)))
+
+  (defun tuareg-interactive-send-input-end-of-phrase ()
+    (interactive)
+    (goto-char (point-max))
+    (unless (tuareg-interactive-end-of-phrase)
+      (insert ";;"))
+    (comint-send-input))
+  )
+
+
 (provide 'tuareg_indent)
 
 ;;; tuareg_indent.el ends here
