@@ -2215,13 +2215,60 @@ whereas with a non value you get
           (tuareg--skip-blank-and-comments)
           (list (point) end end-comment)))))
 
+  (defun tuareg--string-boundaries ()
+    "Assume point is inside a string and return (START . END), the
+positions delimiting the string (including its delimiters)."
+    (save-excursion
+      (let ((start (nth 8 (syntax-ppss)))
+            end)
+        (goto-char start)
+        (smie-forward-sexp)
+        (setq end (1- (point)))
+        (cons start end))))
+
+  (defun tuareg--fill-string ()
+    "Assume the point is inside a string delimited by \" and jusfify it."
+    (let* ((start-end (tuareg--string-boundaries))
+           (start (set-marker (make-marker) (car start-end)))
+           (end   (set-marker (make-marker) (cdr start-end)))
+           fill-prefix
+           (fill-individual-varying-indent t)
+           (use-hard-newlines t))
+      (indent-region (marker-position start) (marker-position end))
+      ;; Delete all backslash protected newlines except those without
+      ;; a preceding space that serve to cut a long word.
+      (goto-char (marker-position start))
+      ;(indent-according-to-mode)
+      (setq fill-prefix (make-string (1+ (current-column)) ?\ ))
+      (if (looking-at "\"\\\\ *[\n\r] *")
+          (replace-match "\""))
+      (while (re-search-forward " +\\\\ *[\n\r] *" (marker-position end) t)
+        (replace-match " "))
+      (set-hard-newline-properties (marker-position start)
+                                   (marker-position end))
+      ;; Do not include the final \" not to remove space before it:
+      (fill-region (marker-position start) (1- (marker-position end)))
+      ;; Protect all soft newlines
+      (goto-char (marker-position start))
+      (end-of-line)
+      (while (< (point) (marker-position end))
+        (unless (get-char-property (point) 'hard)
+          (insert " \\"))
+        (forward-char)
+        (end-of-line))
+      (set-marker start nil)
+      (set-marker end nil)))
+
   (defun tuareg-indent-phrase ()
     "Depending of the context: justify and indent a comment,
 or indent all lines in the current phrase."
     (interactive)
     (save-excursion
-      (let ((phrase (tuareg-discover-phrase)))
-        (indent-region (car phrase) (cadr phrase)))))
+      (cond
+       ((equal ?\"(nth 3 (syntax-ppss)))
+        (tuareg--fill-string))
+       (t (let ((phrase (tuareg-discover-phrase)))
+            (indent-region (car phrase) (cadr phrase)))))))
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
