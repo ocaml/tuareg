@@ -2762,9 +2762,8 @@ switch is not installed, `nil' is returned."
     (define-key map "\C-c\C-k" 'tuareg-kill-ocaml)
     (define-key map "\C-c`" 'tuareg-interactive-next-error-toplevel)
     (define-key map "\C-c?" 'tuareg-interactive-next-error-toplevel)
-    (define-key map "\C-m" 'tuareg-interactive-send-input)
-    (define-key map "\C-j" 'tuareg-interactive-send-input-or-indent)
-    (define-key map "\M-\C-m" 'tuareg-interactive-send-input-end-of-phrase)
+    (define-key map [enter] 'tuareg-interactive-send-input)
+    (define-key map [M-return] 'tuareg-interactive-send-input-end-of-phrase)
     (define-key map [kp-enter] 'tuareg-interactive-send-input-end-of-phrase)
     map))
 
@@ -2875,6 +2874,9 @@ Short cuts for interactions with the toplevel:
             tuareg-interactive-output-font-lock
             tuareg-interactive-error-font-lock)
     (font-lock-mode 1))
+  (unless tuareg-use-smie
+    (display-warning
+     'tuareg "SMIE not enabled, some things may not work properly"))
 
   (easy-menu-add tuareg-interactive-mode-menu)
   (tuareg-update-options-menu))
@@ -2926,46 +2928,33 @@ I/O via buffer `*ocaml-toplevel*'."
         (re-search-forward comint-prompt-regexp))
       (buffer-substring-no-properties (point) end))))
 
-(defun tuareg-interactive-end-of-phrase ()
-  (save-excursion
-    (end-of-line)
-    ;; FIXME: Only defined in tuareg_indent.el!
-    (tuareg-find-meaningful-word)
-    (tuareg-find-meaningful-word)
-    (looking-at ";;")))
+
+(defconst tuareg-interactive--send-warning
+  "Note: toplevel processing requires a terminating `;;'")
+
+(defun tuareg-interactive--indent-line ()
+  (insert "\n")
+  (indent-according-to-mode)
+  (message tuareg-interactive--send-warning))
+
+(defun tuareg-interactive-send-input ()
+  "Send the current phrase to the OCaml toplevel or insert a newline.
+If the point is after \";;\", the phrase is sent to the toplevel,
+otherwise a newline is inserted and the lines are indented."
+  (interactive)
+  (cond
+   ((tuareg-in-literal-or-comment-p) (tuareg-interactive--indent-line))
+   ((or (equal ";;" (save-excursion (caddr (smie-backward-sexp))))
+        (equal ";;" (save-excursion (caddr (smie-forward-sexp)))))
+    (comint-send-input))
+   (t (tuareg-interactive--indent-line))))
 
 (defun tuareg-interactive-send-input-end-of-phrase ()
   (interactive)
   (goto-char (point-max))
-  (unless (tuareg-interactive-end-of-phrase)
+  (unless (equal ";;" (save-excursion (caddr (smie-backward-sexp))))
     (insert ";;"))
   (comint-send-input))
-
-(defconst tuareg-interactive-send-warning
-  "Note: toplevel processing requires a terminating `;;'")
-
-(defun tuareg-interactive-send-input ()
-  "Process if the current line ends with `;;' then send the
-current phrase else insert a newline."
-  (interactive)
-  (if (tuareg-interactive-end-of-phrase)
-      (progn
-        (comint-send-input)
-        (goto-char (point-max)))
-    (insert "\n")
-    (message tuareg-interactive-send-warning)))
-
-(defun tuareg-interactive-send-input-or-indent ()
-  "Process if the current line ends with `;;' then send the
-current phrase else insert a newline and indent."
-  (interactive)
-  (if (tuareg-interactive-end-of-phrase)
-      (progn
-        (goto-char (point-max))
-        (comint-send-input))
-    (insert "\n")
-    (indent-according-to-mode)
-    (message tuareg-interactive-send-warning)))
 
 (defun tuareg-interactive--send-region (start end)
   "Send the region between `start' and `end' to the OCaml toplevel.
