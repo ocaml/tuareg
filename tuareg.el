@@ -2227,7 +2227,8 @@ positions delimiting the string (including its delimiters)."
         (cons start end))))
 
   (defun tuareg--fill-string ()
-    "Assume the point is inside a string delimited by \" and jusfify it."
+    "Assume the point is inside a string delimited by \" and jusfify it.
+This function moves the point."
     (let* ((start-end (tuareg--string-boundaries))
            (start (set-marker (make-marker) (car start-end)))
            (end   (set-marker (make-marker) (cdr start-end)))
@@ -2259,16 +2260,41 @@ positions delimiting the string (including its delimiters)."
       (set-marker start nil)
       (set-marker end nil)))
 
+  (defun tuareg--fill-comment ()
+    "Assumes the point is inside a comment and justify it.
+This function moves the point."
+    (let* ((start (set-marker (make-marker) (nth 8 (syntax-ppss))))
+           (end (make-marker))
+           fill-prefix
+           (use-hard-newlines t))
+      (goto-char (marker-position start))
+      (indent-according-to-mode)
+      (setq fill-prefix (make-string (+ 3 (current-column)) ?\ ))
+      (forward-comment 1)
+      (set-marker end (point))
+      (goto-char (marker-position start))
+      (let ((e (marker-position end)))
+        (while (re-search-forward "\n\n" e t)
+          (put-text-property (match-beginning 0) (match-end 0) 'hard 't)))
+      (fill-region start end)
+      (remove-text-properties (marker-position start) (marker-position end)
+                              '(hard))
+      (set-marker start nil)
+      (set-marker end nil)))
+
   (defun tuareg-indent-phrase ()
     "Depending of the context: justify and indent a comment,
 or indent all lines in the current phrase."
     (interactive)
     (save-excursion
-      (cond
-       ((equal ?\"(nth 3 (syntax-ppss)))
-        (tuareg--fill-string))
-       (t (let ((phrase (tuareg-discover-phrase)))
-            (indent-region (car phrase) (cadr phrase)))))))
+      (let ((ppss (syntax-ppss)))
+        (cond
+         ((equal ?\"(nth 3 ppss))
+          (tuareg--fill-string))
+         ((nth 4 ppss)
+          (tuareg--fill-comment))
+         (t (let ((phrase (tuareg-discover-phrase)))
+              (indent-region (car phrase) (cadr phrase))))))))
   )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
