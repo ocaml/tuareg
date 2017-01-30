@@ -17,9 +17,9 @@ before_install:
   - evm install ${EMACS}-travis --use --skip
 
 script:
-  emacs --version
-  make elc
-  make indent-test
+  - emacs --version
+  - make elc
+  - make indent-test
 
 notifications:
   email: true
