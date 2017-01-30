@@ -2621,9 +2621,13 @@ Short cuts for interactions with the toplevel:
                  ;; ocaml-module-symbols contains an unexplained call to
                  ;; pop-to-buffer within save-window-excursion.  Let's try and
                  ;; avoid it pops up a stupid frame.
-                 (special-display-buffer-names
-                  (cons '("*caml-help*" (same-frame . t))
-                        special-display-buffer-names)))
+                 (display-buffer-alist
+                  (cons '("^\\*caml-help\\*$"
+                          (display-buffer-reuse-window
+                           display-buffer-pop-up-window)
+                          (reusable-frames . nil); only the selected frame
+                          (window-height . 0.25))
+                        display-buffer-alist)))
              (if (eq (car-safe action) 'boundaries)
                  `(boundaries ,(if dot (1+ dot) 0)
                               ,@(string-match "\\." (cdr action)))
