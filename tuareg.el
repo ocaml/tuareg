@@ -2329,7 +2329,7 @@ file outside _build? ")
 	      (kill-buffer)
 	      (find-file fpath)
 	      t)
-	  (toggle-read-only); Obsolete.  Better portable way?
+          (read-only-mode)
 	  (message "File under _build.  C-x C-q to edit.")
 	  nil)))))
 
