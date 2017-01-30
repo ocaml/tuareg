@@ -1541,7 +1541,7 @@ by |, insert one |."
 		    nil))))))
     tok))
 
-(defun tuareg--skip-blank-and-comments ()
+(defun tuareg-skip-blank-and-comments ()
   (forward-comment (point-max)))
 
 (defconst tuareg-smie--type-label-leader
@@ -1554,7 +1554,7 @@ by |, insert one |."
 (defconst tuareg-smie--float-re "[0-9]+\\(?:\\.[0-9]*\\)?\\(?:e[-+]?[0-9]+\\)")
 
 (defun tuareg-smie--forward-token ()
-  (tuareg--skip-blank-and-comments)
+  (tuareg-skip-blank-and-comments)
   (buffer-substring-no-properties
    (point)
    (progn (if (zerop (skip-syntax-forward "."))
@@ -1876,7 +1876,7 @@ Return values can be
       ;; FIXME: Don't use smie--parent.
       (goto-char (cadr smie--parent))
       (smie-indent-forward-token)
-      (tuareg--skip-blank-and-comments)
+      (tuareg-skip-blank-and-comments)
       `(column . ,(- (current-column) 2)))
      (t (smie-rule-separator kind))))
    (t
@@ -2204,7 +2204,7 @@ whereas with a non value you get
           (while (progn
                    (smie-forward-sexp 'halfsexp)
                    (setq end (point))
-                   (tuareg--skip-blank-and-comments)
+                   (tuareg-skip-blank-and-comments)
                    (< (point) pos))
             ;; Looks like tuareg--beginning-of-phrase went too far back!
             (setq begin (point)))
@@ -2212,7 +2212,7 @@ whereas with a non value you get
           (goto-char begin)
           ;; ";;" is not part of the phrase and neither comments
           (tuareg--skip-double-colon)
-          (tuareg--skip-blank-and-comments)
+          (tuareg-skip-blank-and-comments)
           (list (point) end end-comment)))))
 
   (defun tuareg--string-boundaries ()
@@ -2513,11 +2513,11 @@ Short cuts for interactions with the toplevel:
 (defun tuareg-beginning-of-defun ()
   (when (tuareg-find-matching-starter tuareg-starters-syms)
 	(save-excursion (tuareg-smie-forward-token)
-                        (tuareg--skip-blank-and-comments)
+                        (tuareg-skip-blank-and-comments)
                         (let ((name (tuareg-smie-forward-token)))
                           (if (not (member name '("rec" "type")))
                               name
-                            (tuareg--skip-blank-and-comments)
+                            (tuareg-skip-blank-and-comments)
                         (tuareg-smie-forward-token))))))
 
 (defcustom tuareg-max-name-components 3
@@ -3082,7 +3082,7 @@ It is assumed that the range `start'-`end' delimit valid OCaml phrases."
     (when tuareg-skip-after-eval-phrase
       (goto-char end)
       (tuareg--skip-double-colon)
-      (tuareg--skip-blank-and-comments))))
+      (tuareg-skip-blank-and-comments))))
 
 (defun tuareg-eval-buffer ()
   "Send the buffer to the Tuareg Interactive process."
@@ -3388,7 +3388,7 @@ Short cuts for interaction within the toplevel:
                0))
         (kw) (value-list) (type-list) (module-list) (class-list) (misc-list))
     (goto-char (point-min))
-    (tuareg--skip-blank-and-comments)
+    (tuareg-skip-blank-and-comments)
     (while (not (eobp))
       (when (looking-at tuareg-definitions-regexp)
         (setq kw (tuareg-match-string 0))
@@ -3397,10 +3397,10 @@ Short cuts for interaction within the toplevel:
           (setq kw "let"))
         ;; Skip optional elements
         (goto-char (match-end 0))
-        (tuareg--skip-blank-and-comments)
+        (tuareg-skip-blank-and-comments)
         (when (looking-at tuareg-definitions-bind-skip-regexp)
           (goto-char (match-end 0)))
-        (tuareg--skip-blank-and-comments)
+        (tuareg-skip-blank-and-comments)
         (when (looking-at tuareg-identifier-regexp)
           (let ((ref (cons (tuareg-match-string 0) (point-marker))))
             (if (not (integerp cpt))
