@@ -5,16 +5,16 @@ sudo: false
 
 env:
   matrix:
-    - EMACS=emacs-24.3
-    - EMACS=emacs-24.4
-    - EMACS=emacs-24.5
-    - EMACS=emacs-25.1
+    - EVM_EMACS=emacs-24.3
+    - EVM_EMACS=emacs-24.4
+    - EVM_EMACS=emacs-24.5
+    - EVM_EMACS=emacs-25.1
 
 before_install:
   - export PATH="$HOME/.evm/bin:$PATH"
   - git clone https://github.com/rejeep/evm.git $HOME/.evm
   - evm config path /tmp
-  - evm install ${EMACS}-travis --use --skip
+  - evm install ${EVM_EMACS}-travis --use --skip
 
 script:
   - emacs --version
