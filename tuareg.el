@@ -2560,6 +2560,11 @@ Short cuts for interactions with the toplevel:
           "\\(?::\\(\nWarning\\)?\\|[-,:]\\|$\\)")            ;Warning/error.
   "Regular expression matching the error messages produced by ocamlc.")
 
+(defconst tuareg--error-regexp-newstyle
+  (concat "^[ A-\377]+ \"\\([^\"\n]+\\)\", line \\([0-9]+\\), "
+          "characters \\([0-9]+\\)-\\([0-9]+\\):")
+  "Regular expression matching the error messages produced by ocamlc/ocamlopt.")
+
 (when (boundp 'compilation-error-regexp-alist)
   (or (assoc tuareg-error-regexp
              compilation-error-regexp-alist)
@@ -2571,7 +2576,12 @@ Short cuts for interactions with the toplevel:
                   ;; Other error format used for unhandled match case.
                   (cons '("^Fatal error: exception [^ \n]*(\"\\([^\"]*\\)\", \\([0-9]+\\), \\([0-9]+\\))"
                           1 2 3)
-                        compilation-error-regexp-alist)))))
+                        compilation-error-regexp-alist))))
+  (unless (assoc tuareg--error-regexp-newstyle
+                 compilation-error-regexp-alist)
+    (setq compilation-error-regexp-alist
+          (cons (list tuareg--error-regexp-newstyle 1 2 '(3 . 4))
+                compilation-error-regexp-alist))))
 
 ;; A regexp to extract the range info.
 
