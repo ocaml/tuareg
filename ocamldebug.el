@@ -504,7 +504,7 @@ the ocamldebug commands `cd DIR' and `directory'."
             (read-from-minibuffer (format "Args for %s: " file)
                                   ocamldebug-debuggee-args))
       (setq ocamldebug-command-name
-            (read-from-minibuffer "OCaml debugguer to run: "
+            (read-from-minibuffer "OCaml debugger to run: "
                                   ocamldebug-command-name))
       (message "Current directory is %s" default-directory)
       (let* ((args (tuareg--split-args ocamldebug-debuggee-args))
