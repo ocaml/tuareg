@@ -18,16 +18,18 @@ INSTALL_DIR ?= $(shell opam config var share)/emacs/site-lisp
 DIST_FILES += $(ELS) Makefile README.md tuareg.install
 
 EMACSFORMACOSX = /Applications/Emacs.app/Contents/MacOS/Emacs
-AQUAMACS = /Applications/Aquamacs.app
+AQUAMACS = $(shell test -d /Applications \
+	&& find /Applications -type f | grep 'Aquamacs$$')
 ifeq ($(wildcard $(EMACSFORMACOSX)),$(EMACSFORMACOSX))
 EMACS ?= $(EMACSFORMACOSX)
 else
+ifneq ($(strip $(AQUAMACS)),)
 ifeq ($(wildcard $(AQUAMACS)),$(AQUAMACS))
-EMACS ?= open -a $(AQUAMACS)
-else
+EMACS ?= $(AQUAMACS)
+endif
+endif
+endif
 EMACS ?= emacs
-endif
-endif
 
 #ENABLE_SMIE = --eval '(setq tuareg-use-smie t)'
 RM ?= rm -f
