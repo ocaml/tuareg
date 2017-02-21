@@ -2849,7 +2849,7 @@ switch is not installed, `nil' is returned."
     (define-key map "\C-c\C-k" 'tuareg-kill-ocaml)
     (define-key map "\C-c`" 'tuareg-interactive-next-error-toplevel)
     (define-key map "\C-c?" 'tuareg-interactive-next-error-toplevel)
-    (define-key map [enter] 'tuareg-interactive-send-input)
+    (define-key map [return] 'tuareg-interactive-send-input)
     (define-key map [M-return] 'tuareg-interactive-send-input-end-of-phrase)
     (define-key map [kp-enter] 'tuareg-interactive-send-input-end-of-phrase)
     map))
@@ -3033,7 +3033,7 @@ otherwise a newline is inserted and the lines are indented."
     (cond
      ((tuareg-in-literal-or-comment-p) (tuareg-interactive--indent-line))
      ((or (equal ";;" (save-excursion (caddr (smie-backward-sexp))))
-          (equal ";;" (save-excursion (caddr (smie-forward-sexp)))))
+          (looking-at "[ \t\n\r]*;;"))
       (comint-send-input))
      (t (tuareg-interactive--indent-line))))
 
