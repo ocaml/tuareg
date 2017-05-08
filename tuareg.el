@@ -863,6 +863,10 @@ Regexp match data 0 points to the chars."
 				  'words))
       . font-lock-preprocessor-face)
      ("\\<\\(false\\|true\\)\\>" . font-lock-constant-face)
+     (,(regexp-opt '("true" "false" "__LOC__" "__FILE__" "__LINE__"
+                     "__MODULE__" "__POS__" "__LOC_OF__" "__LINE_OF__"
+                     "__POS_OF__") 'words)
+      . font-lock-constant-face)
      ;; "type" to introduce a local abstract type considered a keyword
      (,(concat "( *\\(type\\) +\\(" lid "\\) *)")
       (1 font-lock-keyword-face)
@@ -1048,7 +1052,7 @@ Regexp match data 0 points to the chars."
       1 font-lock-function-name-face)
      (,(concat "\\<\\("
                (regexp-opt '("DEFINE" "IFDEF" "IFNDEF" "THEN" "ELSE" "ENDIF"
-                             "INCLUDE" "__FILE__" "__LOCATION__"))
+                             "INCLUDE" "__LOCATION__"))
                "\\)\\>")
       . font-lock-preprocessor-face)
      ,@(and tuareg-support-metaocaml
