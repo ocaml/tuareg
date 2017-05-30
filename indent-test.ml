@@ -1309,3 +1309,11 @@ let command =
     +> flag "-world" (optional_with_default "World" string)
             ~doc:" The 'world' of 'hello world'"
   )
+
+let command =
+  (* for #130 *)
+  match x with
+    A ->
+     a
+  | B ->
+     b
