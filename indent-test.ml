@@ -76,8 +76,6 @@ let x =
   x + x
 ;;
 
-(* FIXME: MAJOR "function" sends SMIE into a loop (fine with "fun").
-   Use M-q to test. *)
 let () =
   let z = function t -> a in
   foo z
@@ -86,8 +84,6 @@ let () =
   foo(function t -> a)
 ;;
 
-(* FIXME: MAJOR: M-q on the "(" raises 'Scan error: "Unbalanced
-   parentheses"'.  It is fine if both () are on the same line. *)
 let () =
   begin
     (begin
