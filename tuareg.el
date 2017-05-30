@@ -1970,6 +1970,13 @@ Return values can be
                (smie-rule-parent 2)
              ;; Align with other clauses, even with no preceding "|"
              tuareg-match-clause-indent))
+          ((smie-rule-parent-p "function")
+           ;; Similar to the previous rule but for "function"
+           (if (save-excursion
+                 (and (not (equal "|" (nth 2 (smie-forward-sexp "|"))))
+                      (equal (nth 2 (smie-backward-sexp "|")) "function")))
+               (smie-rule-parent tuareg-default-indent)
+             tuareg-match-clause-indent))
           ((smie-rule-parent-p "|") tuareg-match-clause-indent)
           ;; Special case for "CPS style" code.
           ;; https://github.com/ocaml/tuareg/issues/5.

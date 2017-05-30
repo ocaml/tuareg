@@ -501,6 +501,12 @@ let () =
      yyyyy
        (a b)
 
+let f = function
+    A ->
+     1
+  | B ->
+     2
+
 let d x = function
   (* FIXME: Should we leave it like this or align "|" with "match"?
      I chose with "match" because it looks otherwise odd and is more
@@ -531,6 +537,9 @@ let a f = function
 
 let x = foo ~f:(fun _ -> 0              (* Comment.  *)
                )
+
+let f = function x ->
+          y
 
 let f x =
   (let y = x in
@@ -638,7 +647,7 @@ let () =
   | foo ->
      bar
      >>| function _ ->
-                  _
+       _
 
 let () =
   a
@@ -1299,9 +1308,9 @@ let subscribe_impl dir topic ~aborted =
 
 let x = List.map
           (function x ->
-                    blabla    (* FIXME: indentation afer "(function" *)
-                      blabla
-                      blabla)
+             blabla
+               blabla
+               blabla)
           l
 
 let command =
