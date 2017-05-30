@@ -63,6 +63,13 @@ let x =
   | A -> 1                       (* Issue #73 *)
   end
 
+let command =                    (* Issue #130 *)
+  match x with
+    A ->
+     a
+  | B ->
+     b
+
 let x =
   let open M in
   let x = 5 in
