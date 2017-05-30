@@ -620,7 +620,7 @@ let () =
 let () =
   try f a
   with A () ->
-       ()
+        ()
      | B () ->
         ()
      |     C () ->
@@ -1174,13 +1174,13 @@ let x =
 let x =
   try a
   with Not_found ->
-       b
+        b
      | _ ->
         c
 let x =
   try a
   with Not_found ->
-       if a then b
+        if a then b
      | flag when String.is_prefix flag ~prefix:"-" ->
         a
      | _ ->
