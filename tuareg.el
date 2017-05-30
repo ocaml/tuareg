@@ -1957,17 +1957,19 @@ Return values can be
               0))
         ((equal token "->")
          (cond
-          ((and (smie-rule-parent-p "with")
-                ;; Align with "with" but only if it's the only branch (often
-                ;; the case in try..with), since otherwise subsequent
-                ;; branches can't be both indented well and aligned.
-                (save-excursion
-                  (and (not (equal "|" (nth 2 (smie-forward-sexp "|"))))
-                       ;; Since we may misparse "if..then.." we need to
-                       ;; double check that smie-forward-sexp indeed got us
-                       ;; to the right place.
-                       (equal (nth 2 (smie-backward-sexp "|")) "with"))))
-           (smie-rule-parent 2))
+          ((smie-rule-parent-p "with")
+           ;; Align with "with" but only if it's the only branch (often
+           ;; the case in try..with), since otherwise subsequent
+           ;; branches can't be both indented well and aligned.
+           (if (save-excursion
+                 (and (not (equal "|" (nth 2 (smie-forward-sexp "|"))))
+                      ;; Since we may misparse "if..then.." we need to
+                      ;; double check that smie-forward-sexp indeed got us
+                      ;; to the right place.
+                      (equal (nth 2 (smie-backward-sexp "|")) "with")))
+               (smie-rule-parent 2)
+             ;; Align with other clauses, even with no preceding "|"
+             tuareg-match-clause-indent))
           ((smie-rule-parent-p "|") tuareg-match-clause-indent)
           ;; Special case for "CPS style" code.
           ;; https://github.com/ocaml/tuareg/issues/5.
