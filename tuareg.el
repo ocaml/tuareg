@@ -962,14 +962,15 @@ Regexp match data 0 points to the chars."
               "lxor" "not" "lnot" "mod"))
           'words))
       . tuareg-font-lock-operator-face)
-     ;;; (lid: t) and (lid :> t)
+     ;;; (expr: t) and (expr :> t)
      ;;; If `t' is longer then one word, require a space before.  Not only
      ;;; this is more readable but it also avoids that `~label:expr var`
      ;;; is taken as a type annotation when surrounded by parentheses.
-     (,(concat "(" balanced-braces-no-end-colon ":>?\\(['_A-Za-z]+\\))")
+     (,(concat "(" balanced-braces-no-end-colon ":>?\\(['_A-Za-z]+"
+               "\\| [ \n'_A-Za-z]" balanced-braces-no-string "\\))")
       1 font-lock-type-face keep)
-     (,(concat "(" balanced-braces-no-end-colon ":>? \\([ \n'_A-Za-z]"
-               balanced-braces-no-string "\\))")
+     ;; (lid: t)
+     (,(concat "(" lid " *:\\(['_A-Za-z]" balanced-braces-no-string "\\))")
       1 font-lock-type-face keep)
      (,(concat "\\<external +\\(" lid "\\)")  1 font-lock-function-name-face)
      (,(concat "\\<exception +\\(" uid "\\)") 1 font-lock-variable-name-face)
