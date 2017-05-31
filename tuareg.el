@@ -198,7 +198,8 @@ show the '|' is aligned with 'match', thus 0 is the default value."
   :group 'tuareg :type 'integer)
 
 (defcustom tuareg-match-clause-indent 1
-  "*How many spaces to indent a clause after a pattern match `| ... ->'.
+  "*How many spaces to indent a clause of match after a pattern `| ... ->'
+or `... ->' (pattern without preceding `|' in the first clause of a matching).
 To respect <http://caml.inria.fr/resources/doc/guides/guidelines.en.html>
 the default is 1.")
 
