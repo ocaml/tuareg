@@ -2804,7 +2804,7 @@ switch is not installed, `nil' is returned."
          (cmd2 (concat tuareg-opam " switch list -s")); opam2
 	 (cpl (or (tuareg-shell-command-to-string cmd1)
                   (tuareg-shell-command-to-string cmd2))))
-    (if cpl (split-string cpl) '())))
+    (if cpl (split-string cpl "[ \f\t\n\r\v]+" t) '())))
 
 (defun tuareg-opam-current-compiler ()
   (let* ((cmd (concat tuareg-opam " switch show -s"))
