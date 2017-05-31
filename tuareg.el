@@ -2800,8 +2800,10 @@ switch is not installed, `nil' is returned."
 	(car (read-from-string opam-env)))))
 
 (defun tuareg-opam-installed-compilers ()
-  (let* ((cmd (concat tuareg-opam " switch -i -s"))
-	 (cpl (tuareg-shell-command-to-string cmd)))
+  (let* ((cmd1 (concat tuareg-opam " switch list -i -s"))
+         (cmd2 (concat tuareg-opam " switch list -s")); opam2
+	 (cpl (or (tuareg-shell-command-to-string cmd1)
+                  (tuareg-shell-command-to-string cmd2))))
     (if cpl (split-string cpl) '())))
 
 (defun tuareg-opam-current-compiler ()
