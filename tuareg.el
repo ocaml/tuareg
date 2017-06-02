@@ -1992,7 +1992,7 @@ Return values can be
                             (backward-char 1)
                             (smie-indent-virtual))))
                0)))
-          (t 0)))
+          (t tuareg-match-clause-indent)))
         ((equal token ":")
          (cond
           ((smie-rule-parent-p "val" "external") (smie-rule-parent 2))
