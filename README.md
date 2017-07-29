@@ -50,8 +50,10 @@ The Tuareg major mode is triggered by visiting a file with extension
 `.ml`, `.mli`, `.mly`, `.mll`, and `.mlp` or manually by
 <kbd>M-x tuareg-mode</kbd>.
 
-Start the OCaml toplevel with <kbd>M-x run-ocaml</kbd>.  You can evaluate a
-phrase in your buffer by typing <kbd>C-c C-e</kbd> when the cursor is on it (it
+Start the OCaml toplevel with <kbd>M-x run-ocaml</kbd>.  To evaluate a
+phrase, simply type <kbd>M-⟨return⟩</kbd>.  You can also evaluate a
+phrase in a different buffer by typing <kbd>C-c C-e</kbd> when the
+cursor is on it (it
 will start the OCaml toplevel if needed).
 
 Run the OCaml debugger with <kbd>M-x ocamldebug FILE</kbd>.
