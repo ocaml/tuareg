@@ -3553,8 +3553,4 @@ for a quick jump via the definitions menu."
 ;; Load it after providing `tuareg' to avoid circular dependencies.
 (if t (require 'tuareg_indent))         ;Don't load during compilation.
 
-;; For compatibility with caml support modes
-;; you may also link caml.el to tuareg.el
-(provide 'caml)
-
 ;;; tuareg.el ends here
