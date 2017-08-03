@@ -3,8 +3,8 @@
 (add-to-list 'load-path
              (or (file-name-directory load-file-name) (car load-path)))
 
-;;;### (autoloads nil "ocamldebug" "ocamldebug.el" (22091 24718 836997
-;;;;;;  845000))
+;;;### (autoloads nil "ocamldebug" "ocamldebug.el" (22845 27808 224521
+;;;;;;  140000))
 ;;; Generated autoloads from ocamldebug.el
 
 (autoload 'ocamldebug "ocamldebug" "\
@@ -13,13 +13,13 @@ The directory containing FILE becomes the initial working directory
 and source-file directory for ocamldebug.  If you wish to change this, use
 the ocamldebug commands `cd DIR' and `directory'.
 
-\(fn PATH)" t nil)
+\(fn PGM-PATH)" t nil)
 
 (defalias 'camldebug 'ocamldebug)
 
 ;;;***
 
-;;;### (autoloads nil "tuareg" "tuareg.el" (22359 21012 24789 234000))
+;;;### (autoloads nil "tuareg" "tuareg.el" (22845 33612 205038 646000))
 ;;; Generated autoloads from tuareg.el
 (add-to-list 'auto-mode-alist '("\\.ml[ip]?\\'" . tuareg-mode))
 (add-to-list 'auto-mode-alist '("\\.eliomi?\\'" . tuareg-mode))
@@ -82,8 +82,8 @@ Run an OCaml toplevel process.  I/O via buffer `*ocaml-toplevel*'.
 
 ;;;***
 
-;;;### (autoloads nil nil ("tuareg-light.el" "tuareg-mly.el" "tuareg_indent.el")
-;;;;;;  (22359 21031 494316 93000))
+;;;### (autoloads nil nil ("dot-emacs.el" "tuareg-light.el" "tuareg_indent.el")
+;;;;;;  (22845 33659 181725 879000))
 
 ;;;***
 
