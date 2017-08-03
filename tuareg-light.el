@@ -2351,7 +2351,7 @@ Known bugs:
 Short cuts for the Tuareg2 mode:
 \\{tuareg2-mode-map}
 
-Short cuts for interactions with the toplevel:
+Short cuts for interactions with the REPL:
 \\{tuareg2-interactive-mode-map}"
   (interactive)
   (kill-all-local-variables)

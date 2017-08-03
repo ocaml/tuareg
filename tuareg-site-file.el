@@ -3,8 +3,8 @@
 (add-to-list 'load-path
              (or (file-name-directory load-file-name) (car load-path)))
 
-;;;### (autoloads nil "ocamldebug" "ocamldebug.el" (22091 24718 836997
-;;;;;;  845000))
+;;;### (autoloads nil "ocamldebug" "ocamldebug.el" (22688 11611 703888
+;;;;;;  818000))
 ;;; Generated autoloads from ocamldebug.el
 
 (autoload 'ocamldebug "ocamldebug" "\
@@ -13,13 +13,13 @@ The directory containing FILE becomes the initial working directory
 and source-file directory for ocamldebug.  If you wish to change this, use
 the ocamldebug commands `cd DIR' and `directory'.
 
-\(fn PATH)" t nil)
+\(fn PGM-PATH)" t nil)
 
 (defalias 'camldebug 'ocamldebug)
 
 ;;;***
 
-;;;### (autoloads nil "tuareg" "tuareg.el" (22359 21012 24789 234000))
+;;;### (autoloads nil "tuareg" "tuareg.el" (22915 4501 346780 343000))
 ;;; Generated autoloads from tuareg.el
 (add-to-list 'auto-mode-alist '("\\.ml[ip]?\\'" . tuareg-mode))
 (add-to-list 'auto-mode-alist '("\\.eliomi?\\'" . tuareg-mode))
@@ -57,20 +57,20 @@ You can append it to your `.emacs' or use it as a tutorial.
 `M-x ocamldebug' FILE starts the OCaml debugger ocamldebug on the executable
 FILE, with input and output in an Emacs buffer named *ocamldebug-FILE*.
 
-A Tuareg Interactive Mode to evaluate expressions in a toplevel is
+A Tuareg Interactive Mode to evaluate expressions in a REPL is
 included.  Type `M-x tuareg-run-ocaml' or simply `M-x run-ocaml' or see
 special-keys below.
 
 Short cuts for the Tuareg mode:
 \\{tuareg-mode-map}
 
-Short cuts for interactions with the toplevel:
+Short cuts for interactions with the REPL:
 \\{tuareg-interactive-mode-map}
 
 \(fn)" t nil)
 
 (autoload 'tuareg-run-ocaml "tuareg" "\
-Run an OCaml toplevel process.  I/O via buffer `*ocaml-toplevel*'.
+Run an OCaml REPL process.  I/O via buffer `*ocaml-repl*'.
 
 \(fn)" t nil)
 
@@ -82,8 +82,8 @@ Run an OCaml toplevel process.  I/O via buffer `*ocaml-toplevel*'.
 
 ;;;***
 
-;;;### (autoloads nil nil ("tuareg-light.el" "tuareg-mly.el" "tuareg_indent.el")
-;;;;;;  (22359 21031 494316 93000))
+;;;### (autoloads nil nil ("dot-emacs.el" "tuareg-light.el" "tuareg-mly.el"
+;;;;;;  "tuareg_indent.el") (22671 38786 713423 832000))
 
 ;;;***
 

@@ -7,7 +7,9 @@ Tuareg: an Emacs OCaml mode
 
 This archive contains files to help editing [OCaml](http://ocaml.org/)
 code, to highlight important parts of the code, to run an OCaml
-toplevel, and to run the OCaml debugger within Emacs.
+[REPL](https://en.wikipedia.org/wiki/Read%E2%80%93eval%E2%80%93print_loop)
+(also called *toplevel*),
+and to run the OCaml debugger within Emacs.
 
 Contents
 --------
@@ -50,12 +52,13 @@ The Tuareg major mode is triggered by visiting a file with extension
 `.ml`, `.mli`, `.mly`, `.mll`, and `.mlp` or manually by
 <kbd>M-x tuareg-mode</kbd>.
 
-Start the OCaml toplevel with <kbd>M-x run-ocaml</kbd>.  To evaluate a
+Start the OCaml REPL with <kbd>M-x run-ocaml</kbd>.
+To evaluate a
 phrase, simply type <kbd>S-⟨return⟩</kbd> (<kbd>shift</kbd> and
 <kbd>return</kbd>).  You can also evaluate a
 phrase in a different buffer by typing <kbd>C-c C-e</kbd> when the
 cursor is on it (it
-will start the OCaml toplevel if needed).
+will start the OCaml REPL if needed).
 
 Run the OCaml debugger with <kbd>M-x ocamldebug FILE</kbd>.
 

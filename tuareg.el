@@ -20,7 +20,7 @@
 ;;; Commentary:
 ;; Description:
 ;; Tuareg helps editing OCaml code, to highlight important parts of
-;; the code, to run an OCaml toplevel, and to run the OCaml debugger
+;; the code, to run an OCaml REPL, and to run the OCaml debugger
 ;; within Emacs.
 
 ;; Installation:
@@ -40,17 +40,17 @@
 ;; hilighted.
 ;;
 ;; M-x tuareg-run-ocaml (or simply `run-ocaml') starts an OCaml
-;; toplevel with input and output in an Emacs buffer named
-;; `*ocaml-toplevel*. This gives you the full power of Emacs to edit
-;; the input to the OCaml toplevel. This mode is based on comint so
+;; REPL (aka toplevel) with input and output in an Emacs buffer named
+;; `*OCaml*.  This gives you the full power of Emacs to edit
+;; the input to the OCaml REPL.  This mode is based on comint so
 ;; you get all the usual comint features, including command history. A
 ;; hook named `tuareg-interactive-mode-hook' may be used for
 ;; customization.
 ;;
 ;; Typing C-c C-e in a buffer in tuareg mode sends the current phrase
-;; (containing the point) to the OCaml toplevel, and evaluates it.  If
+;; (containing the point) to the OCaml REPL, and evaluates it.  If
 ;; you type one of these commands before M-x tuareg-run-ocaml, the
-;; toplevel will be started automatically.
+;; REPL will be started automatically.
 ;;
 ;; M-x ocamldebug FILE starts the OCaml debugger ocamldebug on the
 ;; executable FILE, with input and output in an Emacs buffer named
@@ -278,32 +278,32 @@ See `comint-scroll-to-bottom-on-output' for details."
 
 (defcustom tuareg-skip-after-eval-phrase t
   "*Non-nil means skip to the end of the phrase after evaluation in the
-Caml toplevel."
+OCaml REPL."
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-interactive-read-only-input nil
-  "*Non-nil means input sent to the OCaml toplevel is read-only."
+  "*Non-nil means input sent to the OCaml REPL is read-only."
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-interactive-echo-phrase t
-  "*Non-nil means echo phrases in the toplevel buffer when sending
-them to the OCaml toplevel."
+  "*Non-nil means echo phrases in the REPL buffer when sending
+them to the OCaml REPL."
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-interactive-input-font-lock t
-  "*Non nil means Font-Lock for toplevel input phrases."
+  "*Non nil means Font-Lock for REPL input phrases."
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-interactive-output-font-lock t
-  "*Non nil means Font-Lock for toplevel output messages."
+  "*Non nil means Font-Lock for REPL output messages."
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-interactive-error-font-lock t
-  "*Non nil means Font-Lock for toplevel error messages."
+  "*Non nil means Font-Lock for REPL error messages."
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-display-buffer-on-eval t
-  "*Non nil means pop up the OCaml toplevel when evaluating code."
+  "*Non nil means pop up the OCaml REPL when evaluating code."
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-manual-url
@@ -351,7 +351,7 @@ Valid names are `browse-url', `browse-url-firefox', etc."
   "*List of menu-configurable Tuareg options.")
 
 (defvar tuareg-interactive-program "ocaml"
-  "*Default program name for invoking an OCaml toplevel from Emacs.")
+  "*Default program name for invoking an OCaml REPL (aka toplevel) from Emacs.")
 ;; Could be interesting to have this variable buffer-local
 ;;   (e.g., ocaml vs. metaocaml buffers)
 ;; (make-variable-buffer-local 'tuareg-interactive-program)
@@ -451,7 +451,7 @@ changing the opam switch)."
   '((((background light))
      (:foreground "blue4"))
     (t (:foreground "grey")))
-  "Face description for all toplevel outputs."
+  "Face description for all outputs in the REPL."
   :group 'tuareg-faces)
 (defvar tuareg-font-lock-interactive-output-face
   'tuareg-font-lock-interactive-output-face)
@@ -461,7 +461,7 @@ changing the opam switch)."
       '((t :inherit font-lock-warning-face))
     '((((background light)) (:foreground "red3"))
       (t (:foreground "red2"))))
-  "Face description for all toplevel errors."
+  "Face description for all REPL errors."
   :group 'tuareg-faces)
 (defvar tuareg-font-lock-interactive-error-face
   'tuareg-font-lock-interactive-error-face)
@@ -2453,14 +2453,14 @@ You can append it to your `.emacs' or use it as a tutorial.
 `M-x ocamldebug' FILE starts the OCaml debugger ocamldebug on the executable
 FILE, with input and output in an Emacs buffer named *ocamldebug-FILE*.
 
-A Tuareg Interactive Mode to evaluate expressions in a toplevel is
+A Tuareg Interactive Mode to evaluate expressions in a REPL (aka toplevel) is
 included.  Type `M-x tuareg-run-ocaml' or simply `M-x run-ocaml' or see
 special-keys below.
 
 Short cuts for the Tuareg mode:
 \\{tuareg-mode-map}
 
-Short cuts for interactions with the toplevel:
+Short cuts for interactions with the REPL:
 \\{tuareg-interactive-mode-map}"
 
   (unless (tuareg--switch-outside-build)
@@ -2852,7 +2852,7 @@ switch is not installed, `nil' is returned."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                            Tuareg interactive mode
 
-;; Augment Tuareg mode with an OCaml toplevel.
+;; Augment Tuareg mode with an OCaml REPL.
 
 (require 'comint)
 
@@ -2864,19 +2864,19 @@ switch is not installed, `nil' is returned."
     (define-key map "]" 'tuareg-electric-rb)
     (define-key map "\C-c\C-i" 'tuareg-interrupt-ocaml)
     (define-key map "\C-c\C-k" 'tuareg-kill-ocaml)
-    (define-key map "\C-c`" 'tuareg-interactive-next-error-toplevel)
-    (define-key map "\C-c?" 'tuareg-interactive-next-error-toplevel)
+    (define-key map "\C-c`" 'tuareg-interactive-next-error-repl)
+    (define-key map "\C-c?" 'tuareg-interactive-next-error-repl)
     (define-key map [return] 'tuareg-interactive-send-input)
     (define-key map [(shift return)]
       'tuareg-interactive-send-input-end-of-phrase)
     (define-key map [kp-enter] 'tuareg-interactive-send-input-end-of-phrase)
     map))
 
-(defconst tuareg-interactive-buffer-name "*ocaml-toplevel*")
+(defconst tuareg-interactive-buffer-name "*OCaml*")
 
 (defconst tuareg-interactive-error-range-regexp
   "[ \t]*Characters \\([0-9]+\\)-\\([1-9][0-9]*\\):\n"
-  "Regexp matching the char numbers in OCaml toplevel's error messages.")
+  "Regexp matching the char numbers in OCaml REPL's error messages.")
 
 (defconst tuareg-interactive-error-regexp
   "\n\\(Error: [^#]*\\)")
@@ -2886,7 +2886,7 @@ switch is not installed, `nil' is returned."
 
 (defvar tuareg-interactive-last-phrase-pos-in-source 0)
 
-(defvar tuareg-interactive-last-phrase-pos-in-toplevel 0)
+(defvar tuareg-interactive-last-phrase-pos-in-repl 0)
 
 (defun tuareg-interactive-filter (_text)
   (when (eq major-mode 'tuareg-interactive-mode)
@@ -2938,10 +2938,10 @@ switch is not installed, `nil' is returned."
   "Tuareg Interactive Mode Menu."
   '("Tuareg"
     ("Interactive Mode"
-     ["Run OCaml Toplevel" tuareg-run-ocaml t]
-     ["Interrupt OCaml Toplevel" tuareg-interrupt-ocaml
+     ["Run OCaml REPL" tuareg-run-ocaml t]
+     ["Interrupt OCaml REPL" tuareg-interrupt-ocaml
       :active (comint-check-proc tuareg-interactive-buffer-name)]
-     ["Kill OCaml Toplevel" tuareg-kill-ocaml
+     ["Kill OCaml REPL" tuareg-kill-ocaml
       :active (comint-check-proc tuareg-interactive-buffer-name)]
      ["Evaluate Region" tuareg-eval-region :active (region-active-p)]
      ["Evaluate Phrase" tuareg-eval-phrase t]
@@ -2956,11 +2956,11 @@ switch is not installed, `nil' is returned."
 
 (define-derived-mode tuareg-interactive-mode comint-mode "Tuareg-Interactive"
   "Major mode for interacting with an OCaml process.
-Runs an OCaml toplevel as a subprocess of Emacs, with I/O through an
+Runs an OCaml REPL as a subprocess of Emacs, with I/O through an
 Emacs buffer. A history of input phrases is maintained. Phrases can
 be sent from another buffer in tuareg mode.
 
-Short cuts for interactions with the toplevel:
+Short cuts for interactions with the REPL:
 \\{tuareg-interactive-mode-map}"
   (add-hook 'comint-output-filter-functions 'tuareg-interactive-filter)
   (setq comint-prompt-regexp "^#  *")
@@ -2988,7 +2988,7 @@ Short cuts for interactions with the toplevel:
 
 ;;;###autoload
 (defun tuareg-run-ocaml ()
-  "Run an OCaml toplevel process.  I/O via buffer `*ocaml-toplevel*'."
+  "Run an OCaml REPL process.  I/O via buffer `*OCaml*'."
   (interactive)
   (tuareg-run-process-if-needed)
   (display-buffer tuareg-interactive-buffer-name))
@@ -3002,18 +3002,18 @@ Short cuts for interactions with the toplevel:
 (add-to-list 'interpreter-mode-alist '("ocaml" . tuareg-mode))
 
 (defun tuareg-run-process-if-needed (&optional cmd)
-  "Run an OCaml toplevel process if needed, with an optional command name.
-I/O via buffer `*ocaml-toplevel*'."
+  "Run an OCaml REPL process if needed, with an optional command name.
+I/O via buffer `*OCaml*'."
   (if cmd
       (setq tuareg-interactive-program cmd)
     (unless (comint-check-proc tuareg-interactive-buffer-name)
       (setq tuareg-interactive-program
-            (read-shell-command "OCaml toplevel to run: "
+            (read-shell-command "OCaml REPL to run: "
                                 tuareg-interactive-program))))
   (unless (comint-check-proc tuareg-interactive-buffer-name)
     (let ((cmdlist (tuareg--split-args tuareg-interactive-program))
           (process-connection-type nil))
-      (set-buffer (apply (function make-comint) "ocaml-toplevel"
+      (set-buffer (apply (function make-comint) "OCaml"
                          (car cmdlist) nil (cdr cmdlist)))
       (tuareg-interactive-mode)
       (sleep-for 1))))
@@ -3035,7 +3035,7 @@ I/O via buffer `*ocaml-toplevel*'."
 
 
 (defconst tuareg-interactive--send-warning
-  "Note: toplevel processing requires a terminating `;;'")
+  "Note: REPL processing requires a terminating `;;', or use S-return.")
 
 (defun tuareg-interactive--indent-line ()
   (insert "\n")
@@ -3044,8 +3044,8 @@ I/O via buffer `*ocaml-toplevel*'."
 
 (when tuareg-use-smie
   (defun tuareg-interactive-send-input ()
-    "Send the current phrase to the OCaml toplevel or insert a newline.
-If the point is next to \";;\", the phrase is sent to the toplevel,
+    "Send the current phrase to the OCaml REPL or insert a newline.
+If the point is next to \";;\", the phrase is sent to the REPL,
 otherwise a newline is inserted and the lines are indented."
     (interactive)
     (cond
@@ -3064,17 +3064,17 @@ otherwise a newline is inserted and the lines are indented."
   )
 
 (defun tuareg-interactive--send-region (start end)
-  "Send the region between `start' and `end' to the OCaml toplevel.
+  "Send the region between `start' and `end' to the OCaml REPL.
 It is assumed that the range `start'-`end' delimit valid OCaml phrases."
   (save-excursion (tuareg-run-process-if-needed))
   (comint-preinput-scroll-to-bottom)
   (let* ((phrases (buffer-substring-no-properties start end))
          (phrases-colon (concat phrases ";;")))
     (if (string= phrases "")
-        (message "Cannot send empty commands to OCaml toplevel!")
+        (message "Cannot send empty commands to OCaml REPL!")
       (with-current-buffer tuareg-interactive-buffer-name
         (goto-char (point-max))
-        (setq tuareg-interactive-last-phrase-pos-in-toplevel (point))
+        (setq tuareg-interactive-last-phrase-pos-in-repl (point))
         (comint-send-string tuareg-interactive-buffer-name phrases-colon)
         (let ((pos (point)))
           (comint-send-input)
@@ -3086,7 +3086,7 @@ It is assumed that the range `start'-`end' delimit valid OCaml phrases."
     (display-buffer tuareg-interactive-buffer-name)))
 
 (defun tuareg-eval-region (start end)
-  "Eval the current region in the OCaml toplevel."
+  "Eval the current region in the OCaml REPL."
   (interactive "r")
   (setq tuareg-interactive-last-phrase-pos-in-source start)
   (save-excursion
@@ -3104,7 +3104,7 @@ It is assumed that the range `start'-`end' delimit valid OCaml phrases."
       (narrow-to-region (nth 0 pair) (nth 1 pair)))))
 
 (defun tuareg-eval-phrase ()
-  "Eval the surrounding OCaml phrase (or block) in the Caml toplevel."
+  "Eval the surrounding OCaml phrase (or block) in the OCaml REPL."
   (interactive)
   (let ((end))
     (save-excursion
@@ -3132,7 +3132,7 @@ It is assumed that the range `start'-`end' delimit valid OCaml phrases."
   (interactive)
   (let ((error-pos) (beg 0) (end 0))
     (with-current-buffer tuareg-interactive-buffer-name
-      (goto-char tuareg-interactive-last-phrase-pos-in-toplevel)
+      (goto-char tuareg-interactive-last-phrase-pos-in-repl)
       (setq error-pos
             (re-search-forward tuareg-interactive-error-range-regexp
                                (point-max) t))
@@ -3150,11 +3150,11 @@ It is assumed that the range `start'-`end' delimit valid OCaml phrases."
         (delete-overlay tuareg-interactive-next-error-olv))
       )))
 
-(defun tuareg-interactive-next-error-toplevel ()
+(defun tuareg-interactive-next-error-repl ()
   (interactive)
   (let ((error-pos) (beg 0) (end 0))
     (save-excursion
-      (goto-char tuareg-interactive-last-phrase-pos-in-toplevel)
+      (goto-char tuareg-interactive-last-phrase-pos-in-repl)
       (setq error-pos
             (re-search-forward tuareg-interactive-error-range-regexp
                                (point-max) t))
@@ -3163,8 +3163,8 @@ It is assumed that the range `start'-`end' delimit valid OCaml phrases."
               end (string-to-number (tuareg-match-string 2)))))
     (if (not error-pos)
         (message "No syntax or typing error in last phrase.")
-      (setq beg (+ tuareg-interactive-last-phrase-pos-in-toplevel beg)
-            end (+ tuareg-interactive-last-phrase-pos-in-toplevel end))
+      (setq beg (+ tuareg-interactive-last-phrase-pos-in-repl beg)
+            end (+ tuareg-interactive-last-phrase-pos-in-repl end))
       (move-overlay tuareg-interactive-next-error-olv beg end)
       (unwind-protect
           (sit-for 60 t)
@@ -3194,7 +3194,7 @@ It is assumed that the range `start'-`end' delimit valid OCaml phrases."
   "Short cuts for the Tuareg mode:
 \\{tuareg-mode-map}
 
-Short cuts for interaction within the toplevel:
+Short cuts for interaction within the REPL:
 \\{tuareg-interactive-mode-map}"
   (interactive)
   (describe-function 'tuareg-short-cuts))
@@ -3221,10 +3221,10 @@ Short cuts for interaction within the toplevel:
    "Tuareg Mode Menu."
    '("Tuareg"
      ("Interactive Mode"
-      ["Run OCaml Toplevel" tuareg-run-ocaml t]
-      ["Interrupt OCaml Toplevel" tuareg-interrupt-ocaml
+      ["Run OCaml REPL" tuareg-run-ocaml t]
+      ["Interrupt OCaml REPL" tuareg-interrupt-ocaml
        :active (comint-check-proc tuareg-interactive-buffer-name)]
-      ["Kill OCaml Toplevel" tuareg-kill-ocaml
+      ["Kill OCaml REPL" tuareg-kill-ocaml
        :active (comint-check-proc tuareg-interactive-buffer-name)]
       ["Evaluate Region" tuareg-eval-region
        ;; Region-active-p for XEmacs and mark-active for Emacs
@@ -3477,7 +3477,7 @@ Short cuts for interaction within the toplevel:
       index)))
 
 (defun tuareg-list-definitions ()
-  "Parse the buffer and gather toplevel definitions
+  "Parse the buffer and gather top-level definitions
 for a quick jump via the definitions menu."
   ;; FIXME: Why not just use the standard imenu menu?
   (interactive)
