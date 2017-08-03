@@ -51,7 +51,8 @@ The Tuareg major mode is triggered by visiting a file with extension
 <kbd>M-x tuareg-mode</kbd>.
 
 Start the OCaml toplevel with <kbd>M-x run-ocaml</kbd>.  To evaluate a
-phrase, simply type <kbd>M-⟨return⟩</kbd>.  You can also evaluate a
+phrase, simply type <kbd>S-⟨return⟩</kbd> (<kbd>shift</kbd> and
+<kbd>return</kbd>).  You can also evaluate a
 phrase in a different buffer by typing <kbd>C-c C-e</kbd> when the
 cursor is on it (it
 will start the OCaml toplevel if needed).
