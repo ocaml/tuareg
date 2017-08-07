@@ -2560,49 +2560,27 @@ Short cuts for interactions with the REPL:
 ;; In some versions of Emacs, the regexps in
 ;; compilation-error-regexp-alist do not match the error messages when
 ;; the language is not English.  Hence we add a regexp.
-;; FIXME: We should report those cases to bug-gnu-emacs@gnu.org.
 
-(defconst tuareg-error-regexp
-  ;; Errors can take forms like:
-  ;;   "File "main.ml", line 1154, characters 30-48:\nError: ..."
-  ;;   "Raised at file "pervasives.ml", line 22, characters 22-33"
-  ;;   "File "main.ml", line 1018, characters 2-2632:\nWarning 8: ..."
-  ;; as well as localized variants depending on locale.
-  (concat "^\\(Called from \\)?[[:alpha:]][ [:alpha:]]*[[:alpha:]] "
-          "\"\\([^\"\n]+\\)\", "                              ;File name.
-          "[[:alpha:]]+ \\([0-9]+\\)\\(?:-\\([0-9]+\\)\\)?, " ;Lines.
-          "[[:alpha:]]+ \\([0-9]+\\)-\\([0-9]+\\)"            ;Columns.
-          "\\(?::\\(\nWarning\\)?\\|[-,:]\\|$\\)")            ;Warning/error.
-  "Regular expression matching the error messages produced by ocamlc.")
-
-(defconst tuareg--error-regexp-newstyle
-  (concat "^[ A-\377]+ \"\\([^\"\n]+\\)\", line \\([0-9]+\\), "
-          "characters \\([0-9]+\\)-\\([0-9]+\\):")
+(defconst tuareg--error-regexp
+  "^[ A-\377]+ \"\\([^\"\n]+\\)\", line \\([0-9]+\\), \
+characters \\([0-9]+\\)-\\([0-9]+\\)"
   "Regular expression matching the error messages produced by ocamlc/ocamlopt.")
 
+(when (boundp 'compilation-error-regexp-alist-alist)
+    (add-to-list 'compilation-error-regexp-alist-alist
+                 `(ocaml ,tuareg--error-regexp 1 2 (3 . 4))))
+
 (when (boundp 'compilation-error-regexp-alist)
-  (or (assoc tuareg-error-regexp
-             compilation-error-regexp-alist)
-      (setq compilation-error-regexp-alist
-            (cons (if (fboundp 'compilation-fake-loc)
-                      (list tuareg-error-regexp
-                            2 '(3 . 4) '(5 . 6) '(7 . 1))
-                    (list tuareg-error-regexp 2 3))
-                  ;; Other error format used for unhandled match case.
-                  (cons '("^Fatal error: exception [^ \n]*(\"\\([^\"]*\\)\", \\([0-9]+\\), \\([0-9]+\\))"
-                          1 2 3)
-                        compilation-error-regexp-alist))))
-  (unless (assoc tuareg--error-regexp-newstyle
-                 compilation-error-regexp-alist)
-    (setq compilation-error-regexp-alist
-          (cons (list tuareg--error-regexp-newstyle 1 2 '(3 . 4))
-                compilation-error-regexp-alist))))
+  (add-to-list 'compilation-error-regexp-alist 'ocaml)
 
-;; A regexp to extract the range info.
+  (eval-after-load 'caml
+    ;; caml-mode also changes `compilation-error-regexp-alist' with a
+    ;; too simple regexp.  Make sure the one above comes first.
+    #'(lambda()
+        (setq compilation-error-regexp-alist
+              (delete 'ocaml compilation-error-regexp-alist))
+        (add-to-list 'compilation-error-regexp-alist 'ocaml))))
 
-;; (defconst tuareg-error-chars-regexp
-;;   ".*, .*, [^\0-@]+ \\([0-9]+\\)-\\([0-9]+\\):"
-;;   "Regexp matching the char numbers in an error message produced by ocamlc.")
 
 ;; Wrapper around next-error.
 
