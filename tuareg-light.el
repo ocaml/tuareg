@@ -2364,8 +2364,6 @@ Short cuts for interactions with the toplevel:
   (setq paragraph-start (concat "^[ \t]*$\\|\\*)$\\|" page-delimiter))
   (make-local-variable 'paragraph-separate)
   (setq paragraph-separate paragraph-start)
-  (make-local-variable 'require-final-newline)
-  (setq require-final-newline t)
   (make-local-variable 'comment-start)
   (setq comment-start "(* ")
   (make-local-variable 'comment-end)
