@@ -3517,7 +3517,7 @@ for a quick jump via the definitions menu."
         (nreverse lists)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                             Hooks and Exit
+;;                      Related files & modes
 
 (eval-when-compile
   (autoload 'speedbar-add-supported-extension "speedbar"))
@@ -3527,6 +3527,9 @@ for a quick jump via the definitions menu."
    '(".ml" ".mli" ".mll" ".mly" ".mlp" ".ls"))
   (add-to-list 'speedbar-obj-alist '("\\.mli$" . ".cmi"))
   (add-to-list 'speedbar-obj-alist '("\\.ml$"  . ".cmo")))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                             Hooks and Exit
 
 (provide 'tuareg)
 
