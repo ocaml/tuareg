@@ -2474,7 +2474,6 @@ Short cuts for interactions with the REPL:
     (set (make-local-variable 'paragraph-start)
 	 (concat "^[ \t]*$\\|\\*)$\\|" page-delimiter))
     (set (make-local-variable 'paragraph-separate) paragraph-start)
-    (set (make-local-variable 'require-final-newline) t)
     (set (make-local-variable 'comment-start) "(* ")
     (set (make-local-variable 'comment-end) " *)")
     (set (make-local-variable 'comment-start-skip) "(\\*+[ \t]*")
