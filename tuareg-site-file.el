@@ -19,7 +19,7 @@ the ocamldebug commands `cd DIR' and `directory'.
 
 ;;;***
 
-;;;### (autoloads nil "tuareg" "tuareg.el" (22915 4501 346780 343000))
+;;;### (autoloads nil "tuareg" "tuareg.el" (22928 4181 424925 864000))
 ;;; Generated autoloads from tuareg.el
 (add-to-list 'auto-mode-alist '("\\.ml[ip]?\\'" . tuareg-mode))
 (add-to-list 'auto-mode-alist '("\\.eliomi?\\'" . tuareg-mode))
@@ -57,7 +57,7 @@ You can append it to your `.emacs' or use it as a tutorial.
 `M-x ocamldebug' FILE starts the OCaml debugger ocamldebug on the executable
 FILE, with input and output in an Emacs buffer named *ocamldebug-FILE*.
 
-A Tuareg Interactive Mode to evaluate expressions in a REPL is
+A Tuareg Interactive Mode to evaluate expressions in a REPL (aka toplevel) is
 included.  Type `M-x tuareg-run-ocaml' or simply `M-x run-ocaml' or see
 special-keys below.
 
@@ -70,7 +70,7 @@ Short cuts for interactions with the REPL:
 \(fn)" t nil)
 
 (autoload 'tuareg-run-ocaml "tuareg" "\
-Run an OCaml REPL process.  I/O via buffer `*ocaml-repl*'.
+Run an OCaml REPL process.  I/O via buffer `*OCaml*'.
 
 \(fn)" t nil)
 
@@ -82,8 +82,21 @@ Run an OCaml REPL process.  I/O via buffer `*ocaml-repl*'.
 
 ;;;***
 
+;;;### (autoloads nil "tuareg-opam" "tuareg-opam.el" (22928 15617
+;;;;;;  885806 463000))
+;;; Generated autoloads from tuareg-opam.el
+
+(autoload 'tuareg-opam-mode "tuareg-opam" "\
+Major mode to edit opam files.
+
+\(fn)" t nil)
+
+(add-to-list 'auto-mode-alist '("[./]opam\\'" . tuareg-opam-mode))
+
+;;;***
+
 ;;;### (autoloads nil nil ("dot-emacs.el" "tuareg-light.el" "tuareg-mly.el"
-;;;;;;  "tuareg_indent.el") (22671 38786 713423 832000))
+;;;;;;  "tuareg_indent.el") (22915 4641 875752 84000))
 
 ;;;***
 
