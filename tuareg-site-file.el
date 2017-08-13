@@ -19,7 +19,7 @@ the ocamldebug commands `cd DIR' and `directory'.
 
 ;;;***
 
-;;;### (autoloads nil "tuareg" "tuareg.el" (22928 40563 213112 64000))
+;;;### (autoloads nil "tuareg" "tuareg.el" (22928 42591 789405 820000))
 ;;; Generated autoloads from tuareg.el
 (add-to-list 'auto-mode-alist '("\\.ml[ip]?\\'" . tuareg-mode))
 (add-to-list 'auto-mode-alist '("\\.eliomi?\\'" . tuareg-mode))

@@ -2365,7 +2365,7 @@ Short cuts for interactions with the REPL:
   (make-local-variable 'paragraph-separate)
   (setq paragraph-separate paragraph-start)
   (make-local-variable 'require-final-newline)
-  (setq require-final-newline t)
+  (setq require-final-newline mode-require-final-newline)
   (make-local-variable 'comment-start)
   (setq comment-start "(* ")
   (make-local-variable 'comment-end)
