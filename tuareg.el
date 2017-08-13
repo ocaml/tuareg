@@ -528,7 +528,7 @@ use `prettify-symbols-mode'."
                           'prettify-symbols-mode "Emacs-24.4"))
 
 (defcustom tuareg-prettify-symbols-full nil
-  "It f, add fun and -> and such to be prettified with symbols.
+  "It t, add fun and -> and such to be prettified with symbols.
 This may sound like a neat trick, but note that it can change the
 alignment and can thus lead to surprises.  By default, only symbols that
 do not perturb in essential ways the alignment are used.  See
