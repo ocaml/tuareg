@@ -869,7 +869,7 @@ Regexp match data 0 points to the chars."
                      "__POS_OF__") 'words)
       . font-lock-constant-face)
      ;; "type" to introduce a local abstract type considered a keyword
-     (,(concat "( *\\(type\\) +\\(" lid "\\) *)")
+     (,(concat "( *\\(type\\) +\\(" lid " *\\)+)")
       (1 font-lock-keyword-face)
       (2 font-lock-type-face))
      ;; First class modules.  In these contexts, "val" and "module"
