@@ -794,10 +794,12 @@ Regexp match data 0 points to the chars."
           (let ((b "\\(?:[^()\"]\\|(")
                 (e ")\\)*"))
             (concat b b b "[^()\"]*" e e e)))
-         (balanced-braces-no-end-colon ; non-empty
+         (balanced-braces-no-end-operator ; non-empty
           (let ((b "\\(?:[^()]\\|(")
                 (e ")\\)*"))
-            (concat "\\(?:[^():]\\|:+\\(?:[^:()]\\|(" b b "[^()]*" e e ")\\)"
+            (concat "\\(?:[^()!$%&*+-./:<=>?@^|~]"
+                    "\\|[!$%&*+-./:<=>?@^|~]+" ; operator char
+                    "\\(?:[^()!$%&*+-./:<=>?@^|~]\\|(" b b "[^()]*" e e ")\\)"
                     "\\|(" b b "[^()]*" e e e)))
 	 (balanced-brackets
           (let ((b "\\(?:[^][]\\|\\[")
@@ -879,7 +881,7 @@ Regexp match data 0 points to the chars."
       (1 font-lock-keyword-face)
       (2 tuareg-font-lock-module-face)
       (3 tuareg-font-lock-module-face))
-     (,(concat "( *\\(val\\) +\\(" balanced-braces-no-end-colon "\\) *: +\\("
+     (,(concat "( *\\(val\\) +\\(" balanced-braces-no-end-operator "\\): +\\("
 	       balanced-braces-no-string "\\))")
       (1 font-lock-keyword-face)
       (2 tuareg-font-lock-module-face)
@@ -966,7 +968,7 @@ Regexp match data 0 points to the chars."
      ;;; If `t' is longer then one word, require a space before.  Not only
      ;;; this is more readable but it also avoids that `~label:expr var`
      ;;; is taken as a type annotation when surrounded by parentheses.
-     (,(concat "(" balanced-braces-no-end-colon ":>?\\(['_A-Za-z]+"
+     (,(concat "(" balanced-braces-no-end-operator ":>?\\(['_A-Za-z]+"
                "\\| [ \n'_A-Za-z]" balanced-braces-no-string "\\))")
       1 font-lock-type-face keep)
      ;; (lid: t)
