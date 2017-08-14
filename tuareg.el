@@ -2858,6 +2858,8 @@ switch is not installed, `nil' is returned."
     (define-key map [return] 'tuareg-interactive-send-input)
     (define-key map [(shift return)]
       'tuareg-interactive-send-input-end-of-phrase)
+    (define-key map [(ctrl return)]
+      'tuareg-interactive-send-input-end-of-phrase)
     (define-key map [kp-enter] 'tuareg-interactive-send-input-end-of-phrase)
     map))
 
