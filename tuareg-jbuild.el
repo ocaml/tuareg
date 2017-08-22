@@ -60,6 +60,8 @@
   "Major mode to edit jbuild files."
   (setq font-lock-defaults '(tuareg-jbuild-font-lock-keywords))
   (setq indent-tabs-mode nil)
+  (make-local-variable 'lisp-indent-offset)
+  (setq lisp-indent-offset 1)
   (make-local-variable 'require-final-newline)
   (setq require-final-newline mode-require-final-newline)
   (let ((fname (buffer-file-name)))
