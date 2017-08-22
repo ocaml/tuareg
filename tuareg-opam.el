@@ -173,8 +173,5 @@ See `prettify-symbols-alist' for more information.")
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("[./]opam\\'" . tuareg-opam-mode))
 
-;; jbuilder default configuration is Lisp
-(add-to-list 'auto-mode-alist '("\\(?:\\'\\|/\\)jbuild\\'" . lisp-mode))
-
 
 (provide 'tuareg-opam-mode)
