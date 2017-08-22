@@ -1,4 +1,4 @@
-;;; tuareg-opam.el --- Mode foe editing opam files   -*- coding: utf-8 -*-
+;;; tuareg-opam.el --- Mode for editing opam files   -*- coding: utf-8 -*-
 
 ;; Copyright (C) 2017- Christophe Troestler
 
@@ -13,6 +13,17 @@
     (define-key map "\C-j" 'newline-and-indent)
     map)
   "Keymap for tuareg-opam mode")
+
+(defvar tuareg-opam-skeleton
+  "opam-version: \"1.2\"
+maintainer: \"\"
+authors: []
+tags: []
+build: [
+  [ \"jbuilder\" \"subst\" ] {pinned}
+  [ \"jbuilder\" \"build\" \"-p\" name \"-j\" jobs ]
+]\n"
+  "If not nil, propose to fill new files with this skeleton")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                       Syntax highlighting
@@ -151,6 +162,11 @@ See `prettify-symbols-alist' for more information.")
   (setq indent-tabs-mode nil)
   (set (make-local-variable 'require-final-newline) t)
   (smie-setup tuareg-opam-smie-grammar #'tuareg-opam-smie-rules)
+  (let ((fname (buffer-file-name)))
+    (when (and tuareg-opam-skeleton
+               (not (and fname (file-exists-p fname)))
+               (y-or-n-p "New file; fill with skeleton?"))
+      (save-excursion (insert tuareg-opam-skeleton))))
   (run-mode-hooks 'tuareg-opam-mode-hook))
 
 
