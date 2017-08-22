@@ -56,7 +56,7 @@
 
 
 ;;;###autoload
-(define-derived-mode tuareg-jbuild-mode lisp-mode "Tuareg-jbuild"
+(define-derived-mode tuareg-jbuild-mode scheme-mode "Tuareg-jbuild"
   "Major mode to edit jbuild files."
   (setq font-lock-defaults '(tuareg-jbuild-font-lock-keywords))
   (setq indent-tabs-mode nil)
