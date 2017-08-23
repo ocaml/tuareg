@@ -7,15 +7,15 @@
 (defvar tuareg-jbuild-skeleton
   "(jbuild_version 1)\n
 (library
-  (name        )
-  (public_name )
-  (synopsis \"\")
-  (libraries ()))
+ (name        )
+ (public_name )
+ (synopsis \"\")
+ (libraries ()))
 
 (executables
-  (names        ())
-  (public_names ())
-  (libraries ()))\n"
+ (names        ())
+ (public_names ())
+ (libraries ()))\n"
   "If not nil, propose to fill new files with this skeleton")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
