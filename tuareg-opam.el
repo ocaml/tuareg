@@ -171,7 +171,7 @@ See `prettify-symbols-alist' for more information.")
 
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("[./]opam\\'" . tuareg-opam-mode))
+(add-to-list 'auto-mode-alist '("[./]opam_?\\'" . tuareg-opam-mode))
 
 
 (provide 'tuareg-opam-mode)
