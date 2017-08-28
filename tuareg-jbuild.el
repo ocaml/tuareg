@@ -54,14 +54,6 @@
     ("${\\([a-zA-Z:]+\\|[<@]\\)}" 1 font-lock-variable-name-face)
     ("$(\\([a-zA-Z:]+\\|[<@]\\))" 1 font-lock-variable-name-face)))
 
-(defvar tuareg-jbuild-mode-syntax-table
-  (let ((st (copy-syntax-table scheme-mode-syntax-table)))
-    ;; Add OCaml style comments
-    (modify-syntax-entry ?*  ". b23" st)
-    (modify-syntax-entry ?\( "()1n" st)
-    (modify-syntax-entry ?\) ")(4n" st)
-    st)
-  "Syntax table for `tuareg-jbuild-mode'.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -70,10 +62,6 @@
 (define-derived-mode tuareg-jbuild-mode scheme-mode "Tuareg-jbuild"
   "Major mode to edit jbuild files."
   (setq-local font-lock-defaults '(tuareg-jbuild-font-lock-keywords))
-  (setq-local comment-start "(* ")
-  (setq-local comment-end " *)")
-  (setq-local comment-start-skip "(\\*+[ \t]*")
-  (setq-local comment-end-skip "[ \t]*\\*+)")
   (setq indent-tabs-mode nil)
   (setq-local lisp-indent-offset 1)
   (setq-local require-final-newline mode-require-final-newline)
