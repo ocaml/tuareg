@@ -2,9 +2,15 @@
 
 ;; Copyright (C) 2017- Christophe Troestler
 
+;; This file is not part of GNU Emacs.
+
 (require 'scheme)
 
-(defvar tuareg-jbuild-mode-hook nil)
+(defvar tuareg-jbuild-mode-hook nil
+  "Hooks for the `tuareg-jbuild-mode'.")
+
+(defvar tuareg-jbuild-flymake nil
+  "If t, check your jbuild file with flymake.")
 
 (defvar tuareg-jbuild-skeleton
   "(jbuild_version 1)\n
@@ -19,6 +25,10 @@
   (public_names ())
   (libraries ())))\n"
   "If not nil, propose to fill new files with this skeleton")
+
+(defvar tuareg-jbuild-program "jbuilder-lint")
+
+(defconst tuareg-jbuild-fname-regexp "\\(?:\\'\\|/\\)jbuild\\'")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;                     Syntax highlighting
@@ -56,6 +66,56 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;                           Linting
+
+(require 'flymake)
+
+(defvar tuareg-jbuild-temporary-file-directory
+  (concat temporary-file-directory "Tuareg-jbuild"))
+
+(defun tuareg-jbuild-flymake-create-temp (filename _prefix)
+  ;; based on `flymake-create-temp-with-folder-structure'.
+  (unless (stringp filename)
+    (error "Invalid filename"))
+  (let* ((dir (file-name-directory filename))
+         (slash-pos (string-match "/" dir))
+         (temp-dir  (expand-file-name (substring dir (1+ slash-pos))
+                                      tuareg-jbuild-temporary-file-directory)))
+    (file-truename (expand-file-name (file-name-nondirectory filename)
+                                     temp-dir))))
+
+
+(defun tuareg-jbuild-flymake-cleanup ()
+  "Attempt to delete temp dir created by `tuareg-jbuild-flymake-create-temp', do not fail on error."
+  ;; Based on `flymake-create-temp-with-folder-structure'.
+  (let* ((temp-dir tuareg-jbuild-temporary-file-directory)
+	 (suffix   (substring dir-name (1+ (length temp-dir)))))
+
+    (while (> (length suffix) 0)
+      (setq suffix (directory-file-name suffix))
+      ;;+(flymake-log 0 "suffix=%s" suffix)
+      (flymake-safe-delete-directory
+       (file-truename (expand-file-name suffix temp-dir)))
+      (setq suffix (file-name-directory suffix)))))
+
+(defun tuareg-jbuild-flymake-cleanup ()
+  (message "Cleanup to do %s" (buffer-file-name)))
+
+(defun tuareg-jbuild-flymake-init ()
+  (let ((fname (flymake-init-create-temp-buffer-copy
+                'tuareg-jbuild-flymake-create-temp)))
+    (list tuareg-jbuild-program (list fname))))
+
+(defvar tuareg-jbuild--allowed-file-name-masks
+  `(,tuareg-jbuild-fname-regexp tuareg-jbuild-flymake-init
+                                tuareg-jbuild-flymake-cleanup))
+
+(setq tuareg-jbuild--err-line-patterns
+  '(("File \"\\([^\"]+\\)\", line \\([0-9]+\\), \
+characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
+     1 2 3 5)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 ;;;###autoload
@@ -65,6 +125,10 @@
   (setq indent-tabs-mode nil)
   (setq-local lisp-indent-offset 1)
   (setq-local require-final-newline mode-require-final-newline)
+  (push tuareg-jbuild--allowed-file-name-masks flymake-allowed-file-name-masks)
+  (setq-local flymake-err-line-patterns tuareg-jbuild--err-line-patterns)
+  (when (and tuareg-jbuild-flymake buffer-file-name)
+    (flymake-mode t))
   (let ((fname (buffer-file-name)))
     (when (and tuareg-jbuild-skeleton
                (not (and fname (file-exists-p fname)))
@@ -75,7 +139,7 @@
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist
-             '("\\(?:\\'\\|/\\)jbuild\\'" . tuareg-jbuild-mode))
+             `(,tuareg-jbuild-fname-regexp . tuareg-jbuild-mode))
 
 
 (provide 'tuareg-jbuild-mode)
