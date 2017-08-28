@@ -2,6 +2,8 @@
 
 ;; Copyright (C) 2017- Christophe Troestler
 
+(require 'scheme)
+
 (defvar tuareg-jbuild-mode-hook nil)
 
 (defvar tuareg-jbuild-skeleton
@@ -19,7 +21,7 @@
   "If not nil, propose to fill new files with this skeleton")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                       Syntax highlighting
+;;;;                     Syntax highlighting
 
 (defconst tuareg-jbuild-keywords-regex
   (regexp-opt
@@ -52,18 +54,29 @@
     ("${\\([a-zA-Z:]+\\|[<@]\\)}" 1 font-lock-variable-name-face)
     ("$(\\([a-zA-Z:]+\\|[<@]\\))" 1 font-lock-variable-name-face)))
 
+(defvar tuareg-jbuild-mode-syntax-table
+  (let ((st (copy-syntax-table scheme-mode-syntax-table)))
+    ;; Add OCaml style comments
+    (modify-syntax-entry ?*  ". b23" st)
+    (modify-syntax-entry ?\( "()1n" st)
+    (modify-syntax-entry ?\) ")(4n" st)
+    st)
+  "Syntax table for `tuareg-jbuild-mode'.")
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 ;;;###autoload
 (define-derived-mode tuareg-jbuild-mode scheme-mode "Tuareg-jbuild"
   "Major mode to edit jbuild files."
-  (setq font-lock-defaults '(tuareg-jbuild-font-lock-keywords))
+  (setq-local font-lock-defaults '(tuareg-jbuild-font-lock-keywords))
+  (setq-local comment-start "(* ")
+  (setq-local comment-end " *)")
+  (setq-local comment-start-skip "(\\*+[ \t]*")
+  (setq-local comment-end-skip "[ \t]*\\*+)")
   (setq indent-tabs-mode nil)
-  (make-local-variable 'lisp-indent-offset)
-  (setq lisp-indent-offset 1)
-  (make-local-variable 'require-final-newline)
-  (setq require-final-newline mode-require-final-newline)
+  (setq-local lisp-indent-offset 1)
+  (setq-local require-final-newline mode-require-final-newline)
   (let ((fname (buffer-file-name)))
     (when (and tuareg-jbuild-skeleton
                (not (and fname (file-exists-p fname)))
