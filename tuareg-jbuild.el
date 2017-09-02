@@ -28,13 +28,13 @@
 
 (defvar tuareg-jbuild-skeleton
   "(jbuild_version 1)\n
-(library
+\(library
  ((name        )
   (public_name )
   (synopsis \"\")
   (libraries ())))
 
-(executables
+\(executables
  ((names        ())
   (public_names ())
   (libraries ())))\n"
@@ -50,7 +50,8 @@
 (defconst tuareg-jbuild-keywords-regex
   (regexp-opt
    '("jbuild_version" "library" "executable" "executables" "rule"
-     "ocamllex" "ocamlyacc" "menhir" "alias" "install") 'symbols)
+     "ocamllex" "ocamlyacc" "menhir" "alias" "install")
+   'symbols)
   "Keywords in jbuild files.")
 
 (defconst tuareg-jbuild-fields-regex
@@ -69,7 +70,8 @@
      "merge_into"
      ;; + for "install"
      "section" "files" "lib" "libexec" "bin" "sbin" "toplevel" "share"
-     "share_root" "etc" "doc" "stublibs" "man" "misc") 'symbols)
+     "share_root" "etc" "doc" "stublibs" "man" "misc")
+   'symbols)
   "Field names allowed in jbuild files.")
 
 (defvar tuareg-jbuild-font-lock-keywords
