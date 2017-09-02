@@ -124,7 +124,7 @@
   '("\\(?:\\`\\|/\\)jbuild\\'" tuareg-jbuild-flymake-init
                                tuareg-jbuild-flymake-cleanup))
 
-(setq tuareg-jbuild--err-line-patterns
+(defvar tuareg-jbuild--err-line-patterns
   '(("File \"\\([^\"]+\\)\", line \\([0-9]+\\), \
 characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
      1 2 3 5)))
