@@ -42,8 +42,6 @@
 
 (defvar tuareg-jbuild-program "jbuilder-lint")
 
-(defconst tuareg-jbuild-fname-regexp "\\(?:\\'\\|/\\)jbuild\\'")
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;                     Syntax highlighting
 
@@ -123,8 +121,8 @@
     (list tuareg-jbuild-program (list fname))))
 
 (defvar tuareg-jbuild--allowed-file-name-masks
-  `(,tuareg-jbuild-fname-regexp tuareg-jbuild-flymake-init
-                                tuareg-jbuild-flymake-cleanup))
+  '("\\(?:\\`\\|/\\)jbuild\\'" tuareg-jbuild-flymake-init
+                               tuareg-jbuild-flymake-cleanup))
 
 (setq tuareg-jbuild--err-line-patterns
   '(("File \"\\([^\"]+\\)\", line \\([0-9]+\\), \
@@ -155,7 +153,7 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist
-             `(,tuareg-jbuild-fname-regexp . tuareg-jbuild-mode))
+             '("\\(?:\\`\\|/\\)jbuild\\'" . tuareg-jbuild-mode))
 
 
 (provide 'tuareg-jbuild-mode)
