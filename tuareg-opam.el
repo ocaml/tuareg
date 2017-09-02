@@ -22,6 +22,10 @@ tags: []
 build: [
   [ \"jbuilder\" \"subst\" ] {pinned}
   [ \"jbuilder\" \"build\" \"-p\" name \"-j\" jobs ]
+]
+build-test: [[\"jbuilder\" \"runtest\" \"-p\" name \"-j\" jobs]]
+depends: [
+  \"jbuilder\" {build}
 ]\n"
   "If not nil, propose to fill new files with this skeleton")
 
