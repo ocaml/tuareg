@@ -220,10 +220,10 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
   (setq indent-tabs-mode nil)
   (setq-local lisp-indent-offset 1)
   (setq-local require-final-newline mode-require-final-newline)
-  (tuareg-jbuild-create-lint-script)
   (push tuareg-jbuild--allowed-file-name-masks flymake-allowed-file-name-masks)
   (setq-local flymake-err-line-patterns tuareg-jbuild--err-line-patterns)
   (when (and tuareg-jbuild-flymake buffer-file-name)
+    (tuareg-jbuild-create-lint-script)
     (flymake-mode t))
   (let ((fname (buffer-file-name)))
     (when (and tuareg-jbuild-skeleton
