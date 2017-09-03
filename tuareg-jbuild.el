@@ -103,6 +103,7 @@
 open Printf
 
 let filename = Sys.argv.(1)
+let root = Sys.argv.(2)
 
 let read_all fh =
   let buf = Buffer.create 1024 in
@@ -115,7 +116,7 @@ let read_all fh =
 
 let errors =
   let cmd = sprintf \"jbuilder external-lib-deps --root=%s %s\"
-              (Filename.quote (Filename.dirname filename))
+              (Filename.quote root)
               (Filename.quote (Filename.basename filename)) in
   let env = Unix.environment() in
   let (_,_,fh) as p = Unix.open_process_full cmd env in
@@ -146,30 +147,39 @@ let () =
       (set-file-modes tuareg-jbuild-program #o777)
       )))
 
-(defun tuareg-jbuild-temp-name (absolute-path)
+(defun tuareg-jbuild--temp-name (absolute-path)
   "Full path of the copy of the filename in `tuareg-jbuild-temporary-file-directory'."
   (let ((slash-pos (string-match "/" absolute-path)))
     (file-truename (expand-file-name (substring absolute-path (1+ slash-pos))
                                      tuareg-jbuild-temporary-file-directory))))
 
-(defun tuareg-jbuild--opam-files (dir)
-  (directory-files dir t ".*\\.opam\\'"))
-
 (defun tuareg-jbuild-flymake-create-temp (filename _prefix)
   ;; based on `flymake-create-temp-with-folder-structure'.
   (unless (stringp filename)
     (error "Invalid filename"))
-  (let* ((new-name (tuareg-jbuild-temp-name filename))
-         (new-dir (file-name-directory new-name))
-         (dir (locate-dominating-file (file-name-directory filename)
-                                      #'tuareg-jbuild--opam-files)))
+  (tuareg-jbuild--temp-name filename))
+
+(defun tuareg-jbuild--opam-files (dir)
+  "Return all opam files in the directory DIR."
+  (directory-files dir t ".*\\.opam\\'"))
+
+(defun tuareg-jbuild--root (filename)
+  "Return the root and copy the necessary context files for jbuilder."
+  ;; FIXME: the root depends on jbuild-workspace.  If none is found,
+  ;; assume the commands are issued from the dir where opam files are found.
+  (let* ((dir (locate-dominating-file (file-name-directory filename)
+                                     #'tuareg-jbuild--opam-files)))
     (when dir
-      (make-directory new-dir t)
+      (setq dir (expand-file-name dir)); In case it is ~/...
+      (make-directory (tuareg-jbuild--temp-name dir) t)
       (dolist (f (tuareg-jbuild--opam-files dir))
-        ;; Copy the opam files alonside 'jbuild' because there is no
-        ;; way to pass the root to jbuilder-lint
-        (copy-file f (concat new-dir (file-name-nondirectory f)) t)))
-    new-name))
+        (copy-file f (tuareg-jbuild--temp-name f) t)))
+    dir))
+
+(defun tuareg-jbuild--delete-opam-files (dir)
+  "Delete all opam files in the directory DIR."
+  (dolist (f (tuareg-jbuild--opam-files dir))
+    (flymake-safe-delete-file f)))
 
 (defun tuareg-jbuild-flymake-cleanup ()
   "Attempt to delete temp dir created by `tuareg-jbuild-flymake-create-temp', do not fail on error."
@@ -179,16 +189,14 @@ let () =
     (flymake-log 3 "Clean up %s" flymake-temp-source-file-name)
     (flymake-safe-delete-file flymake-temp-source-file-name)
     (condition-case nil
-        (progn
-          (delete-directory (expand-file-name "_build" dir) t)
-          (dolist (f (tuareg-jbuild--opam-files dir))
-            (delete-file f)))
+        (delete-directory (expand-file-name "_build" dir) t)
       (error nil))
-    ;; Also delete prarent dirs if empty
+    ;; Also delete parent dirs if empty or only contain opam files
     (while (and (not (string-equal dir temp-dir))
                 (> (length dir) 0))
       (condition-case nil
           (progn
+            (tuareg-jbuild--delete-opam-files dir)
             (delete-directory dir)
             (setq dir (file-name-directory (directory-file-name dir))))
         (error ; then top the loop
@@ -197,8 +205,9 @@ let () =
 (defun tuareg-jbuild-flymake-init ()
   (tuareg-jbuild-create-lint-script)
   (let ((fname (flymake-init-create-temp-buffer-copy
-                'tuareg-jbuild-flymake-create-temp)))
-    (list tuareg-jbuild-program (list fname))))
+                'tuareg-jbuild-flymake-create-temp))
+        (root (or (tuareg-jbuild--root buffer-file-name) "")))
+    (list tuareg-jbuild-program (list fname root))))
 
 (defvar tuareg-jbuild--allowed-file-name-masks
   '("\\(?:\\`\\|/\\)jbuild\\'" tuareg-jbuild-flymake-init
