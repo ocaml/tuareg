@@ -128,12 +128,14 @@
 
 (defvar tuareg-jbuild--allowed-file-name-masks
   '("\\(?:\\`\\|/\\)jbuild\\'" tuareg-jbuild-flymake-init
-                               tuareg-jbuild-flymake-cleanup))
+                               tuareg-jbuild-flymake-cleanup)
+  "Flymake entry for jbuild files.  See `flymake-allowed-file-name-masks'.")
 
 (defvar tuareg-jbuild--err-line-patterns
   '(("File \"\\([^\"]+\\)\", line \\([0-9]+\\), \
 characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
-     1 2 3 5)))
+     1 2 3 5))
+  "Value of `flymake-err-line-patterns' for jbuild files.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
