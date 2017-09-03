@@ -45,9 +45,9 @@
   (expand-file-name "Tuareg-jbuild" temporary-file-directory)
   "Directory where to duplicate the files for flymake.")
 
-(defvar tuareg-jbuild-program "jbuilder-lint"
+(defvar tuareg-jbuild-program
+  (expand-file-name "jbuilder-lint" tuareg-jbuild-temporary-file-directory)
   "Script to use to check the jbuild file.")
-;; See https://github.com/janestreet/jbuilder/issues/241
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;                     Syntax highlighting
@@ -90,6 +90,61 @@
 ;;;;                           Linting
 
 (require 'flymake)
+
+(defun tuareg-jbuild-create-lint-script ()
+  "Create the lint script if it does not exist.  This is nedded as long as See https://github.com/janestreet/jbuilder/issues/241 is not fixed."
+  (unless (file-exists-p tuareg-jbuild-program)
+    (let ((dir (file-name-directory tuareg-jbuild-program))
+          (pgm "#!/usr/bin/env ocaml
+;;
+#load \"unix.cma\";;
+#load \"str.cma\";;
+
+open Printf
+
+let filename = Sys.argv.(1)
+
+let read_all fh =
+  let buf = Buffer.create 1024 in
+  let b = Bytes.create 1024 in
+  let len = ref 0 in
+  while len := input fh b 0 1024; !len > 0 do
+    Buffer.add_subbytes buf b 0 !len
+  done;
+  Buffer.contents buf
+
+let errors =
+  let cmd = sprintf \"jbuilder external-lib-deps --root=%s %s\"
+              (Filename.quote (Filename.dirname filename))
+              (Filename.quote (Filename.basename filename)) in
+  let env = Unix.environment() in
+  let (_,_,fh) as p = Unix.open_process_full cmd env in
+  let out = read_all fh in
+  match Unix.close_process_full p with
+  | Unix.WEXITED (0|1) ->
+     (* jbuilder will normally exit with 1 as it will not be able to
+        perform the requested action. *)
+     out
+  | Unix.WEXITED 127 -> printf \"jbuilder not found in path.\n\"; exit 1
+  | Unix.WEXITED n -> printf \"jbuilder exited with status %d.\n\" n; exit 1
+  | Unix.WSIGNALED n -> printf \"jbuilder was killed by signal %d.\n\" n; exit 1
+  | Unix.WSTOPPED n -> printf \"jbuilder was stopped by signal %d\n.\" n; exit 1
+
+
+let () =
+  let re = \"\\(:?\\)[\r\n]+\\([a-zA-Z]+\\)\" in
+  let errors = Str.global_substitute (Str.regexp re)
+                 (fun s -> let colon = Str.matched_group 1 s = \":\" in
+                           let f = Str.matched_group 2 s in
+                           if f = \"File\" then \"\n File\"
+                           else if colon then \": \" ^ f
+                           else \", \" ^ f)
+                 errors in
+  print_string errors"))
+      (make-directory dir t)
+      (append-to-file pgm nil tuareg-jbuild-program)
+      (set-file-modes tuareg-jbuild-program #o777)
+      )))
 
 (defun tuareg-jbuild-flymake-create-temp (filename _prefix)
   ;; based on `flymake-create-temp-with-folder-structure'.
@@ -147,6 +202,7 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
   (setq indent-tabs-mode nil)
   (setq-local lisp-indent-offset 1)
   (setq-local require-final-newline mode-require-final-newline)
+  (tuareg-jbuild-create-lint-script)
   (push tuareg-jbuild--allowed-file-name-masks flymake-allowed-file-name-masks)
   (setq-local flymake-err-line-patterns tuareg-jbuild--err-line-patterns)
   (when (and tuareg-jbuild-flymake buffer-file-name)
