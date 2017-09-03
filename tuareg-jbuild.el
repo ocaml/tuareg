@@ -40,7 +40,14 @@
   (libraries ())))\n"
   "If not nil, propose to fill new files with this skeleton")
 
-(defvar tuareg-jbuild-program "jbuilder-lint")
+
+(defvar tuareg-jbuild-temporary-file-directory
+  (expand-file-name "Tuareg-jbuild" temporary-file-directory)
+  "Directory where to duplicate the files for flymake.")
+
+(defvar tuareg-jbuild-program "jbuilder-lint"
+  "Script to use to check the jbuild file.")
+;; See https://github.com/janestreet/jbuilder/issues/241
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;                     Syntax highlighting
@@ -84,11 +91,9 @@
 
 (require 'flymake)
 
-(defvar tuareg-jbuild-temporary-file-directory
-  (concat temporary-file-directory "Tuareg-jbuild"))
-
 (defun tuareg-jbuild-flymake-create-temp (filename _prefix)
   ;; based on `flymake-create-temp-with-folder-structure'.
+  ;; Should also copy <pkg>.opam files to provide context to jbuild.
   (unless (stringp filename)
     (error "Invalid filename"))
   (let* ((dir (file-name-directory filename))
@@ -98,22 +103,23 @@
     (file-truename (expand-file-name (file-name-nondirectory filename)
                                      temp-dir))))
 
-
 (defun tuareg-jbuild-flymake-cleanup ()
   "Attempt to delete temp dir created by `tuareg-jbuild-flymake-create-temp', do not fail on error."
-  ;; Based on `flymake-create-temp-with-folder-structure'.
-  (let* ((temp-dir tuareg-jbuild-temporary-file-directory)
-	 (suffix   (substring dir-name (1+ (length temp-dir)))))
-
-    (while (> (length suffix) 0)
-      (setq suffix (directory-file-name suffix))
-      ;;+(flymake-log 0 "suffix=%s" suffix)
-      (flymake-safe-delete-directory
-       (file-truename (expand-file-name suffix temp-dir)))
-      (setq suffix (file-name-directory suffix)))))
-
-(defun tuareg-jbuild-flymake-cleanup ()
-  (message "Cleanup to do %s" (buffer-file-name)))
+  (let ((dir (file-name-directory flymake-temp-source-file-name)))
+    (flymake-log 3 "Clean up %s" flymake-temp-source-file-name)
+    (flymake-safe-delete-file flymake-temp-source-file-name)
+    (condition-case nil
+        (delete-directory (expand-file-name "_build" dir) t)
+      (error
+       (flymake-log 2 "Failed to delete dir %s, error ignored" dir-name)))
+    (while (and (not (string-equal dir tuareg-jbuild-temporary-file-directory))
+                (> (length dir) 0))
+      (condition-case nil
+          (progn
+            (delete-directory dir)
+            (setq dir (file-name-directory dir)))
+        (error ; then top the loop
+         (setq dir ""))))))
 
 (defun tuareg-jbuild-flymake-init ()
   (let ((fname (flymake-init-create-temp-buffer-copy
