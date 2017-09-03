@@ -217,7 +217,9 @@ let () =
   "Flymake entry for jbuild files.  See `flymake-allowed-file-name-masks'.")
 
 (defvar tuareg-jbuild--err-line-patterns
-  '(("File \"\\([^\"]+\\)\", line \\([0-9]+\\), \
+  ;; Beware that the path from the root will be reported by jbuilder
+  ;; but flymake requires it to match the file name.
+  '(("File \"[^\"]*\\(jbuild\\)\", line \\([0-9]+\\), \
 characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
      1 2 3 5))
   "Value of `flymake-err-line-patterns' for jbuild files.")
