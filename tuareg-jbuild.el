@@ -126,18 +126,20 @@ let errors =
      (* jbuilder will normally exit with 1 as it will not be able to
         perform the requested action. *)
      out
-  | Unix.WEXITED 127 -> printf \"jbuilder not found in path.\n\"; exit 1
-  | Unix.WEXITED n -> printf \"jbuilder exited with status %d.\n\" n; exit 1
-  | Unix.WSIGNALED n -> printf \"jbuilder was killed by signal %d.\n\" n; exit 1
-  | Unix.WSTOPPED n -> printf \"jbuilder was stopped by signal %d\n.\" n; exit 1
+  | Unix.WEXITED 127 -> printf \"jbuilder not found in path.\\n\"; exit 1
+  | Unix.WEXITED n -> printf \"jbuilder exited with status %d.\\n\" n; exit 1
+  | Unix.WSIGNALED n -> printf \"jbuilder was killed by signal %d.\\n\" n;
+                        exit 1
+  | Unix.WSTOPPED n -> printf \"jbuilder was stopped by signal %d\\n.\" n;
+                       exit 1
 
 
 let () =
-  let re = \"\\(:?\\)[\r\n]+\\([a-zA-Z]+\\)\" in
+  let re = \"\\\\(:?\\\\)[\\r\\n]+\\\\([a-zA-Z]+\\\\)\" in
   let errors = Str.global_substitute (Str.regexp re)
                  (fun s -> let colon = Str.matched_group 1 s = \":\" in
                            let f = Str.matched_group 2 s in
-                           if f = \"File\" then \"\n File\"
+                           if f = \"File\" then \"\\n File\"
                            else if colon then \": \" ^ f
                            else \", \" ^ f)
                  errors in
