@@ -146,33 +146,51 @@ let () =
       (set-file-modes tuareg-jbuild-program #o777)
       )))
 
+(defun tuareg-jbuild-temp-name (absolute-path)
+  "Full path of the copy of the filename in `tuareg-jbuild-temporary-file-directory'."
+  (let ((slash-pos (string-match "/" absolute-path)))
+    (file-truename (expand-file-name (substring absolute-path (1+ slash-pos))
+                                     tuareg-jbuild-temporary-file-directory))))
+
+(defun tuareg-jbuild--opam-files (dir)
+  (directory-files dir t ".*\\.opam\\'"))
+
 (defun tuareg-jbuild-flymake-create-temp (filename _prefix)
   ;; based on `flymake-create-temp-with-folder-structure'.
-  ;; Should also copy <pkg>.opam files to provide context to jbuild.
   (unless (stringp filename)
     (error "Invalid filename"))
-  (let* ((dir (file-name-directory filename))
-         (slash-pos (string-match "/" dir))
-         (temp-dir  (expand-file-name (substring dir (1+ slash-pos))
-                                      tuareg-jbuild-temporary-file-directory)))
-    (file-truename (expand-file-name (file-name-nondirectory filename)
-                                     temp-dir))))
+  (let* ((new-name (tuareg-jbuild-temp-name filename))
+         (new-dir (file-name-directory new-name))
+         (dir (locate-dominating-file (file-name-directory filename)
+                                      #'tuareg-jbuild--opam-files)))
+    (when dir
+      (make-directory new-dir t)
+      (dolist (f (tuareg-jbuild--opam-files dir))
+        ;; Copy the opam files alonside 'jbuild' because there is no
+        ;; way to pass the root to jbuilder-lint
+        (copy-file f (concat new-dir (file-name-nondirectory f)) t)))
+    new-name))
 
 (defun tuareg-jbuild-flymake-cleanup ()
   "Attempt to delete temp dir created by `tuareg-jbuild-flymake-create-temp', do not fail on error."
-  (let ((dir (file-name-directory flymake-temp-source-file-name)))
+  (let ((dir (file-name-directory flymake-temp-source-file-name))
+        (temp-dir (concat (directory-file-name
+                           tuareg-jbuild-temporary-file-directory) "/")))
     (flymake-log 3 "Clean up %s" flymake-temp-source-file-name)
     (flymake-safe-delete-file flymake-temp-source-file-name)
     (condition-case nil
-        (delete-directory (expand-file-name "_build" dir) t)
-      (error
-       (flymake-log 2 "Failed to delete dir %s, error ignored" dir-name)))
-    (while (and (not (string-equal dir tuareg-jbuild-temporary-file-directory))
+        (progn
+          (delete-directory (expand-file-name "_build" dir) t)
+          (dolist (f (tuareg-jbuild--opam-files dir))
+            (delete-file f)))
+      (error nil))
+    ;; Also delete prarent dirs if empty
+    (while (and (not (string-equal dir temp-dir))
                 (> (length dir) 0))
       (condition-case nil
           (progn
             (delete-directory dir)
-            (setq dir (file-name-directory dir)))
+            (setq dir (file-name-directory (directory-file-name dir))))
         (error ; then top the loop
          (setq dir ""))))))
 
