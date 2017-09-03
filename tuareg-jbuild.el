@@ -195,6 +195,7 @@ let () =
          (setq dir ""))))))
 
 (defun tuareg-jbuild-flymake-init ()
+  (tuareg-jbuild-create-lint-script)
   (let ((fname (flymake-init-create-temp-buffer-copy
                 'tuareg-jbuild-flymake-create-temp)))
     (list tuareg-jbuild-program (list fname))))
@@ -223,7 +224,6 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
   (push tuareg-jbuild--allowed-file-name-masks flymake-allowed-file-name-masks)
   (setq-local flymake-err-line-patterns tuareg-jbuild--err-line-patterns)
   (when (and tuareg-jbuild-flymake buffer-file-name)
-    (tuareg-jbuild-create-lint-script)
     (flymake-mode t))
   (let ((fname (buffer-file-name)))
     (when (and tuareg-jbuild-skeleton
