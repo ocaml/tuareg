@@ -103,7 +103,7 @@
 open Printf
 
 let filename = Sys.argv.(1)
-let root = Sys.argv.(2)
+let root = try Some(Sys.argv.(2)) with _ -> None
 
 let read_all fh =
   let buf = Buffer.create 1024 in
@@ -115,8 +115,10 @@ let read_all fh =
   Buffer.contents buf
 
 let errors =
-  let cmd = sprintf \"jbuilder external-lib-deps --root=%s %s\"
-              (Filename.quote root)
+  let root = match root with
+    | None | Some \"\" -> \"\"
+    | Some r -> \"--root=\" ^ Filename.quote r in
+  let cmd = sprintf \"jbuilder external-lib-deps %s %s\" root
               (Filename.quote (Filename.basename filename)) in
   let env = Unix.environment() in
   let (_,_,fh) as p = Unix.open_process_full cmd env in
@@ -163,7 +165,11 @@ let () =
 
 (defun tuareg-jbuild--opam-files (dir)
   "Return all opam files in the directory DIR."
-  (directory-files dir t ".*\\.opam\\'"))
+  (let ((files nil))
+    (dolist (f (directory-files-and-attributes dir t ".*\\.opam\\'"))
+      (when (null (cadr f))
+        (push (car f) files)))
+    files))
 
 (defun tuareg-jbuild--root (filename)
   "Return the root and copy the necessary context files for jbuilder."
