@@ -181,13 +181,11 @@ See `prettify-symbols-alist' for more information.")
 (define-derived-mode tuareg-opam-mode prog-mode "Tuareg-opam"
   "Major mode to edit opam files."
   (setq font-lock-defaults '(tuareg-opam-font-lock-keywords))
-  (set (make-local-variable 'comment-start) "#")
-  (set (make-local-variable 'comment-end) "")
-  (set (make-local-variable 'prettify-symbols-alist)
-       tuareg-opam-prettify-symbols)
+  (setq-local comment-start "#")
+  (setq-local comment-end "")
+  (setq-local prettify-symbols-alist tuareg-opam-prettify-symbols)
   (setq indent-tabs-mode nil)
-  (make-local-variable 'require-final-newline)
-  (setq require-final-newline mode-require-final-newline)
+  (setq-local require-final-newline mode-require-final-newline)
   (let ((fname (buffer-file-name)))
     (when (and tuareg-opam-skeleton
                (not (and fname (file-exists-p fname)))
