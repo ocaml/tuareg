@@ -186,6 +186,7 @@ See `prettify-symbols-alist' for more information.")
   (setq-local prettify-symbols-alist tuareg-opam-prettify-symbols)
   (setq indent-tabs-mode nil)
   (setq-local require-final-newline mode-require-final-newline)
+  (smie-setup tuareg-opam-smie-grammar #'tuareg-opam-smie-rules)
   (let ((fname (buffer-file-name)))
     (when (and tuareg-opam-skeleton
                (not (and fname (file-exists-p fname)))
