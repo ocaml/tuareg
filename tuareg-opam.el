@@ -36,6 +36,11 @@
 maintainer: \"\"
 authors: []
 tags: []
+license: \"\"
+homepage: \"\"
+dev-repo: \"\"
+bug-reports: \"\"
+doc: \"\"
 build: [
   [ \"jbuilder\" \"subst\" ] {pinned}
   [ \"jbuilder\" \"build\" \"-p\" name \"-j\" jobs ]
