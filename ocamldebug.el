@@ -133,20 +133,19 @@ Additionally we have:
 \\[ocamldebug-display-frame] display frames file in other window
 \\[ocamldebug-step] advance one line in program
 C-x SPACE sets break point at current line."
-  (set (make-local-variable 'ocamldebug-last-frame) nil)
-  (set (make-local-variable 'ocamldebug-delete-prompt-marker) (make-marker))
-  (set (make-local-variable 'ocamldebug-filter-accumulator) "")
-  (set (make-local-variable 'ocamldebug-filter-function)
-       #'ocamldebug-marker-filter)
-  (set (make-local-variable 'comint-prompt-regexp) ocamldebug-prompt-pattern)
-  (set (make-local-variable 'comint-dynamic-complete-functions)
+  (setq-local ocamldebug-last-frame nil)
+  (setq-local ocamldebug-delete-prompt-marker (make-marker))
+  (setq-local ocamldebug-filter-accumulator "")
+  (setq-local ocamldebug-filter-function #'ocamldebug-marker-filter)
+  (setq-local comint-prompt-regexp ocamldebug-prompt-pattern)
+  (setq-local comint-dynamic-complete-functions
        (cons (if (boundp 'completion-at-point-functions)
                  #'ocamldebug-capf #'ocamldebug-complete)
              comint-dynamic-complete-functions))
-  (set (make-local-variable 'comint-prompt-read-only) t)
-  (set (make-local-variable 'paragraph-start) comint-prompt-regexp)
-  (set (make-local-variable 'ocamldebug-last-frame-displayed-p) t)
-  (set (make-local-variable 'shell-dirtrackp) t)
+  (setq-local comint-prompt-read-only t)
+  (setq-local paragraph-start comint-prompt-regexp)
+  (setq-local ocamldebug-last-frame-displayed-p t)
+  (setq-local shell-dirtrackp t)
   (add-hook 'comint-input-filter-functions 'shell-directory-tracker nil t))
 
 ;;; Keymaps.
