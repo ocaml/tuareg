@@ -2323,31 +2323,43 @@ directory, propose the user to switch to it.  Return t if the
 switch was made."
   (let ((fpath (buffer-file-name))
 	(p nil)
-	b)
+        (in-build nil)
+        base b)
     (when fpath
+      ;; Inspired by `locate-dominating-file'.
       (setq fpath (abbreviate-file-name fpath))
-      (while (not (or (null fpath)
-		      (string=
-		       (setq b (file-name-nondirectory
-				(setq fpath (directory-file-name fpath))))
-		       "_build")))
-	(push b p)
-	(let ((parent (file-name-directory fpath)))
-	  (setq fpath (if (string= parent fpath) nil parent))))
-      (when fpath
+      (setq base (file-name-nondirectory fpath))
+      (setq fpath (file-name-directory fpath))
+      (while (not (or in-build
+                      (null fpath)
+                      (string-match locate-dominating-stop-dir-regexp fpath)))
+        (setq b (file-name-nondirectory (directory-file-name fpath)))
+        (if (string= b "_build")
+            (setq in-build t)
+          (push (file-name-as-directory b) p)
+          (if (equal fpath (setq fpath (file-name-directory
+                                        (directory-file-name fpath))))
+              (setq fpath nil))))
+      (when in-build
 	;; Make `fpath' the path without _build.
-	(setq fpath (file-name-directory fpath))
-	(while p
-	  (setq fpath (concat (file-name-as-directory fpath) (pop p))))
-	(if (file-exists-p fpath)
-	    (when (y-or-n-p "File in _build.  Switch to corresponding \
-file outside _build? ")
-	      (kill-buffer)
-	      (find-file fpath)
-	      t)
-          (read-only-mode)
-	  (message "File under _build.  C-x C-q to edit.")
-	  nil)))))
+	(setq fpath (file-name-directory (directory-file-name fpath)))
+        ;; jbuilder prefixes the path with a <context> dir, not ocamlbuild
+        (let* ((context (pop p))
+               (rel-fpath (concat (apply #'concat p) base))
+               (alt0 (concat fpath rel-fpath)); jbuilder
+               (alt1 (concat fpath context rel-fpath)); ocamlbuild
+               (alt (if (file-readable-p alt0) alt0))
+               (alt (or alt (if (file-readable-p alt1) alt1))))
+          (if (and alt
+                   (y-or-n-p "File in _build.  Switch to corresponding \
+file outside _build? "))
+              (progn
+                (kill-buffer)
+                (find-file alt)
+                t)
+            (read-only-mode)
+            (message "File in _build.  C-x C-q to edit.")
+            nil))))))
 
 (defmacro tuareg--eval-when-macrop (f form)
   "Execute FORM but only when F is `fboundp' (because it's a macro).
