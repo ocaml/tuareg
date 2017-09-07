@@ -80,7 +80,7 @@
   (unless (face-differs-from-default-p 'ocamldebug-event)
     (invert-face 'ocamldebug-event))
   (unless (face-differs-from-default-p 'ocamldebug-underline)
-    (set-face-underline-p 'ocamldebug-underline t))
+    (set-face-underline 'ocamldebug-underline t))
   (setq ocamldebug-overlay-event (make-overlay 1 1))
   (overlay-put ocamldebug-overlay-event 'face 'ocamldebug-event)
   (setq ocamldebug-overlay-under (make-overlay 1 1))
@@ -430,9 +430,9 @@ around point."
   (interactive)
   (let* ((capf-data (ocamldebug-capf))
          (command-word (buffer-substring (nth 0 capf-data) (nth 1 capf-data))))
-    (comint-dynamic-simple-complete
-     command-word (sort (all-completions command-word (nth 2 capf-data))
-                        #'string-lessp))))
+    (completion-in-region (nth 0 capf-data) (nth 1 capf-data)
+                          (sort (all-completions command-word (nth 2 capf-data))
+                                #'string-lessp))))
 
 (when (fboundp 'completion-at-point)
   (make-obsolete 'ocamldebug-complete 'completion-at-point "24.1"))
