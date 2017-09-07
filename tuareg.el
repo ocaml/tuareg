@@ -273,8 +273,7 @@ See `comint-scroll-to-bottom-on-output' for details."
            (dolist (buf (buffer-list))
              (with-current-buffer buf
                (when (derived-mode-p 'tuareg-interactive-mode)
-                 (set (make-local-variable 'comint-scroll-to-bottom-on-output)
-                      val)))))))
+                 (setq-local comint-scroll-to-bottom-on-output val)))))))
 
 (defcustom tuareg-skip-after-eval-phrase t
   "*Non-nil means skip to the end of the phrase after evaluation in the
@@ -2372,9 +2371,8 @@ expansion at run-time, if the run-time version of Emacs does know this macro."
 (defun tuareg--common-mode-setup ()
   (setq local-abbrev-table tuareg-mode-abbrev-table)
   (when (fboundp 'tuareg-syntax-propertize)
-    (set (make-local-variable 'syntax-propertize-function)
-         #'tuareg-syntax-propertize))
-  (set (make-local-variable 'parse-sexp-ignore-comments)
+    (setq-local syntax-propertize-function #'tuareg-syntax-propertize))
+  (setq-local parse-sexp-ignore-comments
        ;; Tuareg used to set this to nil (for an unknown reason) but SMIE needs
        ;; it to be set to t.
        tuareg-use-smie)
@@ -2392,16 +2390,15 @@ expansion at run-time, if the run-time version of Emacs does know this macro."
                           #'tuareg--hanging-eolp-advice)))
         (add-hook 'smie-indent-functions #'tuareg-smie--args nil t)
         (add-hook 'smie-indent-functions #'tuareg-smie--inside-string nil t)
-        (set (make-local-variable 'add-log-current-defun-function)
-             'tuareg-current-fun-name))
-    (set (make-local-variable 'indent-line-function) #'tuareg-indent-command))
-  (set (make-local-variable 'prettify-symbols-alist)
+        (setq-local add-log-current-defun-function 'tuareg-current-fun-name))
+    (setq-local indent-line-function #'tuareg-indent-command))
+  (setq-local prettify-symbols-alist
        (if tuareg-prettify-symbols-full
            (append tuareg-prettify-symbols-basic-alist
                    tuareg-prettify-symbols-extra-alist)
          tuareg-prettify-symbols-basic-alist))
   (tuareg-install-font-lock)
-  (set (make-local-variable 'open-paren-in-column-0-is-defun-start) nil)
+  (setq-local open-paren-in-column-0-is-defun-start nil)
 
   (add-hook 'completion-at-point-functions #'tuareg-completion-at-point nil t)
 
@@ -2473,29 +2470,23 @@ Short cuts for interactions with the REPL:
     ;; Initialize indentation regexps
     (tuareg-make-indentation-regexps) ;;)
 
-    (set (make-local-variable 'paragraph-start)
-	 (concat "^[ \t]*$\\|\\*)$\\|" page-delimiter))
-    (set (make-local-variable 'paragraph-separate) paragraph-start)
-    (make-local-variable 'require-final-newline)
-    (setq require-final-newline mode-require-final-newline)
-    (set (make-local-variable 'comment-start) "(* ")
-    (set (make-local-variable 'comment-end) " *)")
-    (set (make-local-variable 'comment-start-skip) "(\\*+[ \t]*")
-    ;(set (make-local-variable 'comment-column) 40)              ;FIXME: Why?
-    ;(set (make-local-variable 'comment-multi-line) t)           ;FIXME: Why?
+    (setq-local paragraph-start (concat "^[ \t]*$\\|\\*)$\\|" page-delimiter))
+    (setq-local paragraph-separate paragraph-start)
+    (setq-local require-final-newline mode-require-final-newline)
+    (setq-local comment-start "(* ")
+    (setq-local comment-end " *)")
+    (setq-local comment-start-skip "(\\*+[ \t]*")
     ;; `ocamlc' counts columns from 0, contrary to other tools which start at 1.
-    (set (make-local-variable 'compilation-first-column) 0)
-    (set (make-local-variable 'compilation-error-screen-columns) nil)
+    (setq-local compilation-first-column 0)
+    (setq-local compilation-error-screen-columns nil)
     ;; TABs should NOT be used in OCaml files:
     (setq indent-tabs-mode nil)
     (tuareg--common-mode-setup)
     (when (fboundp 'tuareg-auto-fill-function)
       ;; Emacs-21's newcomment.el provides this functionality by default.
-      (set (make-local-variable 'normal-auto-fill-function)
-	   #'tuareg-auto-fill-function))
+      (setq-local normal-auto-fill-function #'tuareg-auto-fill-function))
 
-    (set (make-local-variable 'imenu-create-index-function)
-	 #'tuareg-imenu-create-index)
+    (setq-local imenu-create-index-function #'tuareg-imenu-create-index)
 
     (when (and tuareg-use-abbrev-mode
 	       (not (and (boundp 'electric-indent-mode) electric-indent-mode)))
@@ -2831,7 +2822,7 @@ switch is not installed, `nil' is returned."
       "Run opam to update environment variables."
       (let* ((env (tuareg-opam-config-env)))
 	(when env
-	  (set (make-local-variable 'compilation-environment)
+	  (setq-local compilation-environment
 	       (mapcar (lambda(v) (concat (car v) "=" (cadr v)))
 		       (tuareg-opam-config-env))))))
 
@@ -2962,10 +2953,10 @@ Short cuts for interactions with the REPL:
   (setq comint-scroll-to-bottom-on-output
         tuareg-interactive-scroll-to-bottom-on-output)
   (set-syntax-table tuareg-mode-syntax-table)
-  (set (make-local-variable 'comment-start) "(* ")
-  (set (make-local-variable 'comment-end) " *)")
-  (set (make-local-variable 'comment-start-skip) "(\\*+[ \t]*")
-  (set (make-local-variable 'comint-prompt-read-only) t)
+  (setq-local comment-start "(* ")
+  (setq-local comment-end " *)")
+  (setq-local comment-start-skip "(\\*+[ \t]*")
+  (setq-local comint-prompt-read-only t)
 
   (tuareg--common-mode-setup)
   (when (or tuareg-interactive-input-font-lock
@@ -3338,7 +3329,7 @@ Short cuts for interaction within the REPL:
         (buffer-disable-undo standard-output)
         (with-current-buffer buf-name
           (kill-all-local-variables)
-          (set (make-local-variable 'tuareg-library-path) dir)
+          (setq-local tuareg-library-path dir)
           ;; Help
           (insert "Directory \"" dir "\".\n")
           (insert "Select a file with middle mouse button or RETURN.\n\n")
