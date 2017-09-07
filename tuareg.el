@@ -721,8 +721,6 @@ Regexp match data 0 points to the chars."
       ;; used outside of font-lock.
       ("\\_<\\('\\)\\(?:[^'\\\n]\\|\\\\.[^\\'\n \")]*\\)\\('\\)"
        (1 "\"") (2 "\""))
-      ("\\(<\\)\\(?:<\\S.\\|:[[:alpha:]]+<\\)"
-       (1 (prog1 "|" (tuareg--syntax-quotation end))))
       ("\\({\\)[a-z_]*|"
        (1 (prog1 "|" (tuareg--syntax-quotation end))))
       )
@@ -751,8 +749,7 @@ Regexp match data 0 points to the chars."
 
 (defun tuareg-font-lock-syntactic-face-function (state)
   (if (nth 3 state)
-      (if (and (eq t (nth 3 state)) (eq ?< (char-after (nth 8 state))))
-          font-lock-preprocessor-face font-lock-string-face)
+      font-lock-string-face
     (let ((start (nth 8 state)))
       (if (and (> (point-max) (+ start 2))
                (eq (char-after (+ start 2)) ?*)
@@ -1053,11 +1050,6 @@ Regexp match data 0 points to the chars."
      (,(concat "\\<val" maybe-infix-attr+ext
 	       " +\\(" lid "\\)")
       1 font-lock-function-name-face)
-     (,(concat "\\<\\("
-               (regexp-opt '("DEFINE" "IFDEF" "IFNDEF" "THEN" "ELSE" "ENDIF"
-                             "INCLUDE" "__LOCATION__"))
-               "\\)\\>")
-      . font-lock-preprocessor-face)
      ,@(and tuareg-support-metaocaml
             '(("\\.<\\|>\\.\\|\\.~\\|\\.!"
                0 tuareg-font-lock-multistage-face nil nil)))
