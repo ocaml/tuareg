@@ -81,18 +81,18 @@ let () =
 
 ;; (* http://caml.inria.fr/mantis/view.php?id=4247 *)
 let x = {
-  Foo.
-  a = b;
-  c = d;
-  e = {Bar.
-       f = 1;
-       g = 2;
-      };
-  h = {  Quux.
-         i = 3;
-         j = 4;
-      };
-}
+    Foo.
+    a = b;
+    c = d;
+    e = {Bar.
+         f = 1;
+         g = 2;
+        };
+    h = {  Quux.
+           i = 3;
+           j = 4;
+        };
+  }
 
 ;; (* http://caml.inria.fr/mantis/view.php?id=4249 *)
 let x = { a = b;
@@ -105,15 +105,15 @@ let x = { a = b;
 }
 
 let s = { a with
-  b = 1;
-}
+          b = 1;
+        }
 ;;
 
 let a = {
-  M.
-  foo = foo;
-  bar = bar;
-}
+    M.
+    foo = foo;
+    bar = bar;
+  }
 
 let a = { t with M.
           foo = foo;
@@ -221,69 +221,69 @@ val f : a:b -> c:d
   -> e:f -> g
 
 type t = {
-  foo : (a
-         -> b
-         -> c
-         -> d);
-}
+    foo : (a
+           -> b
+           -> c
+           -> d);
+  }
 
 type t = {
-  foo : (    a ->
-             b ->
-             c ->
-             d);
-}
+    foo : (    a ->
+               b ->
+               c ->
+               d);
+  }
 
 type t = {
-  foo : a
-        -> b
-        -> c
-        -> d;
-  bar :
-    a
-    -> b
-    -> c;
-}
+    foo : a
+          -> b
+          -> c
+          -> d;
+    bar :
+      a
+      -> b
+      -> c;
+  }
 
 type t = {
-  foo : a ->
-        b ->
-        c ->
-        d;
-  bar :
-    a ->
-    b ->
-    c;
-}
+    foo : a ->
+          b ->
+          c ->
+          d;
+    bar :
+      a ->
+      b ->
+      c;
+  }
 
 type t = {
-  a : B.t;
-  c : D.t;
+    a : B.t;
+    c : D.t;
 
-  e : F.t;
+    e : F.t;
 
-  g : H.t I.t;
-  j :
-    K.t L.t;
-  m : N.t O.t;
-  p :
-    ((q:R.t
-      -> s:T.U.t
-      -> v:(W.t -> X.t option)
-      -> y:(Z.t -> A.t -> B.t C.D.t E.t)
-      -> f:(G.t -> H.t I.t option)
-      -> j:(K.t -> L.t M.t option)
-      -> n:(O.t -> p option)
-      -> q:R.t
-      -> s:(string -> unit) -> T.t
-     )
-     -> U.t
-     -> V.W.t
-     -> X.t);
-  y : Z.t A.t;
-  b : C.t D.t E.t;
-  f : (G.t -> H.t -> I.t J.t);
-} with sexp_of
+    g : H.t I.t;
+    j :
+      K.t L.t;
+    m : N.t O.t;
+    p :
+      ((q:R.t
+        -> s:T.U.t
+        -> v:(W.t -> X.t option)
+        -> y:(Z.t -> A.t -> B.t C.D.t E.t)
+        -> f:(G.t -> H.t I.t option)
+        -> j:(K.t -> L.t M.t option)
+        -> n:(O.t -> p option)
+        -> q:R.t
+        -> s:(string -> unit) -> T.t
+       )
+       -> U.t
+       -> V.W.t
+       -> X.t);
+    y : Z.t A.t;
+    b : C.t D.t E.t;
+    f : (G.t -> H.t -> I.t J.t);
+  } with sexp_of
 
 type 'a v = id:O.t ->
   ssss:Ssss.t ->
@@ -853,18 +853,18 @@ object
 end
 
 let f = {
-  a = 1;
-}
+    a = 1;
+  }
 
 let f a = {
-  a = a;
-}
+    a = a;
+  }
 
 let f a
       b = {
-  a = a;
-  b = b;
-}
+    a = a;
+    b = b;
+  }
 
 let () =
   for i = 10 to 17 do
@@ -873,9 +873,9 @@ let () =
 
 let a =
   B.c d ~e:f [
-        "g";
-        "h";
-      ]
+      "g";
+      "h";
+    ]
 
 let () =
   f a ~b:c ~d ~e:g
@@ -886,34 +886,34 @@ let () =
 
 let a = match b with
   | Some c ->  Some {
-    d = c;
-    e = e
-  }
+                   d = c;
+                   e = e
+                 }
   | None -> {
-    d = c;
-    e = e
-  }
+      d = c;
+      e = e
+    }
 
 let a = {
-  b = (
-    let z = f u in
-    z + z;
-  );
-  c = (let a = b in {
-    z = z;
-    y = h;
-  });
-}
+    b = (
+      let z = f u in
+      z + z;
+    );
+    c = (let a = b in {
+             z = z;
+             y = h;
+        });
+  }
 
 let () =
   { A.
     b =
       C.d e ~f:(fun g -> (h.I.j.K.l, m))
       |! begin fun n ->
-        match O.p n with
-        | `Q r -> r
-        | `S _k -> assert false
-      end;
+         match O.p n with
+         | `Q r -> r
+         | `S _k -> assert false
+         end;
     t =
       u ~v:w
         ~x:(Y.z a);
@@ -1037,16 +1037,16 @@ let variants a =
 
 let f a1 a2 a3
       b1 b2 b3 d1 d2 d3 = {
-  aa = func1 a1 a2 a3;
-  bb = func2
-    b1 b2 b3;
-  (* FIXME: Here it is reasonable to have '|' aligned with 'match' *)
-  cc = (match c with
-        | A -> 1
-        | B -> 2);
-  dd = func3
-    d1 d2 d3;
-}
+    aa = func1 a1 a2 a3;
+    bb = func2
+           b1 b2 b3;
+    (* FIXME: Here it is reasonable to have '|' aligned with 'match' *)
+    cc = (match c with
+          | A -> 1
+          | B -> 2);
+    dd = func3
+           d1 d2 d3;
+  }
 
 let fv =
   map3
@@ -1183,9 +1183,9 @@ let () =
      z
 
 type t = {
-  mutable a: float;
-  b : int;
-}
+    mutable a: float;
+    b : int;
+  }
 
 (* [struct] and [sig] must be treated the same way. *)
 module Base64 : sig
