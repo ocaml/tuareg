@@ -791,12 +791,18 @@ Regexp match data 0 points to the chars."
                 (e ")\\)*"))
             (concat b b b "[^()\"]*" e e e)))
          (balanced-braces-no-end-operator ; non-empty
-          (let ((b "\\(?:[^()]\\|(")
-                (e ")\\)*"))
+          (let* ((b "\\(?:[^()]\\|(")
+                 (e ")\\)*")
+                 (braces (concat b b "[^()]*" e e))
+                 (end-op (concat "\\(?:[^()!$%&*+-./:<=>?@^|~]\\|("
+                                 braces ")\\)")))
             (concat "\\(?:[^()!$%&*+-./:<=>?@^|~]"
-                    "\\|[!$%&*+-./:<=>?@^|~]+" ; operator char
-                    "\\(?:[^()!$%&*+-./:<=>?@^|~]\\|(" b b "[^()]*" e e ")\\)"
-                    "\\|(" b b "[^()]*" e e e)))
+                    ;; Operator not starting with ~
+                    "\\|[!$%&*+-./:<=>?@^|][!$%&*+-./:<=>?@^|~]*" end-op
+                    ;; Operator or label starting with ~
+                    "\\|~\\(?:[!$%&*+-./:<=>?@^|~]+" end-op
+                    "\\|[a-z][a-zA-Z0-9]*[: ]\\)"
+                    "\\|(" braces e)))
 	 (balanced-brackets
           (let ((b "\\(?:[^][]\\|\\[")
                 (e "\\]\\)*"))
