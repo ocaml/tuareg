@@ -52,7 +52,7 @@ let x = List.map (fun x -> 5)
 let x =
   logf `Info "User %s has %i new messages" ba
     (Uid.to_string uid)
-    (List.length new_messages);
+    (List.length new_messages)
 
 let x =
   let open M in
@@ -152,8 +152,8 @@ type t = [                              (* Comment.  *)
   ]
 
 type t = a
-and typey = 4
-and x = b
+ and typey = 4
+ and x = b
 
 module M = struct
   type t =
@@ -819,11 +819,12 @@ let x =
   @ snoo
 
 let () =
-  IO.println out (tagL "ol" (List.map ~f:(tag ~a:[] "li") (
-    (List.map results ~f:(fun (what,_) ->
-      tag "a" ~a:[("href","#" ^ what)] (what_title what)))
-    @ [tag "a" ~a:[("href","#" ^ message_id)] message_title;
-       tag "a" ~a:[("href","#" ^ legend_id)] legend_title])))
+  tagL "ol" (List.map ~f:(tag ~a:[] "li") (
+                 (List.map results ~f:(fun (what,_) ->
+                      tag "a" ~a:[("href","#" ^ what)] (what_title what)))
+                 @ [tag "a" ~a:[("href","#" ^ message_id)] message_title;
+                    tag "a" ~a:[("href","#" ^ legend_id)] legend_title]))
+  |> IO.println out
 
 let x =
   let y =
@@ -1116,7 +1117,7 @@ let f x =
 
 let splitting_long_expression =
   quad.{band, i3} <- quad.{band, i3} +. g +.
-                       area_12 *. (P.potential x13 y13 +. P.potential x23 y23)
+                      area_12 *. (P.potential x13 y13 +. P.potential x23 y23)
 
 let () =
   (* Beware of lexing ".;" as a single token!  *)
