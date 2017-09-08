@@ -124,7 +124,7 @@ See `prettify-symbols-alist' for more information.")
 
 (require 'smie)
 
-(setq tuareg-opam-smie-grammar
+(defvar tuareg-opam-smie-grammar
   (when (fboundp 'smie-prec2->grammar)
     (let* ((decl-of-kw (lambda(kw) `(decls ,kw ":" list)))
            (bnfprec2
