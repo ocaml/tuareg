@@ -69,17 +69,23 @@ Customization
 - By default, Tuareg will align the arguments of functions as follows:
 
         function_name arg1
-                      arg2
+          arg2
 
-  If you prefer that arguments on the second line be indented w.r.t.
-  the function name, put `(setq tuareg-indent-align-with-first-arg nil)`
-  in your [Init File][].  This may be convenient if you use
-  the following style:
+  This is what most OCaml programmers expect and is convenient if you
+  use the following style:
 
         function_name (fun x ->
             do_something
           )
           arg2
+
+  If you prefer the “lisp style” indentation in which arguments on the
+  second line are aligned with the arguments on the first line as in
+
+        function_name arg1
+                      arg2
+
+  put `(setq tuareg-indent-align-with-first-arg t)` in your [Init File][].
 
   In both cases, if there are no argument on the line following the
   function name, the indentation will be:

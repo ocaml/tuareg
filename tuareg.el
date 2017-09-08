@@ -2106,14 +2106,14 @@ Return values can be
       (goto-char (1+ (nth 8 (syntax-ppss))))
       (current-column))))
 
-(defcustom tuareg-indent-align-with-first-arg t
+(defcustom tuareg-indent-align-with-first-arg nil
   "Non-nil if indentation should try to align arguments on the first one.
 With a non-nil value you get
 
     let x = List.map (fun x -> 5)
                      my list
 
-whereas with a non value you get
+whereas with a nil value you get
 
     let x = List.map (fun x -> 5)
               my list"
