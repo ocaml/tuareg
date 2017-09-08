@@ -175,12 +175,12 @@ module M = struct
 end
 
 module N =
-struct
-  type u =
-    | D
-    | E
-  with sexp
-end
+  struct
+    type u =
+      | D
+      | E
+    with sexp
+  end
 
 type m =
   | T
@@ -471,10 +471,10 @@ let () =
   (* http://caml.inria.fr/resources/doc/guides/guidelines.en.html *)
   try () with
   | e ->
-    let x = z in
+     let x = z in
 
-    yyyyy
-      (a b)
+     yyyyy
+       (a b)
 
 let d x = function
   (* FIXME: Should we leave it like this or align "|" with "match"?
@@ -490,15 +490,15 @@ let d x = function
 
 let a f = function
   | A ->
-    1
+     1
   |   B ->
-    2
+       2
   |      C ->
-    (function
-     |  X  ->
-         a
-     | Y ->
-        b) 12
+          (function
+           |  X  ->
+               a
+           | Y ->
+              b) 12
   | D ->
      (match z with
       | 4 -> 3
@@ -575,12 +575,12 @@ let () =
   with _ -> ()
 
 let () = try
-           f x;
+    f x;
   with _ -> ()
 
 let () = (try
             f x;
-  with _ -> ())
+          with _ -> ())
 
 let () =
   foo (sprintf ("a: %s"
@@ -696,8 +696,8 @@ let () =
 let () =
   match e with
   | `T d ->
-    notify `O `T d;
-    cancel t u ~now
+     notify `O `T d;
+     cancel t u ~now
 
 let () =
   let a = 1
@@ -740,8 +740,8 @@ let () =
   >>= function
   | b -> c
   | d ->
-    e
-    >>= f
+     e
+     >>= f
 
 let () =
   foo >>> fun bar ->
@@ -1028,11 +1028,11 @@ let () =
 let variants a =
   match String.split a ~on:'-' with
   | [ s1; s2; s3 ] ->
-    let a0 = String.concat ~sep:"" [ s1; s2] in
-    let a1 = String.concat ~sep:"-" [ s1; s2; s3; "055" ] in (* Comment.  *)
-    List.map [ a0; a1; a]
-      ~f:(fun a_s -> lookup a_s)
-    |! List.flatten
+     let a0 = String.concat ~sep:"" [ s1; s2] in
+     let a1 = String.concat ~sep:"-" [ s1; s2; s3; "055" ] in (* Comment.  *)
+     List.map [ a0; a1; a]
+       ~f:(fun a_s -> lookup a_s)
+     |! List.flatten
   | _ -> failwith "bad"
 
 let f a1 a2 a3
@@ -1069,11 +1069,11 @@ let b =
 
 
 module type X =
-struct
-  val f : float -> float
+  struct
+    val f : float -> float
   (** This comment should be under "val", like other doc comments and not
    aligned to the left margin. *)
-end
+  end
 
 let test () =                           (* bug#927 *)
   if a then
@@ -1143,15 +1143,15 @@ let x =
   with Not_found ->
        b
      | _ ->
-       c
+        c
 let x =
   try a
   with Not_found ->
        if a then b
      | flag when String.is_prefix flag ~prefix:"-" ->
-       a
+        a
      | _ ->
-       c
+        c
 
 let x = "toto try \
          tata"
