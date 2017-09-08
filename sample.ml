@@ -456,9 +456,9 @@ let g x =
 
 let h x =
   try  ff a b
-          c d;
+         c d;
        gg 1 2
-          3 4;
+         3 4;
   with e -> raise e
 
 let () =
@@ -766,11 +766,11 @@ let () =
 
 let () =
   Hashtbl.iter times ~f:(fun ~key:time ~data:azot ->
-    Clock.at time
-    >>> fun () ->
-    Db.iter t.db ~f:(fun dbo ->
-      if S.mem azot (Dbo.azo dbo) then
-        Dbo.dont dbo))
+      Clock.at time
+      >>> fun () ->
+      Db.iter t.db ~f:(fun dbo ->
+          if S.mem azot (Dbo.azo dbo) then
+            Dbo.dont dbo))
 
 let () =
   f 1
@@ -836,15 +836,15 @@ let x =
 
 let () =
   foobar (fun () ->
-    step1
-    >>= fun () -> step2)
+      step1
+      >>= fun () -> step2)
 
 let w f =
   List.map f ~f:(fun (a, b) ->
-    L.r a
-    >>= function
-    | Ok s -> `Fst (b, s)
-    | Error e -> `Snd (b, a, e))
+      L.r a
+      >>= function
+      | Ok s -> `Fst (b, s)
+      | Error e -> `Snd (b, a, e))
 
 class c (a : b) =
 object
@@ -926,12 +926,12 @@ let () =
       V.w (fun x -> (Y.x a x).R.S.t);
     v =
       V.w (fun d ->
-        (D.g i d).R.S.z);
+          (D.g i d).R.S.z);
   }
 
 let x =
   [(W.background `Blue (W.hbox [
-    x
+                            x
    ]));
   ]
 
@@ -954,13 +954,13 @@ let c f =
 let foo x =
   f1 x >= f2 x
   && f3
-    (f4 x)
+      (f4 x)
 
 let foo x =
   (>=)
     (f1 x) (f2 x)
   && f3
-    (f4 x)
+      (f4 x)
 
 let a =
   foo
@@ -970,7 +970,7 @@ let a =
 let a =
   foo
     ~f:(fun () ->
-         a)
+      a)
 
 let a =
   foo
@@ -980,7 +980,7 @@ let a =
 let a =
   foo
     ~f:(fun () -> a
-       )
+    )
 
 let () =
   (* Comment.  *)
@@ -999,11 +999,11 @@ let foo =
     ~f:(fun m ->
       M.q m
       |! T.u ~pr ~verbose:false
-          ~p:H.P.US ~is_bar:false)
+           ~p:H.P.US ~is_bar:false)
   |! List.sort ~cmp:(fun a b ->
-    compare
-      (I.r a.T.s)
-      (I.r b.T.s))
+         compare
+           (I.r a.T.s)
+           (I.r b.T.s))
 
 let check =
   a lsr 30 >= 3
@@ -1012,18 +1012,18 @@ let check =
 
 let () =
   snoo ~f:(fun foo ->
-    foo = bar
-    && snoo)
+      foo = bar
+      && snoo)
 
 let () =
   snoo ~f:(fun foo ->
-    foo + bar
-    && snoo)
+      foo + bar
+      && snoo)
 
 let () =
   snoo ~f:(fun foo ->
-    foo
-    && snoo)
+      foo
+      && snoo)
 
 let variants a =
   match String.split a ~on:'-' with
@@ -1158,7 +1158,7 @@ let x = "toto try \
 
 let optional_sci_float =
   do_something ~a:1e-7
-               ~b:(fun x -> x + 1)
+    ~b:(fun x -> x + 1)
 
 let () =
   f x ~tol:1.0
@@ -1168,7 +1168,7 @@ let () =
 
 let array_args =
   fold s multi_sms.(0).message_number folder
-       more_args (* FIXME *)
+    more_args (* FIXME *)
 
 let () =
   match var with
@@ -1279,7 +1279,7 @@ let command =
   Command.Spec.(
     empty
     +> flag "-hello" (optional_with_default "Hello" string)
-            ~doc:" The 'hello' of 'hello world'"
+         ~doc:" The 'hello' of 'hello world'"
     +> flag "-world" (optional_with_default "World" string)
-            ~doc:" The 'world' of 'hello world'"
+         ~doc:" The 'world' of 'hello world'"
   )
