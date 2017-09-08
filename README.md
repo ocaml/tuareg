@@ -63,8 +63,10 @@ will start the OCaml REPL if needed).
 Run the OCaml debugger with <kbd>M-x ocamldebug FILE</kbd>.
 
 
-Customization
--------------
+Tips & customization
+--------------------
+
+- You can comment/uncomment a single line with <kbd>M-;</kbd>.
 
 - By default, Tuareg will align the arguments of functions as follows:
 

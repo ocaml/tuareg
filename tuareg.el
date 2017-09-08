@@ -500,9 +500,9 @@ changing the opam switch)."
     (skip-chars-backward " \t")
     (bolp)))
 
-(defun tuareg-in-literal-or-comment-p ()
+(defun tuareg-in-literal-or-comment-p (&optional pos)
   "Return non-nil if point is inside an OCaml literal or comment."
-  (nth 8 (syntax-ppss)))
+  (nth 8 (syntax-ppss pos)))
 
 (defun tuareg-backward-up-list ()
   ;; FIXME: not clear if moving out of a string/comment should count as 1 or no.
@@ -2305,7 +2305,66 @@ or indent all lines in the current phrase."
               (indent-region (car phrase) (cadr phrase))))))))
   )
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                            Commenting
+
+(defun tuareg--end-of-string-or-comment (state)
+  "Return the end position of the comment or string given by STATE."
+  (save-excursion
+    (goto-char (nth 8 state))
+    (if (nth 4 state) (comment-forward 1) (forward-sexp))
+    (point)))
+
+(defun tuareg-comment-or-uncomment-region (beg end &optional arg)
+  "Replacement for `comment-or-uncomment-region' tailored for OCaml."
+  (interactive "*r\nP")
+  (comment-normalize-vars)
+  (setq beg (save-excursion (goto-char beg)
+                            (skip-chars-forward " \t\r\n")
+                            (point)))
+  (setq end (save-excursion (goto-char end)
+                            (skip-chars-backward " \t\r\n")
+                            (point)))
+  (let (state pos)
+    ;; Include the comment or string to which BEG possibly belongs
+    (setq pos (nth 8 (syntax-ppss beg)))
+    (if pos (setq beg pos))
+    ;; Include the comment or string to which END possibly belongs
+    (setq state (syntax-ppss end))
+    (if (nth 8 state)
+        (setq end (tuareg--end-of-string-or-comment state)))
+    (if (comment-only-p beg end)
+        (uncomment-region beg end arg)
+      (comment-region beg end arg))))
+
+(defun tuareg-comment-dwim (&optional arg)
+  "Replacement for `comment-dwim' tailored for OCaml."
+  (interactive "*P")
+  (comment-normalize-vars)
+  (if (use-region-p)
+      (save-excursion
+        (tuareg-comment-or-uncomment-region (region-beginning)
+                                            (region-end) arg))
+    (let ((state (syntax-ppss)))
+      (cond
+       ((nth 4 state)
+        ;; Point inside a comment.  Uncomment just as if a region
+        ;; inside the comment was active.
+        (uncomment-region (nth 8 state)
+                          (tuareg--end-of-string-or-comment state) arg))
+       ((nth 3 state); Point inside a string.
+        (comment-region (nth 8 state)
+                        (tuareg--end-of-string-or-comment state) arg))
+       ((looking-at "[ \t]*$"); at end of line and not in string
+        (comment-dwim arg))
+       (t (save-excursion
+            (tuareg-comment-or-uncomment-region (line-beginning-position)
+                                                (line-end-position) arg)))))))
+
+(define-key tuareg-mode-map "\M-;" 'tuareg-comment-dwim)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                              The major mode
 
 (defun tuareg--switch-outside-build ()
@@ -2480,6 +2539,7 @@ Short cuts for interactions with the REPL:
     (setq-local comment-start "(* ")
     (setq-local comment-end " *)")
     (setq-local comment-start-skip "(\\*+[ \t]*")
+    (setq-local comment-style 'multi-line)
     ;; `ocamlc' counts columns from 0, contrary to other tools which start at 1.
     (setq-local compilation-first-column 0)
     (setq-local compilation-error-screen-columns nil)
