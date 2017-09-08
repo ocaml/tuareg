@@ -203,22 +203,22 @@ val f :
   -> c:c
 
 type bar = a -> b
-  -> c -> d
-  -> e -> f
+           -> c -> d
+           -> e -> f
 
 type baz = a -> b ->
-  c -> d ->
-  e -> f
+           c -> d ->
+           e -> f
 
 val quux : a -> b ->
-  c -> d ->
-  e -> f
+           c -> d ->
+           e -> f
 
 type t : a:b -> c:d
-  -> e:f -> g
+         -> e:f -> g
 
 val f : a:b -> c:d
-  -> e:f -> g
+        -> e:f -> g
 
 type t = {
     foo : (a
@@ -286,26 +286,26 @@ type t = {
   } with sexp_of
 
 type 'a v = id:O.t ->
-  ssss:Ssss.t ->
-  dddd:ddd.t ->
-  t:S_m.t ->
-  mmm:Safe_float.t ->
-  qqq:int ->
-  c:C.t ->
-  uuuu:string option ->
-  aaaaaa:Aaaaaa.t ->
-  a:A.t ->
-  rrrrr:Rrrrr.t ->
-  time:Time.t ->
-  typ:[ `L_p of Safe_float.t ] ->
-  bazonk:present option ->
-  o_p_e:O_m.t option ->
-  only_hjkl:present option ->
-  show_junk:int option ->
-  d_p_o: Safe_float.t option ->
-  asdf:present option ->
-  generic:Sexp.t list ->
-  'a
+           ssss:Ssss.t ->
+           dddd:ddd.t ->
+           t:S_m.t ->
+           mmm:Safe_float.t ->
+           qqq:int ->
+           c:C.t ->
+           uuuu:string option ->
+           aaaaaa:Aaaaaa.t ->
+           a:A.t ->
+           rrrrr:Rrrrr.t ->
+           time:Time.t ->
+           typ:[ `L_p of Safe_float.t ] ->
+           bazonk:present option ->
+           o_p_e:O_m.t option ->
+           only_hjkl:present option ->
+           show_junk:int option ->
+           d_p_o: Safe_float.t option ->
+           asdf:present option ->
+           generic:Sexp.t list ->
+           'a
 
 type 'a v =
   id:O.t
@@ -1054,10 +1054,10 @@ let fv =
     b
     c
     ~f:(fun
-      x
-      y
-      z
-    ->
+        x
+        y
+        z
+      ->
       match x y z with
       | `No)
 
@@ -1249,11 +1249,11 @@ end
 
 val f :
   x : int ->
-  int ->
-  int
+      int ->
+      int
 
 val f :
-  ?x : int ->
+  ?x: int ->
   int ->
   int
 
