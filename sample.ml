@@ -559,12 +559,13 @@ let () =
    in
    x + 5)
 
-let foo = 1 and bar = 2 and zot = 3 in
-let quux = 4 in
-foo
-+ bar
-+ zot
-+ quux
+let x =
+  let foo = 1 and bar = 2 and zot = 3 in
+  let quux = 4 in
+  foo
+  + bar
+  + zot
+  + quux
 
 (* Indent comment to following code.  *)
 let () =
@@ -1268,12 +1269,13 @@ let subscribe_impl dir topic ~aborted =
     next_argument (* should be indented correctly, given the braces *)
 
 
-List.map
-  (function x ->
-    blabla    (* FIXME: indentation afer "(function" *)
-    blabla
-    blabla)
-  l
+let _ =
+  List.map
+    (function x ->
+      blabla    (* FIXME: indentation afer "(function" *)
+        blabla
+        blabla)
+    l
 
 let command =
   Command.Spec.(
