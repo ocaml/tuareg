@@ -2188,46 +2188,56 @@ whereas with a nil value you get
 
   (defun tuareg--beginning-of-phrase ()
     "Move the point to the beginning of the OCaml phrase on which the point is."
-    (if (nth 3 (syntax-ppss)); in a string
-        (goto-char (nth 8 (syntax-ppss))))
-    (while
-        (if (save-excursion
-              (member (tuareg-smie-backward-token)
-                      tuareg--beginning-of-phrase-syms))
-            (progn
-              (tuareg-smie-backward-token)
-              nil)
-          (let ((td (smie-backward-sexp 'halfsexp)))
-            (cond
-             ((member (nth 2 td) tuareg--beginning-of-phrase-syms)
-              (goto-char (nth 1 td))
-              nil)
-             ((and (car td) (not (numberp (car td))))
-              (unless (bobp) (goto-char (nth 1 td)) t))
-             (t t))))))
+    (let ((proper-beginning-of-phrase nil)
+          (state (syntax-ppss)))
+      (if (nth 3 state); in a string
+          (goto-char (nth 8 state)))
+      (while
+          (if (save-excursion
+                (member (tuareg-smie-backward-token)
+                        tuareg--beginning-of-phrase-syms))
+              (progn
+                (tuareg-smie-backward-token)
+                (setq proper-beginning-of-phrase t)
+                nil)
+            (let ((td (smie-backward-sexp 'halfsexp)))
+              (cond
+               ((member (nth 2 td) tuareg--beginning-of-phrase-syms)
+                (setq proper-beginning-of-phrase t)
+                (goto-char (nth 1 td))
+                nil)
+               ((string= (caddr td) ";;") nil)
+               ((and (car td) (not (numberp (car td))))
+                (unless (bobp) (goto-char (nth 1 td)) t))
+               (t t)))))
+      proper-beginning-of-phrase))
 
   (defun tuareg-discover-phrase ()
     "Return a triplet (BEGIN END END-WITH-COMMENTS)."
     (save-excursion
-      (let ((pos (point)))
+      (let ((pos (point))
+            begin end end-comment
+            proper-beginning-of-phrase)
         (end-of-line)
-        (tuareg--beginning-of-phrase)
-        (let ((begin (point))
-              end
-              end-comment)
-          (while (progn
-                   (smie-forward-sexp 'halfsexp)
-                   (setq end (point))
-                   (tuareg-skip-blank-and-comments)
-                   (< (point) pos))
-            ;; Looks like tuareg--beginning-of-phrase went too far back!
-            (setq begin (point)))
-          (setq end-comment (point))
-          (goto-char begin)
-          ;; ";;" is not part of the phrase and neither comments
-          (tuareg--skip-double-colon)
-          (tuareg-skip-blank-and-comments)
-          (list (point) end end-comment)))))
+        (setq proper-beginning-of-phrase (tuareg--beginning-of-phrase))
+        (setq begin (point))
+        (while (progn
+                 (smie-forward-sexp 'halfsexp)
+                 (setq end (point))
+                 (tuareg-skip-blank-and-comments)
+                 (< (point) pos))
+          ;; Looks like tuareg--beginning-of-phrase went too far back!
+          (setq begin (point)))
+        (unless proper-beginning-of-phrase
+          (smie-forward-sexp ";;")
+          (setq end (point))
+          (tuareg-skip-blank-and-comments))
+        (setq end-comment (point))
+        (goto-char begin)
+        ;; ";;" is not part of the phrase and neither comments
+        (tuareg--skip-double-colon)
+        (tuareg-skip-blank-and-comments)
+        (list (point) end end-comment)))))
 
   (defun tuareg--string-boundaries ()
     "Assume point is inside a string and return (START . END), the
@@ -3164,9 +3174,9 @@ It is assumed that the range `start'-`end' delimit valid OCaml phrases."
   (interactive)
   (let ((end))
     (save-excursion
-      (let ((pair (tuareg-discover-phrase)))
-        (setq end (nth 2 pair))
-        (tuareg-interactive--send-region (nth 0 pair) (nth 1 pair))))
+      (let ((p (tuareg-discover-phrase)))
+        (setq end (nth 2 p))
+        (tuareg-interactive--send-region (nth 0 p) (nth 1 p))))
     (when tuareg-skip-after-eval-phrase
       (goto-char end)
       (tuareg--skip-double-colon)
