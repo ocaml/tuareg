@@ -876,6 +876,8 @@ Regexp match data 0 points to the chars."
      (,(concat "( *\\(type\\) +\\(" lid " *\\)+)")
       (1 font-lock-keyword-face)
       (2 font-lock-type-face))
+     (":[\n]? *\\(type\\)"
+      (1 font-lock-keyword-face))
      ;; First class modules.  In these contexts, "val" and "module"
      ;; are not considered as "governing" (main structure of the code).
      (,(concat "( *\\(module\\) +\\(" module-path "\\) *: +\\("
@@ -1369,7 +1371,8 @@ by |, insert one |."
               (def-in-exp (defs "in" exp))
               (def (var "d=" exp) (id "d=" datatype) (id "d=" module))
               (idtype (id ":" type))
-              (var (id) ("m-type" var) ("rec" var) ("private" var) (idtype)
+              (var (id) ("m-type" var) ("d-type" var) ("rec" var)
+                   ("private" var) (idtype)
                    ("l-module" var) ("l-class" var))
               (exception (id "of" type))
               (datatype ("{" typefields "}") (typebranches)
@@ -1792,12 +1795,14 @@ Return values can be
                         (tuareg-smie--label-colon-p))))
           (if (member nearest '("with" "|" "fun" "function" "functor"))
               tok "t->"))))
-     ;; Handle "module type" and mod-constraint's "with/and type".
+     ;; Handle "module type", mod-constraint's "with/and type" and
+     ;; polymorphic syntax.
      ((equal tok "type")
       (save-excursion
         (let ((prev (tuareg-smie--backward-token)))
           (cond ((equal prev "module") "m-type")
                 ((member prev '("and" "with")) "w-type")
+                ((equal prev ":") "d-type"); ": type a. ..."
                 (t tok)))))
      ;; Disambiguate mod-constraint's "and" and "with".
      ((member tok '("with" "and"))
