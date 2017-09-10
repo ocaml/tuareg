@@ -138,11 +138,9 @@ Tips & customization
 Thanks to the work of Stefan Monnier, a new indentation engine based on
 [SMIE](https://www.gnu.org/software/emacs/manual/html_node/elisp/SMIE.html)
 was written.  This changes the indentation somewhat w.r.t. the
-previous versions of `tuareg`.  If you do not want that, you can use
-the _old_ indentation engine by adding `(setq tuareg-use-smie nil)` to
-your [Init File][].  It is discouraged however as the older
-indentation engine will _not_ be updated (unless a PR is submitted)
-and will eventually be removed.
+previous versions of `tuareg`.  If the indentation does not correspond
+to what you expect, please submit a
+[motivated issue](https://github.com/ocaml/tuareg/issues/).
 
 
 The standard Emacs customization tool can be used to configure Tuareg
