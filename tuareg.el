@@ -3515,8 +3515,4 @@ Short cuts for interaction within the REPL:
 
 (provide 'tuareg)
 
-;; Pre-SMIE indentation functions.
-;; Load it after providing `tuareg' to avoid circular dependencies.
-(if t (require 'tuareg_indent))         ;Don't load during compilation.
-
 ;;; tuareg.el ends here
