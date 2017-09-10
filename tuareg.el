@@ -2778,7 +2778,7 @@ otherwise return non-nil."
                  (setq not-found nil))
          ((file-exists-p filename) (find-file filename)
           (setq not-found nil))
-         (t (message "* %s" ext) (setq ext (cdr ext))))))
+         (t (setq ext (cdr ext))))))
     (when not-found
       (let* ((e (car extensions)) ; Create with the first extention?
              (filename (concat mod-name e))
