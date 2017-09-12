@@ -1342,7 +1342,6 @@ by |, insert one |."
                      (decls "class" decls)
                      (decls "val" decls) (decls "external" decls)
                      (decls "open" decls) (decls "include" decls)
-                     (decls "DEFINE" decls)
                      (exception)
                      (def)
                      ;; Hack: at the top-level, a "let D in E" can appear in
@@ -1463,7 +1462,7 @@ by |, insert one |."
             '((assoc "|") (assoc ";"))
             ;; Fix up associative declaration keywords.
             '((assoc "type" "d-let" "exception" "module" "val" "open"
-                     "external" "include" "class" "DEFINE" ";;")
+                     "external" "include" "class" ";;")
               (assoc "and"))
             '((assoc "val" "method" "inherit" "constraint" "initializer"))
             ;; Declare associativity of remaining sequence separators.
@@ -1657,7 +1656,7 @@ Return values can be
   (save-excursion
     (let* ((pos (point))
            (telltale '("type" "let" "module" "class" "and" "external"
-                       "val" "method" "DEFINE" "=" ":="
+                       "val" "method" "=" ":="
                        "if" "then" "else" "->" ";" ))
            (nearest (tuareg-smie--search-backward telltale)))
       (cond
@@ -1686,7 +1685,7 @@ Return values can be
         ;; Second equality in "type t = M.t = C" or after mod-constraint
         "d=")
        ((not (member nearest '("type" "let" "module" "class" "and"
-                               "external" "val" "method" "DEFINE")))
+                               "external" "val" "method")))
         "=…")
        ((and (member nearest '("type" "module"))
              ;; Maybe a module's type equality constraint?
@@ -1709,7 +1708,7 @@ Return values can be
   \"c=\" for destructive equality constraint."
   (save-excursion
     (let* ((telltale '("type" "let" "module" "class" "and" "external"
-                       "val" "method" "DEFINE" "=" ":="
+                       "val" "method" "=" ":="
                        "if" "then" "else" "->" ";" ))
            (nearest (tuareg-smie--search-backward telltale)))
       (cond				;Issue #7
