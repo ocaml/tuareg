@@ -1085,7 +1085,6 @@ Regexp match data 0 points to the chars."
     (define-key map "\C-c\C-w" 'tuareg-opam-update-env)
     (define-key map "\C-xnd" 'tuareg-narrow-to-phrase)
     (define-key map "\M-\C-x" 'tuareg-eval-phrase)
-    (define-key map [remap newline-and-indent] 'tuareg-newline-and-indent)
     (define-key map "\C-x\C-e" 'tuareg-eval-phrase)
     (define-key map "\C-c\C-e" 'tuareg-eval-phrase)
     (define-key map "\C-c\C-r" 'tuareg-eval-region)
