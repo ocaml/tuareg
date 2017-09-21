@@ -1097,7 +1097,6 @@ Regexp match data 0 points to the chars."
     (define-key map [(backspace)] 'backward-delete-char-untabify)
     (define-key map [(control c) (home)]
       'tuareg-move-inside-module-or-class-opening)
-    (define-key map [(meta control h)] 'tuareg-mark-phrase)
     (define-key map "\C-c`" 'tuareg-interactive-next-error-source)
     (define-key map "\C-c?" 'tuareg-interactive-next-error-source)
     (define-key map "\C-c.c" 'tuareg-insert-class-form)
