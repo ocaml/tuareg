@@ -3456,7 +3456,8 @@ Short cuts for interaction within the REPL:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;			    Imenu support
 
-(when (require 'caml nil t)
+(when (let (abbrevs-changed)            ;Workaround for tuareg#146
+        (require 'caml nil t))
   (defalias 'tuareg-imenu-create-index 'caml-create-index-function))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
