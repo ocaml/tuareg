@@ -125,24 +125,23 @@ See `prettify-symbols-alist' for more information.")
 (require 'smie)
 
 (defvar tuareg-opam-smie-grammar
-  (when (fboundp 'smie-prec2->grammar)
-    (let* ((decl-of-kw (lambda(kw) `(decls ,kw ":" list)))
-           (bnfprec2
-            (smie-bnf->prec2
-             `((decls . ,(mapcar decl-of-kw tuareg-opam-keywords) )
-               (list ("[" list "]")
-                     (value))
-               (value (string "{" filter "}")
-                      (string))
-               (string)
-               (filter)))))
-      (smie-prec2->grammar
-       (smie-merge-prec2s
-        bnfprec2
-        (smie-precs->prec2
-         '((right "&" "|")
-           (left "=" "!=" ">" ">=" "<" "<=")))
-        )))))
+  (let* ((decl-of-kw (lambda(kw) `(decls ,kw ":" list)))
+         (bnfprec2
+          (smie-bnf->prec2
+           `((decls . ,(mapcar decl-of-kw tuareg-opam-keywords) )
+             (list ("[" list "]")
+                   (value))
+             (value (string "{" filter "}")
+                    (string))
+             (string)
+             (filter)))))
+    (smie-prec2->grammar
+     (smie-merge-prec2s
+      bnfprec2
+      (smie-precs->prec2
+       '((right "&" "|")
+         (left "=" "!=" ">" ">=" "<" "<=")))
+      ))))
 
 (defun tuareg-opam-smie-rules (kind token)
   (cond
