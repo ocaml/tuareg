@@ -18,8 +18,6 @@
 ;; NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
 ;; CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-(require 'scheme)
-
 (defvar tuareg-jbuild-mode-hook nil
   "Hooks for the `tuareg-jbuild-mode'.")
 
@@ -234,11 +232,11 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
 
 
 ;;;###autoload
-(define-derived-mode tuareg-jbuild-mode scheme-mode "Tuareg-jbuild"
+(define-derived-mode tuareg-jbuild-mode prog-mode "Tuareg-jbuild"
   "Major mode to edit jbuild files."
   (setq-local font-lock-defaults '(tuareg-jbuild-font-lock-keywords))
   (setq indent-tabs-mode nil)
-  (setq-local lisp-indent-offset 1)
+  (setq-local indent-line-function #'lisp-indent-line)
   (setq-local require-final-newline mode-require-final-newline)
   (push tuareg-jbuild--allowed-file-name-masks flymake-allowed-file-name-masks)
   (setq-local flymake-err-line-patterns tuareg-jbuild--err-line-patterns)
