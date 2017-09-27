@@ -87,6 +87,44 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;                             SMIE
+
+(require 'smie)
+
+(defvar tuareg-jbuild-smie-grammar
+  (when (fboundp 'smie-prec2->grammar)
+    (smie-prec2->grammar
+     (smie-bnf->prec2 '()))))
+
+(defun tuareg-jbuild-smie-rules (kind token)
+  (cond
+   ((eq kind :before)
+    (if (smie-rule-parent-p "(")
+        (save-excursion
+          (goto-char (cadr smie--parent))
+          (cond
+           ((looking-at-p tuareg-jbuild-keywords-regex)  1)
+           ((looking-at-p tuareg-jbuild-fields-regex)
+            (message "FIELD")
+            (smie-rule-parent 2))
+           (t 2)))
+      '(column . 0)))
+   (t 1)))
+
+
+(defun verbose-tuareg-jbuild-smie-rules (kind token)
+  (let ((value (tuareg-jbuild-smie-rules kind token)))
+    (message
+     "%s '%s'; sibling-p:%s parent:%s hanging:%s = %s"
+     kind token
+     (ignore-errors (smie-rule-sibling-p))
+     (ignore-errors smie--parent)
+     (ignore-errors (smie-rule-hanging-p))
+     value)
+    value))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;                           Linting
 
 (require 'flymake)
@@ -234,13 +272,15 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
 
 
 ;;;###autoload
-(define-derived-mode tuareg-jbuild-mode scheme-mode "Tuareg-jbuild"
+(define-derived-mode tuareg-jbuild-mode prog-mode "Tuareg-jbuild"
   "Major mode to edit jbuild files."
   (setq-local font-lock-defaults '(tuareg-jbuild-font-lock-keywords))
+  (setq-local comment-start ";")
+  (setq-local comment-end "")
   (setq indent-tabs-mode nil)
-  (setq-local lisp-indent-offset 1)
   (setq-local require-final-newline mode-require-final-newline)
   (push tuareg-jbuild--allowed-file-name-masks flymake-allowed-file-name-masks)
+  (smie-setup tuareg-jbuild-smie-grammar #'tuareg-jbuild-smie-rules)
   (setq-local flymake-err-line-patterns tuareg-jbuild--err-line-patterns)
   (when (and tuareg-jbuild-flymake buffer-file-name)
     (flymake-mode t))
