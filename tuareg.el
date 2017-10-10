@@ -3128,14 +3128,14 @@ otherwise a newline is inserted and the lines are indented."
   (comint-send-input))
 
 (defun tuareg-interactive--send-region (start end)
-  "Send the region between `start' and `end' to the OCaml REPL.
-It is assumed that the range `start'-`end' delimit valid OCaml phrases."
+  "Send the region between START and END to the OCaml REPL.
+It is assumed that the range START-END delimit valid OCaml phrases."
   (save-excursion (tuareg-run-process-if-needed))
   (comint-preinput-scroll-to-bottom)
   (let* ((phrases (buffer-substring-no-properties start end))
-         (phrases-colon (if (string-match-p ";;[ \t\n]*\\'" phrases)
-                            (replace-regexp-in-string "[ \t\n]*\\'" "" phrases)
-                          (concat phrases ";;"))))
+         (phrases (replace-regexp-in-string "[ \t\n]*\\(;;[ \t\n]*\\)?\\'" ""
+                                            phrases))
+         (phrases-colon (concat phrases ";;")))
     (if (string= phrases "")
         (message "Cannot send empty commands to OCaml REPL!")
       (with-current-buffer tuareg-interactive-buffer-name
