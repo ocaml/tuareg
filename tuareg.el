@@ -2206,8 +2206,9 @@ whereas with a nil value you get
   (tuareg--skip-double-colon))
 
 (defun tuareg-discover-phrase (&optional pos)
-  "Return a triplet (BEGIN END END-WITH-COMMENTS).  In case of
-error, move the point at the beginning of the error and return `nil'."
+  "Return a triplet (BEGIN END END-WITH-COMMENTS) for the OCaml
+phrase around POS.  In case of error, move the point at the
+beginning of the error and return `nil'."
   (let (begin end end-comment
         proper-beginning-of-phrase go-forward
         (complete-phrase t))
@@ -2222,12 +2223,17 @@ error, move the point at the beginning of the error and return `nil'."
       (setq end (point))
       (while (progn
                (funcall go-forward)
-               (if (= end (point)); no move
-                   (progn (setq complete-phrase nil)
-                          nil)
+               (cond
+                ((= (point) (point-max))
+                 (setq end (point))
+                 nil)
+                ((= end (point)); no move
+                 (setq complete-phrase nil)
+                 nil)
+                (t
                  (setq end (point))
                  (tuareg-skip-blank-and-comments)
-                 (<= (point) pos)))
+                 (<= (point) pos))))
         ;; Looks like tuareg--beginning-of-phrase went too far back!
         (setq begin (point)))
       (setq end-comment (point))
@@ -2237,8 +2243,8 @@ error, move the point at the beginning of the error and return `nil'."
         (smie-forward-sexp 'halfsexp)
         (when (= end-comment (point)); did not move
           (setq complete-phrase nil)))
-      (goto-char begin)
       ;; ";;" is not part of the phrase and neither comments
+      (goto-char begin)
       (tuareg--skip-double-colon)
       (tuareg-skip-blank-and-comments)
       (setq begin (point)))
