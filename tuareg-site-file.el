@@ -3,8 +3,8 @@
 (add-to-list 'load-path
              (or (file-name-directory load-file-name) (car load-path)))
 
-;;;### (autoloads nil "ocamldebug" "ocamldebug.el" (22688 11611 703888
-;;;;;;  818000))
+;;;### (autoloads nil "ocamldebug" "ocamldebug.el" (22960 18385 186574
+;;;;;;  216000))
 ;;; Generated autoloads from ocamldebug.el
 
 (autoload 'ocamldebug "ocamldebug" "\
@@ -19,7 +19,7 @@ the ocamldebug commands `cd DIR' and `directory'.
 
 ;;;***
 
-;;;### (autoloads nil "tuareg" "tuareg.el" (22929 53332 103137 312000))
+;;;### (autoloads nil "tuareg" "tuareg.el" (23005 3097 903887 888000))
 ;;; Generated autoloads from tuareg.el
 (add-to-list 'auto-mode-alist '("\\.ml[ip]?\\'" . tuareg-mode))
 (add-to-list 'auto-mode-alist '("\\.eliomi?\\'" . tuareg-mode))
@@ -82,8 +82,21 @@ Run an OCaml REPL process.  I/O via buffer `*OCaml*'.
 
 ;;;***
 
-;;;### (autoloads nil "tuareg-opam" "tuareg-opam.el" (22928 15617
-;;;;;;  885806 463000))
+;;;### (autoloads nil "tuareg-jbuild" "tuareg-jbuild.el" (23002 32568
+;;;;;;  657681 185000))
+;;; Generated autoloads from tuareg-jbuild.el
+
+(autoload 'tuareg-jbuild-mode "tuareg-jbuild" "\
+Major mode to edit jbuild files.
+
+\(fn)" t nil)
+
+(add-to-list 'auto-mode-alist '("\\(?:\\`\\|/\\)jbuild\\'" . tuareg-jbuild-mode))
+
+;;;***
+
+;;;### (autoloads nil "tuareg-opam" "tuareg-opam.el" (23002 32568
+;;;;;;  705681 553000))
 ;;; Generated autoloads from tuareg-opam.el
 
 (autoload 'tuareg-opam-mode "tuareg-opam" "\
@@ -91,12 +104,12 @@ Major mode to edit opam files.
 
 \(fn)" t nil)
 
-(add-to-list 'auto-mode-alist '("[./]opam\\'" . tuareg-opam-mode))
+(add-to-list 'auto-mode-alist '("[./]opam_?\\'" . tuareg-opam-mode))
 
 ;;;***
 
-;;;### (autoloads nil nil ("dot-emacs.el" "tuareg-light.el" "tuareg-mly.el"
-;;;;;;  "tuareg_indent.el") (22915 4641 875752 84000))
+;;;### (autoloads nil nil ("dot-emacs.el" "tuareg-light.el" "tuareg-mly.el")
+;;;;;;  (22928 42647 125772 673000))
 
 ;;;***
 
