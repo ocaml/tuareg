@@ -16,7 +16,7 @@ build: [
   [make "elc"] { os != "darwin" }
 ]
 depopts: [
-  "caml-mode"
+  "caml-mode" {>= "4.05"}
   "merlin"
 ]
 depexts: [
