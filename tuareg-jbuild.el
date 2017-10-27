@@ -83,7 +83,8 @@
   `((,tuareg-jbuild-keywords-regex . font-lock-keyword-face)
     (,tuareg-jbuild-fields-regex . font-lock-constant-face)
     ("${\\([a-zA-Z:]+\\|[<@]\\)}" 1 font-lock-variable-name-face)
-    ("$(\\([a-zA-Z:]+\\|[<@]\\))" 1 font-lock-variable-name-face)))
+    ("$(\\([a-zA-Z:]+\\|[<@]\\))" 1 font-lock-variable-name-face)
+    ("\\(:[a-zA-Z]+\\)\\b" 1 font-lock-builtin-face)))
 
 (defvar tuareg-jbuild-mode-syntax-table
   (let ((table (make-syntax-table)))
