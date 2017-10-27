@@ -85,6 +85,18 @@
     ("${\\([a-zA-Z:]+\\|[<@]\\)}" 1 font-lock-variable-name-face)
     ("$(\\([a-zA-Z:]+\\|[<@]\\))" 1 font-lock-variable-name-face)))
 
+(defvar tuareg-jbuild-mode-syntax-table
+  (let ((table (make-syntax-table)))
+    (modify-syntax-entry ?\; "< b" table)
+    (modify-syntax-entry ?\n "> b" table)
+    (modify-syntax-entry ?\( "()" table)
+    (modify-syntax-entry ?\) ")(" table)
+    (modify-syntax-entry ?\{ "(}" table)
+    (modify-syntax-entry ?\} "){" table)
+    (modify-syntax-entry ?\[ "(]" table)
+    (modify-syntax-entry ?\] ")[" table)
+    table)
+  "Tuareg-jbuild syntax table.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;                             SMIE
