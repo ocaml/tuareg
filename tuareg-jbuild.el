@@ -121,19 +121,25 @@
 
 (defun tuareg-jbuild-smie-rules (kind token)
   (cond
+   ((eq kind :close-all) '(column . 0))
+   ((and (eq kind :after) (equal token ")"))
+    (save-excursion
+      (goto-char (cadr (smie-indent--parent)))
+      (if (looking-at-p tuareg-jbuild-keywords-regex)
+          '(column . 0)
+        1)))
    ((eq kind :before)
     (if (smie-rule-parent-p "(")
         (save-excursion
-          (goto-char (cadr smie--parent))
+          (goto-char (cadr (smie-indent--parent)))
           (cond
-           ((looking-at-p tuareg-jbuild-keywords-regex)  1)
+           ((looking-at-p tuareg-jbuild-keywords-regex) 1)
            ((looking-at-p tuareg-jbuild-fields-regex)
-            (message "FIELD")
-            (smie-rule-parent 2))
-           (t 2)))
+            (smie-rule-parent 0))
+           ((smie-rule-sibling-p) (cons 'column (current-column)))
+           (t (cons 'column (current-column)))))
       '(column . 0)))
    (t 1)))
-
 
 (defun verbose-tuareg-jbuild-smie-rules (kind token)
   (let ((value (tuareg-jbuild-smie-rules kind token)))
