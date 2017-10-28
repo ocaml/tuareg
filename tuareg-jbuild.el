@@ -79,9 +79,19 @@
    'symbols)
   "Field names allowed in jbuild files.")
 
+(defvar tuareg-jbuild-builtin-regex
+  (regexp-opt
+   '("run" "chdir" "setenv"
+     "with-stdout-to" "with-stderr-to" "with-outputs-to"
+     "ignore-stdout" "ignore-stderr" "ignore-outputs"
+     "progn" "echo" "write-file" "cat" "copy" "copy#" "system" "bash")
+   t)
+  "Builtin actions and constructs in jbuilder")
+
 (defvar tuareg-jbuild-font-lock-keywords
   `((,tuareg-jbuild-keywords-regex . font-lock-keyword-face)
     (,tuareg-jbuild-fields-regex . font-lock-constant-face)
+    (,(concat "(" tuareg-jbuild-builtin-regex) 1 font-lock-builtin-face)
     ("${\\([a-zA-Z:]+\\|[<@]\\)}" 1 font-lock-variable-name-face)
     ("$(\\([a-zA-Z:]+\\|[<@]\\))" 1 font-lock-variable-name-face)
     ("\\(:[a-zA-Z]+\\)\\b" 1 font-lock-builtin-face)))
