@@ -88,13 +88,31 @@
    t)
   "Builtin actions in jbuilder")
 
-(defvar tuareg-jbuild-font-lock-keywords
+(defvar tuareg-jbuild-var-kind-regex
+  (regexp-opt
+   '("path" "path-no-dep" "exe" "bin" "lib" "libexec" "lib-available"
+     "version" "read" "read-lines" "read-strings")
+   'words)
+  "Optional prefix to variable names.")
+
+(setq tuareg-jbuild-var-regex
+      (concat "\\(\\(?:!\\|" tuareg-jbuild-var-kind-regex
+              ":\\)?\\)\\([a-zA-Z][a-zA-Z0-9_.]*\\|[<@^]\\)"
+              "\\(\\(?::[a-zA-Z][a-zA-Z0-9_.]*\\)?\\)"))
+
+(setq tuareg-jbuild-font-lock-keywords
   `((,tuareg-jbuild-keywords-regex . font-lock-keyword-face)
     (,tuareg-jbuild-fields-regex . font-lock-constant-face)
     ("\\(true\\|false\\)" 1 font-lock-constant-face)
     (,(concat "(" tuareg-jbuild-actions-regex) 1 font-lock-builtin-face)
-    ("${!?\\([a-zA-Z:]+\\|[<@]\\)}" 1 font-lock-variable-name-face)
-    ("$(!?\\([a-zA-Z:]+\\|[<@]\\))" 1 font-lock-variable-name-face)
+    (,(concat "${" tuareg-jbuild-var-regex "}")
+     (1 font-lock-builtin-face)
+     (3 font-lock-variable-name-face)
+     (4 font-lock-variable-name-face))
+    (,(concat "$(" tuareg-jbuild-var-regex ")")
+     (1 font-lock-builtin-face)
+     (3 font-lock-variable-name-face)
+     (4 font-lock-variable-name-face))
     ("\\(:[a-zA-Z]+\\)\\b" 1 font-lock-builtin-face)))
 
 (defvar tuareg-jbuild-mode-syntax-table
