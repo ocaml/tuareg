@@ -315,6 +315,7 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
     (flymake-mode t))
   (let ((fname (buffer-file-name)))
     (when (and tuareg-jbuild-skeleton
+               (= 1 (point-max))
                (not (and fname (file-exists-p fname)))
                (y-or-n-p "New file; fill with skeleton?"))
       (save-excursion (insert tuareg-jbuild-skeleton))))
