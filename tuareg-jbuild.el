@@ -55,7 +55,7 @@
 (defconst tuareg-jbuild-keywords-regex
   (regexp-opt
    '("jbuild_version" "library" "executable" "executables" "rule"
-     "ocamllex" "ocamlyacc" "menhir" "alias" "install")
+     "ocamllex" "ocamlyacc" "menhir" "alias" "install" "copy_files")
    'symbols)
   "Keywords in jbuild files.")
 
