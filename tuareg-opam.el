@@ -73,13 +73,15 @@ depends: [
                 "name" "pinned"
                 "ocaml-version" "opam-version" "compiler" "preinstalled"
                 "switch" "jobs" "ocaml-native" "ocaml-native-tools"
-                "ocaml-native-dynlink" "arch") 'symbols)
+                "ocaml-native-dynlink" "arch")
+              'symbols)
   "Variables declared in OPAM.")
 
 (defconst tuareg-opam-pkg-variables-regex
   (regexp-opt '("name" "version" "depends" "installed" "enable" "pinned"
                 "bin" "sbin" "lib" "man" "doc" "share" "etc" "build"
-                "hash") 'symbols)
+                "hash")
+              'symbols)
   "Package variables in OPAM.")
 
 (defvar tuareg-opam-font-lock-keywords
