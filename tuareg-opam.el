@@ -24,6 +24,8 @@
 (defvar tuareg-opam-indent-basic 2
   "The default amount of indentation.")
 
+(defvar tuareg-opam-flymake nil
+  "It t, use flymake to lint OPAM files.")
 
 (defvar tuareg-opam-mode-map
   (let ((map (make-keymap)))
@@ -177,6 +179,27 @@ See `prettify-symbols-alist' for more information.")
      value)
     value))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;                           Linting
+
+(require 'flymake)
+
+(defun tuareg-opam-flymake-init ()
+  (let ((fname (flymake-init-create-temp-buffer-copy
+                #'flymake-create-temp-inplace)))
+    (list "opam" (list "lint" fname))))
+
+(defvar tuareg-opam--allowed-file-name-masks
+  '("[./]opam_?\\'" tuareg-opam-flymake-init)
+  "Flymake entry for OPAM files.  See `flymake-allowed-file-name-masks'.")
+
+(defvar tuareg-opam--err-line-patterns
+  '(("File \"\\([^\"]+\\)\", line \\([0-9]+\\), \
+characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
+     1 2 3 5))
+  "Value of `flymake-err-line-patterns' for OPAM files.")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;;###autoload
 (define-derived-mode tuareg-opam-mode prog-mode "Tuareg-opam"
@@ -188,6 +211,10 @@ See `prettify-symbols-alist' for more information.")
   (setq indent-tabs-mode nil)
   (setq-local require-final-newline mode-require-final-newline)
   (smie-setup tuareg-opam-smie-grammar #'tuareg-opam-smie-rules)
+  (push tuareg-opam--allowed-file-name-masks flymake-allowed-file-name-masks)
+  (setq-local flymake-err-line-patterns tuareg-opam--err-line-patterns)
+  (when (and tuareg-opam-flymake buffer-file-name)
+    (flymake-mode t))
   (let ((fname (buffer-file-name)))
     (when (and tuareg-opam-skeleton
                (not (and fname (file-exists-p fname)))
