@@ -33,26 +33,6 @@
     map)
   "Keymap for tuareg-opam mode")
 
-(defvar tuareg-opam-skeleton
-  "opam-version: \"1.2\"
-maintainer: \"\"
-authors: []
-tags: []
-license: \"\"
-homepage: \"\"
-dev-repo: \"\"
-bug-reports: \"\"
-doc: \"\"
-build: [
-  [ \"jbuilder\" \"subst\" ] {pinned}
-  [ \"jbuilder\" \"build\" \"-p\" name \"-j\" jobs ]
-]
-build-test: [[\"jbuilder\" \"runtest\" \"-p\" name \"-j\" jobs]]
-depends: [
-  \"jbuilder\" {build}
-]\n"
-  "If not nil, propose to fill new files with this skeleton")
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                       Syntax highlighting
 
@@ -200,6 +180,45 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
   "Value of `flymake-err-line-patterns' for OPAM files.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;                           Skeleton
+
+(define-skeleton tuareg-opam-insert-opam-form
+  "Insert a minimal opam file."
+  nil
+  "opam-version: \"1.2\"" > \n
+  "maintainer: \"" _ "\"" > \n
+  "authors: [" _ "]" > \n
+  "tags: [" _ "]" > \n
+  "license: \"" _ "\"" > \n
+  "homepage: \"" _ "\"" > \n
+  "dev-repo: \"" _ "\"" > \n
+  "bug-reports: \"" _ "\"" > \n
+  "doc: \"" _ "\"" > \n
+  "build: [" > \n
+  "[ \"jbuilder\" \"subst\" ] {pinned}" > \n
+  "[ \"jbuilder\" \"build\" \"-p\" name \"-j\" jobs ]" > \n
+  "]" > \n
+  "build-test: [[\"jbuilder\" \"runtest\" \"-p\" name \"-j\" jobs]]" > \n
+  "depends: [" > \n
+  "\"jbuilder\" {build}" > \n
+  "]" > ?\n)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defvar tuareg-opam-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-c.o" 'tuareg-opam-insert-opam-form)
+    map)
+  "Keymap used in Tuareg-opam mode.")
+
+(defun tuareg-opam-build-menu ()
+  (easy-menu-define
+    tuareg-opam-mode-menu  (list tuareg-opam-mode-map)
+    "Tuareg-opam mode menu."
+    '("OPAM"
+      ["Skeleton" tuareg-opam-insert-opam-form t]))
+  (easy-menu-add tuareg-opam-mode-menu))
+
 
 ;;;###autoload
 (define-derived-mode tuareg-opam-mode prog-mode "Tuareg-opam"
@@ -215,11 +234,7 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
   (setq-local flymake-err-line-patterns tuareg-opam--err-line-patterns)
   (when (and tuareg-opam-flymake buffer-file-name)
     (flymake-mode t))
-  (let ((fname (buffer-file-name)))
-    (when (and tuareg-opam-skeleton
-               (not (and fname (file-exists-p fname)))
-               (y-or-n-p "New file; fill with skeleton?"))
-      (save-excursion (insert tuareg-opam-skeleton))))
+  (tuareg-opam-build-menu)
   (run-mode-hooks 'tuareg-opam-mode-hook))
 
 
