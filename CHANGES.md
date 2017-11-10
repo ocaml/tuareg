@@ -1,4 +1,4 @@
-2.1.0 2017-10-16
+2.1.0 2017-11-10
 ----------------
 
 * Let <kbd>M-q</kbd> reformat strings (and use only SMIE).
@@ -43,7 +43,8 @@
   - Make possible to pass argument to the program being debugged (issue #66).
   - Warn if SMIE is disabled.
 
-* New modes `tuareg-jbuild` and `tuareg-opam`.
+* New modes `tuareg-jbuild` and `tuareg-opam` with syntax
+  highlighting, indentation, and skeletons.
 
 2.0.10
 ------
