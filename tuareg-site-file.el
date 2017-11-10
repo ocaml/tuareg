@@ -82,8 +82,8 @@ Run an OCaml REPL process.  I/O via buffer `*OCaml*'.
 
 ;;;***
 
-;;;### (autoloads nil "tuareg-jbuild" "tuareg-jbuild.el" (23002 32568
-;;;;;;  657681 185000))
+;;;### (autoloads nil "tuareg-jbuild" "tuareg-jbuild.el" (23040 63673
+;;;;;;  915101 116000))
 ;;; Generated autoloads from tuareg-jbuild.el
 
 (autoload 'tuareg-jbuild-mode "tuareg-jbuild" "\
@@ -95,8 +95,8 @@ Major mode to edit jbuild files.
 
 ;;;***
 
-;;;### (autoloads nil "tuareg-opam" "tuareg-opam.el" (23002 32568
-;;;;;;  705681 553000))
+;;;### (autoloads nil "tuareg-opam" "tuareg-opam.el" (23040 63783
+;;;;;;  815739 961000))
 ;;; Generated autoloads from tuareg-opam.el
 
 (autoload 'tuareg-opam-mode "tuareg-opam" "\
