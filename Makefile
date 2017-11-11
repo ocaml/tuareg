@@ -99,13 +99,9 @@ $(TARBALL): $(DIST_FILES)
 	tar acvf $@ $(DIST_NAME)
 	$(RM) -r $(DIST_NAME)
 
-opam/opam: opam/opam.in tuareg.el
-	sed -e "s/VERSION/$(VERSION)/" $< > $@
-
-opam: $(TARBALL) opam/opam
+opam: $(TARBALL)
 	$(INSTALL_MKDIR) $(OPAM_DIR)
-	$(CP) -a $(filter-out %.in, $(filter-out %~, $(wildcard opam/*))) \
-	  $(OPAM_DIR)
+	$(CP) -a $(filter-out %~, $(wildcard opam/*)) $(OPAM_DIR)
 	echo "archive: \"`pwd`/$(TARBALL)\"" > $(OPAM_DIR)/url
 	echo "checksum: \"`md5sum $(TARBALL) | cut -d ' ' -f 1`\"" \
 	  >> $(OPAM_DIR)/url
