@@ -98,7 +98,7 @@ $(TARBALL): $(DIST_FILES)
 opam: $(TARBALL)
 	$(INSTALL_MKDIR) $(OPAM_DIR)
 	$(CP) -a $(filter-out %~, $(wildcard opam/*)) $(OPAM_DIR)
-	echo "archive: \"`pwd`/$(TARBALL)\"" > $(OPAM_DIR)/url
+	echo "archive: \"https://github.com/ocaml/tuareg/releases/download/$(VERSION)/$(TARBALL)\"" > $(OPAM_DIR)/url
 	echo "checksum: \"`md5sum $(TARBALL) | cut -d ' ' -f 1`\"" \
 	  >> $(OPAM_DIR)/url
 
