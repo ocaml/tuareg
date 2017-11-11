@@ -17,14 +17,14 @@ depends: [
   "conf-emacs"
 ]
 depopts: [
-  "caml-mode"
+  "caml-mode" {>= "4.05"}
   "merlin"
 ]
-post-messages: "
-If you have not yet done so, please add the following line to ~/.emacs.d/init.el or ~/.emacs:
+post-messages: [
+  "If you have not yet done so, please add the following line to ~/.emacs.d/init.el or ~/.emacs:
     (load \"%{share}%/emacs/site-lisp/tuareg-site-file\")
 " {success & !user-setup:installed}
-post-messages: "
-You should consider installing \"merlin\" (completion, displaying types,...)
+  "You should consider installing \"merlin\" (completion, displaying types,...)
 or \"caml-mode\" (displaying types).  See https://github.com/ocaml/tuareg
 for customization tips."
+]
