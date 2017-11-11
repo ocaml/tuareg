@@ -87,10 +87,6 @@ tuareg-site-file.el: $(SOURCES)
 	$(EMACS) --batch --eval '(setq generated-autoload-file "'`pwd`'/$@")' -f batch-update-autoloads "."
 
 dist distrib: $(TARBALL)
-	@echo "archive: \"$<\"" > opam/url
-	@CHECKSUM="`md5sum -b $< | cut -d ' ' -f 1`" && \
-	echo "checksum: \"$$CHECKSUM\"" >> opam/url
-	@echo "Updated opam/url"
 
 $(TARBALL): $(DIST_FILES)
 	mkdir -p $(DIST_NAME)
