@@ -6,7 +6,7 @@ REQUIREMENTS = $(shell grep ';; Package-Requires:' tuareg.el \
 	| sed 's/;; Package-Requires: *\(.*\)/\1/')
 DIST_NAME = tuareg-$(VERSION)
 TARBALL = $(DIST_NAME).tar.gz
-OPAM_DIR = tuareg.$(VERSION)
+OPAM_DIR = packages/tuareg/tuareg.$(VERSION)
 
 SOURCES = tuareg.el ocamldebug.el tuareg-opam.el \
   tuareg-jbuild.el
@@ -102,9 +102,10 @@ $(TARBALL): $(DIST_FILES)
 opam/opam: opam/opam.in tuareg.el
 	sed -e "s/VERSION/$(VERSION)/" $< > $@
 
-opam: $(TARBALL)
+opam: $(TARBALL) opam/opam
 	$(INSTALL_MKDIR) $(OPAM_DIR)
-	$(CP) -a $(filter-out %~, $(wildcard opam/*)) $(OPAM_DIR)
+	$(CP) -a $(filter-out %.in, $(filter-out %~, $(wildcard opam/*))) \
+	  $(OPAM_DIR)
 	echo "archive: \"`pwd`/$(TARBALL)\"" > $(OPAM_DIR)/url
 	echo "checksum: \"`md5sum $(TARBALL) | cut -d ' ' -f 1`\"" \
 	  >> $(OPAM_DIR)/url
