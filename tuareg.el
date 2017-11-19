@@ -884,7 +884,8 @@ Regexp match data 0 points to the chars."
      (,(regexp-opt '("module" "include" "sig" "struct" "functor"
                      "type" "constraint" "class" "in" "inherit"
                      "method" "external" "val" "open"
-                     "initializer" "let" "rec" "object" "and" "begin" "end")
+                     "initializer" "let" "rec" "nonrec"
+                     "object" "and" "begin" "end")
                    'words)
       . tuareg-font-lock-governing-face)
      ,@(if (tuareg-editing-ls3)
@@ -899,7 +900,8 @@ Regexp match data 0 points to the chars."
          (regexp-opt kwd 'words))
       . font-lock-keyword-face)
      ;; with type: "with" treated as a governing keyword
-     (,(concat "\\<\\(\\(?:with\\|and\\) +type\\>\\) *\\(" typeconstr "\\)?")
+     (,(concat "\\<\\(\\(?:with\\|and\\) +type\\(?: +nonrec\\)\\>\\) *"
+               "\\(" typeconstr "\\)?")
       (1 tuareg-font-lock-governing-face keep)
       (2 font-lock-type-face keep t))
      (,(concat "\\<\\(\\(?:with\\|and\\) +module\\>\\) *\\(?:\\(" module-path
@@ -999,7 +1001,8 @@ Regexp match data 0 points to the chars."
       (1 font-lock-variable-name-face keep); functor (module) variable
       (2 tuareg-font-lock-module-face keep))
      ;;; "type lid" anywhere (e.g. "let f (type t) x =") introduces a new type
-     (,(concat "\\<type\\>" tuareg--whitespace-re "\\(" typedef "\\)")
+     (,(concat "\\<type\\(?: +nonrec\\)\\>" tuareg--whitespace-re
+               "\\(" typedef "\\)")
       1 font-lock-type-face keep)
      ;; Constructors
      (,(concat "`" id) . tuareg-font-lock-constructor-face)
