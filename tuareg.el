@@ -2173,7 +2173,9 @@ whereas with a nil value you get
     syms))
 
 (defun tuareg--beginning-of-phrase ()
-  "Move the point to the beginning of the OCaml phrase on which the point is."
+  "Move the point to the beginning of the OCaml phrase on which the point is.
+Return a non nil value if at the beginning of a toplevel phrase (and not an
+expression)."
   (let ((proper-beginning-of-phrase nil)
         (state (syntax-ppss)))
     (if (nth 3 state); in a string
@@ -2196,7 +2198,11 @@ whereas with a nil value you get
              ((and (car td) (not (numberp (car td))))
               (unless (bobp) (goto-char (nth 1 td)) t))
              (t t)))))
-    proper-beginning-of-phrase))
+    (if (and (bobp) (not proper-beginning-of-phrase))
+        (save-excursion
+          (member (tuareg-smie-forward-token)
+                  tuareg--beginning-of-phrase-syms))
+        proper-beginning-of-phrase)))
 
 (defun tuareg--discover-phrase-forward ()
   (smie-forward-sexp 'halfsexp))
