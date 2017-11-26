@@ -3174,10 +3174,21 @@ It is assumed that the range START-END delimit valid OCaml phrases."
     (if phrase
         (narrow-to-region (nth 0 phrase) (nth 1 phrase)))))
 
+(defun tuareg--after-double-colon ()
+  "Non nil if the current position is after or inside ';;'.  In
+this case, the returned value is the position before ';;' (unless
+it is the first position of the buffer)."
+  (save-excursion
+    (when (looking-at "[;[:blank:]]*$")
+      (skip-chars-backward ";[:blank:]")
+      (if (> (point) 1) (- (point) 1)))))
+
 (defun tuareg-eval-phrase ()
   "Eval the surrounding OCaml phrase (or block) in the OCaml REPL."
   (interactive)
-  (let ((phrase (tuareg-discover-phrase)))
+  (let* ((pos (tuareg--after-double-colon))
+         (pos (if pos pos (point)))
+         (phrase (tuareg-discover-phrase pos)))
     (if phrase
         (progn
           (tuareg-interactive--send-region (nth 0 phrase) (nth 1 phrase))
