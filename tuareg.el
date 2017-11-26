@@ -2223,7 +2223,7 @@ beginning of the error and return `nil'."
         (complete-phrase t))
     (save-excursion
       (if pos (goto-char pos)  (setq pos (point)))
-      (end-of-line)
+      (tuareg-smie-forward-token)
       (setq proper-beginning-of-phrase (tuareg--beginning-of-phrase))
       (setq begin (point))
       (setq go-forward (if proper-beginning-of-phrase
