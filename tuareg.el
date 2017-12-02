@@ -1001,7 +1001,7 @@ Regexp match data 0 points to the chars."
       (1 font-lock-variable-name-face keep); functor (module) variable
       (2 tuareg-font-lock-module-face keep))
      ;;; "type lid" anywhere (e.g. "let f (type t) x =") introduces a new type
-     (,(concat "\\<type\\(?: +nonrec\\)\\>" tuareg--whitespace-re
+     (,(concat "\\<type\\(?: +nonrec\\)?\\>" tuareg--whitespace-re
                "\\(" typedef "\\)")
       1 font-lock-type-face keep)
      ;; Constructors
