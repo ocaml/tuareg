@@ -942,7 +942,7 @@ Regexp match data 0 points to the chars."
       (1 tuareg-font-lock-governing-face)
       (2 tuareg-font-lock-module-face keep t))
      (,(regexp-opt '("failwith" "failwithf" "exit" "at_exit" "invalid_arg"
-                     "parser" "raise" "ref" "ignore"
+                     "parser" "raise" "raise_notrace" "ref" "ignore"
 		     "Match_failure" "Assert_failure" "Invalid_argument"
 		     "Failure" "Not_found" "Out_of_memory" "Stack_overflow"
 		     "Sys_error" "End_of_file" "Division_by_zero"
