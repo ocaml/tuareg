@@ -37,6 +37,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;                     Syntax highlighting
 
+(defface tuareg-jbuild-error-face
+  '((t (:foreground "yellow" :background "red" :bold t)))
+  "Face for errors (e.g. obsolete constructs).")
+
+(defvar tuareg-jbuild-error-face 'tuareg-jbuild-error-face
+  "Face for errors (e.g. obsolete constructs).")
+
 (defconst tuareg-jbuild-keywords-regex
   (regexp-opt
    '("jbuild_version" "library" "executable" "executables" "rule"
@@ -81,23 +88,25 @@
   "Optional prefix to variable names.")
 
 (defvar tuareg-jbuild-var-regex
-      (concat "\\(\\(?:!\\|" tuareg-jbuild-var-kind-regex
+      (concat "\\(!?\\)\\(\\(?:" tuareg-jbuild-var-kind-regex
               ":\\)?\\)\\([a-zA-Z][a-zA-Z0-9_.]*\\|[<@^]\\)"
               "\\(\\(?::[a-zA-Z][a-zA-Z0-9_.]*\\)?\\)"))
 
-(defvar tuareg-jbuild-font-lock-keywords
+(setq tuareg-jbuild-font-lock-keywords
   `((,tuareg-jbuild-keywords-regex . font-lock-keyword-face)
     (,tuareg-jbuild-fields-regex . font-lock-constant-face)
     ("\\(true\\|false\\)" 1 font-lock-constant-face)
     (,(concat "(" tuareg-jbuild-actions-regex) 1 font-lock-builtin-face)
     (,(concat "${" tuareg-jbuild-var-regex "}")
-     (1 font-lock-builtin-face)
-     (3 font-lock-variable-name-face)
-     (4 font-lock-variable-name-face))
+     (1 tuareg-jbuild-error-face)
+     (2 font-lock-builtin-face)
+     (4 font-lock-variable-name-face)
+     (5 font-lock-variable-name-face))
     (,(concat "$(" tuareg-jbuild-var-regex ")")
-     (1 font-lock-builtin-face)
-     (3 font-lock-variable-name-face)
-     (4 font-lock-variable-name-face))
+     (1 tuareg-jbuild-error-face)
+     (2 font-lock-builtin-face)
+     (4 font-lock-variable-name-face)
+     (5 font-lock-variable-name-face))
     ("\\(:[a-zA-Z]+\\)\\b" 1 font-lock-builtin-face)))
 
 (defvar tuareg-jbuild-mode-syntax-table
