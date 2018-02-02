@@ -9,7 +9,7 @@ TARBALL = $(DIST_NAME).tar.gz
 OPAM_DIR = packages/tuareg/tuareg.$(VERSION)
 
 SOURCES = tuareg.el ocamldebug.el tuareg-opam.el \
-  tuareg-jbuild.el
+  tuareg-dune.el
 ELS = $(SOURCES) tuareg-site-file.el
 ELC = $(ELS:.el=.elc)
 
