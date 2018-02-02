@@ -54,23 +54,24 @@
   "Keywords in dune files.")
 
 (defconst tuareg-dune-fields-regex
-  (regexp-opt
-   '("name" "public_name" "synopsis" "modules" "libraries" "wrapped"
-     "preprocess" "preprocessor_deps" "optional" "c_names" "cxx_names"
-     "install_c_headers" "modes" "no_dynlink" "kind"
-     "ppx_runtime_libraries" "virtual_deps" "js_of_ocaml" "flags"
-     "ocamlc_flags" "ocamlopt_flags" "library_flags" "c_flags"
-     "cxx_flags" "c_library_flags" "self_build_stubs_archive"
-     ;; + for "executable" and "executables":
-     "package" "link_flags" "modes" "names" "public_names"
-     ;; + for "rule":
-     "targets" "action" "deps" "fallback"
-     ;; + for "menhir":
-     "merge_into"
-     ;; + for "install"
-     "section" "files" "lib" "libexec" "bin" "sbin" "toplevel" "share"
-     "share_root" "etc" "doc" "stublibs" "man" "misc")
-   'symbols)
+  (eval-when-compile
+    (regexp-opt
+     '("name" "public_name" "synopsis" "modules" "libraries" "wrapped"
+       "preprocess" "preprocessor_deps" "optional" "c_names" "cxx_names"
+       "install_c_headers" "modes" "no_dynlink" "kind"
+       "ppx_runtime_libraries" "virtual_deps" "js_of_ocaml" "flags"
+       "ocamlc_flags" "ocamlopt_flags" "library_flags" "c_flags"
+       "cxx_flags" "c_library_flags" "self_build_stubs_archive"
+       ;; + for "executable" and "executables":
+       "package" "link_flags" "modes" "names" "public_names"
+       ;; + for "rule":
+       "targets" "action" "deps" "fallback"
+       ;; + for "menhir":
+       "merge_into"
+       ;; + for "install"
+       "section" "files" "lib" "libexec" "bin" "sbin" "toplevel" "share"
+       "share_root" "etc" "doc" "stublibs" "man" "misc")
+     'symbols))
   "Field names allowed in dune files.")
 
 (defvar tuareg-dune-actions-regex
@@ -86,10 +87,11 @@
   "Builtin actions in dune")
 
 (defvar tuareg-dune-var-kind-regex
-  (regexp-opt
-   '("path" "path-no-dep" "exe" "bin" "lib" "libexec" "lib-available"
-     "version" "read" "read-lines" "read-strings")
-   'words)
+  (eval-when-compile
+    (regexp-opt
+     '("path" "path-no-dep" "exe" "bin" "lib" "libexec" "lib-available"
+       "version" "read" "read-lines" "read-strings")
+     'words))
   "Optional prefix to variable names.")
 
 (defvar tuareg-dune-var-regex
