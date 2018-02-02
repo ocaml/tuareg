@@ -103,6 +103,9 @@
   `((,tuareg-dune-keywords-regex . font-lock-keyword-face)
     (,tuareg-dune-fields-regex . font-lock-constant-face)
     ("\\(true\\|false\\)" 1 font-lock-constant-face)
+    ("(\\(select\\)[[:space:]]+[^[:space:]]+[[:space:]]+\\(from\\)\\>"
+     (1 font-lock-constant-face)
+     (2 font-lock-constant-face))
     (,(concat "(" tuareg-dune-actions-regex) 1 font-lock-builtin-face)
     (,(concat "${" tuareg-dune-var-regex "}")
      (1 tuareg-dune-error-face)
