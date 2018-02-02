@@ -65,7 +65,7 @@
        ;; + for "executable" and "executables":
        "package" "link_flags" "modes" "names" "public_names"
        ;; + for "rule":
-       "targets" "action" "deps" "fallback"
+       "targets" "action" "deps" "mode"
        ;; + for "menhir":
        "merge_into"
        ;; + for "install"
@@ -99,14 +99,24 @@
               ":\\)?\\)\\([a-zA-Z][a-zA-Z0-9_.]*\\|[<@^]\\)"
               "\\(\\(?::[a-zA-Z][a-zA-Z0-9_.]*\\)?\\)"))
 
+(defmacro tuareg-dune--field-vals (field &rest vals)
+  `(list (concat "(" ,field "[[:space:]]+" ,(regexp-opt vals t))
+         1 font-lock-constant-face))
+
 (setq tuareg-dune-font-lock-keywords
   `((,tuareg-dune-keywords-regex . font-lock-keyword-face)
-    (,tuareg-dune-fields-regex . font-lock-constant-face)
+    (,(concat "(" tuareg-dune-fields-regex) 1 font-lock-function-name-face)
     ("\\(true\\|false\\)" 1 font-lock-constant-face)
     ("(\\(select\\)[[:space:]]+[^[:space:]]+[[:space:]]+\\(from\\)\\>"
      (1 font-lock-constant-face)
      (2 font-lock-constant-face))
+    ,(tuareg-dune--field-vals "kind" "normal" "ppx_rewriter" "ppx_deriver")
+    ,(tuareg-dune--field-vals "mode" "standard" "fallback" "promote"
+                              "promote-until-clean")
     (,(concat "(" tuareg-dune-actions-regex) 1 font-lock-builtin-face)
+    (,(eval-when-compile
+        (concat "(" (regexp-opt '("fallback") t)))
+     1 tuareg-dune-error-face)
     (,(concat "${" tuareg-dune-var-regex "}")
      (1 tuareg-dune-error-face)
      (2 font-lock-builtin-face)
