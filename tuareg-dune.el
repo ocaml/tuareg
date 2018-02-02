@@ -114,6 +114,7 @@
     ,(tuareg-dune--field-vals "mode" "standard" "fallback" "promote"
                               "promote-until-clean")
     (,(concat "(" tuareg-dune-actions-regex) 1 font-lock-builtin-face)
+    ("(preprocess[[:space:]]+(\\(pps\\)" 1 font-lock-builtin-face)
     (,(eval-when-compile
         (concat "(" (regexp-opt '("fallback") t)))
      1 tuareg-dune-error-face)
