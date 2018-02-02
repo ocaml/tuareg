@@ -45,10 +45,12 @@
   "Face for errors (e.g. obsolete constructs).")
 
 (defconst tuareg-dune-keywords-regex
-  (regexp-opt
-   '("jbuild_version" "library" "executable" "executables" "rule"
-     "ocamllex" "ocamlyacc" "menhir" "alias" "install" "copy_files")
-   'symbols)
+  (eval-when-compile
+    (concat (regexp-opt
+             '("jbuild_version" "library" "executable" "executables" "rule"
+               "ocamllex" "ocamlyacc" "menhir" "alias" "install"
+               "copy_files" "copy_files#")
+             ) "\\(?:\\_>\\|[[:space:]]\\)"))
   "Keywords in dune files.")
 
 (defconst tuareg-dune-fields-regex
@@ -72,12 +74,15 @@
   "Field names allowed in dune files.")
 
 (defvar tuareg-dune-actions-regex
-  (regexp-opt
-   '("run" "chdir" "setenv"
-     "with-stdout-to" "with-stderr-to" "with-outputs-to"
-     "ignore-stdout" "ignore-stderr" "ignore-outputs"
-     "progn" "echo" "write-file" "cat" "copy" "copy#" "system" "bash")
-   t)
+  (eval-when-compile
+    (concat (regexp-opt
+             '("run" "chdir" "setenv"
+               "with-stdout-to" "with-stderr-to" "with-outputs-to"
+               "ignore-stdout" "ignore-stderr" "ignore-outputs"
+               "progn" "echo" "write-file" "cat" "copy" "copy#" "system"
+               "bash")
+             t)
+            "\\(?:\\_>\\|[[:space:]]\\)"))
   "Builtin actions in dune")
 
 (defvar tuareg-dune-var-kind-regex
