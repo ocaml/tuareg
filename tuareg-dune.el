@@ -1,4 +1,4 @@
-;;; tuareg-jbuild.el --- Mode for editing jbuild files   -*- coding: utf-8 -*-
+;;; tuareg-dune.el --- Mode for editing dune files   -*- coding: utf-8 -*-
 
 ;; Copyright (C) 2017- Christophe Troestler
 
@@ -20,38 +20,38 @@
 
 (require 'scheme)
 
-(defvar tuareg-jbuild-mode-hook nil
-  "Hooks for the `tuareg-jbuild-mode'.")
+(defvar tuareg-dune-mode-hook nil
+  "Hooks for the `tuareg-dune-mode'.")
 
-(defvar tuareg-jbuild-flymake nil
-  "If t, check your jbuild file with flymake.")
+(defvar tuareg-dune-flymake nil
+  "If t, check your dune file with flymake.")
 
-(defvar tuareg-jbuild-temporary-file-directory
-  (expand-file-name "Tuareg-jbuild" temporary-file-directory)
+(defvar tuareg-dune-temporary-file-directory
+  (expand-file-name "Tuareg-dune" temporary-file-directory)
   "Directory where to duplicate the files for flymake.")
 
-(defvar tuareg-jbuild-program
-  (expand-file-name "jbuilder-lint" tuareg-jbuild-temporary-file-directory)
-  "Script to use to check the jbuild file.")
+(defvar tuareg-dune-program
+  (expand-file-name "dune-lint" tuareg-dune-temporary-file-directory)
+  "Script to use to check the dune file.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;                     Syntax highlighting
 
-(defface tuareg-jbuild-error-face
+(defface tuareg-dune-error-face
   '((t (:foreground "yellow" :background "red" :bold t)))
   "Face for errors (e.g. obsolete constructs).")
 
-(defvar tuareg-jbuild-error-face 'tuareg-jbuild-error-face
+(defvar tuareg-dune-error-face 'tuareg-dune-error-face
   "Face for errors (e.g. obsolete constructs).")
 
-(defconst tuareg-jbuild-keywords-regex
+(defconst tuareg-dune-keywords-regex
   (regexp-opt
    '("jbuild_version" "library" "executable" "executables" "rule"
      "ocamllex" "ocamlyacc" "menhir" "alias" "install" "copy_files")
    'symbols)
-  "Keywords in jbuild files.")
+  "Keywords in dune files.")
 
-(defconst tuareg-jbuild-fields-regex
+(defconst tuareg-dune-fields-regex
   (regexp-opt
    '("name" "public_name" "synopsis" "modules" "libraries" "wrapped"
      "preprocess" "preprocessor_deps" "optional" "c_names" "cxx_names"
@@ -69,47 +69,47 @@
      "section" "files" "lib" "libexec" "bin" "sbin" "toplevel" "share"
      "share_root" "etc" "doc" "stublibs" "man" "misc")
    'symbols)
-  "Field names allowed in jbuild files.")
+  "Field names allowed in dune files.")
 
-(defvar tuareg-jbuild-actions-regex
+(defvar tuareg-dune-actions-regex
   (regexp-opt
    '("run" "chdir" "setenv"
      "with-stdout-to" "with-stderr-to" "with-outputs-to"
      "ignore-stdout" "ignore-stderr" "ignore-outputs"
      "progn" "echo" "write-file" "cat" "copy" "copy#" "system" "bash")
    t)
-  "Builtin actions in jbuilder")
+  "Builtin actions in dune")
 
-(defvar tuareg-jbuild-var-kind-regex
+(defvar tuareg-dune-var-kind-regex
   (regexp-opt
    '("path" "path-no-dep" "exe" "bin" "lib" "libexec" "lib-available"
      "version" "read" "read-lines" "read-strings")
    'words)
   "Optional prefix to variable names.")
 
-(defvar tuareg-jbuild-var-regex
-      (concat "\\(!?\\)\\(\\(?:" tuareg-jbuild-var-kind-regex
+(defvar tuareg-dune-var-regex
+      (concat "\\(!?\\)\\(\\(?:" tuareg-dune-var-kind-regex
               ":\\)?\\)\\([a-zA-Z][a-zA-Z0-9_.]*\\|[<@^]\\)"
               "\\(\\(?::[a-zA-Z][a-zA-Z0-9_.]*\\)?\\)"))
 
-(setq tuareg-jbuild-font-lock-keywords
-  `((,tuareg-jbuild-keywords-regex . font-lock-keyword-face)
-    (,tuareg-jbuild-fields-regex . font-lock-constant-face)
+(setq tuareg-dune-font-lock-keywords
+  `((,tuareg-dune-keywords-regex . font-lock-keyword-face)
+    (,tuareg-dune-fields-regex . font-lock-constant-face)
     ("\\(true\\|false\\)" 1 font-lock-constant-face)
-    (,(concat "(" tuareg-jbuild-actions-regex) 1 font-lock-builtin-face)
-    (,(concat "${" tuareg-jbuild-var-regex "}")
-     (1 tuareg-jbuild-error-face)
+    (,(concat "(" tuareg-dune-actions-regex) 1 font-lock-builtin-face)
+    (,(concat "${" tuareg-dune-var-regex "}")
+     (1 tuareg-dune-error-face)
      (2 font-lock-builtin-face)
      (4 font-lock-variable-name-face)
      (5 font-lock-variable-name-face))
-    (,(concat "$(" tuareg-jbuild-var-regex ")")
-     (1 tuareg-jbuild-error-face)
+    (,(concat "$(" tuareg-dune-var-regex ")")
+     (1 tuareg-dune-error-face)
      (2 font-lock-builtin-face)
      (4 font-lock-variable-name-face)
      (5 font-lock-variable-name-face))
     ("\\(:[a-zA-Z]+\\)\\b" 1 font-lock-builtin-face)))
 
-(defvar tuareg-jbuild-mode-syntax-table
+(defvar tuareg-dune-mode-syntax-table
   (let ((table (make-syntax-table)))
     (modify-syntax-entry ?\; "< b" table)
     (modify-syntax-entry ?\n "> b" table)
@@ -120,25 +120,25 @@
     (modify-syntax-entry ?\[ "(]" table)
     (modify-syntax-entry ?\] ")[" table)
     table)
-  "Tuareg-jbuild syntax table.")
+  "Tuareg-dune syntax table.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;                             SMIE
 
 (require 'smie)
 
-(defvar tuareg-jbuild-smie-grammar
+(defvar tuareg-dune-smie-grammar
   (when (fboundp 'smie-prec2->grammar)
     (smie-prec2->grammar
      (smie-bnf->prec2 '()))))
 
-(defun tuareg-jbuild-smie-rules (kind token)
+(defun tuareg-dune-smie-rules (kind token)
   (cond
    ((eq kind :close-all) '(column . 0))
    ((and (eq kind :after) (equal token ")"))
     (save-excursion
       (goto-char (cadr (smie-indent--parent)))
-      (if (looking-at-p tuareg-jbuild-keywords-regex)
+      (if (looking-at-p tuareg-dune-keywords-regex)
           '(column . 0)
         1)))
    ((eq kind :before)
@@ -146,16 +146,16 @@
         (save-excursion
           (goto-char (cadr (smie-indent--parent)))
           (cond
-           ((looking-at-p tuareg-jbuild-keywords-regex) 1)
-           ((looking-at-p tuareg-jbuild-fields-regex)
+           ((looking-at-p tuareg-dune-keywords-regex) 1)
+           ((looking-at-p tuareg-dune-fields-regex)
             (smie-rule-parent 0))
            ((smie-rule-sibling-p) (cons 'column (current-column)))
            (t (cons 'column (current-column)))))
       '(column . 0)))
    (t 1)))
 
-(defun verbose-tuareg-jbuild-smie-rules (kind token)
-  (let ((value (tuareg-jbuild-smie-rules kind token)))
+(defun verbose-tuareg-dune-smie-rules (kind token)
+  (let ((value (tuareg-dune-smie-rules kind token)))
     (message
      "%s '%s'; sibling-p:%s parent:%s hanging:%s = %s"
      kind token
@@ -171,10 +171,10 @@
 
 (require 'flymake)
 
-(defun tuareg-jbuild-create-lint-script ()
-  "Create the lint script if it does not exist.  This is nedded as long as See https://github.com/janestreet/jbuilder/issues/241 is not fixed."
-  (unless (file-exists-p tuareg-jbuild-program)
-    (let ((dir (file-name-directory tuareg-jbuild-program))
+(defun tuareg-dune-create-lint-script ()
+  "Create the lint script if it does not exist.  This is nedded as long as See https://github.com/ocaml/dune/issues/241 is not fixed."
+  (unless (file-exists-p tuareg-dune-program)
+    (let ((dir (file-name-directory tuareg-dune-program))
           (pgm "#!/usr/bin/env ocaml
 ;;
 #load \"unix.cma\";;
@@ -227,23 +227,23 @@ let () =
                  errors in
   print_string errors"))
       (make-directory dir t)
-      (append-to-file pgm nil tuareg-jbuild-program)
-      (set-file-modes tuareg-jbuild-program #o777)
+      (append-to-file pgm nil tuareg-dune-program)
+      (set-file-modes tuareg-dune-program #o777)
       )))
 
-(defun tuareg-jbuild--temp-name (absolute-path)
-  "Full path of the copy of the filename in `tuareg-jbuild-temporary-file-directory'."
+(defun tuareg-dune--temp-name (absolute-path)
+  "Full path of the copy of the filename in `tuareg-dune-temporary-file-directory'."
   (let ((slash-pos (string-match "/" absolute-path)))
     (file-truename (expand-file-name (substring absolute-path (1+ slash-pos))
-                                     tuareg-jbuild-temporary-file-directory))))
+                                     tuareg-dune-temporary-file-directory))))
 
-(defun tuareg-jbuild-flymake-create-temp (filename _prefix)
+(defun tuareg-dune-flymake-create-temp (filename _prefix)
   ;; based on `flymake-create-temp-with-folder-structure'.
   (unless (stringp filename)
     (error "Invalid filename"))
-  (tuareg-jbuild--temp-name filename))
+  (tuareg-dune--temp-name filename))
 
-(defun tuareg-jbuild--opam-files (dir)
+(defun tuareg-dune--opam-files (dir)
   "Return all opam files in the directory DIR."
   (let ((files nil))
     (dolist (f (directory-files-and-attributes dir t ".*\\.opam\\'"))
@@ -251,29 +251,29 @@ let () =
         (push (car f) files)))
     files))
 
-(defun tuareg-jbuild--root (filename)
-  "Return the root and copy the necessary context files for jbuilder."
+(defun tuareg-dune--root (filename)
+  "Return the root and copy the necessary context files for dune."
   ;; FIXME: the root depends on jbuild-workspace.  If none is found,
   ;; assume the commands are issued from the dir where opam files are found.
   (let* ((dir (locate-dominating-file (file-name-directory filename)
-                                     #'tuareg-jbuild--opam-files)))
+                                     #'tuareg-dune--opam-files)))
     (when dir
       (setq dir (expand-file-name dir)); In case it is ~/...
-      (make-directory (tuareg-jbuild--temp-name dir) t)
-      (dolist (f (tuareg-jbuild--opam-files dir))
-        (copy-file f (tuareg-jbuild--temp-name f) t)))
+      (make-directory (tuareg-dune--temp-name dir) t)
+      (dolist (f (tuareg-dune--opam-files dir))
+        (copy-file f (tuareg-dune--temp-name f) t)))
     dir))
 
-(defun tuareg-jbuild--delete-opam-files (dir)
+(defun tuareg-dune--delete-opam-files (dir)
   "Delete all opam files in the directory DIR."
-  (dolist (f (tuareg-jbuild--opam-files dir))
+  (dolist (f (tuareg-dune--opam-files dir))
     (flymake-safe-delete-file f)))
 
-(defun tuareg-jbuild-flymake-cleanup ()
-  "Attempt to delete temp dir created by `tuareg-jbuild-flymake-create-temp', do not fail on error."
+(defun tuareg-dune-flymake-cleanup ()
+  "Attempt to delete temp dir created by `tuareg-dune-flymake-create-temp', do not fail on error."
   (let ((dir (file-name-directory flymake-temp-source-file-name))
         (temp-dir (concat (directory-file-name
-                           tuareg-jbuild-temporary-file-directory) "/")))
+                           tuareg-dune-temporary-file-directory) "/")))
     (flymake-log 3 "Clean up %s" flymake-temp-source-file-name)
     (flymake-safe-delete-file flymake-temp-source-file-name)
     (condition-case nil
@@ -284,42 +284,42 @@ let () =
                 (> (length dir) 0))
       (condition-case nil
           (progn
-            (tuareg-jbuild--delete-opam-files dir)
+            (tuareg-dune--delete-opam-files dir)
             (delete-directory dir)
             (setq dir (file-name-directory (directory-file-name dir))))
         (error ; then top the loop
          (setq dir ""))))))
 
-(defun tuareg-jbuild-flymake-init ()
-  (tuareg-jbuild-create-lint-script)
+(defun tuareg-dune-flymake-init ()
+  (tuareg-dune-create-lint-script)
   (let ((fname (flymake-init-create-temp-buffer-copy
-                'tuareg-jbuild-flymake-create-temp))
-        (root (or (tuareg-jbuild--root buffer-file-name) "")))
-    (list tuareg-jbuild-program (list fname root))))
+                'tuareg-dune-flymake-create-temp))
+        (root (or (tuareg-dune--root buffer-file-name) "")))
+    (list tuareg-dune-program (list fname root))))
 
-(defvar tuareg-jbuild--allowed-file-name-masks
-  '("\\(?:\\`\\|/\\)jbuild\\'" tuareg-jbuild-flymake-init
-                               tuareg-jbuild-flymake-cleanup)
-  "Flymake entry for jbuild files.  See `flymake-allowed-file-name-masks'.")
+(defvar tuareg-dune--allowed-file-name-masks
+  '("\\(?:\\`\\|/\\)jbuild\\'" tuareg-dune-flymake-init
+                               tuareg-dune-flymake-cleanup)
+  "Flymake entry for dune files.  See `flymake-allowed-file-name-masks'.")
 
-(defvar tuareg-jbuild--err-line-patterns
-  ;; Beware that the path from the root will be reported by jbuilder
+(defvar tuareg-dune--err-line-patterns
+  ;; Beware that the path from the root will be reported by dune
   ;; but flymake requires it to match the file name.
   '(("File \"[^\"]*\\(jbuild\\)\", line \\([0-9]+\\), \
 characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
      1 2 3 5))
-  "Value of `flymake-err-line-patterns' for jbuild files.")
+  "Value of `flymake-err-line-patterns' for dune files.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;                          Skeletons
 ;; See Info node "Autotype".
 
-(define-skeleton tuareg-jbuild-insert-version-form
-  "Insert the jbuild version."
+(define-skeleton tuareg-dune-insert-version-form
+  "Insert the dune version."
   nil
   "(jbuild_version 1" _ ")" > ?\n)
 
-(define-skeleton tuareg-jbuild-insert-library-form
+(define-skeleton tuareg-dune-insert-library-form
   "Insert a library stanza."
   nil
   "(library" > \n
@@ -328,7 +328,7 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
   "(synopsis  \"" _ "\")" > \n
   "(libraries (" _ "))))" > ?\n)
 
-(define-skeleton tuareg-jbuild-insert-executable-form
+(define-skeleton tuareg-dune-insert-executable-form
   "Insert an executable stanza."
   nil
   "(executable" > \n
@@ -337,7 +337,7 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
   "(modules    (" _ "))" > \n
   "(libraries  (" _ "))))" > ?\n)
 
-(define-skeleton tuareg-jbuild-insert-executables-form
+(define-skeleton tuareg-dune-insert-executables-form
   "Insert an executables stanza."
   nil
   "(executables" > \n
@@ -345,7 +345,7 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
   "(public_names (" _ "))" > \n
   "(libraries    (" _ "))))" > ?\n)
 
-(define-skeleton tuareg-jbuild-insert-rule-form
+(define-skeleton tuareg-dune-insert-rule-form
   "Insert a rule stanza."
   nil
   "(rule" > \n
@@ -353,100 +353,100 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
   "(deps    (" _ "))" > \n
   "(action  (" _ "))))" > ?\n)
 
-(define-skeleton tuareg-jbuild-insert-ocamllex-form
+(define-skeleton tuareg-dune-insert-ocamllex-form
   "Insert an ocamllex stanza."
   nil
   "(ocamllex (" _ "))" > ?\n)
 
-(define-skeleton tuareg-jbuild-insert-ocamlyacc-form
+(define-skeleton tuareg-dune-insert-ocamlyacc-form
   "Insert an ocamlyacc stanza."
   nil
   "(ocamlyacc (" _ "))" > ?\n)
 
-(define-skeleton tuareg-jbuild-insert-menhir-form
+(define-skeleton tuareg-dune-insert-menhir-form
   "Insert a menhir stanza."
   nil
   "(menhir" > \n
   "((modules (" _ "))))" > ?\n)
 
-(define-skeleton tuareg-jbuild-insert-alias-form
+(define-skeleton tuareg-dune-insert-alias-form
   "Insert an alias stanza."
   nil
   "(alias" > \n
   "((name " _ ")" > \n
   "(deps (" _ "))))" > ?\n)
 
-(define-skeleton tuareg-jbuild-insert-install-form
+(define-skeleton tuareg-dune-insert-install-form
   "Insert an install stanza."
   nil
   "(install" > \n
   "((section " _ ")" > \n
   "(files (" _ "))))" > ?\n)
 
-(define-skeleton tuareg-jbuild-insert-copyfiles-form
+(define-skeleton tuareg-dune-insert-copyfiles-form
   "Insert a copy_files stanza."
   nil
   "(copy_files " _ ")" > ?\n)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar tuareg-jbuild-mode-map
+(defvar tuareg-dune-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c.v" 'tuareg-jbuild-insert-version-form)
-    (define-key map "\C-c.l" 'tuareg-jbuild-insert-library-form)
-    (define-key map "\C-c.e" 'tuareg-jbuild-insert-executable-form)
-    (define-key map "\C-c.x" 'tuareg-jbuild-insert-executables-form)
-    (define-key map "\C-c.r" 'tuareg-jbuild-insert-rule-form)
-    (define-key map "\C-c.p" 'tuareg-jbuild-insert-ocamllex-form)
-    (define-key map "\C-c.y" 'tuareg-jbuild-insert-ocamlyacc-form)
-    (define-key map "\C-c.m" 'tuareg-jbuild-insert-menhir-form)
-    (define-key map "\C-c.a" 'tuareg-jbuild-insert-alias-form)
-    (define-key map "\C-c.i" 'tuareg-jbuild-insert-install-form)
-    (define-key map "\C-c.c" 'tuareg-jbuild-insert-copyfiles-form)
+    (define-key map "\C-c.v" 'tuareg-dune-insert-version-form)
+    (define-key map "\C-c.l" 'tuareg-dune-insert-library-form)
+    (define-key map "\C-c.e" 'tuareg-dune-insert-executable-form)
+    (define-key map "\C-c.x" 'tuareg-dune-insert-executables-form)
+    (define-key map "\C-c.r" 'tuareg-dune-insert-rule-form)
+    (define-key map "\C-c.p" 'tuareg-dune-insert-ocamllex-form)
+    (define-key map "\C-c.y" 'tuareg-dune-insert-ocamlyacc-form)
+    (define-key map "\C-c.m" 'tuareg-dune-insert-menhir-form)
+    (define-key map "\C-c.a" 'tuareg-dune-insert-alias-form)
+    (define-key map "\C-c.i" 'tuareg-dune-insert-install-form)
+    (define-key map "\C-c.c" 'tuareg-dune-insert-copyfiles-form)
     map)
-  "Keymap used in Tuareg-jbuild mode.")
+  "Keymap used in Tuareg-dune mode.")
 
-(defun tuareg-jbuild-build-menu ()
+(defun tuareg-dune-build-menu ()
   (easy-menu-define
-    tuareg-jbuild-mode-menu  (list tuareg-jbuild-mode-map)
-    "Tuareg-jbuild mode menu."
-    '("Jbuild"
+    tuareg-dune-mode-menu  (list tuareg-dune-mode-map)
+    "Tuareg-dune mode menu."
+    '("Dune/jbuild"
       ("Stanzas"
-       ["version" tuareg-jbuild-insert-version-form t]
-       ["library" tuareg-jbuild-insert-library-form t]
-       ["executable" tuareg-jbuild-insert-executable-form t]
-       ["executables" tuareg-jbuild-insert-executables-form t]
-       ["rule" tuareg-jbuild-insert-rule-form t]
-       ["ocamllex" tuareg-jbuild-insert-ocamllex-form t]
-       ["ocamlyacc" tuareg-jbuild-insert-ocamlyacc-form t]
-       ["menhir" tuareg-jbuild-insert-menhir-form t]
-       ["alias" tuareg-jbuild-insert-alias-form t]
-       ["install" tuareg-jbuild-insert-install-form t]
-       ["copy_files" tuareg-jbuild-insert-copyfiles-form t]
+       ["version" tuareg-dune-insert-version-form t]
+       ["library" tuareg-dune-insert-library-form t]
+       ["executable" tuareg-dune-insert-executable-form t]
+       ["executables" tuareg-dune-insert-executables-form t]
+       ["rule" tuareg-dune-insert-rule-form t]
+       ["ocamllex" tuareg-dune-insert-ocamllex-form t]
+       ["ocamlyacc" tuareg-dune-insert-ocamlyacc-form t]
+       ["menhir" tuareg-dune-insert-menhir-form t]
+       ["alias" tuareg-dune-insert-alias-form t]
+       ["install" tuareg-dune-insert-install-form t]
+       ["copy_files" tuareg-dune-insert-copyfiles-form t]
        )))
-  (easy-menu-add tuareg-jbuild-mode-menu))
+  (easy-menu-add tuareg-dune-mode-menu))
 
 
 ;;;###autoload
-(define-derived-mode tuareg-jbuild-mode prog-mode "Tuareg-jbuild"
-  "Major mode to edit jbuild files."
-  (setq-local font-lock-defaults '(tuareg-jbuild-font-lock-keywords))
+(define-derived-mode tuareg-dune-mode prog-mode "Tuareg-dune"
+  "Major mode to edit dune files."
+  (setq-local font-lock-defaults '(tuareg-dune-font-lock-keywords))
   (setq-local comment-start ";")
   (setq-local comment-end "")
   (setq indent-tabs-mode nil)
   (setq-local require-final-newline mode-require-final-newline)
-  (push tuareg-jbuild--allowed-file-name-masks flymake-allowed-file-name-masks)
-  (smie-setup tuareg-jbuild-smie-grammar #'tuareg-jbuild-smie-rules)
-  (setq-local flymake-err-line-patterns tuareg-jbuild--err-line-patterns)
-  (when (and tuareg-jbuild-flymake buffer-file-name)
+  (push tuareg-dune--allowed-file-name-masks flymake-allowed-file-name-masks)
+  (smie-setup tuareg-dune-smie-grammar #'tuareg-dune-smie-rules)
+  (setq-local flymake-err-line-patterns tuareg-dune--err-line-patterns)
+  (when (and tuareg-dune-flymake buffer-file-name)
     (flymake-mode t))
-  (tuareg-jbuild-build-menu)
-  (run-mode-hooks 'tuareg-jbuild-mode-hook))
+  (tuareg-dune-build-menu)
+  (run-mode-hooks 'tuareg-dune-mode-hook))
 
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist
-             '("\\(?:\\`\\|/\\)jbuild\\'" . tuareg-jbuild-mode))
+             '("\\(?:\\`\\|/\\)jbuild\\'" . tuareg-dune-mode))
 
 
-(provide 'tuareg-jbuild-mode)
+(provide 'tuareg-dune-mode)
