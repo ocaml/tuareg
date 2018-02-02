@@ -49,7 +49,7 @@
     (concat (regexp-opt
              '("jbuild_version" "library" "executable" "executables" "rule"
                "ocamllex" "ocamlyacc" "menhir" "alias" "install"
-               "copy_files" "copy_files#")
+               "copy_files" "copy_files#" "include")
              ) "\\(?:\\_>\\|[[:space:]]\\)"))
   "Keywords in dune files.")
 
