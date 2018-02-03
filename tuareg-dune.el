@@ -413,6 +413,7 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
 
 (defvar tuareg-dune-mode-map
   (let ((map (make-sparse-keymap)))
+    (define-key map "\C-c\C-c" 'compile)
     (define-key map "\C-c.v" 'tuareg-dune-insert-version-form)
     (define-key map "\C-c.l" 'tuareg-dune-insert-library-form)
     (define-key map "\C-c.e" 'tuareg-dune-insert-executable-form)
