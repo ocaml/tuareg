@@ -2857,10 +2857,10 @@ error message as a string)."
   (let* ((return-value 0)
          (return-string
           (with-output-to-string
-	    (with-current-buffer standard-output
-	      (setq return-value
-		    (process-file shell-file-name nil t nil
-                                  shell-command-switch command))))))
+            (with-current-buffer standard-output
+              (setq return-value
+                    (process-file shell-file-name nil '(t nil)
+                                  nil shell-command-switch command))))))
     (if (= return-value 0) return-string nil)))
 
 (defun tuareg-opam-config-env (&optional switch)
