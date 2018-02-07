@@ -33,13 +33,25 @@
     map)
   "Keymap for tuareg-opam mode")
 
+(defgroup tuareg-opam nil
+  "Support for the OPAM files."
+  :group 'languages)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                       Syntax highlighting
+
+(defface tuareg-opam-error-face
+  '((t (:foreground "yellow" :background "red" :bold t)))
+  "Face for constructs considered as errors (e.g. deprecated constructs)."
+  :group 'tuareg-opam)
+
+(defvar tuareg-opam-error-face 'tuareg-opam-error-face
+  "Face for constructs considered as errors (e.g. deprecated constructs).")
 
 (defconst tuareg-opam-keywords
   '("opam-version" "name" "version" "maintainer" "authors"
     "license" "homepage" "doc" "bug-reports" "dev-repo"
-    "tags" "patches" "substs" "build" "install" "build-test"
+    "tags" "patches" "substs" "build" "install"
     "build-doc" "remove" "depends" "depopts" "conflicts"
     "depexts" "messages" "post-messages" "available"
     "flags")
@@ -66,8 +78,12 @@
               'symbols)
   "Package variables in OPAM.")
 
+(defconst tuareg-opam-deprecated-regex
+  (eval-when-compile (regexp-opt '("build-test") 'symbols)))
+
 (defvar tuareg-opam-font-lock-keywords
-  `((,(concat tuareg-opam-keywords-regex ":")
+  `((,tuareg-opam-deprecated-regex . tuareg-opam-error-face)
+    (,(concat tuareg-opam-keywords-regex ":")
      1 font-lock-keyword-face)
     (,(regexp-opt '("build" "test" "doc" "pinned" "true" "false") 'words)
      . font-lock-constant-face)
@@ -198,7 +214,6 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
   "[ \"jbuilder\" \"subst\" ] {pinned}" > \n
   "[ \"jbuilder\" \"build\" \"-p\" name \"-j\" jobs ]" > \n
   "]" > \n
-  "build-test: [[\"jbuilder\" \"runtest\" \"-p\" name \"-j\" jobs]]" > \n
   "depends: [" > \n
   "\"jbuilder\" {build}" > \n
   "]" > ?\n)
