@@ -900,7 +900,7 @@ Regexp match data 0 points to the chars."
          (regexp-opt kwd 'words))
       . font-lock-keyword-face)
      ;; with type: "with" treated as a governing keyword
-     (,(concat "\\<\\(\\(?:with\\|and\\) +type\\(?: +nonrec\\)\\>\\) *"
+     (,(concat "\\<\\(\\(?:with\\|and\\) +type\\(?: +nonrec\\)?\\>\\) *"
                "\\(" typeconstr "\\)?")
       (1 tuareg-font-lock-governing-face keep)
       (2 font-lock-type-face keep t))
