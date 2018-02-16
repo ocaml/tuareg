@@ -3,8 +3,8 @@
 (add-to-list 'load-path
              (or (file-name-directory load-file-name) (car load-path)))
 
-;;;### (autoloads nil "ocamldebug" "ocamldebug.el" (22960 18385 186574
-;;;;;;  216000))
+;;;### (autoloads nil "ocamldebug" "ocamldebug.el" (23175 22400 0
+;;;;;;  0))
 ;;; Generated autoloads from ocamldebug.el
 
 (autoload 'ocamldebug "ocamldebug" "\
@@ -19,7 +19,7 @@ the ocamldebug commands `cd DIR' and `directory'.
 
 ;;;***
 
-;;;### (autoloads nil "tuareg" "tuareg.el" (23005 3097 903887 888000))
+;;;### (autoloads nil "tuareg" "tuareg.el" (23175 22400 0 0))
 ;;; Generated autoloads from tuareg.el
 (add-to-list 'auto-mode-alist '("\\.ml[ip]?\\'" . tuareg-mode))
 (add-to-list 'auto-mode-alist '("\\.eliomi?\\'" . tuareg-mode))
@@ -82,21 +82,34 @@ Run an OCaml REPL process.  I/O via buffer `*OCaml*'.
 
 ;;;***
 
-;;;### (autoloads nil "tuareg-jbuild" "tuareg-jbuild.el" (23040 63673
-;;;;;;  915101 116000))
-;;; Generated autoloads from tuareg-jbuild.el
+;;;### (autoloads nil "tuareg-dune" "tuareg-dune.el" (23175 22400
+;;;;;;  0 0))
+;;; Generated autoloads from tuareg-dune.el
 
-(autoload 'tuareg-jbuild-mode "tuareg-jbuild" "\
-Major mode to edit jbuild files.
+(autoload 'tuareg-dune-mode "tuareg-dune" "\
+Major mode to edit dune files.
 
 \(fn)" t nil)
 
-(add-to-list 'auto-mode-alist '("\\(?:\\`\\|/\\)jbuild\\'" . tuareg-jbuild-mode))
+(add-to-list 'auto-mode-alist '("\\(?:\\`\\|/\\)jbuild\\(?:\\.inc\\)?\\'" . tuareg-dune-mode))
 
 ;;;***
 
-;;;### (autoloads nil "tuareg-opam" "tuareg-opam.el" (23040 63783
-;;;;;;  815739 961000))
+;;;### (autoloads nil "tuareg-menhir" "tuareg-menhir.el" (23175 22400
+;;;;;;  0 0))
+;;; Generated autoloads from tuareg-menhir.el
+
+(add-to-list 'auto-mode-alist '("\\.mly\\'" . tuareg-menhir-mode))
+
+(autoload 'tuareg-menhir-mode "tuareg-menhir" "\
+Major mode to edit Menhir (and Ocamlyacc) files.
+
+\(fn)" t nil)
+
+;;;***
+
+;;;### (autoloads nil "tuareg-opam" "tuareg-opam.el" (23175 22400
+;;;;;;  0 0))
 ;;; Generated autoloads from tuareg-opam.el
 
 (autoload 'tuareg-opam-mode "tuareg-opam" "\
@@ -108,8 +121,8 @@ Major mode to edit opam files.
 
 ;;;***
 
-;;;### (autoloads nil nil ("dot-emacs.el" "tuareg-light.el" "tuareg-mly.el")
-;;;;;;  (22928 42647 125772 673000))
+;;;### (autoloads nil nil ("dot-emacs.el" "tuareg-light.el") (23175
+;;;;;;  22400 0 0))
 
 ;;;***
 
