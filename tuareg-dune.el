@@ -81,7 +81,7 @@
                "with-stdout-to" "with-stderr-to" "with-outputs-to"
                "ignore-stdout" "ignore-stderr" "ignore-outputs"
                "progn" "echo" "write-file" "cat" "copy" "copy#" "system"
-               "bash")
+               "bash" "diff" "diff?")
              t)
             "\\(?:\\_>\\|[[:space:]]\\)"))
   "Builtin actions in dune")
