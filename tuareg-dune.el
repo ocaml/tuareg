@@ -62,6 +62,7 @@
        "ppx_runtime_libraries" "virtual_deps" "js_of_ocaml" "flags"
        "ocamlc_flags" "ocamlopt_flags" "library_flags" "c_flags"
        "cxx_flags" "c_library_flags" "self_build_stubs_archive"
+       "modules_without_implementation"
        ;; + for "executable" and "executables":
        "package" "link_flags" "modes" "names" "public_names"
        ;; + for "rule":
