@@ -347,8 +347,8 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
   "(library" > \n
   "((name        " _ ")" > \n
   "(public_name " _ ")" > \n
-  "(synopsis  \"" _ "\")" > \n
-  "(libraries (" _ "))))" > ?\n)
+  "(libraries  (" _ "))" > \n
+  "(synopsis \"" _ "\")))" > ?\n)
 
 (define-skeleton tuareg-dune-insert-executable-form
   "Insert an executable stanza."
