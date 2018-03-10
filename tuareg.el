@@ -114,11 +114,11 @@
 
 (defun tuareg-editing-ls3 ()
   "Tell whether we are editing Lucid Synchrone syntax."
-  (string-match "\\.ls\\'" (or buffer-file-name (buffer-name))))
+  (string-match-p "\\.ls\\'" (or buffer-file-name (buffer-name))))
 
 (defun tuareg-editing-ocamllex ()
   "Tell whether we are editing OCamlLex syntax."
-  (string-match "\\.mll\\'" (or buffer-file-name (buffer-name))))
+  (string-match-p "\\.mll\\'" (or buffer-file-name (buffer-name))))
 
 (defalias 'tuareg-match-string
   (if (fboundp 'match-string-no-properties)
@@ -1244,7 +1244,7 @@ by >, insert one >."
                (save-excursion
                  (tuareg-backward-char)
                  (tuareg-backward-up-list)
-                 (cond ((looking-at "{<") ">")
+                 (cond ((looking-at-p "{<") ">")
                        (t "")))))
           (tuareg-backward-char)
           (insert inserted-char))))
@@ -1282,7 +1282,7 @@ by |, insert one |."
                (save-excursion
                  (tuareg-backward-char)
                  (tuareg-backward-up-list)
-                 (cond ((looking-at "\\[|") "|")
+                 (cond ((looking-at-p "\\[|") "|")
                        (t "")))))
           (tuareg-backward-char)
           (insert inserted-char))))
@@ -1601,8 +1601,8 @@ by |, insert one |."
           tok
         (goto-char (match-end 0))
         (match-string 0)))
-     ((and (equal tok "|") (looking-at "\\]")) (forward-char 1) "|]")
-     ((and (equal tok ">") (looking-at "}")) (forward-char 1) ">}")
+     ((and (equal tok "|") (looking-at-p "\\]")) (forward-char 1) "|]")
+     ((and (equal tok ">") (looking-at-p "}")) (forward-char 1) ">}")
      ((or (member tok '("let" "=" "->"
                         "module" "class" "open" "type" "with" "and"
                         "exception"))
@@ -1616,15 +1616,15 @@ by |, insert one |."
            (looking-at "[[:alpha:]_][[:alnum:]'_]*:"))
       (goto-char (match-end 0))
       "label:")
-     ((and (looking-at ":\\(?:[^:]\\|\\'\\)")
-           (string-match "\\`[[:alpha:]_]" tok)
+     ((and (looking-at-p ":\\(?:[^:]\\|\\'\\)")
+           (string-match-p "\\`[[:alpha:]_]" tok)
            (save-excursion
              (tuareg-smie--backward-token) ;Go back.
              (member (tuareg-smie--backward-token)
                      tuareg-smie--type-label-leader)))
       (forward-char 1)
       "label:")
-     ((string-match "\\`[[:alpha:]_].*\\.\\'"  tok)
+     ((string-match-p "\\`[[:alpha:]_].*\\.\\'"  tok)
       (forward-char -1) (substring tok 0 -1))
      (t tok))))
 
@@ -1830,7 +1830,7 @@ Return values can be
 	 ((member back-tok '("|" "with")) "exception-case")
 	 ((equal back-tok "let") "exception-let")
 	 (t tok))))
-     ((string-match "\\`[[:alpha:]_].*\\.\\'"  tok)
+     ((string-match-p "\\`[[:alpha:]_].*\\.\\'"  tok)
       (forward-char (1- (length tok))) ".")
      (t tok))))
 
@@ -2395,7 +2395,7 @@ or indent all lines in the current phrase."
        ((nth 3 state); Point inside a string.
         (comment-region (nth 8 state)
                         (tuareg--end-of-string-or-comment state) arg))
-       ((looking-at "[ \t]*$"); at end of line and not in string
+       ((looking-at-p "[ \t]*$"); at end of line and not in string
         (comment-dwim arg))
        (t (save-excursion
             (tuareg-comment-or-uncomment-region (line-beginning-position)
@@ -2422,7 +2422,7 @@ switch was made."
       (setq fpath (file-name-directory fpath))
       (while (not (or in-build
                       (null fpath)
-                      (string-match locate-dominating-stop-dir-regexp fpath)))
+                      (string-match-p locate-dominating-stop-dir-regexp fpath)))
         (setq b (file-name-nondirectory (directory-file-name fpath)))
         (if (string= b "_build")
             (setq in-build t)
@@ -2607,7 +2607,7 @@ Short cuts for interactions with the REPL:
   (while (and (not (bobp))
               (null (car (smie-backward-sexp))))
     (tuareg-find-matching-starter tuareg-starters-syms))
-  (when (looking-at "in")
+  (when (looking-at-p "in")
     ;; Skip over `local...in' and continue.
     (forward-word 1)
     (smie-backward-sexp 'halfsexp)
@@ -2708,7 +2708,7 @@ characters \\([0-9]+\\)-\\([0-9]+\\)"
         (end (save-excursion (skip-syntax-forward "w_") (point)))
         (table
          (lambda (string pred action)
-           (let ((dot (string-match "\\.[^.]*\\'" string))
+           (let ((dot (string-match-p "\\.[^.]*\\'" string))
                  ;; ocaml-module-symbols contains an unexplained call to
                  ;; pop-to-buffer within save-window-excursion.  Let's try and
                  ;; avoid it pops up a stupid frame.
@@ -2721,7 +2721,7 @@ characters \\([0-9]+\\)-\\([0-9]+\\)"
                         display-buffer-alist)))
              (if (eq (car-safe action) 'boundaries)
                  `(boundaries ,(if dot (1+ dot) 0)
-                              ,@(string-match "\\." (cdr action)))
+                              ,@(string-match-p "\\." (cdr action)))
                (if (null dot)
                    (complete-with-action
                     action (apply #'append
@@ -3125,7 +3125,7 @@ otherwise a newline is inserted and the lines are indented."
   (cond
    ((tuareg-in-literal-or-comment-p) (tuareg-interactive--indent-line))
    ((or (equal ";;" (save-excursion (caddr (smie-backward-sexp))))
-        (looking-at "[ \t\n\r]*;;"))
+        (looking-at-p "[ \t\n\r]*;;"))
     (comint-send-input))
    (t (tuareg-interactive--indent-line))))
 
@@ -3185,7 +3185,7 @@ It is assumed that the range START-END delimit valid OCaml phrases."
 this case, the returned value is the position before ';;' (unless
 it is the first position of the buffer)."
   (save-excursion
-    (when (looking-at "[;[:blank:]]*$")
+    (when (looking-at-p "[;[:blank:]]*$")
       (skip-chars-backward ";[:blank:]")
       (if (> (point) 1) (- (point) 1)))))
 
