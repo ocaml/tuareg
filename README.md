@@ -178,10 +178,11 @@ See [dot-emacs.el](dot-emacs.el) for some examples.
 [Init File]: https://www.gnu.org/software/emacs/manual/html_node/emacs/Init-File.html
 
 
-Features, Known Bugs
---------------------
+Bugs
+----
 
-Cf. online help.
+See the [Github project](https://github.com/ocaml/tuareg/issues).
+
 
 Thanks
 ------
