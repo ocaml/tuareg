@@ -135,6 +135,17 @@ Tips & customization
   incompatible ways with those not using that option, add `(setq
   tuareg-prettify-symbols-full t)` to your [Init File][].
 
+- By default, constructors are highlighted with the default face
+  because having too many colors is distracting.  If you wish to
+  customize the appearance of constructors, add to your [Init File][]
+  the following code adapted to your tastes.
+
+        (face-spec-set
+         'tuareg-font-lock-constructor-face
+         '((((class color) (background light)) (:foreground "SaddleBrown"))
+           (((class color) (background dark)) (:foreground "burlywood1"))))
+
+
 Thanks to the work of Stefan Monnier, a new indentation engine based on
 [SMIE](https://www.gnu.org/software/emacs/manual/html_node/elisp/SMIE.html)
 was written.  This changes the indentation somewhat w.r.t. the
