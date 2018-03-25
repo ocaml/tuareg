@@ -111,9 +111,11 @@
     ("(\\(select\\)[[:space:]]+[^[:space:]]+[[:space:]]+\\(from\\)\\>"
      (1 font-lock-constant-face)
      (2 font-lock-constant-face))
-    ,(tuareg-dune--field-vals "kind" "normal" "ppx_rewriter" "ppx_deriver")
-    ,(tuareg-dune--field-vals "mode" "standard" "fallback" "promote"
-                              "promote-until-clean")
+    ,(eval-when-compile
+       (tuareg-dune--field-vals "kind" "normal" "ppx_rewriter" "ppx_deriver"))
+    ,(eval-when-compile
+       (tuareg-dune--field-vals "mode" "standard" "fallback" "promote"
+                                "promote-until-clean"))
     (,(concat "(" tuareg-dune-actions-regex) 1 font-lock-builtin-face)
     ("(preprocess[[:space:]]+(\\(pps\\)" 1 font-lock-builtin-face)
     (,(eval-when-compile
