@@ -91,7 +91,7 @@ Major mode to edit dune files.
 
 \(fn)" t nil)
 
-(add-to-list 'auto-mode-alist '("\\(?:\\`\\|/\\)jbuild\\(?:\\.inc\\)?\\'" . tuareg-dune-mode))
+(add-to-list 'auto-mode-alist '("\\(?:\\`\\|/\\)\\(?:jbuild\\|dune\\)\\(?:\\.inc\\)?\\'" . tuareg-dune-mode))
 
 ;;;***
 
