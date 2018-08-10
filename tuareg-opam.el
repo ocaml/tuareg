@@ -211,11 +211,12 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
   "bug-reports: \"" _ "\"" > \n
   "doc: \"" _ "\"" > \n
   "build: [" > \n
-  "[ \"jbuilder\" \"subst\" ] {pinned}" > \n
-  "[ \"jbuilder\" \"build\" \"-p\" name \"-j\" jobs ]" > \n
+  "[ \"dune\" \"subst\" ] {pinned}" > \n
+  "[ \"dune\" \"build\" \"-p\" name \"-j\" jobs ]" > \n
   "]" > \n
+  "build-test: [[\"dune\" \"runtest\" \"-p\" name \"-j\" jobs]]" > \n
   "depends: [" > \n
-  "\"jbuilder\" {build}" > \n
+  "\"dune\" {build}" > \n
   "]" > ?\n)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
