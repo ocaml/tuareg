@@ -46,9 +46,7 @@ INSTALL_RM_R = $(RM) -r
 INSTALL_MKDIR = mkdir -p
 INSTALL_CP = $(CP)
 
-all : tuareg-site-file.el
-
-elc : $(ELC)
+all elc : $(ELC) tuareg-site-file.el
 
 %.elc : %.el
 	$(EMACS) --batch -L . --no-init-file -f batch-byte-compile $<
