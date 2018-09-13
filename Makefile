@@ -99,9 +99,13 @@ $(TARBALL): $(DIST_FILES)
 	tar acvf $@ $(DIST_NAME)
 	$(RM) -r $(DIST_NAME)
 
-opam: $(TARBALL)
+submit: $(TARBALL)
+	@if [ ! -d packages/ ]; then \
+	  echo "Make a symbolic link packages → OPAM repository/packages"; \
+	  exit 1; \
+	fi
 	$(INSTALL_MKDIR) $(OPAM_DIR)
-	$(CP) -a $(filter-out %~, $(wildcard opam/*)) $(OPAM_DIR)
+	$(CP) -a $(wildcard *.opam *.descr) $(OPAM_DIR)
 	echo "archive: \"https://github.com/ocaml/tuareg/releases/download/$(VERSION)/$(TARBALL)\"" > $(OPAM_DIR)/url
 	echo "checksum: \"`md5sum $(TARBALL) | cut -d ' ' -f 1`\"" \
 	  >> $(OPAM_DIR)/url
@@ -110,4 +114,4 @@ clean :
 	$(RM) $(ELC) "$(DIST_NAME).tar.gz" "$(DIST_NAME).tar"
 	$(RM) -r tuareg.$(VERSION)
 
-.PHONY : all elc clean install uninstall check distrib dist opam
+.PHONY : all elc clean install uninstall check distrib dist submit
