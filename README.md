@@ -66,7 +66,8 @@ Run the OCaml debugger with <kbd>M-x ocamldebug FILE</kbd>.
 Tips & customization
 --------------------
 
-- You can comment/uncomment a single line with <kbd>M-;</kbd>.
+- You can comment/uncomment a single line with `tuareg-comment-dwim`
+  which is bound to <kbd>C-cC-;</kbd>.
 
 - By default, Tuareg will align the arguments of functions as follows:
 

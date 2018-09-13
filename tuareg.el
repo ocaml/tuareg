@@ -2262,7 +2262,7 @@ or indent all lines in the current phrase."
             (tuareg-comment-or-uncomment-region (line-beginning-position)
                                                 (line-end-position) arg)))))))
 
-(define-key tuareg-mode-map "\M-;" 'tuareg-comment-dwim)
+(define-key tuareg-mode-map [?\C-c ?\C-\;] 'tuareg-comment-dwim)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                              The major mode
