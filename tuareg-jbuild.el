@@ -34,6 +34,10 @@
   (expand-file-name "jbuild-lint" tuareg-jbuild-temporary-file-directory)
   "Script to use to check the jbuild file.")
 
+(defgroup tuareg-jbuild nil
+  "Support for Jbuilder files."
+  :group 'languages)
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;                     Syntax highlighting
 
@@ -117,7 +121,7 @@
   `(list (concat "(" ,field "[[:space:]]+" ,(regexp-opt vals t))
          1 font-lock-constant-face))
 
-(setq tuareg-jbuild-font-lock-keywords
+(defvar tuareg-jbuild-font-lock-keywords
   `((,tuareg-jbuild-keywords-regex . font-lock-keyword-face)
     (,(concat "(" tuareg-jbuild-fields-regex) 1 font-lock-function-name-face)
     ("\\(true\\|false\\)" 1 font-lock-constant-face)
@@ -159,10 +163,10 @@
     table)
   "Tuareg-jbuild syntax table.")
 
-(defun tuareg-jbuild-syntax-propertize (start end)
-    (funcall
-     (syntax-propertize-rules))
-)
+;; (defun tuareg-jbuild-syntax-propertize (start end)
+;;     (funcall
+;;      (syntax-propertize-rules))
+;; )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;                             SMIE
