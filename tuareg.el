@@ -206,9 +206,6 @@ the default is 1.")
         when cond ->
       clause")
 
-;; Automatic indentation
-;; Using abbrev-mode and electric keys
-
 (defcustom tuareg-match-patterns-aligned nil
   "Non-nil means that the pipes for multiple patterns of a single case
 are aligned instead of being slightly shifted to spot the multiple
@@ -219,35 +216,20 @@ patterns better.
          | C -> ...                    | C -> ... "
   :group 'tuareg :type 'boolean)
 
-(defcustom tuareg-use-abbrev-mode nil
-  "*Non-nil means electrically indent lines starting with leading keywords.
-Leading keywords are such as `end', `done', `else' etc.
-It makes use of `abbrev-mode'.
-
-Many people find electric keywords irritating, so you can disable them by
-setting this variable to nil."
-  :group 'tuareg :type 'boolean
-  :set (lambda (var val)
-         (set-default var val)
-         (dolist (buf (buffer-list))
-           (with-current-buffer buf
-             (when (derived-mode-p 'tuareg-mode)
-               (abbrev-mode (if val 1 -1)))))))
-
-(defcustom tuareg-electric-indent t
-  "*Non-nil means electrically indent lines starting with `|', `)', `]' or `}'.
-
-Many people find electric keys irritating, so you can disable them by
-setting this variable to nil."
-  :group 'tuareg :type 'boolean)
-(when (fboundp 'electric-indent-mode)
-  (make-obsolete-variable 'tuareg-electric-indent
-                          'electric-indent-mode "Emacs-24.1"))
-
 ;; Tuareg-Interactive
 ;; Configure via `tuareg-mode-hook'
 
 ;; Automatic indentation
+
+(make-obsolete-variable 'tuareg-use-abbrev-mode
+                        "Use `electric-indent-mode' instead." "2.2.0")
+
+(defcustom tuareg-electric-indent nil
+  "Whether to automatically indent the line after typing one of
+the words in `tuareg-electric-indent-keywords'.  Lines starting
+with `|', `)', `]`, and `}' are always indented when the
+`electric-indent-mode' is turned on."
+  :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-electric-close-vector t
   "*Non-nil means electrically insert `|' before a vector-closing `]' or
@@ -321,9 +303,7 @@ Valid names are `browse-url', `browse-url-firefox', etc."
   :group 'tuareg :type 'integer)
 
 (defvar tuareg-options-list
-  `(("Automatic indentation of leading keywords" . 'tuareg-use-abbrev-mode)
-    ("Automatic indentation of ), ] and }" . 'tuareg-electric-indent)
-    ["Prettify symbols" prettify-symbols-mode
+  `(["Prettify symbols" prettify-symbols-mode
       :style toggle :selected prettify-symbols-mode :active t])
   "*List of menu-configurable Tuareg options.")
 
@@ -1075,10 +1055,6 @@ Regexp match data 0 points to the chars."
 
 (defvar tuareg-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "|" 'tuareg-electric-pipe)
-    (define-key map ")" 'tuareg-electric-rp)
-    (define-key map "}" 'tuareg-electric-rc)
-    (define-key map "]" 'tuareg-electric-rb)
     (define-key map "\M-q" 'tuareg-indent-phrase)
     (define-key map "\C-c\C-q" 'tuareg-indent-phrase)
     ;; Don't bother: it's the global default anyway.
@@ -1133,20 +1109,11 @@ Regexp match data 0 points to the chars."
     "method" "and" "initializer" "to" "downto" "do" "done" "else"
     "begin" "end" "let" "in" "then" "with"))
 
-(defvar tuareg-mode-abbrev-table ()
-  "Abbrev table used for Tuareg mode buffers.")
-
-(if tuareg-mode-abbrev-table ()
-  (define-abbrev-table 'tuareg-mode-abbrev-table
-    (mapcar (lambda (keyword)
-              `(,keyword ,keyword tuareg-abbrev-hook nil t))
-            tuareg-electric-indent-keywords)))
-
 (defun tuareg--electric-indent-predicate (char)
   "Check whether we should auto-indent.
 For use on `electric-indent-functions'."
   (save-excursion
-    (forward-char -1) ;; Go before the inserted char.
+    (tuareg-backward-char);; Go before the inserted char.
     (let ((syntax (char-syntax char)))
       (if (tuareg-in-indentation-p)
           (or (eq char ?|) (eq syntax ?\)))
@@ -1158,13 +1125,13 @@ For use on `electric-indent-functions'."
               (?\] (and (char-equal ?| (preceding-char))
                         (progn (tuareg-backward-char)
                                (tuareg-in-indentation-p)))))
-            (and tuareg-use-abbrev-mode  ;; Misnomer, eh?
+            (and tuareg-electric-indent
                  (not (eq syntax ?w))
                  (let ((end (point)))
                    (skip-syntax-backward "w_")
                    (member (buffer-substring (point) end)
                            tuareg-electric-indent-keywords))
-                                           (tuareg-in-indentation-p)))))))
+                 (tuareg-in-indentation-p)))))))
 
 (defun tuareg--electric-close-vector ()
   ;; Function for use on post-self-insert-hook.
@@ -1181,112 +1148,6 @@ For use on `electric-indent-functions'."
            (save-excursion
              (goto-char (1- (point)))
              (insert (car inners)))))))
-
-(defun tuareg-electric-pipe ()
-  "If inserting a | operator at beginning of line, reindent the line."
-  (interactive "*")
-  (let ((electric (and tuareg-electric-indent
-                       (not (and (boundp 'electric-indent-mode)
-                                 electric-indent-mode))
-                       (tuareg-in-indentation-p)
-                       (not (tuareg-in-literal-or-comment-p)))))
-    (self-insert-command 1)
-    (and electric
-         (not (and (char-equal ?| (preceding-char))
-                   (fboundp 'tuareg-find-pipe-match)
-                   (fboundp 'tuareg-give-match-pipe-kwop-regexp)
-                   (save-excursion
-                     (tuareg-backward-char)
-                     (tuareg-find-pipe-match)
-                     (not (looking-at (tuareg-give-match-pipe-kwop-regexp))))))
-         (indent-according-to-mode))))
-
-(defun tuareg-electric-rp ()
-  "If inserting a ) operator or a comment-end at beginning of line,
-reindent the line."
-  (interactive "*")
-  (let ((electric (and tuareg-electric-indent
-                       (not (and (boundp 'electric-indent-mode)
-                                 electric-indent-mode))
-                       (if (tuareg-in-indentation-p)
-                           (not (tuareg-in-literal-or-comment-p))
-                         (and (looking-back "^[ \t]*\\*"
-                                            (line-beginning-position))
-                              (nth 4 (syntax-ppss)))))))
-    (self-insert-command 1)
-    (and electric
-         (indent-according-to-mode))))
-
-(defun tuareg-electric-rc ()
-  "If inserting a } operator at beginning of line, reindent the line.
-
-Reindent also if } is inserted after a > operator at beginning of line.
-Also, if the matching { is followed by a < and this } is not preceded
-by >, insert one >."
-  (interactive "*")
-  (let* ((prec (preceding-char))
-         (look-bra (and tuareg-electric-close-vector
-                        (not (boundp 'post-self-insert-hook))
-                        (not (tuareg-in-literal-or-comment-p))
-                        (not (char-equal ?> prec))))
-         (electric (and tuareg-electric-indent
-                        (not (and (boundp 'electric-indent-mode)
-                                  electric-indent-mode))
-                        (or (tuareg-in-indentation-p)
-                            (and (char-equal ?> prec)
-                                 (save-excursion (tuareg-backward-char)
-                                                 (tuareg-in-indentation-p))))
-                        (not (tuareg-in-literal-or-comment-p)))))
-    (self-insert-command 1)
-    (when look-bra
-      (save-excursion
-        (let ((inserted-char
-               (save-excursion
-                 (tuareg-backward-char)
-                 (tuareg-backward-up-list)
-                 (cond ((looking-at-p "{<") ">")
-                       (t "")))))
-          (tuareg-backward-char)
-          (insert inserted-char))))
-    (when electric (indent-according-to-mode))))
-
-(defun tuareg-electric-rb ()
-  "If inserting a ] operator at beginning of line, reindent the line.
-
-Reindent also if ] is inserted after a | operator at beginning of line.
-Also, if the matching [ is followed by a | and this ] is not preceded
-by |, insert one |."
-  (interactive "*")
-  (let* ((prec (preceding-char))
-         (look-pipe-or-bra (and tuareg-electric-close-vector
-                                (not (boundp 'post-self-insert-hook))
-                                (not (tuareg-in-literal-or-comment-p))
-                                (not (and (char-equal ?| prec)
-                                          (not (char-equal
-                                                (save-excursion
-                                                  (tuareg-backward-char)
-                                                  (preceding-char))
-                                                ?\[))))))
-         (electric (and tuareg-electric-indent
-                        (not (and (boundp 'electric-indent-mode)
-                                  electric-indent-mode))
-                        (or (tuareg-in-indentation-p)
-                            (and (char-equal ?| prec)
-                                 (save-excursion (tuareg-backward-char)
-                                                 (tuareg-in-indentation-p))))
-                        (not (tuareg-in-literal-or-comment-p)))))
-    (self-insert-command 1)
-    (when look-pipe-or-bra
-      (save-excursion
-        (let ((inserted-char
-               (save-excursion
-                 (tuareg-backward-char)
-                 (tuareg-backward-up-list)
-                 (cond ((looking-at-p "\\[|") "|")
-                       (t "")))))
-          (tuareg-backward-char)
-          (insert inserted-char))))
-    (when electric (indent-according-to-mode))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;				 SMIE
@@ -2471,7 +2332,6 @@ expansion at run-time, if the run-time version of Emacs does know this macro."
         (smie-indent-forward-token))))
 
 (defun tuareg--common-mode-setup ()
-  (setq local-abbrev-table tuareg-mode-abbrev-table)
   (when (fboundp 'tuareg-syntax-propertize)
     (setq-local syntax-propertize-function #'tuareg-syntax-propertize))
   (setq-local parse-sexp-ignore-comments t)
@@ -2581,10 +2441,6 @@ Short cuts for interactions with the REPL:
 
     (if (functionp 'tuareg-imenu-create-index)
         (setq-local imenu-create-index-function #'tuareg-imenu-create-index))
-
-    (when (and tuareg-use-abbrev-mode
-	       (not (and (boundp 'electric-indent-mode) electric-indent-mode)))
-      (abbrev-mode 1))
     (run-mode-hooks 'tuareg-load-hook)))
 
 (defconst tuareg-starters-syms
@@ -2934,10 +2790,6 @@ switch is not installed, `nil' is returned."
 
 (defvar tuareg-interactive-mode-map
   (let ((map (copy-keymap comint-mode-map)))
-    (define-key map "|" 'tuareg-electric-pipe)
-    (define-key map ")" 'tuareg-electric-rp)
-    (define-key map "}" 'tuareg-electric-rc)
-    (define-key map "]" 'tuareg-electric-rb)
     (define-key map "\C-c\C-i" 'tuareg-interrupt-ocaml)
     (define-key map "\C-c\C-k" 'tuareg-kill-ocaml)
     (define-key map "\C-c`" 'tuareg-interactive-next-error-repl)
@@ -3372,8 +3224,6 @@ Short cuts for interaction within the REPL:
 (defun tuareg-toggle-option (symbol)
   (interactive)
   (set symbol (not (symbol-value symbol)))
-  (when (eq 'tuareg-use-abbrev-mode symbol)
-    (abbrev-mode tuareg-use-abbrev-mode)) ; toggle abbrev minor mode
   (tuareg-update-options-menu))
 
 (defun tuareg-update-options-menu ()
