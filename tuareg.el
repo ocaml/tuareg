@@ -1136,10 +1136,13 @@ Regexp match data 0 points to the chars."
 (defvar tuareg-mode-abbrev-table ()
   "Abbrev table used for Tuareg mode buffers.")
 
+(defvar tuareg-abbrev-hook nil
+  "Abbrev hook for tuareg mode buffers.")
+
 (if tuareg-mode-abbrev-table ()
   (define-abbrev-table 'tuareg-mode-abbrev-table
     (mapcar (lambda (keyword)
-              `(,keyword ,keyword tuareg-abbrev-hook nil t))
+              `(,keyword ,keyword (lambda () (run-hooks tuareg-abbrev-hook)) nil t))
             tuareg-electric-indent-keywords)))
 
 (defun tuareg--electric-indent-predicate (char)
