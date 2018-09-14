@@ -147,6 +147,12 @@ Tips & customization
          '((((class color) (background light)) (:foreground "SaddleBrown"))
            (((class color) (background dark)) (:foreground "burlywood1"))))
 
+- To have a list of definitions in the buffer, use [imenu][].  It is
+  available by right clicking in the buffer.  You can also launch the
+  `speedbar` and click on file to have a list of definitions.
+
+[imenu]: https://www.gnu.org/software/emacs/manual/html_node/emacs/Imenu.html
+
 - If you wish to have a nice 🐫 as the mode name, add
 
         (add-hook 'tuareg-mode-hook #'(lambda() (setq mode-name "🐫")))

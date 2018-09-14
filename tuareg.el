@@ -298,10 +298,6 @@ Valid names are `browse-url', `browse-url-firefox', etc."
   "*Path to the OCaml library."
   :group 'tuareg :type 'string)
 
-(defcustom tuareg-definitions-max-items 30
-  "*Maximum number of items a definitions menu can contain."
-  :group 'tuareg :type 'integer)
-
 (defvar tuareg-options-list
   `(["Prettify symbols" prettify-symbols-mode
       :style toggle :selected prettify-symbols-mode :active t])
@@ -3180,14 +3176,6 @@ Short cuts for interaction within the REPL:
   (interactive)
   (describe-function 'tuareg-interactive-mode))
 
-(defvar tuareg-definitions-menu (list ["Scan..." tuareg-list-definitions t])
-  "Initial content of the definitions menu.")
-(make-variable-buffer-local 'tuareg-definitions-menu)
-
-(defvar tuareg-definitions-menu-last-buffer nil)
-
-(defvar tuareg-definitions-keymaps nil)
-
 (defun tuareg-build-menu ()
   (easy-menu-define
    tuareg-mode-menu (list tuareg-mode-map)
@@ -3217,8 +3205,6 @@ Short cuts for interaction within the REPL:
      ["Compile..." compile t]
      ["Reference Manual..." tuareg-browse-manual t]
      ["OCaml Library..." tuareg-browse-library t]
-     ("Definitions"
-      ["Scan..." tuareg-list-definitions t])
      "---"
      [ "Show type at point" caml-types-show-type
        tuareg-with-caml-mode-p]
@@ -3247,12 +3233,6 @@ Short cuts for interaction within the REPL:
      ["Help" tuareg-help t]))
   (easy-menu-add tuareg-mode-menu)
   (tuareg-update-options-menu))
-
-(defun tuareg-update-definitions-menu ()
-  (when (eq major-mode 'tuareg-mode)
-    (easy-menu-change
-     '("Tuareg") "Definitions"
-     tuareg-definitions-menu)))
 
 (defun tuareg-toggle-option (symbol)
   (interactive)
