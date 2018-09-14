@@ -946,6 +946,8 @@ Regexp match data 0 points to the chars."
      (,(concat "\\(?:->\\|:[^:>=]\\)" tuareg--whitespace-re
                "\\(" lid "\\)[ \t]*:[^:>=]")
       1 tuareg-font-lock-label-face keep)
+     ;; Polymorphic variants (take precedence on builtin names)
+     (,(concat "`" id) . tuareg-font-lock-constructor-face)
      (,(concat "\\<open\\(! +\\|\\> *\\)\\(" module-path "\\)?")
       (1 tuareg-font-lock-governing-face)
       (2 tuareg-font-lock-module-face keep t))
@@ -1014,7 +1016,6 @@ Regexp match data 0 points to the chars."
                "\\(" typedef "\\)")
       1 font-lock-type-face keep)
      ;; Constructors
-     (,(concat "`" id) . tuareg-font-lock-constructor-face)
      (,(concat "\\(" uid "\\)[^.]")  1 tuareg-font-lock-constructor-face)
      ;;; let-bindings
      (,(concat let-binding "\\(" lid "\\) *\\(?:: *\\([^=]+\\)\\)?= *"
