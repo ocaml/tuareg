@@ -24,15 +24,16 @@ Install
 -------
 
 The easier way to install Tuareg is though
-[`opam`](http://opam.ocaml.org/):
+the [Emacs package system](https://www.gnu.org/software/emacs/manual/html_node/emacs/Packages.html)
+and [Melpa](https://melpa.org/) — you first have to
+[configure the latter](https://melpa.org/#/getting-started).
+
+You can also install it using [OPAM](http://opam.ocaml.org/):
 
     opam install tuareg
 
 and follow the instructions given at the end of the `opam`
 installation.
-
-There are versions of Tuareg in [Melpa](https://melpa.org/) and
-in [Marmalade](https://marmalade-repo.org/) but they may be older.
 
 If you want to install from the Git checkout, just add to your
 [Init File][]the line:
