@@ -833,6 +833,8 @@ Regexp match data 0 points to the chars."
   (setq
    tuareg-font-lock-keywords
    `(("^#[0-9]+ *\\(?:\"[^\"]+\"\\)?" 0 tuareg-font-lock-line-number-face t)
+     (,(concat "^# +#show\\(?:_module\\)? +\\(" uid "\\)")
+      1 tuareg-font-lock-module-face)
      (";;+" 0 tuareg-font-double-colon-face)
      ;; Attributes (`keep' to highlight except strings & chars)
      (,(concat "\\[@\\(?:@@?\\)?" attr-id balanced-brackets "\\]")
