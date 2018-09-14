@@ -331,7 +331,8 @@ t, Tuareg will try to use opam to set the right environment for
 opam switch at the time the command is run (provided opam is
 found).  You may also use `tuareg-opam-update-env' to set the
 environment for another compiler from within emacs (without
-changing the opam switch)."
+changing the opam switch).  Beware that setting it to t causes
+problems if you compile under tramp."
   :group 'tuareg :type 'boolean)
 
 (defgroup tuareg-faces nil
@@ -2805,19 +2806,21 @@ switch is not installed, `nil' is returned."
       (message "Switch %s does not exist (or opam not found)" switch))))
 
 
+;; OPAM compilation
+(defun tuareg--compile-opam (&rest r)
+  "Advice to update the OPAM environment to sync it with the OPAM
+switch before compiling."
+  (let* ((env (tuareg-opam-config-env)))
+    (when env
+      (setq-local compilation-environment
+                  (mapcar (lambda(v) (concat (car v) "=" (cadr v)))
+                          (tuareg-opam-config-env))))))
+
 (when (and tuareg-opam-insinuate tuareg-opam)
   (setq tuareg-interactive-program
         (concat tuareg-opam " config exec -- ocaml"))
 
-  ;; OPAM compilation — one must update to the current compiler
-  ;; before launching the compilation.
-  (defadvice compile (before tuareg-compile-opam activate)
-      "Run opam to update environment variables."
-      (let* ((env (tuareg-opam-config-env)))
-	(when env
-	  (setq-local compilation-environment
-	       (mapcar (lambda(v) (concat (car v) "=" (cadr v)))
-		       (tuareg-opam-config-env))))))
+  (advice-add 'compile :before #'tuareg--compile-opam)
 
   (defvar merlin-command)               ;Silence byte-compiler.
   (setq merlin-command 'opam)
