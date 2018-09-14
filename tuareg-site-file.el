@@ -19,7 +19,7 @@ the ocamldebug commands `cd DIR' and `directory'.
 
 ;;;***
 
-;;;### (autoloads nil "tuareg" "tuareg.el" (23450 29900 774412 368000))
+;;;### (autoloads nil "tuareg" "tuareg.el" (23451 62160 790210 240000))
 ;;; Generated autoloads from tuareg.el
 (add-to-list 'auto-mode-alist '("\\.ml[ip]?\\'" . tuareg-mode))
 (add-to-list 'auto-mode-alist '("\\.eliomi?\\'" . tuareg-mode))
@@ -82,8 +82,8 @@ Run an OCaml REPL process.  I/O via buffer `*OCaml*'.
 
 ;;;***
 
-;;;### (autoloads nil "tuareg-jbuild" "tuareg-jbuild.el" (23450 29794
-;;;;;;  845945 503000))
+;;;### (autoloads nil "tuareg-jbuild" "tuareg-jbuild.el" (23450 52106
+;;;;;;  385127 834000))
 ;;; Generated autoloads from tuareg-jbuild.el
 
 (autoload 'tuareg-jbuild-mode "tuareg-jbuild" "\
@@ -108,8 +108,8 @@ Major mode to edit Menhir (and Ocamlyacc) files.
 
 ;;;***
 
-;;;### (autoloads nil "tuareg-opam" "tuareg-opam.el" (23450 29831
-;;;;;;  394106 455000))
+;;;### (autoloads nil "tuareg-opam" "tuareg-opam.el" (23451 62169
+;;;;;;  386245 46000))
 ;;; Generated autoloads from tuareg-opam.el
 
 (autoload 'tuareg-opam-mode "tuareg-opam" "\

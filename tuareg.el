@@ -11,7 +11,7 @@
 ;;      Sean McLaughlin <seanmcl@gmail.com>
 ;;      Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Created: 8 Jan 1997
-;; Version: 2.1.0
+;; Version: 2.2.0
 ;; Package-Requires: ((caml "3.12.0.1"))
 ;; Keywords: ocaml languages
 ;; URL: https://github.com/ocaml/tuareg
@@ -89,7 +89,7 @@
   "Tuareg revision from the control system used.")
 
 (defconst tuareg-mode-version
-  (let ((version "Tuareg Version 2.1.0"))
+  (let ((version "Tuareg Version 2.2.0"))
     (if (null tuareg-mode-revision)
         version
       (concat version " (" tuareg-mode-revision ")")
@@ -2167,6 +2167,7 @@ positions delimiting the string (including its delimiters)."
 (defun tuareg--fill-string ()
   "Assume the point is inside a string delimited by \" and jusfify it.
 This function moves the point."
+  ;; FIXME: be more subtle: detect lists and @param
   (let* ((start-end (tuareg--string-boundaries))
          (start (set-marker (make-marker) (car start-end)))
          (end   (set-marker (make-marker) (cdr start-end)))

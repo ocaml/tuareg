@@ -1,3 +1,20 @@
+2.2.0 2018-
+-----------
+
+* New mode `tuareg-menhir` thanks to Stefan Monnier.
+  Note that <kbd>C-c C-c</kbd> launches the compilation.
+* `tuareg-jbuilder`: <kbd>C-c C-c</kbd> launches the compilation.
+* Be more subtle in phrase detection.
+* Syntax highlighting improvements (`type nonrec`, `raise_notrace`,
+  `with type`).
+* `tuareg-comment-dwim` is now bound to <kbd>C-cC-;</kbd> (fixes #149).
+* Rework electric functions (fixes issues #150 and #162).
+* Remove `tuareg-light`, you should now use `tuareg`.
+
+Note that the mode `tuareg-dune` which was in the development version
+of this package is now part of [Dune](https://github.com/ocaml/dune).
+
+
 2.1.0 2017-11-10
 ----------------
 
