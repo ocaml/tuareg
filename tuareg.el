@@ -872,7 +872,7 @@ Regexp match data 0 points to the chars."
      (,(concat "( *\\(type\\) +\\(" lid " *\\)+)")
       (1 font-lock-keyword-face)
       (2 font-lock-type-face))
-     (":[\n]? *\\(type\\)"
+     (":[\n]? *\\(\\<type\\>\\)"
       (1 font-lock-keyword-face))
      ;; First class modules.  In these contexts, "val" and "module"
      ;; are not considered as "governing" (main structure of the code).
