@@ -2825,7 +2825,7 @@ switch is not installed, `nil' is returned."
     (define-key map "\C-c\C-k" 'tuareg-kill-ocaml)
     (define-key map "\C-c`" 'tuareg-interactive-next-error-repl)
     (define-key map "\C-c?" 'tuareg-interactive-next-error-repl)
-    (define-key map [return] 'tuareg-interactive-send-input)
+    (define-key map "\C-m" 'tuareg-interactive-send-input)
     (define-key map [(shift return)]
       'tuareg-interactive-send-input-end-of-phrase)
     (define-key map [(ctrl return)]
