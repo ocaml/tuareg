@@ -36,7 +36,7 @@ and follow the instructions given at the end of the `opam`
 installation.
 
 If you want to install from the Git checkout, just add to your
-[Init File][]the line:
+[Init File][] the line:
 
     (load "path-to-git-checkout-dir/tuareg-site-file")
 
@@ -147,6 +147,11 @@ Tips & customization
          '((((class color) (background light)) (:foreground "SaddleBrown"))
            (((class color) (background dark)) (:foreground "burlywood1"))))
 
+- If you wish to have a nice 🐫 as the mode name, add
+
+        (add-hook 'tuareg-mode-hook #'(lambda() (setq mode-name "🐫")))
+
+  to your [Init File][].
 
 Thanks to the work of Stefan Monnier, a new indentation engine based on
 [SMIE](https://www.gnu.org/software/emacs/manual/html_node/elisp/SMIE.html)
