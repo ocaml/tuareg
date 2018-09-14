@@ -886,7 +886,9 @@ Regexp match data 0 points to the chars."
       (1 font-lock-keyword-face)
       (2 tuareg-font-lock-module-face)
       (3 tuareg-font-lock-module-face))
-     ("let +exception" . tuareg-font-lock-governing-face)
+     ("\\<let +exception\\>" . tuareg-font-lock-governing-face)
+     (,(concat "\\<let +exception +\\(" uid "\\)")
+      1 tuareg-font-lock-constructor-face)
      (,(regexp-opt '("module" "include" "sig" "struct" "functor"
                      "type" "constraint" "class" "in" "inherit"
                      "method" "external" "val" "open"
@@ -978,7 +980,8 @@ Regexp match data 0 points to the chars."
      (,(concat "(" lid " *:\\(['_A-Za-z]" balanced-braces-no-string "\\))")
       1 font-lock-type-face keep)
      (,(concat "\\<external +\\(" lid "\\)")  1 font-lock-function-name-face)
-     (,(concat "\\<exception +\\(" uid "\\)") 1 font-lock-variable-name-face)
+     (,(concat "\\<exception +\\(" uid "\\)")
+      1 tuareg-font-lock-constructor-face)
      (,(concat "\\<module" maybe-infix-attr+ext
 	       "\\(?: +type\\)?\\(?: +rec\\)?\\> *\\(" uid "\\)")
       1 tuareg-font-lock-module-face)
