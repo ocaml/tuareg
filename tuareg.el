@@ -3373,7 +3373,8 @@ Short cuts for interaction within the REPL:
 ;;                      Related files & modes
 
 (eval-when-compile
-  (autoload 'speedbar-add-supported-extension "speedbar"))
+  (autoload 'speedbar-add-supported-extension "speedbar")
+  (defvar speedbar-obj-alist))
 
 (when (require 'speedbar nil t)
   (speedbar-add-supported-extension
