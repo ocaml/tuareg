@@ -2211,7 +2211,7 @@ or indent all lines in the current phrase."
   (save-excursion
     (let ((ppss (syntax-ppss)))
       (cond
-       ((equal ?\"(nth 3 ppss))
+       ((equal ?\" (nth 3 ppss))
         (tuareg--fill-string))
        ((nth 4 ppss)
         (tuareg--fill-comment))
@@ -3252,7 +3252,8 @@ Short cuts for interaction within the REPL:
                          ':style 'toggle
                          ':selected (nth 1 (cdr pair))
                          ':active t)
-               pair)) tuareg-options-list))
+               pair))
+           tuareg-options-list))
   (easy-menu-change
    '("Tuareg") "Tuareg Interactive Options"
    (mapcar (lambda (pair)
@@ -3262,7 +3263,8 @@ Short cuts for interaction within the REPL:
                          ':style 'toggle
                          ':selected (nth 1 (cdr pair))
                          ':active t)
-               pair)) tuareg-interactive-options-list)))
+               pair))
+           tuareg-interactive-options-list)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                             Browse Manual
