@@ -961,6 +961,9 @@ Regexp match data 0 points to the chars."
       . font-lock-builtin-face)
      ;; module paths A.B.
      (,(concat module-path "\\.") . tuareg-font-lock-module-face)
+     ,@(and tuareg-support-metaocaml
+            '(("[^-@^!*=<>&/%+~?#]\\(\\(?:\\.<\\|\\.~\\|!\\.\\|>\\.\\)+\\)"
+               1 tuareg-font-lock-multistage-face)))
      (,(concat
          "[][;,()|{}]\\|[-@^!:*=<>&/%+~?#]\\.?\\|\\.\\.\\.*\\|"
          (regexp-opt
@@ -1062,9 +1065,6 @@ Regexp match data 0 points to the chars."
      (,(concat "\\<val" maybe-infix-attr+ext
 	       " +\\(" lid "\\)")
       1 font-lock-function-name-face)
-     ,@(and tuareg-support-metaocaml
-            '(("\\.<\\|>\\.\\|\\.~\\|\\.!"
-               0 tuareg-font-lock-multistage-face nil nil)))
      ,@(and tuareg-font-lock-symbols
             (tuareg-font-lock-symbols-keywords)))))
   (setq font-lock-defaults
