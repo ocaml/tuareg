@@ -587,6 +587,16 @@ do not perturb in essential ways the alignment are used.  See
             ("->" . ,(make-char 'symbol 174))
             (":=" . ,(make-char 'symbol 220))))))
 
+(defun tuareg--prettify-symbols-compose-p (start end _match)
+  "Return true iff the symbol MATCH should be composed.
+See `prettify-symbols-compose-predicate'."
+  ;; Refine `prettify-symbols-default-compose-p' so as not to compose
+  ;; symbols for errors,...
+  (and (prettify-symbols-default-compose-p start end _match)
+       (not (memq (get-text-property start 'face)
+                  '(tuareg-font-lock-error-face
+                    tuareg-font-lock-interactive-output-face
+                    tuareg-font-lock-interactive-error-face)))))
 
 (defun tuareg-font-lock-compose-symbol (alist)
   "Compose a sequence of ascii chars into a symbol.
@@ -598,8 +608,12 @@ Regexp match data 0 points to the chars."
     (if (or (eq (char-syntax (or (char-before mbegin) ?\ )) syntax)
             (eq (char-syntax (or (char-after mend) ?\ )) syntax)
             (memq (get-text-property mbegin 'face)
-                  '(tuareg-doc-face font-lock-string-face
-                    font-lock-comment-face)))
+                  '(tuareg-doc-face
+                    font-lock-string-face
+                    font-lock-comment-face
+                    tuareg-font-lock-error-face
+                    tuareg-font-lock-interactive-output-face
+                    tuareg-font-lock-interactive-error-face)))
         ;; No composition for you. Let's actually remove any composition
         ;;   we may have added earlier and which is now incorrect.
         (remove-text-properties mbegin mend '(composition))
@@ -2348,11 +2362,13 @@ expansion at run-time, if the run-time version of Emacs does know this macro."
   (add-hook 'smie-indent-functions #'tuareg-smie--args nil t)
   (add-hook 'smie-indent-functions #'tuareg-smie--inside-string nil t)
   (setq-local add-log-current-defun-function 'tuareg-current-fun-name)
-  (setq-local prettify-symbols-alist
-              (if tuareg-prettify-symbols-full
-                  (append tuareg-prettify-symbols-basic-alist
-                          tuareg-prettify-symbols-extra-alist)
-                tuareg-prettify-symbols-basic-alist))
+  (setq prettify-symbols-alist
+        (if tuareg-prettify-symbols-full
+            (append tuareg-prettify-symbols-basic-alist
+                    tuareg-prettify-symbols-extra-alist)
+          tuareg-prettify-symbols-basic-alist))
+  (setq prettify-symbols-compose-predicate
+        #'tuareg--prettify-symbols-compose-p)
   (tuareg-install-font-lock)
   (setq-local open-paren-in-column-0-is-defun-start nil)
 
