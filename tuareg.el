@@ -434,12 +434,20 @@ changing the opam switch)."
 (defvar tuareg-font-lock-interactive-error-face
   'tuareg-font-lock-interactive-error-face)
 
+(defface tuareg-font-lock-interactive-directive-face
+  '((((background light)) (:foreground "slate gray"))
+    (t (:foreground "light slate gray")))
+  "Face description for all REPL directives such as #load."
+  :group 'tuareg-faces)
+(defvar tuareg-font-lock-interactive-directive-face
+  'tuareg-font-lock-interactive-directive-face)
+
 (defface tuareg-font-lock-attribute-face
   (if tuareg-faces-inherit-p
       '((t :inherit font-lock-preprocessor-face))
     '((((background light)) (:foreground "DodgerBlue2"))
       (t (:foreground "LightSteelBlue"))))
-  "Face description for OCaml atribute annotations."
+  "Face description for OCaml attribute annotations."
   :group 'tuareg-faces)
 (defvar tuareg-font-lock-attribute-face
   'tuareg-font-lock-attribute-face)
@@ -833,6 +841,8 @@ Regexp match data 0 points to the chars."
   (setq
    tuareg-font-lock-keywords
    `(("^#[0-9]+ *\\(?:\"[^\"]+\"\\)?" 0 tuareg-font-lock-line-number-face t)
+     (,(concat "^# +\\(#" lid "\\)")
+      1 tuareg-font-lock-interactive-directive-face)
      (,(concat "^# +#show\\(?:_module\\)? +\\(" uid "\\)")
       1 tuareg-font-lock-module-face)
      (";;+" 0 tuareg-font-double-colon-face)
