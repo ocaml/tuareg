@@ -448,10 +448,23 @@ changing the opam switch)."
 (defvar tuareg-font-lock-attribute-face
   'tuareg-font-lock-attribute-face)
 
-(defface tuareg-font-lock-extension-node-face
+(defface tuareg-font-lock-infix-extension-node-face
   (if tuareg-faces-inherit-p
       '((t :inherit font-lock-preprocessor-face))
-    '((((background light)) (:foreground "DodgerBlue2"))
+    '((((background light)) (:foreground "Orchid"))
+      (((background dark)) (:foreground "LightSteelBlue"))
+      (t (:foreground "LightSteelBlue"))))
+  "Face description for OCaml the infix extension node."
+  :group 'tuareg-faces)
+(defvar tuareg-font-lock-infix-extension-node-face
+  'tuareg-font-lock-infix-extension-node-face)
+
+(defface tuareg-font-lock-extension-node-face
+  (if tuareg-faces-inherit-p
+      '((t :inherit tuareg-font-lock-infix-extension-node-face
+           :background "gray92"))
+    '((((background light)) (:foreground "Orchid" :background "gray92"))
+      (((background dark)) (:foreground "LightSteelBlue" :background "gray92"))
       (t (:foreground "LightSteelBlue"))))
   "Face description for OCaml extension nodes."
   :group 'tuareg-faces)
@@ -845,13 +858,14 @@ Regexp match data 0 points to the chars."
      ;; Attributes (`keep' to highlight except strings & chars)
      (,(concat "\\[@\\(?:@@?\\)?" attr-id balanced-brackets "\\]")
       0 tuareg-font-lock-attribute-face keep)
-     ;; Extension nodes
-     (,(concat "\\[%%?" attr-id balanced-brackets "\\]")
-      0 tuareg-font-lock-extension-node-face keep)
+     ;; Extension nodes.
+     (,(concat "\\(\\[%%?" attr-id "\\)" balanced-brackets "\\(\\]\\)")
+      (1 tuareg-font-lock-extension-node-face)
+      (2 tuareg-font-lock-extension-node-face))
      (,(concat "\\(?:\\<" (regexp-opt '("let" "begin" "module" "val" "val!"
 					"fun" "function" "match"))
 	       "\\|;\\)\\(" maybe-infix-attr "\\)")
-      1 tuareg-font-lock-extension-node-face)
+      1 tuareg-font-lock-infix-extension-node-face)
      ;; cppo
      (,(concat "^ *#" (regexp-opt '("define" "undef" "if" "ifdef" "ifndef"
 				    "else" "elif" "endif" "include"
