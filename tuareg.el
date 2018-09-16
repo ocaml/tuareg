@@ -775,7 +775,9 @@ Regexp match data 0 points to the chars."
   ;; N spaces in N+1 different ways :-(
   " *\\(?:[\t\n] *\\)?")
 
-(defun tuareg-install-font-lock ()
+(defun tuareg--install-font-lock (&optional interactive-p)
+  "Setup `font-lock-defaults'.  INTERACTIVE-P says whether it is
+for the interactive mode."
   (let* ((id "\\<[A-Za-z_][A-Za-z0-9_']*\\>")
          (lid "\\<[a-z_][A-Za-z0-9_']*\\>")
          (uid "\\<[A-Z][A-Za-z0-9_']*\\>")
@@ -851,9 +853,15 @@ Regexp match data 0 points to the chars."
   (setq
    tuareg-font-lock-keywords
    `(("^#[0-9]+ *\\(?:\"[^\"]+\"\\)?" 0 tuareg-font-lock-line-number-face t)
-     (,(concat "^# +\\(#" lid "\\)")
-      1 tuareg-font-lock-interactive-directive-face)
-     (,(concat "^# +#show\\(?:_module\\)? +\\(" uid "\\)")
+     ,@(if interactive-p
+           `((,(concat "^# +\\(#" lid "\\)")
+              1 tuareg-font-lock-interactive-directive-face)
+             (,(concat "^ *\\(#" lid "\\)")
+              1 tuareg-font-lock-interactive-directive-face))
+         `((,(concat "^\\(#" lid "\\)")
+            . tuareg-font-lock-interactive-directive-face)))
+     (,(concat (if interactive-p "^ *#\\(?: +#\\)?" "^#")
+               "show\\(?:_module\\)? +\\(" uid "\\)")
       1 tuareg-font-lock-module-face)
      (";;+" 0 tuareg-font-double-colon-face)
      ;; Attributes (`keep' to highlight except strings & chars)
@@ -2397,7 +2405,6 @@ expansion at run-time, if the run-time version of Emacs does know this macro."
           tuareg-prettify-symbols-basic-alist))
   (setq prettify-symbols-compose-predicate
         #'tuareg--prettify-symbols-compose-p)
-  (tuareg-install-font-lock)
   (setq-local open-paren-in-column-0-is-defun-start nil)
 
   (add-hook 'completion-at-point-functions #'tuareg-completion-at-point nil t)
@@ -2479,6 +2486,7 @@ Short cuts for interactions with the REPL:
     ;; TABs should NOT be used in OCaml files:
     (setq indent-tabs-mode nil)
     (tuareg--common-mode-setup)
+    (tuareg--install-font-lock)
     (when (fboundp 'tuareg-auto-fill-function)
       ;; Emacs-21's newcomment.el provides this functionality by default.
       (setq-local normal-auto-fill-function #'tuareg-auto-fill-function))
@@ -2951,6 +2959,7 @@ Short cuts for interactions with the REPL:
   (setq-local comint-prompt-read-only t)
 
   (tuareg--common-mode-setup)
+  (tuareg--install-font-lock t)
   (when (or tuareg-interactive-input-font-lock
             tuareg-interactive-output-font-lock
             tuareg-interactive-error-font-lock)
