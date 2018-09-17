@@ -104,7 +104,8 @@ submit: $(TARBALL)
 	  exit 1; \
 	fi
 	$(INSTALL_MKDIR) $(OPAM_DIR)
-	$(CP) -a $(wildcard *.opam *.descr) $(OPAM_DIR)
+	$(CP) -a tuareg.opam $(OPAM_DIR)/opam
+	$(CP) -a tuareg.descr $(OPAM_DIR)/descr
 	echo "archive: \"https://github.com/ocaml/tuareg/releases/download/$(VERSION)/$(TARBALL)\"" > $(OPAM_DIR)/url
 	echo "checksum: \"`md5sum $(TARBALL) | cut -d ' ' -f 1`\"" \
 	  >> $(OPAM_DIR)/url
