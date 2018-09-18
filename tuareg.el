@@ -176,7 +176,7 @@ if it has to."
   :set (lambda (var val)
          (set-default var val)
          (ignore-errors
-           (dolist (buf (buffer-list))
+           (dolist (buf (buffer-list))
              (with-current-buffer buf
                (when (derived-mode-p 'tuareg-mode 'tuareg-interactive-mode)
                  (tuareg-install-font-lock)))))))
@@ -660,7 +660,7 @@ Regexp match data 0 points to the chars."
   (let ((st (make-syntax-table)))
     (modify-syntax-entry ?_ "_" st)
     (modify-syntax-entry ?. "'" st)     ;Make qualified names a single symbol.
-    (modify-syntax-entry ?# "_" st)     ;Make name#method a single symbol
+    (modify-syntax-entry ?# "." st)
     (modify-syntax-entry ?? ". p" st)
     (modify-syntax-entry ?~ ". p" st)
     ;; See http://caml.inria.fr/pub/docs/manual-ocaml/lex.html.
