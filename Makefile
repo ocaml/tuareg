@@ -6,7 +6,7 @@ REQUIREMENTS = $(shell grep ';; Package-Requires:' tuareg.el \
 	| sed 's/;; Package-Requires: *\(.*\)/\1/')
 DIST_NAME = tuareg-$(VERSION)
 TARBALL = $(DIST_NAME).tar.gz
-OPAM_DIR = packages/tuareg/tuareg.$(VERSION)
+OPAM_FILE = packages/tuareg/tuareg.$(VERSION)/opam
 
 SOURCES = tuareg.el ocamldebug.el tuareg-opam.el tuareg-jbuild.el \
   tuareg-menhir.el
@@ -103,12 +103,13 @@ submit: $(TARBALL)
 	  echo "Make a symbolic link packages → OPAM repository/packages"; \
 	  exit 1; \
 	fi
-	$(INSTALL_MKDIR) $(OPAM_DIR)
-	$(CP) -a tuareg.opam $(OPAM_DIR)/opam
-	$(CP) -a tuareg.descr $(OPAM_DIR)/descr
-	echo "archive: \"https://github.com/ocaml/tuareg/releases/download/$(VERSION)/$(TARBALL)\"" > $(OPAM_DIR)/url
-	echo "checksum: \"`md5sum $(TARBALL) | cut -d ' ' -f 1`\"" \
-	  >> $(OPAM_DIR)/url
+	$(INSTALL_MKDIR) $(dir $(OPAM_FILE))
+	$(CP) -a tuareg.opam $(OPAM_FILE)
+	echo "url {" >> $(OPAM_FILE)
+	echo "  src: \"https://github.com/ocaml/tuareg/releases/download/$(VERSION)/$(TARBALL)\"" >> $(OPAM_FILE)
+	echo "  checksum: \"`md5sum $(TARBALL) | cut -d ' ' -f 1`\"" \
+	  >> $(OPAM_FILE)
+	echo "}" >> $(OPAM_FILE)
 
 clean :
 	$(RM) $(ELC) "$(DIST_NAME).tar.gz" "$(DIST_NAME).tar"
