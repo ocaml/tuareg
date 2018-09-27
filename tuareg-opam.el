@@ -54,7 +54,7 @@
     "tags" "patches" "substs" "build" "install"
     "build-doc" "remove" "depends" "depopts" "conflicts"
     "depexts" "messages" "post-messages" "available"
-    "flags")
+    "flags" "synopsis" "description" "url")
   "Kewords in OPAM files.")
 
 (defconst tuareg-opam-keywords-regex
