@@ -80,6 +80,13 @@
               'symbols)
   "Package variables in OPAM.")
 
+(defconst tuareg-opam-scopes-regex
+  (regexp-opt '("build" "with-test" "with-doc"
+                "pinned"
+                "true" "false")
+              'words)
+  "Package scopes")
+
 (defconst tuareg-opam-deprecated-regex
   (eval-when-compile (regexp-opt '("build-test" "build-doc") 'symbols)))
 
@@ -90,8 +97,7 @@
     ("^\\(extra-source\\)\\_>" 1 font-lock-keyword-face)
     (,(concat "^\\(x-[[:alnum:]]+\\):")
      1 font-lock-keyword-face)
-    (,(regexp-opt '("build" "test" "doc" "pinned" "true" "false") 'words)
-     . font-lock-constant-face)
+    (,tuareg-opam-scopes-regex . font-lock-constant-face)
     (,tuareg-opam-variables-regex . font-lock-variable-name-face)
     (,(concat "%{" tuareg-opam-variables-regex "}%")
      (1 font-lock-variable-name-face t))
