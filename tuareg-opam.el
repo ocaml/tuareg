@@ -206,7 +206,7 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
 (define-skeleton tuareg-opam-insert-opam-form
   "Insert a minimal opam file."
   nil
-  "opam-version: \"1.2\"" > \n
+  "opam-version: \"2.0\"" > \n
   "maintainer: \"" _ "\"" > \n
   "authors: [" _ "]" > \n
   "tags: [" _ "]" > \n
@@ -216,12 +216,20 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
   "bug-reports: \"" _ "\"" > \n
   "doc: \"" _ "\"" > \n
   "build: [" > \n
-  "[ \"dune\" \"subst\" ] {pinned}" > \n
-  "[ \"dune\" \"build\" \"-p\" name \"-j\" jobs \"--profile\" \"release\" ]" > \n
+  "[\"dune\" \"subst\"] {pinned}" > \n
+  "[\"dune\" \"build\" \"-p\" name \"-j\" jobs]" > \n
+  "[\"dune\" \"build\" \"@doc\"] {with-doc}" > \n
+  "]" > \n
+  "run-test: [" > \n
+  "[\"dune\" \"runtest\" \"-p\" name \"-j\" jobs] {with-test}" > \n
   "]" > \n
   "depends: [" > \n
+  "\"ocaml\" {>= \"4.02\"}" > \n
   "\"dune\" {build}" > \n
-  "]" > ?\n)
+  "]" > \n
+  "synopsis: \"\"" > \n
+  "description: \"\"\"" > \n
+  "\"\"\"" > ?\n)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
