@@ -798,7 +798,14 @@ for the interactive mode."
   (setq
    tuareg-font-lock-keywords
    `(("^#[0-9]+ *\\(?:\"[^\"]+\"\\)?" 0 tuareg-font-lock-line-number-face t)
-     ,@(if interactive-p
+     ;; cppo
+     (,(concat "^ *#" (regexp-opt '("define" "undef" "if" "ifdef" "ifndef"
+				    "else" "elif" "endif" "include"
+				    "warning" "error" "ext" "endext")
+				  'symbols))
+      . font-lock-preprocessor-face)
+      ;; Directives
+      ,@(if interactive-p
            `((,(concat "^# +\\(#" lid "\\)")
               1 tuareg-font-lock-interactive-directive-face)
              (,(concat "^ *\\(#" lid "\\)")
@@ -820,17 +827,11 @@ for the interactive mode."
 					"fun" "function" "match"))
 	       "\\|;\\)\\(" maybe-infix-attr "\\)")
       1 tuareg-font-lock-infix-extension-node-face)
-     ;; cppo
-     (,(concat "^ *#" (regexp-opt '("define" "undef" "if" "ifdef" "ifndef"
-				    "else" "elif" "endif" "include"
-				    "warning" "error" "ext" "endext")
-				  'words))
-      . font-lock-preprocessor-face)
      ("\\<\\(false\\|true\\)\\>" . font-lock-constant-face)
      (,(regexp-opt '("true" "false" "__LOC__" "__FILE__" "__LINE__"
                      "__MODULE__" "__POS__" "__LOC_OF__" "__LINE_OF__"
                      "__POS_OF__")
-                   'words)
+                   'symbols)
       . font-lock-constant-face)
      ;; "type" to introduce a local abstract type considered a keyword
      (,(concat "( *\\(type\\) +\\(" lid " *\\)+)")
