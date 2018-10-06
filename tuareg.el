@@ -859,7 +859,7 @@ for the interactive mode."
                      "method" "external" "val" "open"
                      "initializer" "let" "rec" "nonrec"
                      "object" "and" "begin" "end")
-                   'words)
+                   'symbols)
       . tuareg-font-lock-governing-face)
      ,@(if (tuareg-editing-ls3)
            `((,(concat "\\<\\(let[ \t]+" let-ls3 "\\)\\>")
@@ -870,7 +870,7 @@ for the interactive mode."
          (if (tuareg-editing-ls3)
              (progn (push "reset" kwd)  (push "merge" kwd)
                     (push "emit" kwd)  (push "period" kwd)))
-         (regexp-opt kwd 'words))
+         (regexp-opt kwd 'symbols))
       . font-lock-keyword-face)
      ;; with type: "with" treated as a governing keyword
      (,(concat "\\<\\(\\(?:with\\|and\\) +type\\(?: +nonrec\\)?\\>\\) *"
@@ -902,7 +902,7 @@ for the interactive mode."
                "\\|virtual\\(?: +private\\)?\\)\\>\\)?")
       1 tuareg-font-lock-governing-face keep t)
      ;; Other uses of "with", "mutable", "private", "virtual"
-     (,(regexp-opt '("of" "with" "mutable" "private" "virtual") 'words)
+     (,(regexp-opt '("of" "with" "mutable" "private" "virtual") 'symbols)
       . font-lock-keyword-face)
      ;;; labels
      (,(concat "\\([?~]" lid "\\)" tuareg--whitespace-re ":[^:>=]")
@@ -922,7 +922,7 @@ for the interactive mode."
 		     "Failure" "Not_found" "Out_of_memory" "Stack_overflow"
 		     "Sys_error" "End_of_file" "Division_by_zero"
 		     "Sys_blocked_io" "Undefined_recursive_module")
-                   'words)
+                   'symbols)
       . font-lock-builtin-face)
      ;; module paths A.B.
      (,(concat module-path "\\.") . tuareg-font-lock-module-face)
@@ -937,7 +937,7 @@ for the interactive mode."
                 "not" "lnot" "mod" "fby" "pre" "last" "at")
             '("asr" "asl" "lsr" "lsl" "or" "lor" "land"
               "lxor" "not" "lnot" "mod"))
-          'words))
+          'symbols))
       . tuareg-font-lock-operator-face)
      ;;; (expr: t) and (expr :> t)
      ;;; If `t' is longer then one word, require a space before.  Not only
