@@ -67,7 +67,7 @@ refresh:
 
 check : sample.ml.test
 
-%.test: % $(ELC) refresh
+%.generated.test: % $(ELC) refresh
 	@echo ====Indent $*====
 	-$(RM) $@
 	$(EMACS) --batch -q --no-site-file $(ENABLE_SMIE) \
@@ -81,7 +81,7 @@ check : sample.ml.test
 
 test: indent-test
 
-indent-test: indent-test.ml.test
+indent-test: indent-test.ml.generated.test
 
 tuareg-site-file.el: $(SOURCES)
 	(echo ";;; $@ --- Automatically extracted autoloads.";\
@@ -116,5 +116,6 @@ submit: $(TARBALL)
 clean :
 	$(RM) $(ELC) "$(DIST_NAME).tar.gz" "$(DIST_NAME).tar"
 	$(RM) -r tuareg.$(VERSION)
+	$(RM) *.generated.test
 
 .PHONY : all elc clean install uninstall check distrib dist submit
