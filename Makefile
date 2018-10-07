@@ -62,7 +62,7 @@ uninstall :
 	-test -d $(INSTALL_DIR) && \
 	  $(INSTALL_RM_R) $(addprefix $(INSTALL_DIR)/, $(INSTALL_FILES))
 
-.PHONY: refresh
+.PHONY: refresh test
 refresh:
 
 check : sample.ml.test
@@ -78,6 +78,8 @@ check : sample.ml.test
 	  --eval '(indent-region (point-min) (point-max) nil)' \
 	  --eval '(write-region (point-min) (point-max) "$@")'
 	$(DIFF) $< $@ || true
+
+test: indent-test
 
 indent-test: indent-test.ml.test
 
