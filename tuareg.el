@@ -2009,7 +2009,7 @@ Return values can be
       (goto-char (1+ (nth 8 (syntax-ppss))))
       (current-column))))
 
-(defcustom tuareg-indent-align-with-first-arg nil
+(defcustom tuareg-indent-align-with-first-arg t
   "Non-nil if indentation should try to align arguments on the first one.
 With a non-nil value you get
 

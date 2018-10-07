@@ -42,6 +42,7 @@ let server_comments request t =
   let modue x y = 5 in
   let open M in
 
+  (* TODO: *)
   t >>= Grep.server_comments
           lazy
           parser
@@ -62,6 +63,7 @@ type 'a foo = 'a option =         (* Issue #98 *)
 let qs1 = {| quoted string |}   (* (issue #24) *)
 let qs2 = {eof| other quoted string   |noteof}  |eof}
 
+(* TODO: *)
 (* ocp-indent does it as follows:
 let test1 = with_connection (fun conn ->
     do_something conn x;
@@ -70,25 +72,29 @@ let test1 = with_connection (fun conn ->
     toto
  *)
 let test1 = with_connection (fun conn ->
-                do_something conn x;
-                ...
-              )
+    do_something conn x;
+    ...
+  )
+    toto
 
+(* TODO: *)
 let x = match y with            (* Issue #71 *)
   | A | B | C ->
-     do_something ()
+    do_something ()
 
+(* TODO: *)
 let x =
   begin match y with
-  | A -> 1                       (* Issue #73 *)
+    | A -> 1                       (* Issue #73 *)
   end
 
+(* TODO: *)
 let command =                    (* Issue #130 *)
   match x with
     A ->
-     a
+    a
   | B ->
-     b
+    b
 
 let x =
   let open M in
@@ -111,6 +117,7 @@ let () =
   end
 ;;
 
+(* TODO: *)
 ;; (* http://caml.inria.fr/mantis/view.php?id=4247 *)
 let x = {
   Foo.
@@ -168,9 +175,9 @@ type t =
 with sexp
 
 type t =
-  A
-| B
-| C
+    A
+  | B
+  | C
 with sexp
 
 type t = | A
@@ -280,9 +287,9 @@ type t = {
 
 type t = {
   foo : a
-    -> b
-    -> c
-    -> d;
+        -> b
+        -> c
+        -> d;
   bar :
     a
     -> b
@@ -290,44 +297,44 @@ type t = {
 }
 
 type t = {
-    foo : a ->
-          b ->
-          c ->
-          d;
-    bar :
-      a ->
-      b ->
-      c;
-  }
+  foo : a ->
+        b ->
+        c ->
+        d;
+  bar :
+    a ->
+    b ->
+    c;
+}
 
 type t = {
-    a : B.t;
-    c : D.t;
+  a : B.t;
+  c : D.t;
 
-    e : F.t;
+  e : F.t;
 
-    g : H.t I.t;
-    j :
-      K.t L.t;
-    m : N.t O.t;
-    p :
-      ((q:R.t
-        -> s:T.U.t
-        -> v:(W.t -> X.t option)
-        -> y:(Z.t -> A.t -> B.t C.D.t E.t)
-        -> f:(G.t -> H.t I.t option)
-        -> j:(K.t -> L.t M.t option)
-        -> n:(O.t -> p option)
-        -> q:R.t
-        -> s:(string -> unit) -> T.t
-       )
-       -> U.t
-       -> V.W.t
-       -> X.t);
-    y : Z.t A.t;
-    b : C.t D.t E.t;
-    f : (G.t -> H.t -> I.t J.t);
-  } with sexp_of
+  g : H.t I.t;
+  j :
+    K.t L.t;
+  m : N.t O.t;
+  p :
+    ((q:R.t
+      -> s:T.U.t
+      -> v:(W.t -> X.t option)
+      -> y:(Z.t -> A.t -> B.t C.D.t E.t)
+      -> f:(G.t -> H.t I.t option)
+      -> j:(K.t -> L.t M.t option)
+      -> n:(O.t -> p option)
+      -> q:R.t
+      -> s:(string -> unit) -> T.t
+     )
+     -> U.t
+     -> V.W.t
+     -> X.t);
+  y : Z.t A.t;
+  b : C.t D.t E.t;
+  f : (G.t -> H.t -> I.t J.t);
+} with sexp_of
 
 (* FIXME: If you use `prettify-symbols-mode, the indentation changes :-(  *)
 type 'a v = id:O.t ->
@@ -433,7 +440,7 @@ let rec count_append l1 l2 count =
   | exception Not_Found ->
      l2
 
-
+(* TODO: *)
 let x =
   match x with
   | Foo of
@@ -443,6 +450,7 @@ let x =
       >
 ;;
 
+(* TODO: *)
 let x =
   match x with
   | Foo of
@@ -460,6 +468,7 @@ let foo =
     else c
   )
 
+(* TODO: *)
 let quux list = List.map list ~f:(fun item ->
                            print_item item
                          )
@@ -521,12 +530,14 @@ let () =
      yyyyy
        (a b)
 
+(* TODO: *)
 let f = function
     A ->
      1
   | B ->
      2
 
+(* TODO: *)
 let d x = function
   (* FIXME: Should we leave it like this or align "|" with "match"?
      I chose with "match" because it looks otherwise odd and is more
@@ -539,6 +550,7 @@ let d x = function
               false)
   | B -> false
 
+(* TODO: *)
 let a f = function
   | A ->
      1
@@ -642,6 +654,7 @@ let () =
                a
                b)
 
+(* TODO: *)
 let () =
   try f a
   with A () ->
@@ -662,6 +675,7 @@ let x =
   >>| fun x -> x + 1
   >>| fun x -> x + 1
 
+(* TODO: *)
 let () =
   match _ with
   | foo ->
@@ -773,6 +787,7 @@ let _ =
   (foo bar
    || snoo blue)
 
+(* TODO: *)
 let () =
   Config.load ()
   >>> fun config ->
@@ -911,18 +926,19 @@ object
 end
 
 let f = {
-    a = 1;
-  }
+  a = 1;
+}
 
 let f a = {
-    a = a;
-  }
+  a = a;
+}
 
+(* TODO: *)
 let f a
       b = {
-    a = a;
-    b = b;
-  }
+  a = a;
+  b = b;
+}
 
 let () =
   for i = 10 to 17 do
@@ -944,24 +960,24 @@ let () =
 
 let a = match b with
   | Some c ->  Some {
-                   d = c;
-                   e = e
-                 }
+                 d = c;
+                 e = e
+               }
   | None -> {
       d = c;
       e = e
     }
 
 let a = {
-    b = (
-      let z = f u in
-      z + z;
-    );
-    c = (let a = b in {
-             z = z;
-             y = h;
-        });
-  }
+  b = (
+    let z = f u in
+    z + z;
+  );
+  c = (let a = b in {
+         z = z;
+         y = h;
+      });
+}
 
 let () =
   { A.
@@ -1014,12 +1030,14 @@ let foo x =
   && f3
        (f4 x)
 
+(* TODO: *)
 let foo x =
   (>=)
     (f1 x) (f2 x)
   && f3
        (f4 x)
 
+(* TODO: *)
 let a =
   foo
     (fun () ->
@@ -1095,16 +1113,16 @@ let variants a =
 
 let f a1 a2 a3
       b1 b2 b3 d1 d2 d3 = {
-    aa = func1 a1 a2 a3;
-    bb = func2
-           b1 b2 b3;
-    (* FIXME: Here it is reasonable to have '|' aligned with 'match' *)
-    cc = (match c with
-          | A -> 1
-          | B -> 2);
-    dd = func3
-           d1 d2 d3;
-  }
+  aa = func1 a1 a2 a3;
+  bb = func2
+         b1 b2 b3;
+  (* FIXME: Here it is reasonable to have '|' aligned with 'match' *)
+  cc = (match c with
+        | A -> 1
+        | B -> 2);
+  dd = func3
+         d1 d2 d3;
+}
 
 let fv =
   map3
@@ -1231,14 +1249,17 @@ let array_args =
 let () =
   match var with
   | <:expr< $lid:f$ >> ->
-     KO
+    KO
   | <:expr< $lid:f$ >> when f x ->
-     KO
+    KO
   | y when f y ->
-     OK
+    OK
+  | z when g z
+    ->
+    OK
   | long_pattern
-       when f long_pattern -> (* Should be more indented than the clause body *)
-     z
+    when f long_pattern -> (* Should be more indented than the clause body *)
+    z
 
 type t = {
   mutable a: float;
@@ -1315,6 +1336,7 @@ val f :
        int ->
        int
 
+(* TODO: *)
 let subscribe_impl dir topic ~aborted =
   return (
       match Directory.subscribe dir topic with
@@ -1323,7 +1345,7 @@ let subscribe_impl dir topic ~aborted =
          whenever (aborted >>| fun () -> Pipe.close_read pipe);
          Ok pipe
     )
-    next_argument (* should be indented correctly, given the braces *)
+         next_argument (* should be indented correctly, given the braces *)
 
 
 let x = List.map
@@ -1333,6 +1355,7 @@ let x = List.map
                blabla)
           l
 
+(* TODO: *)
 let command =
   Command.Spec.(
     empty
