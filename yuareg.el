@@ -1703,7 +1703,7 @@ Return values can be
           (while (progn
                    (setq nearest (yuareg-smie--search-backward
                                   '("with" "|" "fun" "function" "functor"
-				                    "type" ":" "of")))
+                                    "type" ":" "of")))
                    (and (equal nearest ":")
                         (yuareg-smie--label-colon-p))))
           (if (member nearest '("with" "|" "fun" "function" "functor"))
