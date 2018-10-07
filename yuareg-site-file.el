@@ -1,10 +1,10 @@
-;;; tuareg-site-file.el --- Automatically extracted autoloads.
+;;; yuareg-site-file.el --- Automatically extracted autoloads.
 ;;; Code:
 (add-to-list 'load-path
              (or (file-name-directory load-file-name) (car load-path)))
 
-;;;### (autoloads nil "ocamldebug" "ocamldebug.el" (22960 18385 186574
-;;;;;;  216000))
+;;;### (autoloads nil "ocamldebug" "ocamldebug.el" (23481 61312 248900
+;;;;;;  224000))
 ;;; Generated autoloads from ocamldebug.el
 
 (autoload 'ocamldebug "ocamldebug" "\
@@ -19,15 +19,15 @@ the ocamldebug commands `cd DIR' and `directory'.
 
 ;;;***
 
-;;;### (autoloads nil "tuareg" "tuareg.el" (23451 62160 790210 240000))
-;;; Generated autoloads from tuareg.el
-(add-to-list 'auto-mode-alist '("\\.ml[ip]?\\'" . tuareg-mode))
-(add-to-list 'auto-mode-alist '("\\.eliomi?\\'" . tuareg-mode))
+;;;### (autoloads nil "yuareg" "yuareg.el" (23481 61761 973166 999000))
+;;; Generated autoloads from yuareg.el
+(add-to-list 'auto-mode-alist '("\\.ml[ip]?\\'" . yuareg-mode))
+(add-to-list 'auto-mode-alist '("\\.eliomi?\\'" . yuareg-mode))
 (dolist (ext '(".cmo" ".cmx" ".cma" ".cmxa" ".cmi"
                ".annot" ".cmt" ".cmti"))
  (add-to-list 'completion-ignored-extensions ext))
 
-(autoload 'tuareg-mode "tuareg" "\
+(autoload 'yuareg-mode "yuareg" "\
 Major mode for editing OCaml code.
 
 Dedicated to Emacs and XEmacs, version 21 and higher.  Provides
@@ -38,12 +38,12 @@ Caml Light as well.
 The Font-Lock minor-mode is used according to your customization
 options.
 
-You have better byte-compile tuareg.el.
+You have better byte-compile yuareg.el.
 
-For customization purposes, you should use `tuareg-mode-hook'
-\(run for every file) or `tuareg-load-hook' (run once) and not patch
+For customization purposes, you should use `yuareg-mode-hook'
+\(run for every file) or `yuareg-load-hook' (run once) and not patch
 the mode itself.  You should add to your configuration file something like:
-  (add-hook 'tuareg-mode-hook
+  (add-hook 'yuareg-mode-hook
             (lambda ()
                ... ; your customization code
             ))
@@ -58,71 +58,70 @@ You can append it to your `.emacs' or use it as a tutorial.
 FILE, with input and output in an Emacs buffer named *ocamldebug-FILE*.
 
 A Tuareg Interactive Mode to evaluate expressions in a REPL (aka toplevel) is
-included.  Type `M-x tuareg-run-ocaml' or simply `M-x run-ocaml' or see
+included.  Type `M-x yuareg-run-ocaml' or simply `M-x run-ocaml' or see
 special-keys below.
 
 Short cuts for the Tuareg mode:
-\\{tuareg-mode-map}
+\\{yuareg-mode-map}
 
 Short cuts for interactions with the REPL:
-\\{tuareg-interactive-mode-map}
+\\{yuareg-interactive-mode-map}
 
 \(fn)" t nil)
 
-(autoload 'tuareg-run-ocaml "tuareg" "\
+(autoload 'yuareg-run-ocaml "yuareg" "\
 Run an OCaml REPL process.  I/O via buffer `*OCaml*'.
 
 \(fn)" t nil)
 
-(defalias 'run-ocaml 'tuareg-run-ocaml)
+(defalias 'run-ocaml 'yuareg-run-ocaml)
 
-(add-to-list 'interpreter-mode-alist '("ocamlrun" . tuareg-mode))
+(add-to-list 'interpreter-mode-alist '("ocamlrun" . yuareg-mode))
 
-(add-to-list 'interpreter-mode-alist '("ocaml" . tuareg-mode))
+(add-to-list 'interpreter-mode-alist '("ocaml" . yuareg-mode))
 
 ;;;***
 
-;;;### (autoloads nil "tuareg-jbuild" "tuareg-jbuild.el" (23450 52106
-;;;;;;  385127 834000))
-;;; Generated autoloads from tuareg-jbuild.el
+;;;### (autoloads nil "yuareg-jbuild" "yuareg-jbuild.el" (23481 61312
+;;;;;;  392899 10000))
+;;; Generated autoloads from yuareg-jbuild.el
 
-(autoload 'tuareg-jbuild-mode "tuareg-jbuild" "\
+(autoload 'yuareg-jbuild-mode "yuareg-jbuild" "\
 Major mode to edit jbuild files.
 
 \(fn)" t nil)
 
-(add-to-list 'auto-mode-alist '("\\(?:\\`\\|/\\)jbuild\\(?:\\.inc\\)?\\'" . tuareg-jbuild-mode))
+(add-to-list 'auto-mode-alist '("\\(?:\\`\\|/\\)jbuild\\(?:\\.inc\\)?\\'" . yuareg-jbuild-mode))
 
 ;;;***
 
-;;;### (autoloads nil "tuareg-menhir" "tuareg-menhir.el" (23072 32307
-;;;;;;  345047 725000))
-;;; Generated autoloads from tuareg-menhir.el
+;;;### (autoloads nil "yuareg-menhir" "yuareg-menhir.el" (23481 61312
+;;;;;;  356899 313000))
+;;; Generated autoloads from yuareg-menhir.el
 
-(add-to-list 'auto-mode-alist '("\\.mly\\'" . tuareg-menhir-mode))
+(add-to-list 'auto-mode-alist '("\\.mly\\'" . yuareg-menhir-mode))
 
-(autoload 'tuareg-menhir-mode "tuareg-menhir" "\
+(autoload 'yuareg-menhir-mode "yuareg-menhir" "\
 Major mode to edit Menhir (and Ocamlyacc) files.
 
 \(fn)" t nil)
 
 ;;;***
 
-;;;### (autoloads nil "tuareg-opam" "tuareg-opam.el" (23451 62169
-;;;;;;  386245 46000))
-;;; Generated autoloads from tuareg-opam.el
+;;;### (autoloads nil "yuareg-opam" "yuareg-opam.el" (23481 61312
+;;;;;;  348899 381000))
+;;; Generated autoloads from yuareg-opam.el
 
-(autoload 'tuareg-opam-mode "tuareg-opam" "\
+(autoload 'yuareg-opam-mode "yuareg-opam" "\
 Major mode to edit opam files.
 
 \(fn)" t nil)
 
-(add-to-list 'auto-mode-alist '("[./]opam_?\\'" . tuareg-opam-mode))
+(add-to-list 'auto-mode-alist '("[./]opam_?\\'" . yuareg-opam-mode))
 
 ;;;***
 
-;;;### (autoloads nil nil ("dot-emacs.el" "tuareg-mly.el") (22644
-;;;;;;  5433 590766 76000))
+;;;### (autoloads nil nil ("dot-emacs.el") (23481 61312 340899 449000))
 
 ;;;***
 

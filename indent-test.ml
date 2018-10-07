@@ -1,4 +1,4 @@
-(* indent-test.ml --- Sample file for regression testing.  -*- mode: tuareg; indent-tabs-mode:nil -*-
+(* indent-test.ml --- Sample file for regression testing.  -*- mode: yuareg; indent-tabs-mode:nil -*-
  *
  * The code in here has the following property:
  * - the indentation is acceptable (maybe not perfect for everyone,
@@ -50,7 +50,7 @@ let server_comments request t =
 
 module Make_comp(C : Comparitor) : Comparitor_intf (* issue #7 *)
        with type t := C.t
-        and module X = Z =
+and module X = Z =
   struct
     type t = C.t
     let ret = C.comp
@@ -705,7 +705,7 @@ let x =
     4 5 6 >>= fun y ->
   w*3 >>= fun q -> r
 
-(* This does not work, see comment in tuareg-compute-arrow-indent.
+(* This does not work, see comment in yuareg-compute-arrow-indent.
  * Workaround: wrap code in parens.  *)
 (* let () =
  *   match

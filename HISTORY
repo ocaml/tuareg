@@ -39,7 +39,7 @@ Tuareg Mode history:
         adaptation by Chrstian Boos <boos@arthur.u-strasbg.fr>.
 	Improved phrase detection. `C-M-h' and `C-c C-e' now detect
 	both beginning and end of phrases ; `;;' is used, if present.
-	Improved `tuareg-interactive' mode. Support for Font-Lock
+	Improved `yuareg-interactive' mode. Support for Font-Lock
 	on toplevel inputs. Patchs for many phrase detection bugs.
 	New option for `=' indentation, `match-string' optimized, and
 	indentation of `;' sequences accelerated.
@@ -127,7 +127,7 @@ Changes made by Sam Steingold
 == Treat ">>>" just like ">>=" for indentation purposes.
 
 == `Jane style' indentation of `type' statements now requires
-   `tuareg-type-indent'=0.
+   `yuareg-type-indent'=0.
 
 == `until' & `unless' are only special in ls3, not general ocaml.
 

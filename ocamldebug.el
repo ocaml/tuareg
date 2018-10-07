@@ -39,8 +39,8 @@
 (eval-when-compile (require 'cl))
 (require 'comint)
 (require 'shell)
-(require 'tuareg (expand-file-name
-                  "tuareg" (file-name-directory (or load-file-name
+(require 'yuareg (expand-file-name
+                  "yuareg" (file-name-directory (or load-file-name
                                                     byte-compile-current-file))))
 (require 'derived)
 
@@ -92,9 +92,9 @@
 ;;; OCamldebug mode.
 
 (defvar ocamldebug-prefix-map (make-sparse-keymap)
-  "Keymap bound to prefix keys in `ocamldebug-mode' and `tuareg-mode'.")
+  "Keymap bound to prefix keys in `ocamldebug-mode' and `yuareg-mode'.")
 
-(define-key tuareg-mode-map "\C-x\C-a" ocamldebug-prefix-map)
+(define-key yuareg-mode-map "\C-x\C-a" ocamldebug-prefix-map)
 
 (defvar ocamldebug-mode-map
   (let ((map (make-sparse-keymap)))
@@ -475,7 +475,7 @@ around point."
         nil
       ocamldebug-complete-list)))
 
-(define-key tuareg-mode-map "\C-x " 'ocamldebug-break)
+(define-key yuareg-mode-map "\C-x " 'ocamldebug-break)
 
 (defvar ocamldebug-command-name "ocamldebug"
   "Pathname for executing the OCaml debugger.")
@@ -506,8 +506,8 @@ the ocamldebug commands `cd DIR' and `directory'."
             (read-from-minibuffer "OCaml debugger to run: "
                                   ocamldebug-command-name))
       (message "Current directory is %s" default-directory)
-      (let* ((args (tuareg--split-args ocamldebug-debuggee-args))
-             (cmdlist (tuareg--split-args ocamldebug-command-name))
+      (let* ((args (yuareg--split-args ocamldebug-debuggee-args))
+             (cmdlist (yuareg--split-args ocamldebug-command-name))
              (cmdlist (mapcar #'substitute-in-file-name cmdlist)))
         (apply #'make-comint name
                (car cmdlist)

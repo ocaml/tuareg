@@ -1,10 +1,10 @@
-(require 'tuareg)
+(require 'yuareg)
 
 ;; See README
-(setq tuareg-indent-align-with-first-arg nil)
+(setq yuareg-indent-align-with-first-arg nil)
 
 (add-hook
- 'tuareg-mode-hook
+ 'yuareg-mode-hook
  (lambda()
    (setq show-trailing-whitespace t)
    (setq indicate-empty-lines t)
@@ -16,14 +16,14 @@
    (when (functionp 'flyspell-prog-mode)
      (flyspell-prog-mode))
    ;; See README
-   ;;(setq tuareg-match-patterns-aligned t)
+   ;;(setq yuareg-match-patterns-aligned t)
    ;;(electric-indent-mode 0)
    ))
 
 
 ;; Easy keys to navigate errors after compilation:
-(define-key tuareg-mode-map [(f12)] 'next-error)
-(define-key tuareg-mode-map [(shift f12)] 'previous-error)
+(define-key yuareg-mode-map [(f12)] 'next-error)
+(define-key yuareg-mode-map [(shift f12)] 'previous-error)
 
 
 ;; Use Merlin if available
@@ -32,10 +32,10 @@
   (add-to-list 'auto-mode-alist '("/\\.merlin\\'" . conf-mode))
 
   (when (functionp 'merlin-document)
-    (define-key tuareg-mode-map (kbd "\C-c\C-h") 'merlin-document))
+    (define-key yuareg-mode-map (kbd "\C-c\C-h") 'merlin-document))
 
   ;; Run Merlin if a .merlin file in the parent dirs is detected
-  (add-hook 'tuareg-mode-hook
+  (add-hook 'yuareg-mode-hook
             (lambda()
               (let ((fn (buffer-file-name)))
                 (if (and fn (locate-dominating-file fn ".merlin"))

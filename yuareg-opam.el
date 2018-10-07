@@ -1,4 +1,4 @@
-;;; tuareg-opam.el --- Mode for editing opam files   -*- coding: utf-8 -*-
+;;; yuareg-opam.el --- Mode for editing opam files   -*- coding: utf-8 -*-
 
 ;; Copyright (C) 2017- Christophe Troestler
 
@@ -19,36 +19,36 @@
 ;; CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 
-(defvar tuareg-opam-mode-hook nil)
+(defvar yuareg-opam-mode-hook nil)
 
-(defvar tuareg-opam-indent-basic 2
+(defvar yuareg-opam-indent-basic 2
   "The default amount of indentation.")
 
-(defvar tuareg-opam-flymake nil
+(defvar yuareg-opam-flymake nil
   "It t, use flymake to lint OPAM files.")
 
-(defvar tuareg-opam-mode-map
+(defvar yuareg-opam-mode-map
   (let ((map (make-keymap)))
     (define-key map "\C-j" 'newline-and-indent)
     map)
-  "Keymap for tuareg-opam mode")
+  "Keymap for yuareg-opam mode")
 
-(defgroup tuareg-opam nil
+(defgroup yuareg-opam nil
   "Support for the OPAM files."
   :group 'languages)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                       Syntax highlighting
 
-(defface tuareg-opam-error-face
+(defface yuareg-opam-error-face
   '((t (:foreground "yellow" :background "red" :bold t)))
   "Face for constructs considered as errors (e.g. deprecated constructs)."
-  :group 'tuareg-opam)
+  :group 'yuareg-opam)
 
-(defvar tuareg-opam-error-face 'tuareg-opam-error-face
+(defvar yuareg-opam-error-face 'yuareg-opam-error-face
   "Face for constructs considered as errors (e.g. deprecated constructs).")
 
-(defconst tuareg-opam-keywords
+(defconst yuareg-opam-keywords
   '("opam-version" "name" "version" "maintainer" "authors"
     "license" "homepage" "doc" "bug-reports" "dev-repo"
     "tags" "patches" "substs" "build" "install"
@@ -57,10 +57,10 @@
     "flags")
   "Kewords in OPAM files.")
 
-(defconst tuareg-opam-keywords-regex
-  (regexp-opt tuareg-opam-keywords 'symbols))
+(defconst yuareg-opam-keywords-regex
+  (regexp-opt yuareg-opam-keywords 'symbols))
 
-(defconst tuareg-opam-variables-regex
+(defconst yuareg-opam-variables-regex
   (regexp-opt '("user" "group" "make" "os" "root" "prefix" "lib"
                 "bin" "sbin" "doc" "stublibs" "toplevel" "man"
                 "share" "etc"
@@ -71,33 +71,33 @@
               'symbols)
   "Variables declared in OPAM.")
 
-(defconst tuareg-opam-pkg-variables-regex
+(defconst yuareg-opam-pkg-variables-regex
   (regexp-opt '("name" "version" "depends" "installed" "enable" "pinned"
                 "bin" "sbin" "lib" "man" "doc" "share" "etc" "build"
                 "hash")
               'symbols)
   "Package variables in OPAM.")
 
-(defconst tuareg-opam-deprecated-regex
+(defconst yuareg-opam-deprecated-regex
   (eval-when-compile (regexp-opt '("build-test") 'symbols)))
 
-(defvar tuareg-opam-font-lock-keywords
-  `((,tuareg-opam-deprecated-regex . tuareg-opam-error-face)
-    (,(concat tuareg-opam-keywords-regex ":")
+(defvar yuareg-opam-font-lock-keywords
+  `((,yuareg-opam-deprecated-regex . yuareg-opam-error-face)
+    (,(concat yuareg-opam-keywords-regex ":")
      1 font-lock-keyword-face)
     (,(regexp-opt '("build" "test" "doc" "pinned" "true" "false") 'words)
      . font-lock-constant-face)
-    (,tuareg-opam-variables-regex . font-lock-variable-name-face)
-    (,(concat "%{" tuareg-opam-variables-regex "}%")
+    (,yuareg-opam-variables-regex . font-lock-variable-name-face)
+    (,(concat "%{" yuareg-opam-variables-regex "}%")
      (1 font-lock-variable-name-face t))
     (,(concat "%{\\([a-zA-Z_][a-zA-Z0-9_+-]*\\):"
-              tuareg-opam-pkg-variables-regex "}%")
+              yuareg-opam-pkg-variables-regex "}%")
      (1 font-lock-constant-face t)
      (2 font-lock-variable-name-face t)))
   "Highlighting for OPAM files")
 
 
-(defvar tuareg-opam-prettify-symbols
+(defvar yuareg-opam-prettify-symbols
   `(("&" . ,(decode-char 'ucs 8743)); 'LOGICAL AND' (U+2227)
     ("|" . ,(decode-char 'ucs 8744)); 'LOGICAL OR' (U+2228)
     ("<=" . ,(decode-char 'ucs 8804))
@@ -106,7 +106,7 @@
   "Alist of symbol prettifications for OPAM files.
 See `prettify-symbols-alist' for more information.")
 
-(defvar tuareg-opam-mode-syntax-table
+(defvar yuareg-opam-mode-syntax-table
   (let ((table (make-syntax-table)))
     (modify-syntax-entry ?# "< b" table)
     (modify-syntax-entry ?\n "> b" table)
@@ -124,11 +124,11 @@ See `prettify-symbols-alist' for more information.")
 
 (require 'smie)
 
-(defvar tuareg-opam-smie-grammar
+(defvar yuareg-opam-smie-grammar
   (let* ((decl-of-kw (lambda(kw) `(decls ,kw ":" list)))
          (bnfprec2
           (smie-bnf->prec2
-           `((decls . ,(mapcar decl-of-kw tuareg-opam-keywords) )
+           `((decls . ,(mapcar decl-of-kw yuareg-opam-keywords) )
              (list ("[" list "]")
                    (value))
              (value (string "{" filter "}")
@@ -143,29 +143,29 @@ See `prettify-symbols-alist' for more information.")
          (left "=" "!=" ">" ">=" "<" "<=")))
       ))))
 
-(defun tuareg-opam-smie-rules (kind token)
+(defun yuareg-opam-smie-rules (kind token)
   (cond
-   ((and (eq kind :before) (member token tuareg-opam-keywords))
+   ((and (eq kind :before) (member token yuareg-opam-keywords))
     0)
    ((and (eq kind :before) (equal token "[") (smie-rule-hanging-p))
     0)
    ((and (eq kind :before) (equal token "{"))
     0)
-   (t tuareg-opam-indent-basic)))
+   (t yuareg-opam-indent-basic)))
 
 
-(defvar tuareg-opam-smie-verbose-p t
+(defvar yuareg-opam-smie-verbose-p t
   "Emit context information about the current syntax state.")
 
-(defmacro tuareg-opam-smie-debug (message &rest format-args)
+(defmacro yuareg-opam-smie-debug (message &rest format-args)
   `(progn
-     (when tuareg-opam-smie-verbose-p
+     (when yuareg-opam-smie-verbose-p
        (message (format ,message ,@format-args)))
      nil))
 
-(defun verbose-tuareg-opam-smie-rules (kind token)
-  (let ((value (tuareg-opam-smie-rules kind token)))
-    (tuareg-opam-smie-debug
+(defun verbose-yuareg-opam-smie-rules (kind token)
+  (let ((value (yuareg-opam-smie-rules kind token)))
+    (yuareg-opam-smie-debug
      "%s '%s'; sibling-p:%s parent:%s prev-is-[:%s hanging:%s = %s"
      kind token
      (ignore-errors (smie-rule-sibling-p))
@@ -180,16 +180,16 @@ See `prettify-symbols-alist' for more information.")
 
 (require 'flymake)
 
-(defun tuareg-opam-flymake-init ()
+(defun yuareg-opam-flymake-init ()
   (let ((fname (flymake-init-create-temp-buffer-copy
                 #'flymake-create-temp-inplace)))
     (list "opam" (list "lint" fname))))
 
-(defvar tuareg-opam--allowed-file-name-masks
-  '("[./]opam_?\\'" tuareg-opam-flymake-init)
+(defvar yuareg-opam--allowed-file-name-masks
+  '("[./]opam_?\\'" yuareg-opam-flymake-init)
   "Flymake entry for OPAM files.  See `flymake-allowed-file-name-masks'.")
 
-(defvar tuareg-opam--err-line-patterns
+(defvar yuareg-opam--err-line-patterns
   '(("File \"\\([^\"]+\\)\", line \\([0-9]+\\), \
 characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
      1 2 3 5))
@@ -198,7 +198,7 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;                           Skeleton
 
-(define-skeleton tuareg-opam-insert-opam-form
+(define-skeleton yuareg-opam-insert-opam-form
   "Insert a minimal opam file."
   nil
   "opam-version: \"1.2\"" > \n
@@ -220,41 +220,41 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defvar tuareg-opam-mode-map
+(defvar yuareg-opam-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c.o" 'tuareg-opam-insert-opam-form)
+    (define-key map "\C-c.o" 'yuareg-opam-insert-opam-form)
     map)
   "Keymap used in Tuareg-opam mode.")
 
-(defun tuareg-opam-build-menu ()
+(defun yuareg-opam-build-menu ()
   (easy-menu-define
-    tuareg-opam-mode-menu  (list tuareg-opam-mode-map)
+    yuareg-opam-mode-menu  (list yuareg-opam-mode-map)
     "Tuareg-opam mode menu."
     '("OPAM"
-      ["Skeleton" tuareg-opam-insert-opam-form t]))
-  (easy-menu-add tuareg-opam-mode-menu))
+      ["Skeleton" yuareg-opam-insert-opam-form t]))
+  (easy-menu-add yuareg-opam-mode-menu))
 
 
 ;;;###autoload
-(define-derived-mode tuareg-opam-mode prog-mode "Tuareg-opam"
+(define-derived-mode yuareg-opam-mode prog-mode "Tuareg-opam"
   "Major mode to edit opam files."
-  (setq font-lock-defaults '(tuareg-opam-font-lock-keywords))
+  (setq font-lock-defaults '(yuareg-opam-font-lock-keywords))
   (setq-local comment-start "#")
   (setq-local comment-end "")
-  (setq-local prettify-symbols-alist tuareg-opam-prettify-symbols)
+  (setq-local prettify-symbols-alist yuareg-opam-prettify-symbols)
   (setq indent-tabs-mode nil)
   (setq-local require-final-newline mode-require-final-newline)
-  (smie-setup tuareg-opam-smie-grammar #'tuareg-opam-smie-rules)
-  (push tuareg-opam--allowed-file-name-masks flymake-allowed-file-name-masks)
-  (setq-local flymake-err-line-patterns tuareg-opam--err-line-patterns)
-  (when (and tuareg-opam-flymake buffer-file-name)
+  (smie-setup yuareg-opam-smie-grammar #'yuareg-opam-smie-rules)
+  (push yuareg-opam--allowed-file-name-masks flymake-allowed-file-name-masks)
+  (setq-local flymake-err-line-patterns yuareg-opam--err-line-patterns)
+  (when (and yuareg-opam-flymake buffer-file-name)
     (flymake-mode t))
-  (tuareg-opam-build-menu)
-  (run-mode-hooks 'tuareg-opam-mode-hook))
+  (yuareg-opam-build-menu)
+  (run-mode-hooks 'yuareg-opam-mode-hook))
 
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("[./]opam_?\\'" . tuareg-opam-mode))
+(add-to-list 'auto-mode-alist '("[./]opam_?\\'" . yuareg-opam-mode))
 
 
-(provide 'tuareg-opam-mode)
+(provide 'yuareg-opam-mode)

@@ -1,0 +1,12 @@
+share_root: [
+  "yuareg.el" {"emacs/site-lisp/yuareg.el"}
+  "ocamldebug.el" {"emacs/site-lisp/ocamldebug.el"}
+  "yuareg-site-file.el" {"emacs/site-lisp/yuareg-site-file.el"}
+  "yuareg-menhir.el" {"emacs/site-lisp/yuareg-menhir.el"}
+  "yuareg-opam.el" {"emacs/site-lisp/yuareg-opam.el"}
+  "?yuareg.elc" {"emacs/site-lisp/yuareg.elc"}
+  "?ocamldebug.elc" {"emacs/site-lisp/ocamldebug.elc"}
+  "?yuareg-site-file.elc" {"emacs/site-lisp/yuareg-site-file.elc"}
+  "?yuareg-menhir.elc" {"emacs/site-lisp/yuareg-menhir.elc"}
+  "?yuareg-opam.elc" {"emacs/site-lisp/yuareg-opam.elc"}
+]

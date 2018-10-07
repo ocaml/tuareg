@@ -1,4 +1,4 @@
-;;; tuareg-menhir.el --- Support for Menhir (and Ocamlyacc) source code  -*- lexical-binding: t; -*-
+;;; yuareg-menhir.el --- Support for Menhir (and Ocamlyacc) source code  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017  Free Software Foundation, Inc
 
@@ -30,97 +30,97 @@
 ;;; Code:
 
 (require 'cl-lib)
-(require 'tuareg)
+(require 'yuareg)
 
-(defgroup tuareg-menhir ()
+(defgroup yuareg-menhir ()
   "Major mode to edit Menhir source files."
-  :group 'tuareg)
+  :group 'yuareg)
 
-(defvar tuareg-menhir-mode-syntax-table
-  (let ((st (make-syntax-table tuareg-mode-syntax-table)))
+(defvar yuareg-menhir-mode-syntax-table
+  (let ((st (make-syntax-table yuareg-mode-syntax-table)))
     ;; Menhir comments are hellish: can be C, C++, or OCaml style!
     ;; FIXME: C/C++ style comments aren't allowed inside the OCaml part of the code.
     (modify-syntax-entry ?/ ". 124b" st)
     (modify-syntax-entry ?\n "> b" st)
     st))
 
-(defun tuareg-menhir--in-ocaml-p ()
+(defun yuareg-menhir--in-ocaml-p ()
   "Return non-nil if point is within OCaml code."
   (let ((pos (car (nth 9 (syntax-ppss)))))
     (and pos (eq ?\{ (char-after pos)))))
 
-(defconst tuareg-menhir--keywords
+(defconst yuareg-menhir--keywords
   '("parameter" "token" "nonassoc" "left" "right" "type" "start" "on_error_reduce"))
 
 ;;;; Indentation
 
-(defcustom tuareg-menhir-basic-indent 2
+(defcustom yuareg-menhir-basic-indent 2
   "Default basic indentation step for Menhir files."
   :type 'integer)
 
-(defcustom tuareg-menhir-rule-indent tuareg-menhir-basic-indent
+(defcustom yuareg-menhir-rule-indent yuareg-menhir-basic-indent
   "Indentation column of rules."
   :type 'integer)
 
-(defcustom tuareg-menhir-action-indent tuareg-menhir-basic-indent
+(defcustom yuareg-menhir-action-indent yuareg-menhir-basic-indent
   "Indentation action w.r.t rules."
   :type 'integer)
 
-(defun tuareg-menhir--indent-column ()
+(defun yuareg-menhir--indent-column ()
   (save-excursion
     (beginning-of-line)
     (skip-chars-forward " \t")
     (cond
      ((looking-at "\\(?:\\sw\\|\\s_\\)+:") 0)
-     ((looking-at "|") tuareg-menhir-rule-indent)
+     ((looking-at "|") yuareg-menhir-rule-indent)
      ((looking-at "{")
-      (+ tuareg-menhir-rule-indent tuareg-menhir-action-indent))
+      (+ yuareg-menhir-rule-indent yuareg-menhir-action-indent))
      (t 0))))
 
-(defun tuareg-menhir--indent-ocaml ()
-  (let ((smie-rules-function #'tuareg-smie-rules)
-        (smie-grammar tuareg-smie-grammar)
-        (smie-forward-token-function #'tuareg-smie-forward-token)
-        (smie-backward-token-function #'tuareg-smie-backward-token))
+(defun yuareg-menhir--indent-ocaml ()
+  (let ((smie-rules-function #'yuareg-smie-rules)
+        (smie-grammar yuareg-smie-grammar)
+        (smie-forward-token-function #'yuareg-smie-forward-token)
+        (smie-backward-token-function #'yuareg-smie-backward-token))
     (smie-indent-line)))
 
-(defun tuareg-menhir--indent (&optional _)
+(defun yuareg-menhir--indent (&optional _)
   (if (save-excursion (beginning-of-line)
-                      (tuareg-menhir--in-ocaml-p))
-      (tuareg-menhir--indent-ocaml)
-    (let ((col (tuareg-menhir--indent-column)))
+                      (yuareg-menhir--in-ocaml-p))
+      (yuareg-menhir--indent-ocaml)
+    (let ((col (yuareg-menhir--indent-column)))
       (if (save-excursion (skip-chars-backward " \t") (bolp))
           (indent-line-to col)
         (save-excursion (indent-line-to col))))))
 
 ;;;; Font-lock
 
-(defvar tuareg-menhir-font-lock-keywords
+(defvar yuareg-menhir-font-lock-keywords
   `(("^\\(\\(?:\\sw\\|\\s_\\)+\\):" (1 font-lock-function-name-face))
-    (,(concat "^%\\(?:%\\|" (regexp-opt tuareg-menhir--keywords) "\\_>\\)")
+    (,(concat "^%\\(?:%\\|" (regexp-opt yuareg-menhir--keywords) "\\_>\\)")
      (0 font-lock-builtin-face))
     ("%\\(?:prec\\|public\\|inline\\)\\_>"
-     (0 (unless (tuareg-menhir--in-ocaml-p) font-lock-builtin-face)))))
+     (0 (unless (yuareg-menhir--in-ocaml-p) font-lock-builtin-face)))))
 
 ;;;; Imenu
 
-(defvar tuareg-menhir-imenu-generic-expression
+(defvar yuareg-menhir-imenu-generic-expression
   '((nil "^\\(\\(?:\\sw\\|\\s_\\)+\\):" 1)))
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.mly\\'" . tuareg-menhir-mode))
+(add-to-list 'auto-mode-alist '("\\.mly\\'" . yuareg-menhir-mode))
 
 ;;;###autoload
-(define-derived-mode tuareg-menhir-mode prog-mode "Menhir"
+(define-derived-mode yuareg-menhir-mode prog-mode "Menhir"
   "Major mode to edit Menhir (and Ocamlyacc) files."
-  (setq-local indent-line-function #'tuareg-menhir--indent)
+  (setq-local indent-line-function #'yuareg-menhir--indent)
   (setq-local comment-start "/* ")
   (setq-local comment-end " */")
   (setq-local comment-start-skip "\\(?:[(/]\\*+\\|//+\\)[ \t]*")
   (setq-local comment-end-skip "[ \t]*\\(?:\\*+[/)]\\)?")
-  (setq-local font-lock-defaults '(tuareg-menhir-font-lock-keywords))
-  (setq-local imenu-generic-expression tuareg-menhir-imenu-generic-expression)
+  (setq-local font-lock-defaults '(yuareg-menhir-font-lock-keywords))
+  (setq-local imenu-generic-expression yuareg-menhir-imenu-generic-expression)
   )
 
-(provide 'tuareg-menhir)
-;;; tuareg-menhir.el ends here
+(provide 'yuareg-menhir)
+;;; yuareg-menhir.el ends here

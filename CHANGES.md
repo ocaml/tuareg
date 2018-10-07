@@ -1,17 +1,17 @@
 2.2.0 2018-
 -----------
 
-* New mode `tuareg-menhir` thanks to Stefan Monnier.
+* New mode `yuareg-menhir` thanks to Stefan Monnier.
   Note that <kbd>C-c C-c</kbd> launches the compilation.
-* `tuareg-jbuilder`: <kbd>C-c C-c</kbd> launches the compilation.
+* `yuareg-jbuilder`: <kbd>C-c C-c</kbd> launches the compilation.
 * Be more subtle in phrase detection.
 * Syntax highlighting improvements (`type nonrec`, `raise_notrace`,
   `with type`).
-* `tuareg-comment-dwim` is now bound to <kbd>C-cC-;</kbd> (fixes #149).
+* `yuareg-comment-dwim` is now bound to <kbd>C-cC-;</kbd> (fixes #149).
 * Rework electric functions (fixes issues #150 and #162).
-* Remove `tuareg-light`, you should now use `tuareg`.
+* Remove `yuareg-light`, you should now use `yuareg`.
 
-Note that the mode `tuareg-dune` which was in the development version
+Note that the mode `yuareg-dune` which was in the development version
 of this package is now part of [Dune](https://github.com/ocaml/dune).
 
 
@@ -20,7 +20,7 @@ of this package is now part of [Dune](https://github.com/ocaml/dune).
 
 * Let <kbd>M-q</kbd> reformat strings (and use only SMIE).
 * Do not indent an expression after `;;` (issue #106).
-* New face `tuareg-font-double-colon-face` to highlight `;;`.
+* New face `yuareg-font-double-colon-face` to highlight `;;`.
 * For `type … and …`, left-align `and` with `type`.
 * Fix indentation of some GADT type definitions.
 * Use `prettify-symbols-mode` to turn `+.` into `∔`,… and add a menu
@@ -35,8 +35,8 @@ of this package is now part of [Dune](https://github.com/ocaml/dune).
 * Improved highlighting of `val` and `module` in first class module
   expressions.
 * Warn if a file inside a `_build` is edited and propose to switch.
-* Add a custom face `tuareg-font-lock-label-face` for labels.
-* Add option `tuareg-match-patterns-aligned` to allow to choose
+* Add a custom face `yuareg-font-lock-label-face` for labels.
+* Add option `yuareg-match-patterns-aligned` to allow to choose
   between the two styles:
 
         function          v.s.        function
@@ -46,8 +46,8 @@ of this package is now part of [Dune](https://github.com/ocaml/dune).
 
 * Highlight attributes and extension nodes.
 * Disable by default and improve the compilation advice—see the new
-  variable `tuareg-opam-insinuate` (issue #97).
-* New keybinding <kbd>C-cC-w</kbd> and function `tuareg-opam-update-env`
+  variable `yuareg-opam-insinuate` (issue #97).
+* New keybinding <kbd>C-cC-w</kbd> and function `yuareg-opam-update-env`
   to update the environment to an opam switch (offering completion).
 * Improved highlighting of quoted strings `{|…|}` (issue #89).
 * Move after `;;` when evaluating a phrase in the toploop (issue #96).
@@ -60,13 +60,13 @@ of this package is now part of [Dune](https://github.com/ocaml/dune).
   - Make possible to pass argument to the program being debugged (issue #66).
   - Warn if SMIE is disabled.
 
-* New modes `tuareg-jbuild` and `tuareg-opam` with syntax
+* New modes `yuareg-jbuild` and `yuareg-opam` with syntax
   highlighting, indentation, and skeletons.
 
 2.0.10
 ------
 
-* New indentation config var for SMIE: tuareg-indent-align-with-first-arg.
+* New indentation config var for SMIE: yuareg-indent-align-with-first-arg.
 * Many indentation improvements.
 * Fixed point jumping in ocamldebug completion (by Darius Foo).
 * Improved (var: t) syntax highlighting.
@@ -79,8 +79,8 @@ of this package is now part of [Dune](https://github.com/ocaml/dune).
 * Do not activate Tuareg for .mll and .mly files.
 * Toplevel prompt is readonly.
 * Font-lock code completely rewritten (avoids several hangs).  New faces
-  `tuareg-font-lock-module-face', `tuareg-font-lock-constructor-face',
-  and `tuareg-font-lock-line-number-face'.
+  `yuareg-font-lock-module-face', `yuareg-font-lock-constructor-face',
+  and `yuareg-font-lock-line-number-face'.
 * Non-closed comment does not cause M-q to hang.
 * New variables `caml-types-build-dirs' and `caml-types-annot-dir' for
   a more versatile specification of .annot files.  (Submitted back to
