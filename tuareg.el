@@ -1826,10 +1826,10 @@ Return values can be
            (if (let ((openers '("{" "(" "{<" "[" "[|")))
                  (or (apply #'smie-rule-prev-p openers)
                      (not (apply #'smie-rule-parent-p openers))))
-               (let ((offset (if (and (member token '("(" "struct" "sig"))
-                                      (not (smie-rule-parent-p "let" "d-let")))
-                                 0
-                               tuareg-default-indent)))
+               (let ((offset (cond ((and (member token '("(" "struct" "sig"))
+                                         (not (smie-rule-parent-p "let" "d-let"))) 0)
+                                   ((member token '("[")) tuareg-default-indent)
+                                   (t 0))))
                  (smie-rule-parent offset))
              ;; In "{ a = (", "{" and "a =" are not part of the same
              ;; syntax rule, so "(" is part of "a =" but not of the

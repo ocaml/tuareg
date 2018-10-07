@@ -12,6 +12,26 @@
  * for "make sample.ml.test" to show changes which are regressions.
  *)
 
+type records = {
+  a: int;
+  hogehoge: int;
+}
+
+type records2 =
+  {
+    b: int;
+    fugafuga: int;
+  }
+
+let v_a = (
+  10
+)
+
+let v_b =
+  (
+    20
+  )
+
 let server_comments request t =
   let module M = N in
   let class M = N in
@@ -87,24 +107,24 @@ let () =
 let () =
   begin
     (begin
-      end)
+    end)
   end
 ;;
 
 ;; (* http://caml.inria.fr/mantis/view.php?id=4247 *)
 let x = {
-    Foo.
-    a = b;
-    c = d;
-    e = {Bar.
-         f = 1;
-         g = 2;
-        };
-    h = {  Quux.
-           i = 3;
-           j = 4;
-        };
-  }
+  Foo.
+  a = b;
+  c = d;
+  e = {Bar.
+        f = 1;
+        g = 2;
+      };
+  h = {  Quux.
+        i = 3;
+        j = 4;
+      };
+}
 
 ;; (* http://caml.inria.fr/mantis/view.php?id=4249 *)
 let x = { a = b;
@@ -122,10 +142,10 @@ let s = { a with
 ;;
 
 let a = {
-    M.
-    foo = foo;
-    bar = bar;
-  }
+  M.
+  foo = foo;
+  bar = bar;
+}
 
 let a = { t with M.
           foo = foo;
@@ -245,29 +265,29 @@ val f : a:b -> c:d
         -> e:f -> g
 
 type t = {
-    foo : (a
-           -> b
-           -> c
-           -> d);
-  }
+  foo : (a
+         -> b
+         -> c
+         -> d);
+}
 
 type t = {
-    foo : (    a ->
-               b ->
-               c ->
-               d);
-  }
+  foo : (    a ->
+             b ->
+             c ->
+             d);
+}
 
 type t = {
-    foo : a
-          -> b
-          -> c
-          -> d;
-    bar :
-      a
-      -> b
-      -> c;
-  }
+  foo : a
+    -> b
+    -> c
+    -> d;
+  bar :
+    a
+    -> b
+    -> c;
+}
 
 type t = {
     foo : a ->
@@ -1221,9 +1241,9 @@ let () =
      z
 
 type t = {
-    mutable a: float;
-    b : int;
-  }
+  mutable a: float;
+  b : int;
+}
 
 (* [struct] and [sig] must be treated the same way. *)
 module Base64 : sig
@@ -1303,7 +1323,7 @@ let subscribe_impl dir topic ~aborted =
          whenever (aborted >>| fun () -> Pipe.close_read pipe);
          Ok pipe
     )
-         next_argument (* should be indented correctly, given the braces *)
+    next_argument (* should be indented correctly, given the braces *)
 
 
 let x = List.map
