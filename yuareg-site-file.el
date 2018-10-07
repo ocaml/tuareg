@@ -57,11 +57,11 @@ You can append it to your `.emacs' or use it as a tutorial.
 `M-x ocamldebug' FILE starts the OCaml debugger ocamldebug on the executable
 FILE, with input and output in an Emacs buffer named *ocamldebug-FILE*.
 
-A Tuareg Interactive Mode to evaluate expressions in a REPL (aka toplevel) is
+A Yuareg Interactive Mode to evaluate expressions in a REPL (aka toplevel) is
 included.  Type `M-x yuareg-run-ocaml' or simply `M-x run-ocaml' or see
 special-keys below.
 
-Short cuts for the Tuareg mode:
+Short cuts for the Yuareg mode:
 \\{yuareg-mode-map}
 
 Short cuts for interactions with the REPL:

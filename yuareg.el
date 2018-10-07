@@ -2,24 +2,26 @@
 
 ;; Copyright (C) 1997-2006 Albert Cohen, all rights reserved.
 ;; Copyright (C) 2009-2010 Jane Street Holding, LLC.
+;; Copyright (C) 2018-     Orakuda OCaml Club
+
 ;; Licensed under the GNU General Public License.
 
-;; Author: Albert Cohen <Albert.Cohen@inria.fr>
+;; Author: @yutopp, @no_maddo
+;;      Albert Cohen <Albert.Cohen@inria.fr>
 ;;      Sam Steingold <sds@gnu.org>
 ;;      Christophe Troestler <Christophe.Troestler@umons.ac.be>
 ;;      Till Varoquaux <till@pps.jussieu.fr>
 ;;      Sean McLaughlin <seanmcl@gmail.com>
 ;;      Stefan Monnier <monnier@iro.umontreal.ca>
-;; Created: 8 Jan 1997
-;; Version: 2.2.0
+;; Created: 7 Oct 2018
+;; Version: 1.0.0
 ;; Package-Requires: ((caml "3.12.0.1"))
 ;; Keywords: ocaml languages
 ;; URL: https://github.com/yutopp/yuareg
-;; EmacsWiki: TuaregMode
 
 ;;; Commentary:
 ;; Description:
-;; Tuareg helps editing OCaml code, to highlight important parts of
+;; Yuareg helps editing OCaml code, to highlight important parts of
 ;; the code, to run an OCaml REPL, and to run the OCaml debugger
 ;; within Emacs.
 
@@ -33,7 +35,7 @@
 
 
 ;;; Usage:
-;; Tuareg allows you to run batch OCaml compilations from Emacs (using
+;; Yuareg allows you to run batch OCaml compilations from Emacs (using
 ;; M-x compile) and browse the errors (C-x `). Typing C-x ` sets the
 ;; point at the beginning of the erroneous program fragment, and the
 ;; mark at the end.  Under Emacs, the program fragment is temporarily
@@ -55,7 +57,7 @@
 ;; M-x ocamldebug FILE starts the OCaml debugger ocamldebug on the
 ;; executable FILE, with input and output in an Emacs buffer named
 ;; *ocamldebug-FILE*.  It is similar to April 1996 version, with minor
-;; changes to support XEmacs, Tuareg and OCaml. Furthermore, package
+;; changes to support XEmacs, Yuareg and OCaml. Furthermore, package
 ;; `thingatpt' is not required any more.
 
 ;; This file is *NOT* part of GNU Emacs.
@@ -86,10 +88,10 @@
       (unless (zerop (buffer-size))
         (buffer-substring-no-properties
          (point-min) (1- (point-max))))))
-  "Tuareg revision from the control system used.")
+  "Yuareg revision from the control system used.")
 
 (defconst yuareg-mode-version
-  (let ((version "Tuareg Version 2.2.0"))
+  (let ((version "Yuareg Version 2.2.0"))
     (if (null yuareg-mode-revision)
         version
       (concat version " (" yuareg-mode-revision ")")
@@ -216,7 +218,7 @@ patterns better.
          | C -> ...                    | C -> ... "
   :group 'yuareg :type 'boolean)
 
-;; Tuareg-Interactive
+;; Yuareg-Interactive
 ;; Configure via `yuareg-mode-hook'
 
 ;; Automatic indentation
@@ -301,7 +303,7 @@ Valid names are `browse-url', `browse-url-firefox', etc."
 (defvar yuareg-options-list
   `(["Prettify symbols" prettify-symbols-mode
       :style toggle :selected prettify-symbols-mode :active t])
-  "*List of menu-configurable Tuareg options.")
+  "*List of menu-configurable Yuareg options.")
 
 (defvar yuareg-interactive-options-list
   '(("Skip phrase after evaluation" . 'yuareg-skip-after-eval-phrase)
@@ -312,7 +314,7 @@ Valid names are `browse-url', `browse-url-firefox', etc."
     ("Font-lock interactive error" . 'yuareg-interactive-error-font-lock)
     "---"
     ("Read only input" . 'yuareg-interactive-read-only-input))
-  "*List of menu-configurable Tuareg options.")
+  "*List of menu-configurable Yuareg options.")
 
 (defvar yuareg-interactive-program "ocaml"
   "*Default program name for invoking an OCaml REPL (aka toplevel) from Emacs.")
@@ -321,12 +323,12 @@ Valid names are `browse-url', `browse-url-firefox', etc."
 ;; (make-variable-buffer-local 'yuareg-interactive-program)
 
 (defcustom yuareg-opam-insinuate nil
-  "By default, Tuareg will use the environment that Emacs was
+  "By default, Yuareg will use the environment that Emacs was
 launched in.  That environment may not contain an OCaml
 compiler (say, because Emacs was launched graphically and the
 path is set in ~/.bashrc) and will remain unchanged when one
 issue an \"opam switch\" in a shell.  If this variable is set to
-t, Tuareg will try to use opam to set the right environment for
+t, Yuareg will try to use opam to set the right environment for
 `compile', `run-ocaml' and `merlin-mode' based on the current
 opam switch at the time the command is run (provided opam is
 found).  You may also use `yuareg-opam-update-env' to set the
@@ -336,7 +338,7 @@ problems if you compile under tramp."
   :group 'yuareg :type 'boolean)
 
 (defgroup yuareg-faces nil
-  "Special faces for the Tuareg mode."
+  "Special faces for the Yuareg mode."
   :group 'yuareg)
 
 (defconst yuareg-faces-inherit-p
@@ -681,7 +683,7 @@ Regexp match data 0 points to the chars."
        (modify-syntax-entry ?\( "()1" st)
        (modify-syntax-entry ?\) ")(4" st)))
     st)
-  "Syntax table in use in Tuareg mode buffers.")
+  "Syntax table in use in Yuareg mode buffers.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                  Font-Lock
@@ -761,7 +763,7 @@ Regexp match data 0 points to the chars."
 
 ;; Initially empty, set in `yuareg-install-font-lock'
 (defvar yuareg-font-lock-keywords ()
-  "Font-Lock patterns for Tuareg mode.")
+  "Font-Lock patterns for Yuareg mode.")
 
 (defconst yuareg-font-lock-syntax
   ;; Note: as a general rule, changing syntax-table during font-lock
@@ -1150,7 +1152,7 @@ for the interactive mode."
       (define-key map [?\C-c ?\C-h] 'caml-help)
       (define-key map [?\C-c ?\t] 'yuareg-complete))
     map)
-  "Keymap used in Tuareg mode.")
+  "Keymap used in Yuareg mode.")
 
 (defvar yuareg-electric-indent-keywords
   '("module" "class" "functor" "object" "type" "val" "inherit"
@@ -2429,7 +2431,7 @@ expansion at run-time, if the run-time version of Emacs does know this macro."
 (defvar compilation-error-screen-columns)
 
 ;;;###autoload
-(define-derived-mode yuareg-mode yuareg--prog-mode "Tuareg"
+(define-derived-mode yuareg-mode yuareg--prog-mode "Yuareg"
   "Major mode for editing OCaml code.
 
 Dedicated to Emacs and XEmacs, version 21 and higher.  Provides
@@ -2459,18 +2461,18 @@ You can append it to your `.emacs' or use it as a tutorial.
 `M-x ocamldebug' FILE starts the OCaml debugger ocamldebug on the executable
 FILE, with input and output in an Emacs buffer named *ocamldebug-FILE*.
 
-A Tuareg Interactive Mode to evaluate expressions in a REPL (aka toplevel) is
+A Yuareg Interactive Mode to evaluate expressions in a REPL (aka toplevel) is
 included.  Type `M-x yuareg-run-ocaml' or simply `M-x run-ocaml' or see
 special-keys below.
 
-Short cuts for the Tuareg mode:
+Short cuts for the Yuareg mode:
 \\{yuareg-mode-map}
 
 Short cuts for interactions with the REPL:
 \\{yuareg-interactive-mode-map}"
 
   (unless (yuareg--switch-outside-build)
-    ;; Initialize the Tuareg menu
+    ;; Initialize the Yuareg menu
     (yuareg-build-menu)
 
     (setq-local paragraph-start (concat "^[ \t]*$\\|\\*)$\\|" page-delimiter))
@@ -2836,9 +2838,9 @@ switch before compiling."
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                            Tuareg interactive mode
+;;                            Yuareg interactive mode
 
-;; Augment Tuareg mode with an OCaml REPL.
+;; Augment Yuareg mode with an OCaml REPL.
 
 (require 'comint)
 
@@ -2919,8 +2921,8 @@ switch before compiling."
 
 (easy-menu-define
   yuareg-interactive-mode-menu yuareg-interactive-mode-map
-  "Tuareg Interactive Mode Menu."
-  '("Tuareg"
+  "Yuareg Interactive Mode Menu."
+  '("Yuareg"
     ("Interactive Mode"
      ["Run OCaml REPL" yuareg-run-ocaml t]
      ["Interrupt OCaml REPL" yuareg-interrupt-ocaml
@@ -2931,14 +2933,14 @@ switch before compiling."
      ["Evaluate Phrase" yuareg-eval-phrase t]
      ["Evaluate Buffer" yuareg-eval-buffer t])
     "---"
-    ["Customize Tuareg Mode..." (customize-group 'yuareg) t]
-    ("Tuareg Options" ["Dummy" nil t])
-    ("Tuareg Interactive Options" ["Dummy" nil t])
+    ["Customize Yuareg Mode..." (customize-group 'yuareg) t]
+    ("Yuareg Options" ["Dummy" nil t])
+    ("Yuareg Interactive Options" ["Dummy" nil t])
     "---"
     ["About" yuareg-about t]
     ["Help" yuareg-interactive-help t]))
 
-(define-derived-mode yuareg-interactive-mode comint-mode "Tuareg-Interactive"
+(define-derived-mode yuareg-interactive-mode comint-mode "Yuareg-Interactive"
   "Major mode for interacting with an OCaml process.
 Runs an OCaml REPL as a subprocess of Emacs, with I/O through an
 Emacs buffer. A history of input phrases is maintained. Phrases can
@@ -3112,7 +3114,7 @@ it is the first position of the buffer)."
       (message "The expression after the point is not well braced."))))
 
 (defun yuareg-eval-buffer ()
-  "Send the buffer to the Tuareg Interactive process."
+  "Send the buffer to the Yuareg Interactive process."
   (interactive)
   (yuareg-interactive--send-region (point-min) (point-max)))
 
@@ -3186,7 +3188,7 @@ it is the first position of the buffer)."
   (describe-variable 'yuareg-mode-version))
 
 (defun yuareg-short-cuts ()
-  "Short cuts for the Tuareg mode:
+  "Short cuts for the Yuareg mode:
 \\{yuareg-mode-map}
 
 Short cuts for interaction within the REPL:
@@ -3205,8 +3207,8 @@ Short cuts for interaction within the REPL:
 (defun yuareg-build-menu ()
   (easy-menu-define
    yuareg-mode-menu (list yuareg-mode-map)
-   "Tuareg Mode Menu."
-   '("Tuareg"
+   "Yuareg Mode Menu."
+   '("Yuareg"
      ("Interactive Mode"
       ["Run OCaml REPL" yuareg-run-ocaml t]
       ["Interrupt OCaml REPL" yuareg-interrupt-ocaml
@@ -3250,9 +3252,9 @@ Short cuts for interaction within the REPL:
      [ "Close module for documentation" ocaml-close-module
        yuareg-with-caml-mode-p]
      "---"
-     ["Customize Tuareg Mode..." (customize-group 'yuareg) t]
-     ("Tuareg Options" ["Dummy" nil t])
-     ("Tuareg Interactive Options" ["Dummy" nil t])
+     ["Customize Yuareg Mode..." (customize-group 'yuareg) t]
+     ("Yuareg Options" ["Dummy" nil t])
+     ("Yuareg Interactive Options" ["Dummy" nil t])
      "---"
      ["About" yuareg-about t]
      ["Short Cuts" yuareg-short-cuts]
@@ -3267,7 +3269,7 @@ Short cuts for interaction within the REPL:
 
 (defun yuareg-update-options-menu ()
   (easy-menu-change
-   '("Tuareg") "Tuareg Options"
+   '("Yuareg") "Yuareg Options"
    (mapcar (lambda (pair)
              (if (consp pair)
                  (vector (car pair)
@@ -3278,7 +3280,7 @@ Short cuts for interaction within the REPL:
                pair))
            yuareg-options-list))
   (easy-menu-change
-   '("Tuareg") "Tuareg Interactive Options"
+   '("Yuareg") "Yuareg Interactive Options"
    (mapcar (lambda (pair)
              (if (consp pair)
                  (vector (car pair)

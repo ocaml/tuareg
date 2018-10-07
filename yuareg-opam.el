@@ -117,7 +117,7 @@ See `prettify-symbols-alist' for more information.")
     (modify-syntax-entry ?\[ "(]" table)
     (modify-syntax-entry ?\] ")[" table)
     table)
-  "Tuareg-opam syntax table.")
+  "Yuareg-opam syntax table.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               SMIE
@@ -224,19 +224,19 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-c.o" 'yuareg-opam-insert-opam-form)
     map)
-  "Keymap used in Tuareg-opam mode.")
+  "Keymap used in Yuareg-opam mode.")
 
 (defun yuareg-opam-build-menu ()
   (easy-menu-define
     yuareg-opam-mode-menu  (list yuareg-opam-mode-map)
-    "Tuareg-opam mode menu."
+    "Yuareg-opam mode menu."
     '("OPAM"
       ["Skeleton" yuareg-opam-insert-opam-form t]))
   (easy-menu-add yuareg-opam-mode-menu))
 
 
 ;;;###autoload
-(define-derived-mode yuareg-opam-mode prog-mode "Tuareg-opam"
+(define-derived-mode yuareg-opam-mode prog-mode "Yuareg-opam"
   "Major mode to edit opam files."
   (setq font-lock-defaults '(yuareg-opam-font-lock-keywords))
   (setq-local comment-start "#")

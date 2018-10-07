@@ -27,7 +27,7 @@
   "If t, check your jbuild file with flymake.")
 
 (defvar yuareg-jbuild-temporary-file-directory
-  (expand-file-name "Tuareg-jbuild" temporary-file-directory)
+  (expand-file-name "Yuareg-jbuild" temporary-file-directory)
   "Directory where to duplicate the files for flymake.")
 
 (defvar yuareg-jbuild-program
@@ -161,7 +161,7 @@
     (modify-syntax-entry ?\[ "(]" table)
     (modify-syntax-entry ?\] ")[" table)
     table)
-  "Tuareg-jbuild syntax table.")
+  "Yuareg-jbuild syntax table.")
 
 ;; (defun yuareg-jbuild-syntax-propertize (start end)
 ;;     (funcall
@@ -459,12 +459,12 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
     (define-key map "\C-c.c" 'yuareg-jbuild-insert-copyfiles-form)
     (define-key map "\C-c.d" 'yuareg-jbuild-insert-documentation-form)
     map)
-  "Keymap used in Tuareg-jbuild mode.")
+  "Keymap used in Yuareg-jbuild mode.")
 
 (defun yuareg-jbuild-build-menu ()
   (easy-menu-define
     yuareg-jbuild-mode-menu  (list yuareg-jbuild-mode-map)
-    "Tuareg-jbuild mode menu."
+    "Yuareg-jbuild mode menu."
     '("Jbuild"
       ("Stanzas"
        ["version" yuareg-jbuild-insert-version-form t]
@@ -483,7 +483,7 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
 
 
 ;;;###autoload
-(define-derived-mode yuareg-jbuild-mode prog-mode "Tuareg-jbuild"
+(define-derived-mode yuareg-jbuild-mode prog-mode "Yuareg-jbuild"
   "Major mode to edit jbuild files."
   (setq-local font-lock-defaults '(yuareg-jbuild-font-lock-keywords))
   (setq-local comment-start ";")
