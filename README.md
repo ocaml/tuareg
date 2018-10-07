@@ -1,6 +1,8 @@
 Yuareg: Yet another Emacs OCaml mode
 ====================================
 
+[![CircleCI](https://circleci.com/gh/yutopp/yuareg.svg?style=svg)](https://circleci.com/gh/yutopp/yuareg)
+
 Reporting
 ---------
 
