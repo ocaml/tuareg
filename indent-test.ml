@@ -1364,3 +1364,21 @@ let command =
     +> flag "-world" (optional_with_default "World" string)
             ~doc:" The 'world' of 'hello world'"
   )
+
+type re = {
+  a: int;
+}
+[@@b]
+
+module MB = struct
+  type b = int
+  [@@b]
+
+  module MC = struct
+    type c = int
+    [@@c]
+  end
+end
+
+let a =
+  1 @ [f @@ g]
