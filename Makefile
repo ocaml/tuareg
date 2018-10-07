@@ -77,7 +77,7 @@ check : sample.ml.test
 	  --eval '(indent-region (point-min) (point-max) nil)' \
 	  --eval '(indent-region (point-min) (point-max) nil)' \
 	  --eval '(write-region (point-min) (point-max) "$@")'
-	$(DIFF) $< $@ || true
+	$(DIFF) $< $@
 
 test: indent-test
 
