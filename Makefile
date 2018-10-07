@@ -14,8 +14,6 @@ ELS = $(SOURCES) yuareg-site-file.el
 ELC = $(ELS:.el=.elc)
 
 INSTALL_FILES = $(ELS) $(ELC)
-INSTALL_DIR ?= $(shell opam config var share)/emacs/site-lisp
-
 DIST_FILES += $(ELS) Makefile README.md yuareg.install
 
 EMACSFORMACOSX = /Applications/Emacs.app/Contents/MacOS/Emacs
@@ -43,41 +41,20 @@ CP ?= cp -f
 LN = ln
 DIFF = diff -u -B
 
-INSTALL_RM_R = $(RM) -r
 INSTALL_MKDIR = mkdir -p
-INSTALL_CP = $(CP)
 
 all elc : $(ELC) yuareg-site-file.el
 
-%.elc : %.el
-	$(EMACS) --batch -L . --no-init-file -f batch-byte-compile $<
-	@echo "Files byte-compiled using $(EMACS)"
-
 install : $(INSTALL_FILES)
-	$(INSTALL_MKDIR) $(INSTALL_DIR)
-	$(INSTALL_CP) $(INSTALL_FILES) $(INSTALL_DIR)/
-	$(POST_INSTALL_HOOK)
+	$(EMACS) --batch --eval "(package-initialize)" --eval "(package-install-file \"`pwd`\")"
 
 uninstall :
-	-test -d $(INSTALL_DIR) && \
-	  $(INSTALL_RM_R) $(addprefix $(INSTALL_DIR)/, $(INSTALL_FILES))
+	$(EMACS) --batch --script script/uninstall.el $(DIST_NAME)
 
 .PHONY: refresh test
 refresh:
 
 check : sample.ml.test
-
-%.generated.test: % $(ELC) refresh
-	@echo ====Indent $*====
-	-$(RM) $@
-	$(EMACS) --batch -q --no-site-file $(ENABLE_SMIE) \
-	  --load yuareg-site-file.el $< \
-	  --eval '(setq indent-tabs-mode nil)' \
-	  --eval '(defun ask-user-about-lock (file opponent) nil)' \
-	  --eval '(indent-region (point-min) (point-max) nil)' \
-	  --eval '(indent-region (point-min) (point-max) nil)' \
-	  --eval '(write-region (point-min) (point-max) "$@")'
-	$(DIFF) $< $@
 
 test: indent-test
 
@@ -119,3 +96,19 @@ clean :
 	$(RM) *.generated.test
 
 .PHONY : all elc clean install uninstall check distrib dist submit
+
+%.elc : %.el
+	$(EMACS) --batch -L . --no-init-file -f batch-byte-compile $<
+	@echo "Files byte-compiled using $(EMACS)"
+
+%.generated.test: % $(ELC) refresh
+	@echo ====Indent $*====
+	-$(RM) $@
+	$(EMACS) --batch -q --no-site-file $(ENABLE_SMIE) \
+	  --load yuareg-site-file.el $< \
+	  --eval '(setq indent-tabs-mode nil)' \
+	  --eval '(defun ask-user-about-lock (file opponent) nil)' \
+	  --eval '(indent-region (point-min) (point-max) nil)' \
+	  --eval '(indent-region (point-min) (point-max) nil)' \
+	  --eval '(write-region (point-min) (point-max) "$@")'
+	$(DIFF) $< $@
