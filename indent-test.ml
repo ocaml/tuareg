@@ -1365,19 +1365,34 @@ let command =
             ~doc:" The 'world' of 'hello world'"
   )
 
+
 type re = {
   a: int;
 }
 [@@b]
 
 module MB = struct
-  type b = int
+  type b =
+    int
   [@@b]
 
+  type b2 = int
+  [@@b2]
+
   module MC = struct
-    type c = int
-    [@@c]
+    let v = 10
+    [@@v]
+
+    let rec v2 = 20
+    and v3 = 30
+    [@@v4]
   end
+                [@@m] (* TODO: fix *)
+end
+
+module a = struct
+  let a =
+    0 ;;
 end
 
 let a =

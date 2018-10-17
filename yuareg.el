@@ -1265,14 +1265,11 @@ For use on `electric-indent-functions'."
                      ;; decls as well, but the lexer classifies it as "d-let",
                      ;; so we need to make sure that "d-let D in E" doesn't
                      ;; end up matching the "in" with some far away thingy.
-                     (def-in-exp)
-                     (item-attr)
-                     )
+                     (def-in-exp))
               (def-in-exp (defs "in" exp))
               (def (var "d=" exp)
                    (id "d=" datatype)
                    (id "d=" module))
-              (item-attr ("[@@" id "]")) ; TODO: fix id
               (idtype (id ":" type))
               (var (id)
                    ("m-type" var)
@@ -1307,6 +1304,7 @@ For use on `electric-indent-functions'."
               ;; exp1 is "all exps except for `if exp then'".
               (exp1 ("begin" exp "end")
                     ("(" exp:type ")")
+                    ("[" exp "]")
                     ("[|" exp "|]")
                     ("{" fields "}")
                     ("if" exp "then" exp1 "else" exp1)
@@ -1525,7 +1523,7 @@ For use on `electric-indent-functions'."
 (defun yuareg-smie-forward-token ()
   "Move point to the end of the next token and return its SMIE name."
   (let ((tok (yuareg-smie--forward-token)))
-    ;(message "DEBUG: TOK FORWARD = %s" tok)
+    ;;(message "DEBUG: TOK FORWARD = %s" tok)
     (cond
      ((zerop (length tok))
       (if (not (looking-at "{<\\|\\[|"))
@@ -1766,7 +1764,7 @@ Return values can be
      (t tok))))
 
 (defun yuareg-smie-rules (kind token)
-  ;(message "DEBUG: kind=%s token=%s" kind token)
+  ;;(message "DEBUG: kind=%s token=%s" kind token)
   ;; FIXME: Handling of "= |", "with |", "function |", and "[ |" is
   ;; problematic.
   (cond
@@ -1780,8 +1778,14 @@ Return values can be
    ((and (eq kind :before) (yuareg-smie--monadic-rule token)))
    ((and (equal token "and") (smie-rule-parent-p "type"))
     0)
-   ((and (equal token "[") (smie-rule-next-p "@@"))
-    (current-column))
+   ((and (eq kind :before)
+         (equal token "[") (smie-rule-next-p "@@")
+         (smie-rule-parent-p "d="))
+    (let ((bs (smie-backward-sexp "type")))
+      (pcase bs
+        (`(,_ ,_ "type") (cons 'column (- (current-column) 5)))
+        (`(,_ ,_ "d-let") (cons 'column (- (current-column) 4)))
+        (_ nil))))
    ((member token '(";" "|" "," "and" "m-and"))
     (cond
      ((and (eq kind :before) (member token '("|" ";"))
