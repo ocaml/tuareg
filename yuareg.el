@@ -1304,7 +1304,6 @@ For use on `electric-indent-functions'."
               ;; exp1 is "all exps except for `if exp then'".
               (exp1 ("begin" exp "end")
                     ("(" exp:type ")")
-                    ("[" exp "]")
                     ("[|" exp "|]")
                     ("{" fields "}")
                     ("if" exp "then" exp1 "else" exp1)
