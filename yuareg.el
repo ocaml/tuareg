@@ -1248,13 +1248,17 @@ For use on `electric-indent-functions'."
   (when (fboundp 'smie-prec2->grammar)
     (let ((bnfprec2
            (smie-bnf->prec2
-            '((decls (decls "type" decls) (decls "d-let" decls)
-                     (decls "and" decls) (decls ";;" decls)
+            '((decls (decls "type" decls)
+                     (decls "d-let" decls)
+                     (decls "and" decls)
+                     (decls ";;" decls)
                      (decls "exception" decls)
                      (decls "module" decls)
                      (decls "class" decls)
-                     (decls "val" decls) (decls "external" decls)
-                     (decls "open" decls) (decls "include" decls)
+                     (decls "val" decls)
+                     (decls "external" decls)
+                     (decls "open" decls)
+                     (decls "include" decls)
                      (exception)
                      (def)
                      ;; Hack: at the top-level, a "let D in E" can appear in
@@ -1263,17 +1267,28 @@ For use on `electric-indent-functions'."
                      ;; end up matching the "in" with some far away thingy.
                      (def-in-exp))
               (def-in-exp (defs "in" exp))
-              (def (var "d=" exp) (id "d=" datatype) (id "d=" module))
+              (def (var "d=" exp)
+                   (id "d=" datatype)
+                   (id "d=" module))
               (idtype (id ":" type))
-              (var (id) ("m-type" var) ("d-type" var) ("rec" var)
-                   ("private" var) (idtype)
-                   ("l-module" var) ("l-class" var))
+              (var (id)
+                   ("m-type" var)
+                   ("d-type" var)
+                   ("rec" var)
+                   ("private" var)
+                   (idtype)
+                   ("l-module" var)
+                   ("l-class" var))
               (exception (id "of" type))
-              (datatype ("{" typefields "}") (typebranches)
+              (datatype ("{" typefields "}")
+                        (typebranches)
                         (typebranches "with" id))
-              (typebranches (typebranches "|" typebranches) (id "of" type))
-              (typefields (typefields ";" typefields) (idtype))
-              (type (type "*…" type) (type "t->" type)
+              (typebranches (typebranches "|" typebranches)
+                            (id "of" type))
+              (typefields (typefields ";" typefields)
+                          (idtype))
+              (type (type "*…" type)
+                    (type "t->" type)
                     ;; ("<" ... ">") ;; FIXME!
                     (type "as" id))
               (id)
@@ -1407,7 +1422,7 @@ For use on `electric-indent-functions'."
             (nonassoc "*…" "/…" "%…" "mod" "land" "lor" "lxor")
             (left "+…" "-…")
             (assoc "::")
-            (right "@…" "^…")
+            (right "@@" "@@@" "@…" "^…")
             (left "=…" "<…" ">…" "|…" "&…" "$…")
             (right "&" "&&")
             (right "or" "||")
@@ -1507,6 +1522,7 @@ For use on `electric-indent-functions'."
 (defun yuareg-smie-forward-token ()
   "Move point to the end of the next token and return its SMIE name."
   (let ((tok (yuareg-smie--forward-token)))
+    ;;(message "DEBUG: TOK FORWARD = %s" tok)
     (cond
      ((zerop (length tok))
       (if (not (looking-at "{<\\|\\[|"))
@@ -1520,7 +1536,7 @@ For use on `electric-indent-functions'."
                         "exception"))
           ;; http://caml.inria.fr/pub/docs/manual-ocaml/expr.html lists
           ;; the tokens whose precedence is based on their prefix.
-          (memq (aref tok 0) '(?* ?/ ?% ?+ ?- ?@ ?^ ?= ?< ?> ?| ?& ?$)))
+          (member (aref tok 0) '(?* ?/ ?% ?+ ?- ?@ ?^ ?= ?< ?> ?| ?& ?$)))
       ;; When indenting, the movement is mainly backward, so it's OK to make
       ;; the forward tokenizer a bit slower.
       (save-excursion (yuareg-smie-backward-token)))
@@ -1536,7 +1552,7 @@ For use on `electric-indent-functions'."
                      yuareg-smie--type-label-leader)))
       (forward-char 1)
       "label:")
-     ((string-match-p "\\`[[:alpha:]_].*\\.\\'"  tok)
+     ((string-match-p "\\`[[:alpha:]_].*\\.\\'" tok)
       (forward-char -1) (substring tok 0 -1))
      (t tok))))
 
@@ -1684,7 +1700,7 @@ Return values can be
           (while (progn
                    (setq nearest (yuareg-smie--search-backward
                                   '("with" "|" "fun" "function" "functor"
-				    "type" ":" "of")))
+                                    "type" ":" "of")))
                    (and (equal nearest ":")
                         (yuareg-smie--label-colon-p))))
           (if (member nearest '("with" "|" "fun" "function" "functor"))
@@ -1724,9 +1740,9 @@ Return values can be
      ;; Some infix operators get a precedence based on their prefix, so we
      ;; collapse them into a canonical representative.
      ;; See http://caml.inria.fr/pub/docs/manual-ocaml/expr.html.
-     ((memq (aref tok 0) '(?* ?/ ?% ?+ ?- ?@ ?^ ?= ?< ?> ?| ?& ?$))
+     ((member (aref tok 0) '(?* ?/ ?% ?+ ?- ?@ ?^ ?= ?< ?> ?| ?& ?$))
       (cond
-       ((member tok '("|" "||" "&" "&&" "<-" "->")) tok)
+       ((member tok '("|" "||" "&" "&&" "<-" "->" "@" "@@" "@@@")) tok)
        ((and (eq (aref tok 0) ?*) (> (length tok) 1) (eq (aref tok 1) ?*))
         "**…")
        (t (string (aref tok 0) ?…))))
@@ -1747,6 +1763,7 @@ Return values can be
      (t tok))))
 
 (defun yuareg-smie-rules (kind token)
+  ;;(message "DEBUG: kind=%s token=%s" kind token)
   ;; FIXME: Handling of "= |", "with |", "function |", and "[ |" is
   ;; problematic.
   (cond
@@ -1760,6 +1777,14 @@ Return values can be
    ((and (eq kind :before) (yuareg-smie--monadic-rule token)))
    ((and (equal token "and") (smie-rule-parent-p "type"))
     0)
+   ((and (eq kind :before)
+         (equal token "[") (smie-rule-next-p "@@")
+         (smie-rule-parent-p "d="))
+    (let ((bs (smie-backward-sexp "type")))
+      (pcase bs
+        (`(,_ ,_ "type") (cons 'column (- (current-column) 5)))
+        (`(,_ ,_ "d-let") (cons 'column (- (current-column) 4)))
+        (_ nil))))
    ((member token '(";" "|" "," "and" "m-and"))
     (cond
      ((and (eq kind :before) (member token '("|" ";"))
