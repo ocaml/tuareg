@@ -13,6 +13,9 @@ SOURCES = yuareg.el ocamldebug.el yuareg-opam.el yuareg-jbuild.el \
 ELS = $(SOURCES) yuareg-site-file.el
 ELC = $(ELS:.el=.elc)
 
+TESTS = $(wildcard test/*.ml)
+TEST_GENERATED = $(foreach x, $(TESTS), $(x).generated.test)
+
 INSTALL_FILES = $(ELS) $(ELC)
 DIST_FILES += $(ELS) Makefile README.md yuareg.install
 
@@ -58,7 +61,7 @@ check : sample.ml.test
 
 test: indent-test
 
-indent-test: indent-test.ml.generated.test
+indent-test: $(TEST_GENERATED)
 
 yuareg-site-file.el: $(SOURCES)
 	(echo ";;; $@ --- Automatically extracted autoloads.";\
@@ -93,7 +96,7 @@ submit: $(TARBALL)
 clean :
 	$(RM) $(ELC) "$(DIST_NAME).tar.gz" "$(DIST_NAME).tar"
 	$(RM) -r yuareg.$(VERSION)
-	$(RM) *.generated.test
+	$(RM) test/*.generated.test
 
 .PHONY : all elc clean install uninstall check distrib dist submit
 
@@ -103,12 +106,12 @@ clean :
 
 %.generated.test: % $(ELC) refresh
 	@echo ====Indent $*====
-	-$(RM) $@
+	touch $@
 	$(EMACS) --batch -q --no-site-file $(ENABLE_SMIE) \
 	  --load yuareg-site-file.el $< \
 	  --eval '(setq indent-tabs-mode nil)' \
 	  --eval '(defun ask-user-about-lock (file opponent) nil)' \
 	  --eval '(indent-region (point-min) (point-max) nil)' \
 	  --eval '(indent-region (point-min) (point-max) nil)' \
-	  --eval '(write-region (point-min) (point-max) "$@")'
+	  --eval '(write-region (point-min) (point-max) "$(notdir $@)")'
 	$(DIFF) $< $@

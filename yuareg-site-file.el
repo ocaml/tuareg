@@ -3,8 +3,8 @@
 (add-to-list 'load-path
              (or (file-name-directory load-file-name) (car load-path)))
 
-;;;### (autoloads nil "ocamldebug" "ocamldebug.el" (23481 61312 248900
-;;;;;;  224000))
+;;;### (autoloads nil "ocamldebug" "ocamldebug.el" (23482 1640 856093
+;;;;;;  784000))
 ;;; Generated autoloads from ocamldebug.el
 
 (autoload 'ocamldebug "ocamldebug" "\
@@ -19,7 +19,7 @@ the ocamldebug commands `cd DIR' and `directory'.
 
 ;;;***
 
-;;;### (autoloads nil "yuareg" "yuareg.el" (23481 61761 973166 999000))
+;;;### (autoloads nil "yuareg" "yuareg.el" (23496 32331 82006 230000))
 ;;; Generated autoloads from yuareg.el
 (add-to-list 'auto-mode-alist '("\\.ml[ip]?\\'" . yuareg-mode))
 (add-to-list 'auto-mode-alist '("\\.eliomi?\\'" . yuareg-mode))
@@ -82,8 +82,8 @@ Run an OCaml REPL process.  I/O via buffer `*OCaml*'.
 
 ;;;***
 
-;;;### (autoloads nil "yuareg-jbuild" "yuareg-jbuild.el" (23481 61312
-;;;;;;  392899 10000))
+;;;### (autoloads nil "yuareg-jbuild" "yuareg-jbuild.el" (23482 1800
+;;;;;;  978848 789000))
 ;;; Generated autoloads from yuareg-jbuild.el
 
 (autoload 'yuareg-jbuild-mode "yuareg-jbuild" "\
@@ -95,8 +95,8 @@ Major mode to edit jbuild files.
 
 ;;;***
 
-;;;### (autoloads nil "yuareg-menhir" "yuareg-menhir.el" (23481 61312
-;;;;;;  356899 313000))
+;;;### (autoloads nil "yuareg-menhir" "yuareg-menhir.el" (23482 1442
+;;;;;;  89890 306000))
 ;;; Generated autoloads from yuareg-menhir.el
 
 (add-to-list 'auto-mode-alist '("\\.mly\\'" . yuareg-menhir-mode))
@@ -108,8 +108,8 @@ Major mode to edit Menhir (and Ocamlyacc) files.
 
 ;;;***
 
-;;;### (autoloads nil "yuareg-opam" "yuareg-opam.el" (23481 61312
-;;;;;;  348899 381000))
+;;;### (autoloads nil "yuareg-opam" "yuareg-opam.el" (23482 1800
+;;;;;;  978848 789000))
 ;;; Generated autoloads from yuareg-opam.el
 
 (autoload 'yuareg-opam-mode "yuareg-opam" "\
@@ -118,10 +118,6 @@ Major mode to edit opam files.
 \(fn)" t nil)
 
 (add-to-list 'auto-mode-alist '("[./]opam_?\\'" . yuareg-opam-mode))
-
-;;;***
-
-;;;### (autoloads nil nil ("dot-emacs.el") (23481 61312 340899 449000))
 
 ;;;***
 
