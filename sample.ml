@@ -1,4 +1,4 @@
-(* Sample file indented as we want it to be.  -*- tuareg -*- *)
+(* Sample file indented as we want it to be.  -*- yuareg -*- *)
 
 let server_comments request t =
   let module M = N in
@@ -45,7 +45,7 @@ let x =
   end
 
 (* The two "let"s below are indented under the assumption that
-   tuareg-indent-align-with-first-arg is nil!  *)
+   yuareg-indent-align-with-first-arg is nil!  *)
 let x = List.map (fun x -> 5)
           my list
 
@@ -638,7 +638,7 @@ let x =
     4 5 6 >>= fun y ->
   w*3 >>= fun q -> r
 
-(* This does not work, see comment in tuareg-compute-arrow-indent.
+(* This does not work, see comment in yuareg-compute-arrow-indent.
  * Workaround: wrap code in parens.  *)
 (* let () =
  *   match

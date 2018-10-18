@@ -1,9 +1,9 @@
 *.elc
-*.test
+*.generated.test
 *-autoloads.el
 *-pkg.el
 *~
 *.tar.gz
 packages
-/tuareg.*/
+/yuareg.*/
 ChangeLog

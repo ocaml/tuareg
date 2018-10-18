@@ -1,0 +1,20 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: silex/emacs:24.3-dev
+      - image: silex/emacs:24.4-dev
+      - image: silex/emacs:24.5-dev
+      - image: silex/emacs:25.1-dev
+      - image: silex/emacs:26.1-dev
+    steps:
+      - checkout
+      - run:
+          name: Check Emacs version
+          command: emacs --version
+      - run:
+          name: Make elc
+          command: make elc
+      - run:
+          name: Testing
+          command: make test
