@@ -2491,6 +2491,8 @@ Short cuts for interactions with the REPL:
       ;; Emacs-21's newcomment.el provides this functionality by default.
       (setq-local normal-auto-fill-function #'tuareg-auto-fill-function))
 
+    (setq-local beginning-of-defun-function #'tuareg-beginning-of-defun)
+
     (if (functionp 'tuareg-imenu-create-index)
         (setq-local imenu-create-index-function #'tuareg-imenu-create-index))
     (run-mode-hooks 'tuareg-load-hook)))
