@@ -1302,7 +1302,11 @@ For use on `electric-indent-functions'."
                     ("let" "exception-let" exception "in" exp1)
                     ("object" class-body "end")
                     ("(" exp:>type ")")
-                    ("{<" fields ">}"))
+                    ("{<" fields ">}")
+                    ;; MetaOCaml thingies.
+                    ;; Let's not do anything special for .~ for now,
+                    ;; as for !. it's deprecated anyway!
+                    (".<" exp ">."))
               ;; Like `exp' but additionally allow if-then without else.
               (exp (exp1) ("if" exp "then" exp))
               (forbounds (iddef "to" exp) (iddef "downto" exp))
@@ -1543,11 +1547,34 @@ For use on `electric-indent-functions'."
   ;;   (dolist (cat tuareg-smie-bnf)
   ;;     (dolist (rule (cdr cat))
   ;;       (setq rule (reverse rule))
-  ;;       (while (setq rule (cdr (memq 'exp rule)))
+  ;;       (while (setq rule (cdr (cl-member 'dummy rule
+  ;;                                         :test (lambda (_ x)
+  ;;                                                 (memq x '(exp exp1))))))
   ;;         (push (car rule) leaders))))
-  ;;   leaders)
-  '("if" "then" "try" "match" "do" "while" "begin" "in" "when"
-    "downto" "to" "else"))
+  ;;   (prin1-to-string (sort (delete-dups leaders) #'string-lessp)))
+  ;; BEWARE: In let-disambiguate, we compare this against the output of
+  ;; tuareg-smie--backward-token which never returns refined tokens like "d=",
+  ;; so we manually replace those with just "=" here!
+  '("->" ".<" ";" "[|" "begin" "=" "do" "downto" "else" "if" "in"
+    "match" "then" "to" "try" "when" "while"))
+
+(defun tuareg-smie--let-disambiguate ()
+  "Return \"d-let\" if \"let\" at point is a decl, or just \"let\" if it's an exp."
+  (save-excursion
+    (let ((prev (tuareg-smie--backward-token)))
+      (if (or (member prev tuareg-smie--exp-leaders)
+              (if (zerop (length prev))
+                  (and (not (bobp))
+                       ;; See if prev char has open-paren syntax.
+                       (eq 4 (mod (car (syntax-after (1- (point)))) 256)))
+                (and (eq ?. (char-syntax (aref prev 0)))
+                     (and (not (equal prev ";;"))
+                          (let ((tokinfo (assoc prev smie-grammar)))
+                            ;; Check that prev is not a closing token like ">."
+                            (or (null tokinfo)
+                                (integerp (nth 2 tokinfo))))))))
+          "let"
+        "d-let"))))
 
 (defun tuareg-smie--label-colon-p ()
   (and (not (zerop (skip-chars-backward "[[:alnum:]]_")))
@@ -1657,17 +1684,7 @@ Return values can be
   (let ((tok (tuareg-smie--backward-token)))
     (cond
      ;; Distinguish a let expression from a let declaration.
-     ((equal tok "let")
-      (save-excursion
-        (let ((prev (tuareg-smie--backward-token)))
-          (if (or (member prev tuareg-smie--exp-leaders)
-                  (if (zerop (length prev))
-                      (and (not (bobp))
-                           (eq 4 (mod (car (syntax-after (1- (point)))) 256)))
-                    (and (eq ?. (char-syntax (aref prev 0)))
-                         (not (equal prev ";;")))))
-              tok
-            "d-let"))))
+     ((equal tok "let") (tuareg-smie--let-disambiguate))
      ;; Handle "let module" and friends.
      ((member tok '("module" "class" "open"))
       (let ((prev (save-excursion (tuareg-smie--backward-token))))
@@ -1724,7 +1741,7 @@ Return values can be
      ;; See http://caml.inria.fr/pub/docs/manual-ocaml/expr.html.
      ((memq (aref tok 0) '(?* ?/ ?% ?+ ?- ?@ ?^ ?= ?< ?> ?| ?& ?$))
       (cond
-       ((member tok '("|" "||" "&" "&&" "<-" "->")) tok)
+       ((member tok '("|" "||" "&" "&&" "<-" "->" ">.")) tok)
        ((and (eq (aref tok 0) ?*) (> (length tok) 1) (eq (aref tok 1) ?*))
         "**…")
        (t (string (aref tok 0) ?…))))
