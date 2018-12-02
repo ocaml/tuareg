@@ -2529,7 +2529,9 @@ Short cuts for interactions with the REPL:
     (setq ff-search-directories '(".")
           ff-other-file-alist '(("\\.mli\\'" (".ml" ".mll"))
                                 ("\\.ml\\'" (".mli"))
-                                ("\\.mll\\'" (".mli"))))
+                                ("\\.mll\\'" (".mli"))
+                                ("\\.eliomi\\'" (".eliom"))
+                                ("\\.eliom\\'" (".eliomi"))))
     (tuareg--common-mode-setup)
     (tuareg--install-font-lock)
 
