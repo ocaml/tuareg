@@ -120,6 +120,14 @@ let a = { t with M.
           bar = bar;
         }
 
+(* MetaOCaml thingies, issue #195.  *)
+let f x = .< 0.0 + g .~ x
+                     5
+                   * 7
+             + .<.~x
+                 +. 10>.
+          >.
+
 let a = { t with
           M.
           foo = foo;

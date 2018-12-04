@@ -184,7 +184,7 @@ For example:
 
     (add-hook 'tuareg-mode-hook
               ;; Turn on auto-fill minor mode.
-              (lambda () (auto-fill-mode 1)))
+              #'auto-fill-mode)
 
 See [dot-emacs.el](dot-emacs.el) for some examples.
 

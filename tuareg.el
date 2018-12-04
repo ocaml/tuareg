@@ -72,7 +72,6 @@
 
 ;;; Code:
 
-
 (eval-when-compile (require 'cl))
 (require 'easymenu)
 
@@ -179,7 +178,7 @@ if it has to."
            (dolist (buf (buffer-list))
              (with-current-buffer buf
                (when (derived-mode-p 'tuareg-mode 'tuareg-interactive-mode)
-                 (tuareg-install-font-lock)))))))
+                 (tuareg--install-font-lock)))))))
 
 (defcustom tuareg-in-indent 0 ; tuareg-default-indent
   "*How many spaces to indent from a `in' keyword.
@@ -605,12 +604,12 @@ do not perturb in essential ways the alignment are used.  See
             ("->" . ,(make-char 'symbol 174))
             (":=" . ,(make-char 'symbol 220))))))
 
-(defun tuareg--prettify-symbols-compose-p (start end _match)
+(defun tuareg--prettify-symbols-compose-p (start end match)
   "Return true iff the symbol MATCH should be composed.
 See `prettify-symbols-compose-predicate'."
   ;; Refine `prettify-symbols-default-compose-p' so as not to compose
   ;; symbols for errors,...
-  (and (prettify-symbols-default-compose-p start end _match)
+  (and (prettify-symbols-default-compose-p start end match)
        (not (memq (get-text-property start 'face)
                   '(tuareg-font-lock-error-face
                     tuareg-font-lock-interactive-output-face
@@ -653,7 +652,7 @@ Regexp match data 0 points to the chars."
                    (not (assoc (car x) alist))) ; not yet in alist.
           (push x alist)))
       (when alist
-        `((,(regexp-opt (mapcar 'car alist) t)
+        `((,(regexp-opt (mapcar #'car alist) t)
            (0 (tuareg-font-lock-compose-symbol ',alist))))))))
 
 (defvar tuareg-mode-syntax-table
@@ -759,7 +758,7 @@ Regexp match data 0 points to the chars."
           tuareg-doc-face
         font-lock-comment-face))))
 
-;; Initially empty, set in `tuareg-install-font-lock'
+;; Initially empty, set in `tuareg--install-font-lock'
 (defvar tuareg-font-lock-keywords ()
   "Font-Lock patterns for Tuareg mode.")
 
@@ -2270,7 +2269,7 @@ or indent all lines in the current phrase."
         (tuareg--fill-comment))
        (t (let ((phrase (tuareg-discover-phrase)))
             (if phrase
-                (indent-region (car phrase) (cadr phrase))))))))) 
+                (indent-region (car phrase) (cadr phrase)))))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -2414,7 +2413,7 @@ expansion at run-time, if the run-time version of Emacs does know this macro."
                     #'tuareg--hanging-eolp-advice)))
   (add-hook 'smie-indent-functions #'tuareg-smie--args nil t)
   (add-hook 'smie-indent-functions #'tuareg-smie--inside-string nil t)
-  (setq-local add-log-current-defun-function 'tuareg-current-fun-name)
+  (setq-local add-log-current-defun-function #'tuareg-current-fun-name)
   (setq prettify-symbols-alist
         (if tuareg-prettify-symbols-full
             (append tuareg-prettify-symbols-basic-alist
@@ -2832,7 +2831,7 @@ switch is not installed, `nil' is returned."
 
 
 ;; OPAM compilation
-(defun tuareg--compile-opam (&rest r)
+(defun tuareg--compile-opam (&rest _)
   "Advice to update the OPAM environment to sync it with the OPAM
 switch before compiling."
   (let* ((env (tuareg-opam-config-env)))
@@ -2963,7 +2962,7 @@ be sent from another buffer in tuareg mode.
 
 Short cuts for interactions with the REPL:
 \\{tuareg-interactive-mode-map}"
-  (add-hook 'comint-output-filter-functions 'tuareg-interactive-filter)
+  (add-hook 'comint-output-filter-functions #'tuareg-interactive-filter)
   (setq comint-prompt-regexp "^#  *")
   (setq comint-process-echoes nil)
   (setq comint-get-old-input 'tuareg-interactive-get-old-input)
