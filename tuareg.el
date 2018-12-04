@@ -31,7 +31,6 @@
 ;;
 ;; (add-to-list 'load-path "DIR")
 
-
 ;;; Usage:
 ;; Tuareg allows you to run batch OCaml compilations from Emacs (using
 ;; M-x compile) and browse the errors (C-x `). Typing C-x ` sets the
@@ -513,7 +512,7 @@ use `prettify-symbols-mode'."
                           'prettify-symbols-mode "Emacs-24.4"))
 
 (defcustom tuareg-prettify-symbols-full nil
-  "It t, add fun and -> and such to be prettified with symbols.
+  "If non-nil, add fun and -> and such to be prettified with symbols.
 This may sound like a neat trick, but note that it can change the
 alignment and can thus lead to surprises.  By default, only symbols that
 do not perturb in essential ways the alignment are used.  See
@@ -1516,6 +1515,8 @@ For use on `electric-indent-functions'."
         (match-string 0)))
      ((and (equal tok "|") (looking-at-p "\\]")) (forward-char 1) "|]")
      ((and (equal tok ">") (looking-at-p "}")) (forward-char 1) ">}")
+     ((and (equal tok ".") (memq (char-after) '(?< ?~)))
+      (forward-char 1) (string ?. (char-before)))
      ((or (member tok '("let" "=" "->"
                         "module" "class" "open" "type" "with" "and"
                         "exception"))
@@ -1684,6 +1685,7 @@ Return values can be
     (cond
      ;; Distinguish a let expression from a let declaration.
      ((equal tok "let") (tuareg-smie--let-disambiguate))
+     ((equal ".<.~" tok) (forward-char 2) ".~") ;FIXME: Likely too ad-hoc!
      ;; Handle "let module" and friends.
      ((member tok '("module" "class" "open"))
       (let ((prev (save-excursion (tuareg-smie--backward-token))))
@@ -2419,6 +2421,7 @@ expansion at run-time, if the run-time version of Emacs does know this macro."
             (append tuareg-prettify-symbols-basic-alist
                     tuareg-prettify-symbols-extra-alist)
           tuareg-prettify-symbols-basic-alist))
+  ;; FIXME: Use `add-function' (when Emacs≥24.4 can be assumed)!
   (setq prettify-symbols-compose-predicate
         #'tuareg--prettify-symbols-compose-p)
   (setq-local open-paren-in-column-0-is-defun-start nil)
