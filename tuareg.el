@@ -2519,11 +2519,11 @@ characters \\([0-9]+\\)-\\([0-9]+\\)"
   "Regular expression matching the error messages produced by ocamlc/ocamlopt.")
 
 (when (boundp 'compilation-error-regexp-alist-alist)
-    (add-to-list 'compilation-error-regexp-alist-alist
-                 `(ocaml ,tuareg--error-regexp 1 2 (3 . 4))))
+  (push `(ocaml ,tuareg--error-regexp 1 2 (3 . 4))
+        compilation-error-regexp-alist-alist))
 
 (when (boundp 'compilation-error-regexp-alist)
-  (add-to-list 'compilation-error-regexp-alist 'ocaml)
+  (push 'ocaml compilation-error-regexp-alist)
 
   (eval-after-load 'caml
     ;; caml-mode also changes `compilation-error-regexp-alist' with a
@@ -2531,7 +2531,7 @@ characters \\([0-9]+\\)-\\([0-9]+\\)"
     #'(lambda()
         (setq compilation-error-regexp-alist
               (delete 'ocaml compilation-error-regexp-alist))
-        (add-to-list 'compilation-error-regexp-alist 'ocaml))))
+        (push 'ocaml compilation-error-regexp-alist))))
 
 
 ;; Wrapper around next-error.
@@ -3343,8 +3343,8 @@ Short cuts for interaction within the REPL:
 (when (require 'speedbar nil t)
   (speedbar-add-supported-extension
    '(".ml" ".mli" ".mll" ".mly" ".mlp" ".ls"))
-  (add-to-list 'speedbar-obj-alist '("\\.mli$" . ".cmi"))
-  (add-to-list 'speedbar-obj-alist '("\\.ml$"  . ".cmo")))
+  (push '("\\.mli$" . ".cmi") speedbar-obj-alist)
+  (push '("\\.ml$"  . ".cmo") speedbar-obj-alist))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                             Hooks and Exit
