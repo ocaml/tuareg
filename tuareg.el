@@ -3055,6 +3055,8 @@ it is the first position of the buffer)."
 (defun tuareg-eval-phrase ()
   "Eval the surrounding OCaml phrase (or block) in the OCaml REPL."
   (interactive)
+  (let ((ppss (syntax-ppss)))
+    (if (nth 4 ppss) (goto-char (nth 8 ppss))))
   (let* ((pos (tuareg--after-double-colon))
          (pos (if pos pos (point)))
          (phrase (tuareg-discover-phrase pos)))
