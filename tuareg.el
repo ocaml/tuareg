@@ -301,7 +301,7 @@ Valid names are `browse-url', `browse-url-firefox', etc."
     ("Read only input" . 'tuareg-interactive-read-only-input))
   "*List of menu-configurable Tuareg options.")
 
-(defvar tuareg-interactive-program "ocaml"
+(defvar tuareg-interactive-program "ocaml -nopromptcont"
   "*Default program name for invoking an OCaml REPL (aka toplevel) from Emacs.")
 ;; Could be interesting to have this variable buffer-local
 ;;   (e.g., ocaml vs. metaocaml buffers)
