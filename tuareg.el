@@ -929,8 +929,11 @@ for the interactive mode."
      ,@(and tuareg-support-metaocaml
             '(("[^-@^!*=<>&/%+~?#]\\(\\(?:\\.<\\|\\.~\\|!\\.\\|>\\.\\)+\\)"
                1 tuareg-font-lock-multistage-face)))
+     ("\\[[ \t]*\\]" . tuareg-font-lock-constructor-face)
+     ("[])a-zA-Z0-9 \t]\\(::\\)[[(a-zA-Z0-9 \t]"
+      1 tuareg-font-lock-constructor-face)
      (,(concat
-         "[][;,()|{}]\\|[-@^!:*=<>&/%+~?#]\\.?\\|\\.\\.\\.*\\|"
+         "[-@^!:*=<>&/%+~?#]\\.?\\|\\.\\.\\.*\\|"
          (regexp-opt
           (if (tuareg-editing-ls3)
               '("asr" "asl" "lsr" "lsl" "or" "lor" "and" "land" "lxor"
