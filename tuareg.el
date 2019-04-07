@@ -2447,8 +2447,7 @@ Short cuts for interactions with the REPL:
     (tuareg--common-mode-setup)
     (tuareg--install-font-lock)
 
-    (if (functionp 'tuareg-imenu-create-index)
-        (setq-local imenu-create-index-function #'tuareg-imenu-create-index))
+    (setq imenu-create-index-function #'tuareg-imenu-create-index)
     (run-mode-hooks 'tuareg-load-hook)))
 
 (defconst tuareg-starters-syms
@@ -3331,9 +3330,20 @@ Short cuts for interaction within the REPL:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;			    Imenu support
 
-(when (let (abbrevs-changed)            ;Workaround for tuareg#146
-        (require 'caml nil t))
-  (defalias 'tuareg-imenu-create-index 'caml-create-index-function))
+(defun tuareg-imenu-create-index ()
+  "Create an index alist for OCaml files using `merlin-imenu' or `caml-mode'.
+See `imenu-create-index-function'."
+  (cond
+   ((require 'merlin-imenu nil t)
+    (merlin-imenu-create-index))
+   ((let (abbrevs-changed)            ;Workaround for tuareg#146
+      (require 'caml nil t))
+    (caml-create-index-function))
+   (t
+    (message "Install Merlin or caml-mode.")
+    ;; Cannot return the empty list `nil' because imenu will issue its
+    ;; own warning.
+    '(("Install Merlin or caml-mode" . 0)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                      Related files & modes
