@@ -1073,15 +1073,18 @@ for the interactive mode."
       (append
        tuareg-font-lock-keywords-1
        `(;; https://caml.inria.fr/pub/docs/manual-ocaml-4.07/lex.html#infix-symbol
-         (,(concat
-            "[-@^!:*=<>&/%+~?#]\\.?\\|\\.\\.\\.*\\|"
-            (regexp-opt
-             (if (tuareg-editing-ls3)
-                 '("asr" "asl" "lsr" "lsl" "or" "lor" "and" "land" "lxor"
-                   "not" "lnot" "mod" "fby" "pre" "last" "at")
-               '("asr" "asl" "lsr" "lsl" "or" "lor" "land"
-                 "lxor" "not" "lnot" "mod"))
-             'symbols))
+         ;; Do no highlight relation operators (=, <, >) nor
+         ;; arithmetic ones (too common, thus too much color).
+         (,(let ((operator-char "[!$%&*+-./:<=>?@^|~]"))
+             (concat
+              "[@^&$%!]" operator-char "*\\|[|#?~]" operator-char "+\\|"
+              (regexp-opt
+               (if (tuareg-editing-ls3)
+                   '("asr" "asl" "lsr" "lsl" "or" "lor" "and" "land" "lxor"
+                     "not" "lnot" "mod" "fby" "pre" "last" "at")
+                 '("asr" "asl" "lsr" "lsl" "or" "lor" "land"
+                   "lxor" "not" "lnot" "mod"))
+               'symbols)))
           . tuareg-font-lock-operator-face)))))
   (setq font-lock-defaults
         `((tuareg-font-lock-keywords
