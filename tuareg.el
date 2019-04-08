@@ -185,13 +185,15 @@ show the '|' is aligned with 'match', thus 0 is the default value."
   "*How many spaces to indent a clause of match after a pattern `| ... ->'
 or `... ->' (pattern without preceding `|' in the first clause of a matching).
 To respect <http://caml.inria.fr/resources/doc/guides/guidelines.en.html>
-the default is 1.")
+the default is 1."
+  :type 'integer)
 
 (defcustom tuareg-match-when-indent (+ 4 tuareg-match-clause-indent)
   "*How many spaces from `|' to indent `when' in a pattern match
    | patt
         when cond ->
-      clause")
+      clause"
+  :type 'integer)
 
 (defcustom tuareg-match-patterns-aligned nil
   "Non-nil means that the pipes for multiple patterns of a single case
@@ -279,7 +281,7 @@ them to the OCaml REPL."
 (defcustom tuareg-browser 'browse-url
   "*Name of function that displays the OCaml reference manual.
 Valid names are `browse-url', `browse-url-firefox', etc."
-  :group 'tuareg)
+  :group 'tuareg :type 'function)
 
 (defcustom tuareg-library-path "/usr/local/lib/ocaml/"
   "*Path to the OCaml library."
