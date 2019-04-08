@@ -553,7 +553,8 @@ do not perturb in essential ways the alignment are used.  See
     ("[|" . ?〚)        ;; 〚
     ("|]" . ?〛)        ;; 〛
     ("->" . ?→)
-    (":=" . ?⇐)))
+    (":=" . ?⇐)
+    ("::" . ?∷)))
 
 (defun tuareg--prettify-symbols-compose-p (start end match)
   "Return true iff the symbol MATCH should be composed.
