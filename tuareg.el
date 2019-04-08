@@ -865,11 +865,11 @@ for the interactive mode."
              (2 tuareg-font-lock-module-face keep t))
             ;; First class modules.  In these contexts, "val" and "module"
             ;; are not considered as "governing" (main structure of the code).
-            (,(concat "( *\\(module\\) +\\(" module-path "\\) *: +\\("
-	              balanced-braces-no-string "\\))")
+            (,(concat "( *\\(module\\) +\\(" module-path "\\) *\\(?:: *\\("
+	              balanced-braces-no-string "\\)\\)?)")
              (1 font-lock-keyword-face)
              (2 tuareg-font-lock-module-face)
-             (3 tuareg-font-lock-module-face))
+             (3 tuareg-font-lock-module-face keep t))
             (,(concat "( *\\(val\\) +\\("
                       balanced-braces-no-end-operator "\\): +\\("
 	              balanced-braces-no-string "\\))")
