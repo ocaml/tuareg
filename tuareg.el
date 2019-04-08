@@ -697,6 +697,7 @@ Regexp match data 0 points to the chars."
         (c (error "Unexpected char '%c' starting delimited string" c))))))
 
 (defun tuareg-font-lock-syntactic-face-function (state)
+  "`font-lock-syntactic-face-function' for Tuareg."
   (if (nth 3 state)
       font-lock-string-face
     (let ((start (nth 8 state)))
