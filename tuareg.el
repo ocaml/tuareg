@@ -857,6 +857,12 @@ for the interactive mode."
             (,(concat "(" lid " *:\\(['_A-Za-z]"
                       balanced-braces-no-string "\\))")
              1 font-lock-type-face keep)
+            ;; "module type of" module-expr (here "of" is a governing
+            ;; keyword).  Must be before the modules highlighting.
+            (,(concat "\\<\\(module +type +of\\)\\>\\(?: +\\("
+                      module-path "\\)\\)?")
+             (1 tuareg-font-lock-governing-face keep)
+             (2 tuareg-font-lock-module-face keep t))
             ;; First class modules.  In these contexts, "val" and "module"
             ;; are not considered as "governing" (main structure of the code).
             (,(concat "( *\\(module\\) +\\(" module-path "\\) *: +\\("
@@ -892,11 +898,6 @@ for the interactive mode."
              (1 tuareg-font-lock-governing-face keep)
              (2 tuareg-font-lock-module-face keep t)
              (3 tuareg-font-lock-module-face keep t))
-            ;; "module type of" module-expr (here "of" is a governing keyword)
-            ("\\<module +type +of\\>"
-             0 tuareg-font-lock-governing-face keep)
-            (,(concat "\\<module +type +of +\\(" module-path "\\)?")
-             1 tuareg-font-lock-module-face keep t)
             ;; "!", "mutable", "virtual" treated as governing keywords
             (,(concat "\\<\\(\\(?:val" maybe-infix-attr+ext
 	              (if (tuareg-editing-ls3) "\\|reset\\|do")
