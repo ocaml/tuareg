@@ -98,10 +98,13 @@
     (,tuareg-opam-variables-regex . font-lock-variable-name-face)
     (,(concat "%{" tuareg-opam-variables-regex "}%")
      (1 font-lock-variable-name-face t))
+    ("%{\\([a-zA-Z_][a-zA-Z0-9_+-]*\\):\\([a-zA-Z][a-zA-Z0-9_+-]\\)}%"
+     (1 font-lock-constant-face t)
+     (2 font-lock-variable-name-face t))
     (,(concat "%{\\([a-zA-Z_][a-zA-Z0-9_+-]*\\):"
               tuareg-opam-pkg-variables-regex "}%")
      (1 font-lock-constant-face t)
-     (2 font-lock-variable-name-face t)))
+     (2 font-lock-builtin-face t)))
   "Highlighting for OPAM files")
 
 
