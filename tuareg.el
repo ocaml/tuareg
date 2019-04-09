@@ -791,9 +791,10 @@ for the interactive mode."
                                 "present" "automaton" "where" "match"
                                 "with" "do" "done" "unless" "until"
                                 "reset" "every")))
-         (let-binding (concat "\\<\\(?:let" maybe-infix-ext+attr
-			      "\\(?: +" (if (tuareg-editing-ls3) let-ls3 "rec")
-			       "\\)?\\|and\\) +"))
+         (let-binding-g3 ; 3 groups
+          (concat "\\<\\(?:\\(let\\)\\(" maybe-infix-ext+attr
+		  "\\)\\(?: +" (if (tuareg-editing-ls3) let-ls3 "rec")
+		  "\\)?\\|\\(and\\)\\) +"))
          ;; group of variables
          (gvars (concat "\\(\\(?:" tuareg--whitespace-re
                         "\\(?:" lid "\\|()\\|" tuple ; = any balanced (...)
@@ -835,11 +836,12 @@ for the interactive mode."
             (,(concat "\\(\\[%%?" attr-id "\\)" balanced-brackets "\\(\\]\\)")
              (1 tuareg-font-lock-extension-node-face)
              (2 tuareg-font-lock-extension-node-face))
-            (,(concat "\\(?:\\<"
-                      (regexp-opt '("let" "begin" "module" "val" "val!"
-			            "fun" "function" "match"))
-	              "\\|;\\)\\(" maybe-infix-attr "\\)")
+            (,(concat "[^;];\\(" maybe-infix-extension "\\)")
              1 tuareg-font-lock-infix-extension-node-face)
+            (,(concat (regexp-opt '("fun" "function" "match") 'symbols)
+                      "\\(" maybe-infix-ext+attr "\\)")
+             (1 font-lock-keyword-face)
+             (2 tuareg-font-lock-infix-extension-node-face keep))
             ;; "type" to introduce a local abstract type considered a keyword
             (,(concat "( *\\(type\\) +\\(" lid " *\\)+)")
              (1 font-lock-keyword-face)
@@ -878,11 +880,13 @@ for the interactive mode."
              (2 tuareg-font-lock-module-face)
              (3 tuareg-font-lock-module-face))
             ("\\<let +exception\\>" . tuareg-font-lock-governing-face)
-            (,(regexp-opt '("sig" "struct" "functor"
-                            "constraint" "in" "inherit"
-                            "initializer" "let" "rec" "nonrec"
-                            "object" "and" "begin" "end")
-                          'symbols)
+            (,(concat (regexp-opt '("sig" "struct" "functor" "inherit"
+                                    "initializer" "object" "begin")
+                                  'symbols)
+                      "\\(" maybe-infix-ext+attr "\\)")
+             (1 tuareg-font-lock-governing-face)
+             (2 tuareg-font-lock-infix-extension-node-face keep))
+            (,(regexp-opt '("constraint" "in" "and" "end") 'symbols)
              . tuareg-font-lock-governing-face)
             ,@(if (tuareg-editing-ls3)
                   `((,(concat "\\<\\(let[ \t]+" let-ls3 "\\)\\>")
@@ -899,18 +903,22 @@ for the interactive mode."
              (2 tuareg-font-lock-module-face keep t)
              (3 tuareg-font-lock-module-face keep t))
             ;; "!", "mutable", "virtual" treated as governing keywords
-            (,(concat "\\<\\(\\(?:val" maybe-infix-ext+attr
+            (,(concat "\\<\\(\\(?:val\\(" maybe-infix-ext+attr "\\)"
 	              (if (tuareg-editing-ls3) "\\|reset\\|do")
                       "\\)!? +\\(?:mutable\\(?: +virtual\\)?\\>"
-                      "\\|virtual\\(?: +mutable\\)?\\>\\)\\|val!"
-	              maybe-infix-ext+attr "\\)\\(?: *\\(" lid "\\)\\)?")
-             (1 tuareg-font-lock-governing-face keep)
-             (2 font-lock-variable-name-face nil t))
+                      "\\|virtual\\(?: +mutable\\)?\\>\\)"
+	              "\\|val!\\(" maybe-infix-ext+attr "\\)\\)"
+                      "\\(?: *\\(" lid "\\)\\)?")
+             (2 tuareg-font-lock-infix-extension-node-face keep t)
+             (3 tuareg-font-lock-infix-extension-node-face keep t)
+             (1 tuareg-font-lock-governing-face keep t)
+             (4 font-lock-variable-name-face nil t))
             ;; "val" without "!", "mutable" or "virtual"
-            (,(concat "\\<\\(val\\)\\>" maybe-infix-ext+attr
+            (,(concat "\\<\\(val\\)\\>\\(" maybe-infix-ext+attr "\\)"
 	              "\\(?: +\\(" lid "\\)\\)?")
              (1 tuareg-font-lock-governing-face keep)
-             (2 font-lock-function-name-face keep t))
+             (2 tuareg-font-lock-infix-extension-node-face keep)
+             (3 font-lock-function-name-face keep t))
             ;; "private" treated as governing keyword
             (,(concat "\\(\\<method!?\\(?: +\\(?:private\\(?: +virtual\\)?"
                       "\\|virtual\\(?: +private\\)?\\)\\)?\\>\\)"
@@ -929,11 +937,13 @@ for the interactive mode."
             (,(concat "\\<\\(external\\)\\>\\(?: +\\(" lid "\\)\\)?")
              (1 tuareg-font-lock-governing-face)
              (2 font-lock-function-name-face))
-            (,(concat "\\<\\(module\\)" maybe-infix-ext+attr
-	              "\\(\\(?: +type\\)?\\(?: +rec\\)?\\)\\> *\\(" uid "\\)")
+            (,(concat "\\<\\(module\\)\\(" maybe-infix-ext+attr "\\)"
+	              "\\(\\(?: +type\\)?\\(?: +rec\\)?\\)\\>\\(?: *\\("
+                      uid "\\)\\)?")
              (1 tuareg-font-lock-governing-face)
-             (2 tuareg-font-lock-governing-face)
-             (3 tuareg-font-lock-module-face))
+             (2 tuareg-font-lock-infix-extension-node-face)
+             (3 tuareg-font-lock-governing-face)
+             (4 tuareg-font-lock-module-face keep t))
             (,(concat "\\<\\(include\\)\\>\\(?: +\\("
                       extended-module-path "\\|( *"
                       extended-module-path " *: *" balanced-braces " *)\\)\\)?")
@@ -951,20 +961,27 @@ for the interactive mode."
              (3 font-lock-function-name-face keep t))
             ;; "type lid" anywhere (e.g. "let f (type t) x =")
             ;; introduces a new type
-            (,(concat "\\<\\(type\\(?: +nonrec\\)?\\)\\>" tuareg--whitespace-re
-                      "\\(" typedef "\\)")
+            (,(concat "\\<\\(type\\)\\(" maybe-infix-ext+attr
+                      "\\)\\(?: +\\(nonrec\\)\\)?\\>\\(?:"
+                      tuareg--whitespace-re
+                      "\\(" typedef "\\)\\)?")
              (1 tuareg-font-lock-governing-face)
-             (2 font-lock-type-face keep)))))
+             (2 tuareg-font-lock-infix-extension-node-face keep)
+             (3 tuareg-font-lock-governing-face keep t)
+             (4 font-lock-type-face keep t)))))
     (setq
      tuareg-font-lock-keywords
      (append
       common-keywords
       `(;; Basic way of matching functions
-        (,(concat let-binding "\\(" lid "\\) *[^ =,:][^=]*=")
-         1 font-lock-function-name-face)
-        (,(concat let-binding "\\(" lid "\\) *= *\\(fun\\(?:ction\\)?\\)\\>")
-         (1 font-lock-function-name-face)
-         (2 font-lock-keyword-face))
+        (,(concat let-binding-g3 "\\(?:\\(" lid "\\) *[^ =,:][^=]*=\\)?")
+         (1 tuareg-font-lock-governing-face keep t)
+         (2 tuareg-font-lock-infix-extension-node-face keep t)
+         (3 tuareg-font-lock-governing-face keep t)
+         (4 font-lock-function-name-face keep t))
+        (,(concat let-binding-g3 "\\(" lid "\\) *= *\\(fun\\(?:ction\\)?\\)\\>")
+         (4 font-lock-function-name-face)
+         (5 font-lock-keyword-face))
         ,@(and tuareg-font-lock-symbols
                (tuareg-font-lock-symbols-keywords)))))
      (setq
@@ -978,8 +995,8 @@ for the interactive mode."
                        'symbols)
           . font-lock-constant-face)
          (,(let ((kwd '("as" "do" "done" "downto" "else" "for" "if"
-                        "then" "to" "try" "when" "while" "match" "new"
-                        "lazy" "assert" "fun" "function" "exception")))
+                        "then" "to" "try" "when" "while" "new"
+                        "lazy" "assert" "exception")))
              (if (tuareg-editing-ls3)
                  (progn (push "reset" kwd)  (push "merge" kwd)
                         (push "emit" kwd)  (push "period" kwd)))
@@ -1035,26 +1052,29 @@ for the interactive mode."
          (,(concat "\\<let +exception +\\(" uid "\\)")
           1 tuareg-font-lock-constructor-face)
          ;; let-bindings (let f : type = fun)
-         (,(concat let-binding "\\(" lid "\\) *\\(?:: *\\([^=]+\\)\\)?= *"
+         (,(concat let-binding-g3 "\\(" lid "\\) *\\(?:: *\\([^=]+\\)\\)?= *"
                    "fun\\(?:ction\\)?\\>")
-          (1 font-lock-function-name-face nil t)
-          (2 font-lock-type-face keep t))
+          (4 font-lock-function-name-face nil t)
+          (5 font-lock-type-face keep t))
          ;; let-binding (variable)
          (,(let* ((maybe-constr (concat "\\(?:" constructor " *\\)?"))
                   (var (concat maybe-constr "\\(?:" lid "\\|" tuple "\\)"))
                   (simple-patt (concat var "\\(?: *, *" var "\\)*")))
-             (concat let-binding "\\(" simple-patt
-                     "\\) *\\(?:: *\\([^=]+\\)\\)?="))
+             (concat let-binding-g3 "\\(?:\\(" simple-patt
+                     "\\) *\\(?:: *\\([^=]+\\)\\)?=\\)?"))
+          (1 tuareg-font-lock-governing-face keep t)
+          (2 tuareg-font-lock-infix-extension-node-face keep t)
+          (3 tuareg-font-lock-governing-face keep t)
           ;; module paths, types, constructors already colored by the above
-          (1 font-lock-variable-name-face keep)
-          (2 font-lock-type-face keep t))
+          (4 font-lock-variable-name-face keep t)
+          (5 font-lock-type-face keep t))
          ;; let-bindings (let f vars : type =)
-         (,(concat let-binding "\\(" lid "\\)" gvars "?\\(?: +:"
+         (,(concat let-binding-g3 "\\(" lid "\\)" gvars "?\\(?: +:"
                    tuareg--whitespace-re
                    "\\([a-z_]\\|[^ =][^=]*[^ =]\\) *=\\)?")
-          (1 font-lock-function-name-face nil t)
-          (2 font-lock-variable-name-face keep t)
-          (3 font-lock-type-face keep t))
+          (4 font-lock-function-name-face nil t)
+          (5 font-lock-variable-name-face keep t)
+          (6 font-lock-type-face keep t))
          (,(concat "\\<function\\>" maybe-infix-ext+attr
 	           tuareg--whitespace-re "\\(" lid "\\)")
           1 font-lock-variable-name-face)
