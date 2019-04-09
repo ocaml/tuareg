@@ -802,9 +802,9 @@ for the interactive mode."
                         "\\|(" balanced-braces ")\\)"
                         "\\)\\)+\\)"))
          ;; group for possible class param
-         (class-gparams
-          (concat "\\<class\\>\\(?: +type\\>\\)?\\(?: +virtual\\>\\)?"
-                  "\\( *\\[ *" typevar " *\\(?:, *" typevar " *\\)*\\]\\)?"))
+         (gclass-gparams
+          (concat "\\(\\<class\\(?: +type\\)?\\(?: +virtual\\)?\\>\\)"
+                  " *\\(\\[ *" typevar " *\\(?:, *" typevar " *\\)*\\] *\\)?"))
          ;; font-lock rules common to all levels
          (common-keywords
           `(("^#[0-9]+ *\\(?:\"[^\"]+\"\\)?"
@@ -878,9 +878,8 @@ for the interactive mode."
              (2 tuareg-font-lock-module-face)
              (3 tuareg-font-lock-module-face))
             ("\\<let +exception\\>" . tuareg-font-lock-governing-face)
-            (,(regexp-opt '("module" "include" "sig" "struct" "functor"
-                            "type" "constraint" "class" "in" "inherit"
-                            "method" "external" "val" "open"
+            (,(regexp-opt '("sig" "struct" "functor"
+                            "constraint" "in" "inherit"
                             "initializer" "let" "rec" "nonrec"
                             "object" "and" "begin" "end")
                           'symbols)
@@ -904,16 +903,21 @@ for the interactive mode."
 	              (if (tuareg-editing-ls3) "\\|reset\\|do")
                       "\\)!? +\\(?:mutable\\(?: +virtual\\)?\\>"
                       "\\|virtual\\(?: +mutable\\)?\\>\\)\\|val!"
-	              maybe-infix-attr+ext "\\)\\( *" lid "\\)?")
+	              maybe-infix-attr+ext "\\)\\(?: *\\(" lid "\\)\\)?")
              (1 tuareg-font-lock-governing-face keep)
              (2 font-lock-variable-name-face nil t))
-            ("\\<class\\>\\(?: +type\\>\\)?\\( +virtual\\>\\)?"
-             1 tuareg-font-lock-governing-face nil t)
+            ;; "val" without "!", "mutable" or "virtual"
+            (,(concat "\\<\\(val\\)\\>" maybe-infix-attr+ext
+	              "\\(?: +\\(" lid "\\)\\)?")
+             (1 tuareg-font-lock-governing-face keep)
+             (2 font-lock-function-name-face keep t))
             ;; "private" treated as governing keyword
-            (,(concat "\\<method!?\\(?: +\\(private\\(?: +virtual\\)?"
-                      "\\|virtual\\(?: +private\\)?\\)\\>\\)?")
-             1 tuareg-font-lock-governing-face keep t)
-            (,(concat "\\<open\\(! +\\|\\> *\\)\\(" module-path "\\)?")
+            (,(concat "\\(\\<method!?\\(?: +\\(?:private\\(?: +virtual\\)?"
+                      "\\|virtual\\(?: +private\\)?\\)\\)?\\>\\)"
+                      " *\\(" lid "\\)?")
+             (1 tuareg-font-lock-governing-face keep t)
+             (2 font-lock-function-name-face keep t)); method name
+            (,(concat "\\<\\(open\\(?:! +\\|\\> *\\)\\)\\(" module-path "\\)?")
              (1 tuareg-font-lock-governing-face)
              (2 tuareg-font-lock-module-face keep t))
             ;; module paths A.B.
@@ -922,34 +926,35 @@ for the interactive mode."
                    '(("[^-@^!*=<>&/%+~?#]\\(\\(?:\\.<\\|\\.~\\|!\\.\\|>\\.\\)+\\)"
                       1 tuareg-font-lock-multistage-face)))
             ;; External function declaration
-            (,(concat "\\<external +\\(" lid "\\)")
-             1 font-lock-function-name-face)
-            (,(concat "\\<module" maybe-infix-attr+ext
-	              "\\(?: +type\\)?\\(?: +rec\\)?\\> *\\(" uid "\\)")
-             1 tuareg-font-lock-module-face)
-            (,(concat "\\<include +\\(" extended-module-path "\\|( *"
-                      extended-module-path " *: *" balanced-braces " *)\\)")
-             1 tuareg-font-lock-module-face keep)
+            (,(concat "\\<\\(external\\)\\>\\(?: +\\(" lid "\\)\\)?")
+             (1 tuareg-font-lock-governing-face)
+             (2 font-lock-function-name-face))
+            (,(concat "\\<\\(module\\)" maybe-infix-attr+ext
+	              "\\(\\(?: +type\\)?\\(?: +rec\\)?\\)\\> *\\(" uid "\\)")
+             (1 tuareg-font-lock-governing-face)
+             (2 tuareg-font-lock-governing-face)
+             (3 tuareg-font-lock-module-face))
+            (,(concat "\\<\\(include\\)\\>\\(?: +\\("
+                      extended-module-path "\\|( *"
+                      extended-module-path " *: *" balanced-braces " *)\\)\\)?")
+             (1 tuareg-font-lock-governing-face)
+             (2 tuareg-font-lock-module-face keep t))
             ;; module type A = B
-            (,(concat "\\<module +type +" id " *= *\\(" modtype-path "\\)")
-             1 tuareg-font-lock-module-face keep)
+            (,(concat "\\<\\(module +type\\)\\>\\(?: +" id
+                      " *= *\\(" modtype-path "\\)\\)?")
+             (1 tuareg-font-lock-governing-face)
+             (2 tuareg-font-lock-module-face keep t))
+            ;; "class [params] name"
+            (,(concat gclass-gparams "\\(" lid "\\)?")
+             (1 tuareg-font-lock-governing-face keep)
+             (2 font-lock-type-face keep t)
+             (3 font-lock-function-name-face keep t))
             ;; "type lid" anywhere (e.g. "let f (type t) x =")
             ;; introduces a new type
-            (,(concat "\\<type\\(?: +nonrec\\)?\\>" tuareg--whitespace-re
+            (,(concat "\\<\\(type\\(?: +nonrec\\)?\\)\\>" tuareg--whitespace-re
                       "\\(" typedef "\\)")
-             1 font-lock-type-face keep)
-            ;; "class [params] name"
-            (,(concat class-gparams " *\\(" lid "\\)")
-             (1 font-lock-type-face keep t)
-             (2 font-lock-function-name-face))
-            ;; "method": method name
-            (,(concat "\\<method!? +\\(?:private +\\(?:virtual +\\)?"
-                      "\\|virtual +\\(?:private +\\)?\\)\\(" lid "\\)")
-             1 font-lock-function-name-face keep t); method name
-            ;; "val" without "!", "mutable" or "virtual"
-            (,(concat "\\<val" maybe-infix-attr+ext
-	              " +\\(" lid "\\)")
-             1 font-lock-function-name-face))))
+             (1 tuareg-font-lock-governing-face)
+             (2 font-lock-type-face keep)))))
     (setq
      tuareg-font-lock-keywords
      (append
@@ -1055,8 +1060,8 @@ for the interactive mode."
           1 font-lock-variable-name-face)
          (,(concat "\\<fun" maybe-infix-attr+ext " +" gvars " *->")
           1 font-lock-variable-name-face keep nil)
-         (,(concat class-gparams " *" lid gvars "? *=")
-          2 font-lock-variable-name-face keep t)
+         (,(concat gclass-gparams " *" lid gvars "? *=")
+          3 font-lock-variable-name-face keep t)
          (,(concat "\\<method!? +\\(" lid "\\)" gvars "?")
           (1 font-lock-function-name-face keep t); method name
           (2 font-lock-variable-name-face keep t))
