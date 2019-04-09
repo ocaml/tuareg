@@ -121,6 +121,13 @@ Tips & customization
 
   [electric-indent-mode]: https://www.gnu.org/software/emacs/manual/html_node/emacs/Indent-Convenience.html
 
+- Syntax highlighting has 3 levels.  You can select the one you prefer
+  by setting [font-lock-maximum-decoration][] from `0` to `2`.  By
+  default, [font-lock-maximum-decoration][] is set to `t` which
+  means that the maximum level of decoration will be used.
+
+[font-lock-maximum-decoration]: https://www.gnu.org/software/emacs/manual/html_node/emacs/Font-Lock.html
+
 - You can turn on and off the rendering of certain sequences of
   characters as symbols (such as `∔` and `∧` instead of `+.`and `&&`),
   use `prettify-symbols-mode` or use the check box in the _Tuareg
