@@ -2544,6 +2544,7 @@ Short cuts for interactions with the REPL:
           ff-other-file-alist tuareg-other-file-alist)
     (tuareg--common-mode-setup)
     (tuareg--install-font-lock)
+    (setq-local beginning-of-defun-function #'tuareg-beginning-of-defun)
 
     (setq imenu-create-index-function #'tuareg-imenu-create-index)
     (run-mode-hooks 'tuareg-load-hook)))
