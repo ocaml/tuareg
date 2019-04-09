@@ -73,6 +73,7 @@
 
 (eval-when-compile (require 'cl-lib))
 (require 'easymenu)
+(require 'find-file)
 
 (defconst tuareg-mode-revision
   (eval-when-compile
@@ -228,6 +229,18 @@ Many people find electric keys irritating, so you can disable them by
 setting this variable to nil.  You should probably have this on,
 though, if you also have `tuareg-electric-indent' on."
   :group 'tuareg :type 'boolean)
+
+(defcustom tuareg-other-file-alist
+  '(("\\.mli\\'" (".ml" ".mll"))
+    ("\\.ml\\'" (".mli"))
+    ("\\.mll\\'" (".mli"))
+    ("\\.eliomi\\'" (".eliom"))
+    ("\\.eliom\\'" (".eliomi")))
+  "Associative list of alternate extensions to find.
+See `ff-other-file-alist'."
+  :group 'tuareg
+  :type '(repeat (list regexp (choice (repeat string) function))))
+
 
 (defcustom tuareg-interactive-scroll-to-bottom-on-output nil
   "*Controls when to scroll to the bottom of the interactive buffer
@@ -2362,6 +2375,8 @@ or indent all lines in the current phrase."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                              The major mode
 
+(defalias 'tuareg-find-alternate-file 'ff-get-other-file)
+
 (defun tuareg--switch-outside-build ()
   "If the current buffer refers to a file under a _build
 directory and a corresponding file exists outside the _build
@@ -2525,6 +2540,8 @@ Short cuts for interactions with the REPL:
     (setq-local compilation-error-screen-columns nil)
     ;; TABs should NOT be used in OCaml files:
     (setq indent-tabs-mode nil)
+    (setq ff-search-directories '(".")
+          ff-other-file-alist tuareg-other-file-alist)
     (tuareg--common-mode-setup)
     (tuareg--install-font-lock)
 
@@ -2693,47 +2710,6 @@ characters \\([0-9]+\\)-\\([0-9]+\\)"
   (unwind-protect
       (caml-complete arg)
     (modify-syntax-entry ?_ "_" tuareg-mode-syntax-table)))
-
-(defun tuareg--try-find-alternate-file (mod-name extensions &optional no-create)
-  "Switch to the file given by MOD-NAME and EXTENSIONS.
-If NO-CREATE is non-nil and the file doesn't exist, don't switch and return nil,
-otherwise return non-nil."
-  (let ((ext extensions)
-        (not-found t))
-    ;; Search for a buffer or filename with the correct extension
-    (while (and not-found (not (null ext)))
-      (let* ((e (car ext))
-             (filename (concat mod-name e))
-             (buffer (get-file-buffer filename)))
-        (cond
-         (buffer (switch-to-buffer buffer)
-                 (setq not-found nil))
-         ((file-exists-p filename) (find-file filename)
-          (setq not-found nil))
-         (t (setq ext (cdr ext))))))
-    (when not-found
-      (let* ((e (car extensions)) ; Create with the first extention?
-             (filename (concat mod-name e))
-             (what (cond ((string= e ".mli") "interface")
-                         (t "implementation"))))
-        (when (and (not no-create)
-                   (y-or-n-p
-                    (format "Create %s file %s " what
-                            (file-name-nondirectory filename))))
-          (find-file filename))))))
-
-(defun tuareg-find-alternate-file ()
-  "Switch Implementation/Interface."
-  (interactive)
-  (let ((name buffer-file-name))
-    (when (string-match "\\`\\(.*\\)\\.ml\\([il]\\)?\\'" name)
-      (let ((mod-name (match-string-no-properties 1 name))
-            (e (match-string-no-properties 2 name)))
-        (cond
-         ((string= e "i")
-            (tuareg--try-find-alternate-file mod-name '(".ml" ".mll")))
-         (t
-          (tuareg--try-find-alternate-file mod-name '(".mli"))))))))
 
 (define-skeleton tuareg-insert-class-form
   "Insert a nicely formatted class-end form, leaving a mark after end."
