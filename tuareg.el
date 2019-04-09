@@ -3100,23 +3100,34 @@ It is assumed that the range START-END delimit valid OCaml phrases."
     (if phrase
         (narrow-to-region (nth 0 phrase) (nth 1 phrase)))))
 
-(defun tuareg--after-double-colon ()
-  "Non nil if the current position is after or inside ';;'.  In
-this case, the returned value is the position before ';;' (unless
-it is the first position of the buffer)."
-  (save-excursion
-    (when (looking-at-p "[;[:blank:]]*$")
-      (skip-chars-backward ";[:blank:]")
-      (if (> (point) 1) (- (point) 1)))))
+(defun tuareg--skip-backward-comment ()
+  "Skip backward a single comment and at most one preceding newline."
+  ;; We do not want to skip newlines after the comment, so we skip
+  ;; spaces by hand and check we are at the end of a comment.
+  (skip-chars-backward " \t")
+  (let ((old-pos (point)))
+    (if (and (char-equal (preceding-char) ?\)) (forward-comment -1))
+        (progn
+          (skip-chars-backward " \t")
+          (skip-chars-backward "\n" (- (point) 1))
+          (skip-chars-backward " \t")
+          t)
+      (goto-char old-pos)
+      nil)))
 
 (defun tuareg-eval-phrase ()
   "Eval the surrounding OCaml phrase (or block) in the OCaml REPL."
   (interactive)
+  ;; Move before the comment, if we are in one.
   (let ((ppss (syntax-ppss)))
-    (if (nth 4 ppss) (goto-char (nth 8 ppss))))
-  (let* ((pos (tuareg--after-double-colon))
-         (pos (if pos pos (point)))
-         (phrase (tuareg-discover-phrase pos)))
+    (if (nth 4 ppss) (goto-char (- (nth 8 ppss) 1))))
+  ;; Skip previous comments separated by whitespace (but not blank lines).
+  (when (or (char-equal (following-char) ?\s)
+            (char-equal (following-char) ?\n))
+    (while (tuareg--skip-backward-comment)))
+  (when (skip-chars-backward ";")
+    (unless (bobp) (forward-char -1)))
+  (let ((phrase (tuareg-discover-phrase)))
     (if phrase
         (progn
           (tuareg-interactive--send-region (nth 0 phrase) (nth 1 phrase))
