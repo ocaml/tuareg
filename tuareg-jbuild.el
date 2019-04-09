@@ -284,7 +284,7 @@ let () =
                                      tuareg-jbuild-temporary-file-directory))))
 
 (defun tuareg-jbuild-flymake-create-temp (filename _prefix)
-  ;; based on `flymake-create-temp-with-folder-structure'.
+  ;; based on `flymake-proc-create-temp-with-folder-structure'.
   (unless (stringp filename)
     (error "Invalid filename"))
   (tuareg-jbuild--temp-name filename))
@@ -310,18 +310,27 @@ let () =
         (copy-file f (tuareg-jbuild--temp-name f) t)))
     dir))
 
+(defvaralias 'tuareg-jbuild--temp-source-file-name
+  (if (boundp 'flymake-proc--temp-source-file-name)
+      'flymake-proc--temp-source-file-name
+    'flymake-temp-source-file-name))
+
+(defalias 'tuareg-jbuild--safe-delete-file
+  (if (functionp #'flymake-proc--safe-delete-file)
+      'flymake-proc--safe-delete-file
+    'flymake-safe-delete-file))
+
 (defun tuareg-jbuild--delete-opam-files (dir)
   "Delete all opam files in the directory DIR."
   (dolist (f (tuareg-jbuild--opam-files dir))
-    (flymake-safe-delete-file f)))
+    (tuareg-jbuild--safe-delete-file f)))
 
 (defun tuareg-jbuild-flymake-cleanup ()
   "Attempt to delete temp dir created by `tuareg-jbuild-flymake-create-temp', do not fail on error."
-  (let ((dir (file-name-directory flymake-temp-source-file-name))
+  (let ((dir (file-name-directory tuareg-jbuild--temp-source-file-name))
         (temp-dir (concat (directory-file-name
                            tuareg-jbuild-temporary-file-directory) "/")))
-    (flymake-log 3 "Clean up %s" flymake-temp-source-file-name)
-    (flymake-safe-delete-file flymake-temp-source-file-name)
+    (tuareg-jbuild--safe-delete-file tuareg-jbuild--temp-source-file-name)
     (condition-case nil
         (delete-directory (expand-file-name "_build" dir) t)
       (error nil))
@@ -336,17 +345,33 @@ let () =
         (error ; then top the loop
          (setq dir ""))))))
 
+(defalias 'tuareg-jbuild--flymake-proc-init-create-temp-buffer-copy
+  (if (functionp #'flymake-proc-init-create-temp-buffer-copy)
+      'flymake-proc-init-create-temp-buffer-copy
+    'flymake-init-create-temp-buffer-copy))
+
 (defun tuareg-jbuild-flymake-init ()
   (tuareg-jbuild-create-lint-script)
-  (let ((fname (flymake-init-create-temp-buffer-copy
+  (let ((fname (tuareg-jbuild--flymake-proc-init-create-temp-buffer-copy
                 'tuareg-jbuild-flymake-create-temp))
         (root (or (tuareg-jbuild--root buffer-file-name) "")))
     (list tuareg-jbuild-program (list fname root))))
 
+(defvaralias 'tuareg-jbuild--flymake-proc-allowed-file-name-masks
+  (if (boundp 'flymake-proc-allowed-file-name-masks)
+      'flymake-proc-allowed-file-name-masks
+    'flymake-allowed-file-name-masks))
+
 (defvar tuareg-jbuild--allowed-file-name-masks
   '("\\(?:\\`\\|/\\)jbuild\\'" tuareg-jbuild-flymake-init
                                tuareg-jbuild-flymake-cleanup)
-  "Flymake entry for jbuild files.  See `flymake-allowed-file-name-masks'.")
+  "Flymake entry for jbuild files.
+See `flymake-proc-allowed-file-name-masks'.")
+
+(defvaralias 'tuareg-jbuild--flymake-proc-err-line-patterns
+  (if (boundp 'flymake-proc-err-line-patterns)
+      'flymake-proc-err-line-patterns
+    'flymake-err-line-patterns))
 
 (defvar tuareg-jbuild--err-line-patterns
   ;; Beware that the path from the root will be reported by jbuild
@@ -491,9 +516,11 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
   (setq indent-tabs-mode nil)
   ;(setq-local syntax-propertize-function #'tuareg-jbuild-syntax-propertize)
   (setq-local require-final-newline mode-require-final-newline)
-  (push tuareg-jbuild--allowed-file-name-masks flymake-allowed-file-name-masks)
+  (push tuareg-jbuild--allowed-file-name-masks
+        tuareg-jbuild--flymake-proc-allowed-file-name-masks)
   (smie-setup tuareg-jbuild-smie-grammar #'tuareg-jbuild-smie-rules)
-  (setq-local flymake-err-line-patterns tuareg-jbuild--err-line-patterns)
+  (setq-local tuareg-jbuild--flymake-proc-err-line-patterns
+              tuareg-jbuild--err-line-patterns)
   (when (and tuareg-jbuild-flymake buffer-file-name)
     (flymake-mode t))
   (tuareg-jbuild-build-menu)

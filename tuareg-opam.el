@@ -191,20 +191,40 @@ See `prettify-symbols-alist' for more information.")
 
 (require 'flymake)
 
+(defalias 'tuareg-opam--flymake-proc-init-create-temp-buffer-copy
+  (if (functionp #'flymake-proc-init-create-temp-buffer-copy)
+      'flymake-proc-init-create-temp-buffer-copy
+    'flymake-init-create-temp-buffer-copy))
+
+(defalias 'tuareg-opam--proc-create-temp-inplace
+  (if (functionp #'flymake-proc-create-temp-inplace)
+      'flymake-proc-create-temp-inplace
+    'flymake-create-temp-inplace))
+
 (defun tuareg-opam-flymake-init ()
-  (let ((fname (flymake-init-create-temp-buffer-copy
-                #'flymake-create-temp-inplace)))
+  (let ((fname (tuareg-opam--flymake-proc-init-create-temp-buffer-copy
+                #'tuareg-opam--proc-create-temp-inplace)))
     (list "opam" (list "lint" fname))))
+
+(defvaralias 'tuareg-opam--flymake-proc-allowed-file-name-masks
+  (if (boundp 'flymake-proc-allowed-file-name-masks)
+      'flymake-proc-allowed-file-name-masks
+    'flymake-allowed-file-name-masks))
 
 (defvar tuareg-opam--allowed-file-name-masks
   '("[./]opam_?\\'" tuareg-opam-flymake-init)
   "Flymake entry for OPAM files.  See `flymake-allowed-file-name-masks'.")
 
+(defvaralias 'tuareg-opam--flymake-proc-err-line-patterns
+  (if (boundp 'flymake-proc-err-line-patterns)
+      'flymake-proc-err-line-patterns
+    'flymake-err-line-patterns))
+
 (defvar tuareg-opam--err-line-patterns
   '(("File \"\\([^\"]+\\)\", line \\([0-9]+\\), \
 characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
      1 2 3 5))
-  "Value of `flymake-err-line-patterns' for OPAM files.")
+  "Value of `flymake-proc-err-line-patterns' for OPAM files.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;                           Skeleton
@@ -264,8 +284,10 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
   (setq indent-tabs-mode nil)
   (setq-local require-final-newline mode-require-final-newline)
   (smie-setup tuareg-opam-smie-grammar #'tuareg-opam-smie-rules)
-  (push tuareg-opam--allowed-file-name-masks flymake-allowed-file-name-masks)
-  (setq-local flymake-err-line-patterns tuareg-opam--err-line-patterns)
+  (push tuareg-opam--allowed-file-name-masks
+        tuareg-opam--flymake-proc-allowed-file-name-masks)
+  (setq-local tuareg-opam--flymake-proc-err-line-patterns
+              tuareg-opam--err-line-patterns)
   (when (and tuareg-opam-flymake buffer-file-name)
     (flymake-mode t))
   (tuareg-opam-build-menu)
