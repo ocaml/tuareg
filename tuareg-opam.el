@@ -62,21 +62,18 @@
   (regexp-opt tuareg-opam-keywords 'symbols))
 
 (defconst tuareg-opam-variables-regex
-  (regexp-opt '("user" "group" "make" "root" "prefix" "lib"
-                "bin" "sbin" "doc" "stublibs" "toplevel" "man"
-                "share" "etc"
-                "name" "pinned"
-                "arch" "os" "os-distribution" "os-version" "os-family"
-                "ocaml-version" "opam-version" "compiler" "preinstalled"
-                "switch" "jobs" "ocaml-native" "ocaml-native-tools"
-                "ocaml-native-dynlink")
+  (regexp-opt '("opam-version" "root" "jobs" "make" "arch"
+                "os" "os-distribution" "os-family" "os-version"
+                "switch" "prefix" "lib" "bin" "sbin" "share" "doc"
+                "etc" "man" "toplevel" "stublibs" "user" "group"
+                "name" "version" "pinned")
               'symbols)
   "Variables declared in OPAM.")
 
 (defconst tuareg-opam-pkg-variables-regex
   (regexp-opt '("name" "version" "depends" "installed" "enable" "pinned"
                 "bin" "sbin" "lib" "man" "doc" "share" "etc" "build"
-                "hash")
+                "hash" "dev" "build-id")
               'symbols)
   "Package variables in OPAM.")
 
@@ -84,7 +81,7 @@
   (regexp-opt '("build" "with-test" "with-doc"
                 "pinned"
                 "true" "false")
-              'words)
+              'symbols)
   "Package scopes")
 
 (defconst tuareg-opam-deprecated-regex
