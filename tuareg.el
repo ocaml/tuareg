@@ -738,7 +738,7 @@ for the interactive mode."
          (uid "\\<[A-Z][A-Za-z0-9_']*\\>")
 	 (attr-id1 "\\<[A-Za-z_][A-Za-z0-9_']*\\>")
 	 (attr-id (concat attr-id1 "\\(?:\\." attr-id1 "\\)*"))
-	 (maybe-infix-attr (concat "\\(?:%" attr-id "\\)?")); at most 1
+	 (maybe-infix-extension (concat "\\(?:%" attr-id "\\)?")); at most 1
          ;; Matches braces balanced on max 3 levels.
          (balanced-braces
           (let ((b "\\(?:[^()]\\|(")
@@ -765,10 +765,10 @@ for the interactive mode."
           (let ((b "\\(?:[^][]\\|\\[")
                 (e "\\]\\)*"))
             (concat b b b "[^][]*" e e e)))
-	 (maybe-infix-ext
+	 (maybe-infix-attribute
 	  (concat "\\(?:\\[@" attr-id balanced-brackets "\\]\\)*"))
-	 (maybe-infix-attr+ext
-	  (concat maybe-infix-attr maybe-infix-ext))
+	 (maybe-infix-ext+attr
+	  (concat maybe-infix-extension maybe-infix-attribute))
          (tuple (concat "(" balanced-braces ")")); much more than tuple!
 	 ;; FIXME: module paths with functor applications
          (module-path (concat uid "\\(?:\\." uid "\\)*"))
@@ -791,7 +791,7 @@ for the interactive mode."
                                 "present" "automaton" "where" "match"
                                 "with" "do" "done" "unless" "until"
                                 "reset" "every")))
-         (let-binding (concat "\\<\\(?:let" maybe-infix-attr+ext
+         (let-binding (concat "\\<\\(?:let" maybe-infix-ext+attr
 			      "\\(?: +" (if (tuareg-editing-ls3) let-ls3 "rec")
 			       "\\)?\\|and\\) +"))
          ;; group of variables
@@ -899,15 +899,15 @@ for the interactive mode."
              (2 tuareg-font-lock-module-face keep t)
              (3 tuareg-font-lock-module-face keep t))
             ;; "!", "mutable", "virtual" treated as governing keywords
-            (,(concat "\\<\\(\\(?:val" maybe-infix-attr+ext
+            (,(concat "\\<\\(\\(?:val" maybe-infix-ext+attr
 	              (if (tuareg-editing-ls3) "\\|reset\\|do")
                       "\\)!? +\\(?:mutable\\(?: +virtual\\)?\\>"
                       "\\|virtual\\(?: +mutable\\)?\\>\\)\\|val!"
-	              maybe-infix-attr+ext "\\)\\(?: *\\(" lid "\\)\\)?")
+	              maybe-infix-ext+attr "\\)\\(?: *\\(" lid "\\)\\)?")
              (1 tuareg-font-lock-governing-face keep)
              (2 font-lock-variable-name-face nil t))
             ;; "val" without "!", "mutable" or "virtual"
-            (,(concat "\\<\\(val\\)\\>" maybe-infix-attr+ext
+            (,(concat "\\<\\(val\\)\\>" maybe-infix-ext+attr
 	              "\\(?: +\\(" lid "\\)\\)?")
              (1 tuareg-font-lock-governing-face keep)
              (2 font-lock-function-name-face keep t))
@@ -929,7 +929,7 @@ for the interactive mode."
             (,(concat "\\<\\(external\\)\\>\\(?: +\\(" lid "\\)\\)?")
              (1 tuareg-font-lock-governing-face)
              (2 font-lock-function-name-face))
-            (,(concat "\\<\\(module\\)" maybe-infix-attr+ext
+            (,(concat "\\<\\(module\\)" maybe-infix-ext+attr
 	              "\\(\\(?: +type\\)?\\(?: +rec\\)?\\)\\> *\\(" uid "\\)")
              (1 tuareg-font-lock-governing-face)
              (2 tuareg-font-lock-governing-face)
@@ -1055,10 +1055,10 @@ for the interactive mode."
           (1 font-lock-function-name-face nil t)
           (2 font-lock-variable-name-face keep t)
           (3 font-lock-type-face keep t))
-         (,(concat "\\<function\\>" maybe-infix-attr+ext
+         (,(concat "\\<function\\>" maybe-infix-ext+attr
 	           tuareg--whitespace-re "\\(" lid "\\)")
           1 font-lock-variable-name-face)
-         (,(concat "\\<fun" maybe-infix-attr+ext " +" gvars " *->")
+         (,(concat "\\<fun" maybe-infix-ext+attr " +" gvars " *->")
           1 font-lock-variable-name-face keep nil)
          (,(concat gclass-gparams " *" lid gvars "? *=")
           3 font-lock-variable-name-face keep t)
