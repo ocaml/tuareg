@@ -137,6 +137,7 @@
 
 (defgroup tuareg nil
   "Support for the OCaml language."
+  :link '(url-link "https://github.com/ocaml/tuareg")
   :group 'languages)
 
 ;; Indentation defaults
