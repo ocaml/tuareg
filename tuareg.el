@@ -231,9 +231,10 @@ though, if you also have `tuareg-electric-indent' on."
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-other-file-alist
-  '(("\\.mli\\'" (".ml" ".mll"))
+  '(("\\.mli\\'" (".ml" ".mll" ".mly"))
     ("\\.ml\\'" (".mli"))
     ("\\.mll\\'" (".mli"))
+    ("\\.mly\\'" (".mli"))
     ("\\.eliomi\\'" (".eliom"))
     ("\\.eliom\\'" (".eliomi")))
   "Associative list of alternate extensions to find.
