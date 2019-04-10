@@ -2127,6 +2127,60 @@ whereas with a nil value you get
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                 Phrase movements and indentation
 
+(defconst tuareg-starters-syms
+  '("module" "type" "let" "d-let" "and"))
+
+(defun tuareg-find-matching-starter (starters)
+  (let (tok)
+    (while
+        (let ((td (smie-backward-sexp 'halfsexp)))
+          (cond
+           ((and (car td)
+                 (member (nth 2 td) starters))
+            (goto-char (nth 1 td)) (setq tok (nth 2 td)) nil)
+           ((and (car td) (not (numberp (car td))))
+            (unless (bobp) (goto-char (nth 1 td)) t))
+           (t t))))
+    tok))
+
+(defun tuareg-skip-siblings ()
+  (while (and (not (bobp))
+              (null (car (smie-backward-sexp))))
+    (tuareg-find-matching-starter tuareg-starters-syms))
+  (when (looking-at-p "in")
+    ;; Skip over `local...in' and continue.
+    (forward-word 1)
+    (smie-backward-sexp 'halfsexp)
+    (tuareg-skip-siblings)))
+
+(defun tuareg-beginning-of-defun ()
+  (when (tuareg-find-matching-starter tuareg-starters-syms)
+	(save-excursion (tuareg-smie-forward-token)
+                        (tuareg-skip-blank-and-comments)
+                        (let ((name (tuareg-smie-forward-token)))
+                          (if (not (member name '("rec" "type")))
+                              name
+                            (tuareg-skip-blank-and-comments)
+                        (tuareg-smie-forward-token))))))
+
+(defcustom tuareg-max-name-components 3
+  "Maximum number of components to use for the current function name."
+  :type 'integer)
+
+(defun tuareg-current-fun-name ()
+  (save-excursion
+    (let ((count tuareg-max-name-components)
+          fullname name)
+      (end-of-line)
+      (while (and (> count 0)
+                  (setq name (tuareg-beginning-of-defun)))
+        (cl-decf count)
+        (setq fullname (if fullname (concat name "." fullname) name))
+        ;; Skip all other declarations that we find at the same level.
+        (tuareg-skip-siblings))
+      fullname)))
+
+
 (defun tuareg--skip-double-colon ()
   (when (looking-at "[ \t\n]*;;[ \t\n]*")
     (goto-char (match-end 0))))
@@ -2548,59 +2602,6 @@ Short cuts for interactions with the REPL:
 
     (setq imenu-create-index-function #'tuareg-imenu-create-index)
     (run-mode-hooks 'tuareg-load-hook)))
-
-(defconst tuareg-starters-syms
-  '("module" "type" "let" "d-let" "and"))
-
-(defun tuareg-find-matching-starter (starters)
-  (let (tok)
-    (while
-        (let ((td (smie-backward-sexp 'halfsexp)))
-          (cond
-           ((and (car td)
-                 (member (nth 2 td) starters))
-            (goto-char (nth 1 td)) (setq tok (nth 2 td)) nil)
-           ((and (car td) (not (numberp (car td))))
-            (unless (bobp) (goto-char (nth 1 td)) t))
-           (t t))))
-    tok))
-
-(defun tuareg-skip-siblings ()
-  (while (and (not (bobp))
-              (null (car (smie-backward-sexp))))
-    (tuareg-find-matching-starter tuareg-starters-syms))
-  (when (looking-at-p "in")
-    ;; Skip over `local...in' and continue.
-    (forward-word 1)
-    (smie-backward-sexp 'halfsexp)
-    (tuareg-skip-siblings)))
-
-(defun tuareg-beginning-of-defun ()
-  (when (tuareg-find-matching-starter tuareg-starters-syms)
-	(save-excursion (tuareg-smie-forward-token)
-                        (tuareg-skip-blank-and-comments)
-                        (let ((name (tuareg-smie-forward-token)))
-                          (if (not (member name '("rec" "type")))
-                              name
-                            (tuareg-skip-blank-and-comments)
-                        (tuareg-smie-forward-token))))))
-
-(defcustom tuareg-max-name-components 3
-  "Maximum number of components to use for the current function name."
-  :type 'integer)
-
-(defun tuareg-current-fun-name ()
-  (save-excursion
-    (let ((count tuareg-max-name-components)
-          fullname name)
-      (end-of-line)
-      (while (and (> count 0)
-                  (setq name (tuareg-beginning-of-defun)))
-        (cl-decf count)
-        (setq fullname (if fullname (concat name "." fullname) name))
-        ;; Skip all other declarations that we find at the same level.
-        (tuareg-skip-siblings))
-      fullname)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               Error processing
