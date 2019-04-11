@@ -2129,6 +2129,46 @@ whereas with a nil value you get
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                 Phrase movements and indentation
 
+(defun tuareg--skip-backward-comment ()
+  "Skip backward a single comment and at most one preceding newline.
+Return a non-nil value if a comment was skipped."
+  ;; We do not want to skip newlines after the comment (as
+  ;; `forward-comment'), so we skip spaces by hand and check we are at
+  ;; the end of a comment.
+  (skip-chars-backward " \t")
+  (let ((opoint (point)))
+    (if (and (char-equal (preceding-char) ?\)) (forward-comment -1))
+        (progn
+          (skip-chars-backward " \t")
+          (skip-chars-backward "\n" (1- (point)))
+          t)
+      (goto-char opoint)
+      nil)))
+
+(defun tuareg--skip-backward-comments-semicolon ()
+  "Skip 'sticky' comments and ';;' after a definition."
+  ;; Comments after the definition not separated by a blank like
+  ;; ("sticking") are considered part of the definition.
+  (while (tuareg--skip-backward-comment))
+  (skip-chars-backward " \t;"))
+
+(defun tuareg--skip-forward-comment ()
+  "Skip forward a single comment and at most one subsequent newline.
+Return a non-nil value if a comment was skipped."
+  (skip-chars-forward " \t")
+  (let ((opoint (point)))
+    (skip-chars-forward "\n" (1+ (point)))
+    (skip-chars-forward " \t")
+    (if (and (char-equal (following-char) ?\() (forward-comment 1))
+        t
+      (goto-char opoint)
+      nil)))
+
+(defun tuareg--skip-forward-comments-semicolon ()
+  "Skip ';;' and then 'sticky' comments after a definition."
+  (skip-chars-forward " \t;")
+  (while (tuareg--skip-forward-comment)))
+
 (defconst tuareg-starters-syms
   '("type" "d-let" "exception" "module" "class" "val" "external" "open"))
 
@@ -2138,6 +2178,7 @@ Return the token starting the phrase (`nil' if it is an expression)."
   (let ((state (syntax-ppss)))
     (if (nth 3 state); in a string
         (goto-char (nth 8 state))
+      (tuareg--skip-backward-comments-semicolon)
       ;; If on a word (e.g., "let" or "end"), move to the end of it.
       ;; In particular, even if at the beginning of the "let" of a
       ;; definition, one will not jump to the previous one.
@@ -2164,6 +2205,40 @@ Return the token starting the phrase (`nil' if it is an expression)."
                 (t t))))))
     tok))
 
+(defun tuareg--skip-double-colon ()
+  (tuareg-skip-blank-and-comments)
+  (when (looking-at ";;[ \t\n]*")
+    (goto-char (match-end 0))))
+
+(defun tuareg-end-of-defun ()
+  "Assuming that we are at the beginning of a definition, move to its end.
+See variable `end-of-defun-function'."
+  (interactive)
+  (let ((td (smie-forward-sexp ";;"))) ; for expressions
+    (when (member (nth 2 td) tuareg-starters-syms)
+      (smie-forward-sexp 'halfsexp)))
+  (tuareg--skip-forward-comments-semicolon))
+
+(defun tuareg-beginning-of-defun (&optional arg)
+  "Move point backward to the beginning of a definition.
+See variable `beginning-of-defun-function'."
+  (interactive "^P")
+  (unless arg (setq arg 1))
+  (cond
+   ((> arg 0)
+    (while (and (> arg 0) (not (bobp)))
+      (tuareg-backward-beginning-of-defun)
+      (cl-decf arg)))
+   (t
+    (tuareg-backward-beginning-of-defun)
+    (unless (bobp) (tuareg-end-of-defun))
+    (while (and (< arg 0) (not (eobp)))
+      (tuareg--skip-double-colon)
+      (smie-forward-sexp 'halfsexp)
+      (cl-incf arg))
+    (tuareg-backward-beginning-of-defun)))
+  t); whether an experssion or a def, we found something.
+
 (defun tuareg-skip-siblings ()
   (while (and (not (bobp))
               (null (car (smie-backward-sexp))))
@@ -2174,14 +2249,14 @@ Return the token starting the phrase (`nil' if it is an expression)."
     (smie-backward-sexp 'halfsexp)
     (tuareg-skip-siblings)))
 
-(defun tuareg-beginning-of-defun ()
+(defun tuareg--current-fun-name ()
   (when (tuareg-backward-beginning-of-defun)
-	(save-excursion (tuareg-smie-forward-token)
+    (save-excursion (tuareg-smie-forward-token)
+                    (tuareg-skip-blank-and-comments)
+                    (let ((name (tuareg-smie-forward-token)))
+                      (if (not (member name '("rec" "type")))
+                          name
                         (tuareg-skip-blank-and-comments)
-                        (let ((name (tuareg-smie-forward-token)))
-                          (if (not (member name '("rec" "type")))
-                              name
-                            (tuareg-skip-blank-and-comments)
                         (tuareg-smie-forward-token))))))
 
 (defcustom tuareg-max-name-components 3
@@ -2194,18 +2269,12 @@ Return the token starting the phrase (`nil' if it is an expression)."
           fullname name)
       (end-of-line)
       (while (and (> count 0)
-                  (setq name (tuareg-beginning-of-defun)))
+                  (setq name (tuareg--current-fun-name)))
         (cl-decf count)
         (setq fullname (if fullname (concat name "." fullname) name))
         ;; Skip all other declarations that we find at the same level.
         (tuareg-skip-siblings))
       fullname)))
-
-
-(defun tuareg--skip-double-colon ()
-  (when (looking-at "[ \t\n]*;;[ \t\n]*")
-    (goto-char (match-end 0))))
-
 
 (define-obsolete-function-alias 'tuareg--beginning-of-phrase
   'tuareg-backward-beginning-of-defun
@@ -2584,6 +2653,7 @@ Short cuts for interactions with the REPL:
     (tuareg--common-mode-setup)
     (tuareg--install-font-lock)
     (setq-local beginning-of-defun-function #'tuareg-beginning-of-defun)
+    (setq-local end-of-defun-function #'tuareg-end-of-defun)
 
     (setq imenu-create-index-function #'tuareg-imenu-create-index)
     (run-mode-hooks 'tuareg-load-hook)))
@@ -3079,27 +3149,8 @@ It is assumed that the range START-END delimit valid OCaml phrases."
           (message "The expression after the point is not well braced.")))
     (message "The expression after the point is not well braced.")))
 
-(defun tuareg-narrow-to-phrase ()
-  "Narrow the editting window to the surrounding OCaml phrase (or block)."
-  (interactive)
-  (let ((phrase (tuareg-discover-phrase)))
-    (if phrase
-        (narrow-to-region (nth 0 phrase) (nth 1 phrase)))))
-
-(defun tuareg--skip-backward-comment ()
-  "Skip backward a single comment and at most one preceding newline."
-  ;; We do not want to skip newlines after the comment, so we skip
-  ;; spaces by hand and check we are at the end of a comment.
-  (skip-chars-backward " \t")
-  (let ((old-pos (point)))
-    (if (and (char-equal (preceding-char) ?\)) (forward-comment -1))
-        (progn
-          (skip-chars-backward " \t")
-          (skip-chars-backward "\n" (- (point) 1))
-          (skip-chars-backward " \t")
-          t)
-      (goto-char old-pos)
-      nil)))
+(define-obsolete-function-alias 'tuareg-narrow-to-phrase 'narrow-to-defun
+  "Apr 10, 2019")
 
 (defun tuareg-eval-phrase ()
   "Eval the surrounding OCaml phrase (or block) in the OCaml REPL."
