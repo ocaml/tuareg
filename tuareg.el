@@ -11,8 +11,8 @@
 ;;      Sean McLaughlin <seanmcl@gmail.com>
 ;;      Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Created: 8 Jan 1997
-;; Version: 2.2.0
-;; Package-Requires: ((caml "3.12.0.1") (emacs "24.3"))
+;; Version: 2.3.0
+;; Package-Requires: ((caml "3.12.0.1") (emacs "24.4"))
 ;; Keywords: ocaml languages
 ;; URL: https://github.com/ocaml/tuareg
 ;; EmacsWiki: TuaregMode
@@ -2548,7 +2548,6 @@ expansion at run-time, if the run-time version of Emacs does know this macro."
             (append tuareg-prettify-symbols-basic-alist
                     tuareg-prettify-symbols-extra-alist)
           tuareg-prettify-symbols-basic-alist))
-  ;; FIXME: Use `add-function' (when Emacs≥24.4 can be assumed)!
   (setq prettify-symbols-compose-predicate
         #'tuareg--prettify-symbols-compose-p)
   (setq-local open-paren-in-column-0-is-defun-start nil)
