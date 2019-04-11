@@ -3151,7 +3151,6 @@ It is assumed that the range START-END delimit valid OCaml phrases."
               (progn (goto-char (cdr phrase))
                      (tuareg-skip-blank-and-comments))
               (goto-char opoint)))
-        (goto-char opoint)
         (message "The expression after the point is not well braced.")))))
 
 (defun tuareg-eval-buffer ()
