@@ -2241,8 +2241,12 @@ See variable `beginning-of-defun-function'."
 
 (defun tuareg-skip-siblings ()
   (while (and (not (bobp))
-              (null (car (smie-backward-sexp))))
-    (tuareg-backward-beginning-of-defun))
+              (let ((td (smie-backward-sexp)))
+                (or (null (car td))
+                    (and (string= (nth 2 td) ";;")
+                         (tuareg-smie-backward-token)))))
+    (tuareg-backward-beginning-of-defun)
+    (forward-comment (- (point))))
   (when (looking-at-p "in")
     ;; Skip over `local...in' and continue.
     (forward-word 1)
