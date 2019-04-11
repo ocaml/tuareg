@@ -402,12 +402,12 @@ problems if you compile under tramp."
 (defvar tuareg-font-lock-label-face
   'tuareg-font-lock-label-face)
 
-(defface tuareg-font-double-colon-face
+(defface tuareg-font-double-semicolon-face
   '((t (:foreground "OrangeRed")))
   "Face description for ;; which is not needed in standard code."
   :group 'tuareg-faces)
-(defvar tuareg-font-double-colon-face
-  'tuareg-font-double-colon-face)
+(defvar tuareg-font-double-semicolon-face
+  'tuareg-font-double-semicolon-face)
 
 (defface tuareg-font-lock-error-face
   '((t (:foreground "yellow" :background "red" :bold t)))
@@ -843,7 +843,7 @@ for the interactive mode."
             (,(concat (if interactive-p "^ *#\\(?: +#\\)?" "^#")
                       "show\\(?:_module\\)? +\\(" uid "\\)")
              1 tuareg-font-lock-module-face)
-            (";;+" 0 tuareg-font-double-colon-face)
+            (";;+" 0 tuareg-font-double-semicolon-face)
             ;; Attributes (`keep' to highlight except strings & chars)
             (,(concat "\\[@\\(?:@@?\\)?" attr-id balanced-brackets "\\]")
              0 tuareg-font-lock-attribute-face keep)
@@ -2214,7 +2214,7 @@ Return the token starting the phrase (`nil' if it is an expression)."
                 (t t))))))
     tok))
 
-(defun tuareg--skip-double-colon ()
+(defun tuareg--skip-double-semicolon ()
   (tuareg-skip-blank-and-comments)
   (when (looking-at ";;[ \t\n]*")
     (goto-char (match-end 0))))
@@ -2242,7 +2242,7 @@ See variable `beginning-of-defun-function'."
     (tuareg-backward-beginning-of-defun)
     (unless (bobp) (tuareg-end-of-defun))
     (while (and (< arg 0) (not (eobp)))
-      (tuareg--skip-double-colon)
+      (tuareg--skip-double-semicolon)
       (smie-forward-sexp 'halfsexp)
       (cl-incf arg))
     (tuareg-backward-beginning-of-defun)))
@@ -3098,19 +3098,19 @@ It is assumed that the range START-END delimit valid OCaml phrases."
   (let* ((phrases (buffer-substring-no-properties start end))
          (phrases (replace-regexp-in-string "[ \t\n]*\\(;;[ \t\n]*\\)?\\'" ""
                                             phrases))
-         (phrases-colon (concat phrases ";;")))
+         (phrases-semicolon (concat phrases ";;")))
     (if (string= phrases "")
         (message "Cannot send empty commands to OCaml REPL!")
       (with-current-buffer tuareg-interactive-buffer-name
         (goto-char (point-max))
         (setq tuareg-interactive-last-phrase-pos-in-repl (point))
-        (comint-send-string tuareg-interactive-buffer-name phrases-colon)
+        (comint-send-string tuareg-interactive-buffer-name phrases-semicolon)
         (let ((pos (point)))
           (comint-send-input)
           (when tuareg-interactive-echo-phrase
             (save-excursion
               (goto-char pos)
-              (insert phrases-colon)))))))
+              (insert phrases-semicolon)))))))
   (when tuareg-display-buffer-on-eval
     (display-buffer tuareg-interactive-buffer-name)))
 
