@@ -2137,16 +2137,19 @@ whereas with a nil value you get
 Return the token starting the phrase (`nil' if it is an expression)."
   (let ((state (syntax-ppss)))
     (if (nth 3 state); in a string
-        (goto-char (nth 8 state))))
-  ;; If on a word (e.g., "let" or "end"), move to the end of it.  In
-  ;; particular, even if at the beginning of the "let" of a
-  ;; definition, one will not jump to the previous one.
-  (skip-syntax-forward "w_")
+        (goto-char (nth 8 state))
+      ;; If on a word (e.g., "let" or "end"), move to the end of it.
+      ;; In particular, even if at the beginning of the "let" of a
+      ;; definition, one will not jump to the previous one.
+      (skip-syntax-forward "w_")))
   (let (td tok
         (opoint (point)))
-    (setq td (smie-backward-sexp ";;"))
-    (if (member (nth 2 td) tuareg-starters-syms)
-        (progn (goto-char (nth 1 td)) (setq tok (nth 2 td)))
+    (setq td (smie-backward-sexp ";;")); for expressions
+    (cond
+     ((and (car td) (member (nth 2 td) tuareg-starters-syms))
+      (goto-char (nth 1 td)) (setq tok (nth 2 td)))
+     ((and (car td) (string= (nth 2 td) ";;")))
+     (t
       (goto-char opoint)
       (while (progn
                (setq td (smie-backward-sexp 'halfsexp))
@@ -2158,7 +2161,7 @@ Return the token starting the phrase (`nil' if it is an expression)."
                  nil)
                 ((and (car td) (not (numberp (car td))))
                  (unless (bobp) (goto-char (nth 1 td)) t))
-                (t t)))))
+                (t t))))))
     tok))
 
 (defun tuareg-skip-siblings ()
