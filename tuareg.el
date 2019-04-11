@@ -3136,17 +3136,23 @@ It is assumed that the range START-END delimit valid OCaml phrases."
 (defun tuareg-eval-phrase ()
   "Eval the surrounding OCaml phrase (or block) in the OCaml REPL."
   (interactive)
-  ;; Move before the comment, if we are in one.
-  (let ((ppss (syntax-ppss)))
-    (if (nth 4 ppss) (goto-char (- (nth 8 ppss) 1))))
-  (let ((phrase (tuareg-discover-phrase)))
-    (if phrase
-        (progn
-          (tuareg-interactive--send-region (car phrase) (cdr phrase))
-          (when tuareg-skip-after-eval-phrase
+  (let ((opoint (point)))
+    ;; Move before the comment, if we are in one.
+    (let ((ppss (syntax-ppss)))
+      (if (nth 4 ppss) (goto-char (- (nth 8 ppss) 1))))
+    (let ((phrase (tuareg-discover-phrase)))
+      (if phrase
+          (progn
+            ;; Remove comments after the phrase
             (goto-char (cdr phrase))
-            (tuareg-skip-blank-and-comments)))
-      (message "The expression after the point is not well braced."))))
+            (forward-comment (- (point)))
+            (tuareg-interactive--send-region (car phrase) (point))
+            (if tuareg-skip-after-eval-phrase
+              (progn (goto-char (cdr phrase))
+                     (tuareg-skip-blank-and-comments))
+              (goto-char opoint)))
+        (goto-char opoint)
+        (message "The expression after the point is not well braced.")))))
 
 (defun tuareg-eval-buffer ()
   "Send the buffer to the Tuareg Interactive process."
