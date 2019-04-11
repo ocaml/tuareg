@@ -3041,7 +3041,7 @@ I/O via buffer `*OCaml*'."
                                 tuareg-interactive-program))))
   (unless (comint-check-proc tuareg-interactive-buffer-name)
     (let ((cmdlist (tuareg--split-args tuareg-interactive-program))
-          (process-connection-type nil))
+          (process-connection-type t))
       (set-buffer (apply (function make-comint) "OCaml"
                          (car cmdlist) nil (cdr cmdlist)))
       (tuareg-interactive-mode)
