@@ -2201,7 +2201,13 @@ Return the token starting the phrase (`nil' if it is an expression)."
                 ((and (car td) (string= (nth 2 td) ";;"))
                  nil)
                 ((and (car td) (not (numberp (car td))))
-                 (unless (bobp) (goto-char (nth 1 td)) t))
+                 (unless (bobp)
+                   (goto-char (nth 1 td))
+                   ;; Make sure there is not a preceding ;;
+                   (setq opoint (point))
+                   (let ((tok (tuareg-smie-backward-token)))
+                     (goto-char opoint)
+                     (not (string= tok ";;")))))
                 (t t))))))
     tok))
 
