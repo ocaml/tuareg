@@ -2130,25 +2130,41 @@ whereas with a nil value you get
 ;;                 Phrase movements and indentation
 
 (defconst tuareg-starters-syms
-  '("module" "type" "let" "d-let" "and"))
+  '("type" "d-let" "exception" "module" "class" "val" "external" "open"))
 
-(defun tuareg-find-matching-starter (starters)
-  (let (tok)
-    (while
-        (let ((td (smie-backward-sexp 'halfsexp)))
-          (cond
-           ((and (car td)
-                 (member (nth 2 td) starters))
-            (goto-char (nth 1 td)) (setq tok (nth 2 td)) nil)
-           ((and (car td) (not (numberp (car td))))
-            (unless (bobp) (goto-char (nth 1 td)) t))
-           (t t))))
+(defun tuareg-backward-beginning-of-defun ()
+  "Move the point backward to the beginning of a definition.
+Return the token starting the phrase (`nil' if it is an expression)."
+  (let ((state (syntax-ppss)))
+    (if (nth 3 state); in a string
+        (goto-char (nth 8 state))))
+  ;; If on a word (e.g., "let" or "end"), move to the end of it.  In
+  ;; particular, even if at the beginning of the "let" of a
+  ;; definition, one will not jump to the previous one.
+  (skip-syntax-forward "w_")
+  (let (td tok
+        (opoint (point)))
+    (setq td (smie-backward-sexp ";;"))
+    (if (member (nth 2 td) tuareg-starters-syms)
+        (progn (goto-char (nth 1 td)) (setq tok (nth 2 td)))
+      (goto-char opoint)
+      (while (progn
+               (setq td (smie-backward-sexp 'halfsexp))
+               (cond
+                ((and (car td)
+                      (member (nth 2 td) tuareg-starters-syms))
+                 (goto-char (nth 1 td)) (setq tok (nth 2 td)) nil)
+                ((and (car td) (string= (nth 2 td) ";;"))
+                 nil)
+                ((and (car td) (not (numberp (car td))))
+                 (unless (bobp) (goto-char (nth 1 td)) t))
+                (t t)))))
     tok))
 
 (defun tuareg-skip-siblings ()
   (while (and (not (bobp))
               (null (car (smie-backward-sexp))))
-    (tuareg-find-matching-starter tuareg-starters-syms))
+    (tuareg-backward-beginning-of-defun))
   (when (looking-at-p "in")
     ;; Skip over `local...in' and continue.
     (forward-word 1)
@@ -2156,7 +2172,7 @@ whereas with a nil value you get
     (tuareg-skip-siblings)))
 
 (defun tuareg-beginning-of-defun ()
-  (when (tuareg-find-matching-starter tuareg-starters-syms)
+  (when (tuareg-backward-beginning-of-defun)
 	(save-excursion (tuareg-smie-forward-token)
                         (tuareg-skip-blank-and-comments)
                         (let ((name (tuareg-smie-forward-token)))
@@ -2187,46 +2203,10 @@ whereas with a nil value you get
   (when (looking-at "[ \t\n]*;;[ \t\n]*")
     (goto-char (match-end 0))))
 
-(defconst tuareg--beginning-of-phrase-syms
-  (let* ((prec (cdr (assoc "d-let" tuareg-smie-grammar)))
-         (syms (delq nil
-                     (mapcar (lambda (x) (if (equal (cdr x) prec) (car x)))
-                             tuareg-smie-grammar))))
-    (dolist (k '(";;"))
-      (setq syms (delete k syms)))
-    syms))
 
-(defun tuareg--beginning-of-phrase ()
-  "Move the point to the beginning of the OCaml phrase on which the point is.
-Return a non nil value if at the beginning of a toplevel phrase (and not an
-expression)."
-  (let ((proper-beginning-of-phrase nil)
-        (state (syntax-ppss)))
-    (if (nth 3 state); in a string
-        (goto-char (nth 8 state)))
-    (while
-        (if (save-excursion
-              (member (tuareg-smie-backward-token)
-                      tuareg--beginning-of-phrase-syms))
-            (progn
-              (tuareg-smie-backward-token)
-              (setq proper-beginning-of-phrase t)
-              nil)
-          (let ((td (smie-backward-sexp 'halfsexp)))
-            (cond
-             ((member (nth 2 td) tuareg--beginning-of-phrase-syms)
-              (setq proper-beginning-of-phrase t)
-              (goto-char (nth 1 td))
-              nil)
-             ((string= (nth 2 td) ";;") nil)
-             ((and (car td) (not (numberp (car td))))
-              (unless (bobp) (goto-char (nth 1 td)) t))
-             (t t)))))
-    (if (and (bobp) (not proper-beginning-of-phrase))
-        (save-excursion
-          (member (tuareg-smie-forward-token)
-                  tuareg--beginning-of-phrase-syms))
-        proper-beginning-of-phrase)))
+(define-obsolete-function-alias 'tuareg--beginning-of-phrase
+  'tuareg-backward-beginning-of-defun
+  "Apr 10, 2019")
 
 (defun tuareg--discover-phrase-forward ()
   (smie-forward-sexp 'halfsexp))
