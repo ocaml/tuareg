@@ -2181,11 +2181,11 @@ Return the token starting the phrase (`nil' if it is an expression)."
   (let ((state (syntax-ppss)))
     (if (nth 3 state); in a string
         (goto-char (nth 8 state))
-      (tuareg--skip-backward-comments-semicolon)
       ;; If on a word (e.g., "let" or "end"), move to the end of it.
       ;; In particular, even if at the beginning of the "let" of a
       ;; definition, one will not jump to the previous one.
-      (skip-syntax-forward "w_")))
+      (or (/= (skip-syntax-forward "w_") 0)
+          (tuareg--skip-backward-comments-semicolon))))
   (let (td tok
         (opoint (point)))
     (setq td (smie-backward-sexp ";;")); for expressions
