@@ -2149,6 +2149,9 @@ Return a non-nil value if a comment was skipped."
   "Skip 'sticky' comments and ';;' after a definition."
   ;; Comments after the definition not separated by a blank like
   ;; ("sticking") are considered part of the definition.
+  (when (looking-at-p "[ \t]*(\\*")
+    (skip-chars-backward " \t")
+    (skip-chars-backward "\n" (1- (point))))
   (while (tuareg--skip-backward-comment))
   (skip-chars-backward " \t;"))
 
