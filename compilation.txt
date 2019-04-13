@@ -1,0 +1,20 @@
+OCaml Error Messages                                       -*-compilation-*-
+
+Shows different OCaml error messages and how they are rendered.
+
+File "file.ml", line 4, characters 6-7:
+Error: This expression has type int
+       This is not a function; it cannot be applied.
+
+File "file.ml", line 3, characters 6-7:
+Warning 26: unused variable y.
+
+File "file.ml", line 6, characters 15-38:
+Error: Signature mismatch:
+       Modules do not match: sig val x : float end is not included in X
+       Values do not match: val x : float is not included in val x : int
+       File "file.ml", line 3, characters 2-13: Expected declaration
+       File "file.ml", line 7, characters 6-7: Actual declaration
+
+File "file.ml", line 8, characters 6-7:
+Warning 32: unused value y.
