@@ -25,10 +25,10 @@ Install
 
 The easier way to install Tuareg is though
 the [Emacs package system](https://www.gnu.org/software/emacs/manual/html_node/emacs/Packages.html)
-and [Melpa](https://melpa.org/) — you first have to
+and [MELPA][] — you first have to
 [configure the latter](https://melpa.org/#/getting-started).
 
-You can also install it using [OPAM](http://opam.ocaml.org/):
+You can also install it using [OPAM][]:
 
     opam install tuareg
 
@@ -197,6 +197,23 @@ See [dot-emacs.el](dot-emacs.el) for some examples.
 
 [Init File]: https://www.gnu.org/software/emacs/manual/html_node/emacs/Init-File.html
 
+Additional packages
+-------------------
+
+It is recommended to install [Merlin][] which is available in
+[OPAM][].  Tuareg is automatically detect it and use some of its
+features (e.g. for *imenu*).  Merlin offers auto-completion, the
+possibility to query the type with <kbd>C-cC-t</kbd>, to find the
+location of an identifier with <kbd>C-cC-l</kbd>,...  Highly
+recommended.
+
+[caml-mode][] (available in [MELPA][]) is used to display types (using
+the obsolete `*.annot` files), open a module for documentation,...
+
+[Merlin]: https://github.com/ocaml/merlin
+[OPAM]: http://opam.ocaml.org/
+[caml-mode]: https://github.com/ocaml/caml-mode
+[MELPA]: https://melpa.org/
 
 Bugs
 ----
