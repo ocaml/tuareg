@@ -19,6 +19,7 @@ Contents
 `tuareg.el`      — A major mode for editing OCaml code in Emacs.  
 `ocamldebug.el`  — To run the OCaml debugger under Emacs.  
 `sample.ml`      — Sample file to check the indentation engine.
+`compilation.txt` — To check the compilation regexp `tuareg--error-regexp`.
 
 Install
 -------
@@ -50,8 +51,12 @@ Usage & Configuration
 ---------------------
 
 The Tuareg major mode is triggered by visiting a file with extension
-`.ml`, `.mli`, `.mly`, `.mll`, and `.mlp` or manually by
-<kbd>M-x tuareg-mode</kbd>.
+`.ml`, `.mli`, and `.mlp` or manually by <kbd>M-x tuareg-mode</kbd>.
+A [Menhir][] mode, `tuareg-menhir`, supports `.mly` files.  (A special
+mode for `.mll` has yet to be written.)
+
+For the convenience of users of [ocsigen][], the extensions
+[`.eliom`](http://ocsigen.org/eliom/), `.eliomi` trigger `tuareg-mode`.
 
 Start the OCaml REPL with <kbd>M-x run-ocaml</kbd>.
 To evaluate a
@@ -210,6 +215,8 @@ recommended.
 [caml-mode][] (available in [MELPA][]) is used to display types (using
 the obsolete `*.annot` files), open a module for documentation,...
 
+[Menhir]: http://gallium.inria.fr/~fpottier/menhir/
+[ocsigen]: http://ocsigen.org/
 [Merlin]: https://github.com/ocaml/merlin
 [OPAM]: http://opam.ocaml.org/
 [caml-mode]: https://github.com/ocaml/caml-mode
