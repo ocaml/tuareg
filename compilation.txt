@@ -18,3 +18,97 @@ Error: Signature mismatch:
 
 File "file.ml", line 8, characters 6-7:
 Warning 32: unused value y.
+
+
+* Since OCaml 4.08, the error messages have the following form.
+
+File "helloworld.ml", line 2, characters 36-64:
+2 | module rec A: sig type t += A end = struct type t += A = B.A end
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Error: Cannot safely evaluate the definition of the following cycle
+       of recursively-defined modules: A -> B -> A.
+       There are no safe modules in this cycle (see manual section 8.2).
+
+File "helloworld.ml", lines 4-7, characters 6-3:
+4 | ......struct
+5 |   module F(X:sig end) = struct end
+6 |   let f () = B.value
+7 | end
+Error: Cannot safely evaluate the definition of the following cycle
+       of recursively-defined modules: A -> B -> A.
+       There are no safe modules in this cycle (see manual section 8.2).
+
+File "robustmatch.ml", lines 33-37, characters 6-23:
+ 9 | ......match t1, t2, x with
+10 |       | AB, AB, A -> ()
+11 |       | MAB, _, A -> ()
+12 |       | _,  AB, B -> ()
+13 |       | _, MAB, B -> ()
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a case that is not matched:
+(AB, MAB, A)
+
+File "helloworld.ml", line 2, characters 36-64:
+Error: Cannot safely evaluate the definition of the following cycle
+       of recursively-defined modules: A -> B -> A.
+       There are no safe modules in this cycle (see manual section 8.2).
+
+File "helloworld.ml", line 2, characters 36-64:
+Warning 3: Cannot safely evaluate the definition of the following cycle
+       of recursively-defined modules: A -> B -> A.
+       There are no safe modules in this cycle (see manual section 8.2).
+
+File "helloworld.ml", line 2, characters 36-64:
+2 | module rec A: sig type t += A end = struct type t += A = B.A end
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^
+Warning: Cannot safely evaluate the definition of the following cycle
+       of recursively-defined modules: A -> B -> A.
+       There are no safe modules in this cycle (see manual section 8.2).
+
+File "main.ml", line 3, characters 8-50:
+Error: This expression has type float but an expression was expected of type
+         int
+
+File "main.ml", line 3, characters 8-50:
+Warning 3: This expression has type float but an expression was expected of type
+         int
+
+File "main.ml", line 13, characters 34-35:
+13 |   let f : M.t -> M.t = fun M.C -> y
+                                       ^
+Error: This expression has type M/2.t but an expression was expected of type
+         M/1.t
+       File "main.ml", line 10, characters 2-41:
+         Definition of module M/1
+       File "main.ml", line 7, characters 0-32:
+         Definition of module M/2
+
+File "main.ml", line 13, characters 34-35:
+13 |   let f : M.t -> M.t = fun M.C -> y
+                                       ^
+Error: This expression has type M/2.t but an expression was expected of type
+         M/1.t
+       File "main.ml", line 10, characters 2-41:
+         Definition of module M/1
+       File "main.ml", line 7, characters 0-32:
+         Definition of module M/2
+
+File "main.ml", line 13, characters 34-35:
+13 |   let f : M.t -> M.t = fun M.C -> y
+                                       ^
+Warning 3: This expression has type M/2.t but an expression was expected of type
+         M/1.t
+       File "main.ml", lines 10-12, characters 2-5:
+         Definition of module M/1
+       File "main.ml", line 7, characters 0-32:
+         Definition of module M/2
+
+File "main.ml", line 13, characters 34-35:
+13 |   let f : M.t -> M.t = fun M.C -> y
+                                       ^
+Warning 3: This expression has type M/2.t but an expression was expected of type
+         M/1.t
+       File "main.ml", lines 10-12, characters 2-5:
+         Definition of module M/1
+       File "main.ml", line 7, characters 0-32:
+         Definition of module M/2

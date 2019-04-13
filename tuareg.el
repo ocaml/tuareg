@@ -2648,7 +2648,8 @@ Short cuts for interactions with the REPL:
   "^[ A-\377]+ \\(\"?\\)\\([^,\" \n\t<>]+\\)\\1, \
 lines? \\([0-9]+\\)-?\\([0-9]+\\)?\
 \\(?:$\\|,\\(?: characters? \\([0-9]+\\)-?\\([0-9]+\\)?:\\)?\
-\\([ \n]Warning\\(?: [0-9]+\\)?:\\)?\\)"
+\\(\n[ \t]*\\(?:\\(?:[0-9]+ | .*\\|\\^+\\)\n[ \t]*\\)*\
+Warning\\(?: [0-9]+\\)?:\\)?\\)"
   "Regular expression matching the error messages produced by ocamlc/ocamlopt.")
 
 (when (boundp 'compilation-error-regexp-alist-alist)
