@@ -209,8 +209,9 @@ It is recommended to install [Merlin][] which is available in
 [OPAM][].  Tuareg is automatically detect it and use some of its
 features (e.g. for *imenu*).  Merlin offers auto-completion, the
 possibility to query the type with <kbd>C-cC-t</kbd>, to find the
-location of an identifier with <kbd>C-cC-l</kbd>,...  Highly
-recommended.
+location of an identifier with <kbd>C-cC-l</kbd>, to go to the next
+(resp. previous) phrase with <kbd>C-cC-n</kbd>
+(resp. <kbd>C-cC-p</kbd>),...  Highly recommended.
 
 [caml-mode][] (available in [MELPA][]) is used to display types (using
 the obsolete `*.annot` files), open a module for documentation,...
