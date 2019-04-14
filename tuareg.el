@@ -2645,15 +2645,16 @@ Short cuts for interactions with the REPL:
 ;; the language is not English.  Hence we add a regexp.
 
 (defconst tuareg--error-regexp
-  "^[ A-\377]+ \\(\"?\\)\\([^,\" \n\t<>]+\\)\\1, \
+  "^ *\\(File \\(\"?\\)\\([^,\" \n\t<>]+\\)\\2, \
 lines? \\([0-9]+\\)-?\\([0-9]+\\)?\
-\\(?:$\\|,\\(?: characters? \\([0-9]+\\)-?\\([0-9]+\\)?:\\)?\
-\\(\n[ \t]*\\(?:\\(?:[0-9]+ | .*\\|\\^+\\)\n[ \t]*\\)*\
-Warning\\(?: [0-9]+\\)?:\\)?\\)"
+\\(?:, characters? \\([0-9]+\\)-?\\([0-9]+\\)?\\)?:\\)\
+\\(?:\n[ \t]*\\(?:\\(?:[0-9]+ | .*\\|\\^+\\)\n[ \t]*\\)*\
+\\(Warning\\(?: [0-9]+\\)?\\):\\)?"
   "Regular expression matching the error messages produced by ocamlc/ocamlopt.")
 
 (when (boundp 'compilation-error-regexp-alist-alist)
-  (push `(ocaml ,tuareg--error-regexp 2 (3 . 4) (5 . 6) (7))
+  (push `(ocaml ,tuareg--error-regexp 3 (4 . 5) (6 . 7) (8) 1
+                (8 font-lock-function-name-face))
         compilation-error-regexp-alist-alist))
 
 (when (boundp 'compilation-error-regexp-alist)
