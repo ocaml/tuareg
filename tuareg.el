@@ -1081,7 +1081,7 @@ for the interactive mode."
                                         (0 font-lock-variable-name-face keep))
           ("[ \t\n]*:\\([^=]+\\)=" nil nil ; def followed by type
            (1 font-lock-type-face keep)))
-         (,(concat "\\_<fun" maybe-infix-ext+attr)
+         (,(concat "\\_<fun\\_>" maybe-infix-ext+attr)
           (tuareg--pattern-vars-matcher (tuareg--pattern-pre-form-fun) nil
                                         (0 font-lock-variable-name-face keep)))
          (,(concat "\\_<method!? +\\(" lid "\\)")
@@ -1135,10 +1135,11 @@ for the interactive mode."
   "Return the position of \"=\" marking the end of \"let\"."
   (let* ((opoint (point))
          (limit (+ opoint 800))
-         (depth (car (syntax-ppss))))
-    (if (or (looking-at "[ \t\n]*open\\_>")
-            (looking-at "[ \t\n]*exception\\_>"))
-        ;; "let open" or "let exeption"; no variables, make search fail
+         (state (syntax-ppss))
+         (depth (car state)))
+    (if (or (nth 8 state)                         ; in string or comment
+            (looking-at "[ \t\n]*open\\_>")       ; "let open"
+            (looking-at "[ \t\n]*exception\\_>")) ; "let exception"
         (setq tuareg--pattern-matcher-limit opoint)
 
       ;; Detect "="
@@ -1163,15 +1164,18 @@ for the interactive mode."
   "Return the position of \"->\" marking the end of \"fun\"."
   (let* ((opoint (point))
          (limit (+ opoint 800))
-         (depth (car (syntax-ppss))))
-    (while (and (search-forward "-" limit t)
-                (or (> (car (syntax-ppss)) depth)
-                    (not (char-equal ?> (char-after))))))
-    (setq tuareg--pattern-matcher-limit (point))
-    ;; move the point back for the sub-matcher
-    (goto-char opoint)
-    (put-text-property (point) tuareg--pattern-matcher-limit
-                       'font-lock-multiline t)
+         (state (syntax-ppss))
+         (depth (car state)))
+    (if (nth 8 state)                         ; in string or comment
+        (setq tuareg--pattern-matcher-limit opoint)
+      (while (and (search-forward "-" limit t)
+                  (or (> (car (syntax-ppss)) depth)
+                      (not (char-equal ?> (char-after))))))
+      (setq tuareg--pattern-matcher-limit (point))
+      ;; move the point back for the sub-matcher
+      (goto-char opoint)
+      (put-text-property (point) tuareg--pattern-matcher-limit
+                         'font-lock-multiline t))
     tuareg--pattern-matcher-limit))
 
 (defun tuareg--pattern-vars-matcher (limit)
