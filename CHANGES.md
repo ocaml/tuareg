@@ -5,11 +5,30 @@
   Note that <kbd>C-c C-c</kbd> launches the compilation.
 * `tuareg-jbuilder`: <kbd>C-c C-c</kbd> launches the compilation.
 * Be more subtle in phrase detection.
-* Syntax highlighting improvements (`type nonrec`, `raise_notrace`,
-  `with type`).
+* Syntax highlighting improvements: faster; much better highlighting
+  of function, class, and method arguments (including setting the
+  `font-lock-multiline` property); `[]` and `::` have the constructor
+  face; first class module, `type nonrec`, `raise_notrace`, `with
+  type` are handled.  Moreover, font-lock now has 3 possible levels of
+  fontification (see the README).
+* The switch .ml ↔ .mli now uses the Emacs built-in `find-file` and
+  was extended to `.eliom` ↔ `.eliomi` and `.mly` ↔ `.mli`.
+* Set `beginning-of-defun-function` and `end-of-defun-function` which
+  allows to go to the beginning of the current function (resp. end)
+  with <kbd>C-M-home</kbd>, <kbd>C-M-a</kbd> or <kbd>ESC
+  <C-home></kbd> (resp. <kbd><C-M-end></kbd>, <kbd>C-M-e</kbd>, or
+  <kbd>ESC <C-end></kbd>).
 * `tuareg-comment-dwim` is now bound to <kbd>C-cC-;</kbd> (fixes #149).
 * Rework electric functions (fixes issues #150 and #162).
+* Update the compilation regexp to detect warnings and for the
+  upcoming OCaml 4.08.  This also improves the highlighting of error
+  messages.
+* Evaluation of phrases: evaluate the above phrase if the point is in
+  or after comments immediately following the let-binding (without
+  separating blank lines).
+* Use a pty to communicate with the `ocaml` process (fixes #83).
 * Remove `tuareg-light`, you should now use `tuareg`.
+* `tuareg-opam`: syntax highlighting updates.
 
 Note that the mode `tuareg-dune` which was in the development version
 of this package is now part of [Dune](https://github.com/ocaml/dune).
