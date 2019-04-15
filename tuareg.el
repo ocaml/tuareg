@@ -1178,7 +1178,8 @@ for the interactive mode."
   "Match a variable name after the point.
 If it succeeds, it moves the point after the variable name and set
 `match-data'.  See e.g., `font-lock-keywords'."
-  (when (re-search-forward tuareg--lid-re tuareg--pattern-matcher-limit t)
+  (when (and (<= (point) tuareg--pattern-matcher-limit)
+             (re-search-forward tuareg--lid-re tuareg--pattern-matcher-limit t))
     (skip-chars-forward " \t\n")
     (if (>= (point) tuareg--pattern-matcher-limit)
         t
