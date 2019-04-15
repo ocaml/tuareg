@@ -745,12 +745,19 @@ Regexp match data 0 points to the chars."
   ;; N spaces in N+1 different ways :-(
   " *\\(?:[\t\n] *\\)?")
 
+(defconst tuareg--id-re "\\_<[A-Za-z_][A-Za-z0-9_']*\\_>"
+  "Regular expression for identifiers.")
+(defconst tuareg--lid-re "\\_<[a-z_][A-Za-z0-9_']*\\_>"
+  "Regular expression for variable names.")
+(defconst tuareg--uid-re "\\_<[A-Z][A-Za-z0-9_']*\\_>"
+  "Regular expression for module and constructor names.")
+
 (defun tuareg--install-font-lock (&optional interactive-p)
   "Setup `font-lock-defaults'.  INTERACTIVE-P says whether it is
 for the interactive mode."
-  (let* ((id "\\<[A-Za-z_][A-Za-z0-9_']*\\>")
-         (lid "\\<[a-z_][A-Za-z0-9_']*\\>")
-         (uid "\\<[A-Z][A-Za-z0-9_']*\\>")
+  (let* ((id tuareg--id-re)
+         (lid tuareg--lid-re)
+         (uid tuareg--uid-re)
 	 (attr-id1 "\\<[A-Za-z_][A-Za-z0-9_']*\\>")
 	 (attr-id (concat attr-id1 "\\(?:\\." attr-id1 "\\)*"))
 	 (maybe-infix-extension (concat "\\(?:%" attr-id "\\)?")); at most 1
@@ -787,8 +794,6 @@ for the interactive mode."
 	 ;; FIXME: module paths with functor applications
          (module-path (concat uid "\\(?:\\." uid "\\)*"))
          (typeconstr (concat "\\(?:" module-path "\\.\\)?" lid))
-         (constructor (concat "\\(?:\\(?:" module-path "\\.\\)?" uid
-                              "\\|`" id "\\)"))
          (extended-module-name
           (concat uid "\\(?: *([ A-Z]" balanced-braces ")\\)*"))
          (extended-module-path
@@ -809,16 +814,9 @@ for the interactive mode."
           (concat "\\<\\(?:\\(let\\)\\(" maybe-infix-ext+attr
 		  "\\)\\(?: +" (if (tuareg-editing-ls3) let-ls3 "rec")
 		  "\\)?\\|\\(and\\)\\) +"))
-         ;; group of variables
-         (gvars (concat "\\(\\(?:" tuareg--whitespace-re
-                        "\\(?:" lid "\\|()\\|" tuple ; = any balanced (...)
-                        "\\|[~?]\\(?:" lid
-                        "\\(?::\\(?:" lid "\\|(" balanced-braces ")\\)\\)?"
-                        "\\|(" balanced-braces ")\\)"
-                        "\\)\\)+\\)"))
          ;; group for possible class param
          (gclass-gparams
-          (concat "\\(\\<class\\(?: +type\\)?\\(?: +virtual\\)?\\>\\)"
+          (concat "\\(\\_<class\\(?: +type\\)?\\(?: +virtual\\)?\\>\\)"
                   " *\\(\\[ *" typevar " *\\(?:, *" typevar " *\\)*\\] *\\)?"))
          ;; font-lock rules common to all levels
          (common-keywords
@@ -852,8 +850,12 @@ for the interactive mode."
              (2 tuareg-font-lock-extension-node-face))
             (,(concat "[^;];\\(" maybe-infix-extension "\\)")
              1 tuareg-font-lock-infix-extension-node-face)
-            (,(concat (regexp-opt '("fun" "function" "match") 'symbols)
-                      "\\(" maybe-infix-ext+attr "\\)")
+            (,(concat "\\_<\\(function\\)\\_>\\(" maybe-infix-ext+attr "\\)"
+	              tuareg--whitespace-re "\\(" lid "\\)?")
+             (1 font-lock-keyword-face)
+             (2 tuareg-font-lock-infix-extension-node-face keep)
+             (3 font-lock-variable-name-face nil t))
+            (,(concat "\\_<\\(fun\\|match\\)\\_>\\(" maybe-infix-ext+attr "\\)")
              (1 font-lock-keyword-face)
              (2 tuareg-font-lock-infix-extension-node-face keep))
             ;; "type" to introduce a local abstract type considered a keyword
@@ -951,6 +953,14 @@ for the interactive mode."
             (,(concat "\\<\\(external\\)\\>\\(?: +\\(" lid "\\)\\)?")
              (1 tuareg-font-lock-governing-face)
              (2 font-lock-function-name-face))
+            ;; Highlight "let" and function names (their argument
+            ;; patterns can then be treated uniformly with variable bindings)
+            (,(concat let-binding-g3 "\\(?:\\(" lid
+                      "\\) *\\(?:[^ =,:a]\\|a[^s]\\)\\)?")
+             (1 tuareg-font-lock-governing-face keep t)
+             (2 tuareg-font-lock-infix-extension-node-face keep t)
+             (3 tuareg-font-lock-governing-face keep t)
+             (4 font-lock-function-name-face keep t))
             (,(concat "\\<\\(module\\)\\(" maybe-infix-ext+attr "\\)"
 	              "\\(\\(?: +type\\)?\\(?: +rec\\)?\\)\\>\\(?: *\\("
                       uid "\\)\\)?")
@@ -988,11 +998,6 @@ for the interactive mode."
      (append
       common-keywords
       `(;; Basic way of matching functions
-        (,(concat let-binding-g3 "\\(?:\\(" lid "\\) *[^ =,:][^=]*=\\)?")
-         (1 tuareg-font-lock-governing-face keep t)
-         (2 tuareg-font-lock-infix-extension-node-face keep t)
-         (3 tuareg-font-lock-governing-face keep t)
-         (4 font-lock-function-name-face keep t))
         (,(concat let-binding-g3 "\\(" lid "\\) *= *\\(fun\\(?:ction\\)?\\)\\>")
          (4 font-lock-function-name-face)
          (5 font-lock-keyword-face))
@@ -1070,36 +1075,22 @@ for the interactive mode."
                    "fun\\(?:ction\\)?\\>")
           (4 font-lock-function-name-face nil t)
           (5 font-lock-type-face keep t))
-         ;; let-binding (variable)
-         (,(let* ((maybe-constr (concat "\\(?:" constructor " *\\)?"))
-                  (var (concat maybe-constr "\\(?:" lid "\\|" tuple "\\)"))
-                  (simple-patt (concat var "\\(?: *, *" var "\\)*")))
-             (concat let-binding-g3 "\\(?:\\(" simple-patt
-                     "\\) *\\(?:: *\\([^=]+\\)\\)?=\\)?"))
-          (1 tuareg-font-lock-governing-face keep t)
-          (2 tuareg-font-lock-infix-extension-node-face keep t)
-          (3 tuareg-font-lock-governing-face keep t)
-          ;; module paths, types, constructors already colored by the above
-          (4 font-lock-variable-name-face keep t)
-          (5 font-lock-type-face keep t))
-         ;; let-bindings (let f vars : type =)
-         (,(concat let-binding-g3 "\\(" lid "\\)" gvars "?\\(?: +:"
-                   tuareg--whitespace-re
-                   "\\([a-z_]\\|[^ =][^=]*[^ =]\\) *=\\)?")
-          (4 font-lock-function-name-face nil t)
-          (5 font-lock-variable-name-face keep t)
-          (6 font-lock-type-face keep t))
-         (,(concat "\\<function\\>" maybe-infix-ext+attr
-	           tuareg--whitespace-re "\\(" lid "\\)")
-          1 font-lock-variable-name-face)
-         (,(concat "\\<fun" maybe-infix-ext+attr " +" gvars " *->")
-          1 font-lock-variable-name-face keep nil)
-         (,(concat gclass-gparams " *" lid gvars "? *=")
-          3 font-lock-variable-name-face keep t)
-         (,(concat "\\<method!? +\\(" lid "\\)" gvars "?")
+         ;; let binding variables
+         (,(concat "\\(?:" let-binding-g3 "\\|" gclass-gparams "\\)")
+          (tuareg--pattern-vars-matcher (tuareg--pattern-pre-form-let) nil
+                                        (0 font-lock-variable-name-face keep))
+          ("[ \t\n]*:\\([^=]+\\)=" nil nil ; def followed by type
+           (1 font-lock-type-face keep)))
+         (,(concat "\\_<fun" maybe-infix-ext+attr)
+          (tuareg--pattern-vars-matcher (tuareg--pattern-pre-form-fun) nil
+                                        (0 font-lock-variable-name-face keep)))
+         (,(concat "\\_<method!? +\\(" lid "\\)")
           (1 font-lock-function-name-face keep t); method name
-          (2 font-lock-variable-name-face keep t))
-         (,(concat "\\<object *(\\(" lid "\\) *\\(?:: *\\("
+          (tuareg--pattern-vars-matcher (tuareg--pattern-pre-form-let) nil
+                                        (0 font-lock-variable-name-face keep))
+          ("[ \t\n]*:\\([^=]+\\)=" nil nil ; method followed by type
+           (1 font-lock-type-face keep)))
+         (,(concat "\\_<object *(\\(" lid "\\) *\\(?:: *\\("
                    balanced-braces "\\)\\)?)")
           (1 font-lock-variable-name-face)
           (2 font-lock-type-face keep t))
@@ -1135,6 +1126,81 @@ for the interactive mode."
            . tuareg-font-lock-syntactic-face-function)))
   ;; (push 'smie-backward-sexp-command font-lock-extend-region-functions)
   )
+
+(defvar tuareg--pattern-matcher-limit 0
+  "Limit for the matcher of function arguments")
+(make-variable-buffer-local 'tuareg--pattern-matcher-limit)
+
+(defun tuareg--pattern-pre-form-let ()
+  "Return the position of \"=\" marking the end of \"let\"."
+  (let* ((opoint (point))
+         (limit (+ opoint 800))
+         (depth (car (syntax-ppss))))
+    (if (or (looking-at "[ \t\n]*open\\_>")
+            (looking-at "[ \t\n]*exception\\_>"))
+        ;; "let open" or "let exeption"; no variables, make search fail
+        (setq tuareg--pattern-matcher-limit opoint)
+
+      ;; Detect "="
+      (while (and (search-forward "=" limit t)
+                  (> (car (syntax-ppss)) depth)))
+      (setq tuareg--pattern-matcher-limit (1- (point))); "=" excluded
+      ;; Look whether the definition ends with a return type
+      (when (and (search-backward ":" opoint t)
+                 (<= (car (syntax-ppss)) depth))
+        ;; Make sure it is not a label
+        (skip-chars-backward "a-zA-Z0-9_'")
+        (if (not (or (char-equal ?\~ (char-before))
+                     (char-equal ?\? (char-before))))
+            (setq tuareg--pattern-matcher-limit (1- (point)))))
+      ;; move the point back for the sub-matcher
+      (goto-char opoint))
+    tuareg--pattern-matcher-limit))
+
+(defun tuareg--pattern-pre-form-fun ()
+  "Return the position of \"->\" marking the end of \"fun\"."
+  (let* ((opoint (point))
+         (limit (+ opoint 800))
+         (depth (car (syntax-ppss))))
+    (while (and (search-forward "-" limit t)
+                (or (> (car (syntax-ppss)) depth)
+                    (not (char-equal ?> (char-after))))))
+    (setq tuareg--pattern-matcher-limit (point))
+    ;; move the point back for the sub-matcher
+    (goto-char opoint)
+    tuareg--pattern-matcher-limit))
+
+(defun tuareg--pattern-vars-matcher (limit)
+  "Match a variable name after the point.
+If it succeeds, it moves the point after the variable name and set
+`match-data'.  See e.g., `font-lock-keywords'."
+  (when (re-search-forward tuareg--lid-re tuareg--pattern-matcher-limit t)
+    (skip-chars-forward " \t\n")
+    (if (>= (point) tuareg--pattern-matcher-limit)
+        t
+      (cond
+       ((char-equal ?= (char-after))
+        ;; Decide whether it is ?(v =...) or {x = v; x = v}
+        (goto-char (match-beginning 0))
+        (skip-chars-backward " \t\n")
+        (if (char-equal (char-before) ?\() ; (var = expr)
+            (progn (up-list) ; keep match, skip expr
+                   t)
+          ;; This is a label record, variable after
+          (goto-char (match-end 0))
+          (re-search-forward tuareg--lid-re tuareg--pattern-matcher-limit t)))
+       ((char-equal ?: (char-after))
+        (let ((beg-ty (1+ (point))))
+          (goto-char (match-beginning 0))
+          (skip-chars-backward " \t\n")
+          (if (char-equal (char-before) ?\() ; (var : t)
+              (progn
+                (up-list) ; keep match, skip type
+                (put-text-property beg-ty (1- (point)) 'face
+                                   'font-lock-type-face)
+                t)
+          (goto-char (match-end 0)))))
+       (t t)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                    Keymap
