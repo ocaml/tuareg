@@ -784,7 +784,6 @@ for the interactive mode."
 	  (concat "\\(?:\\[@" attr-id balanced-brackets "\\]\\)*"))
 	 (maybe-infix-ext+attr
 	  (concat maybe-infix-extension maybe-infix-attribute))
-         (tuple (concat "(" balanced-braces ")")); much more than tuple!
 	 ;; FIXME: module paths with functor applications
          (module-path (concat uid "\\(?:\\." uid "\\)*"))
          (typeconstr (concat "\\(?:" module-path "\\.\\)?" lid))
