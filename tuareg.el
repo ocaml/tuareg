@@ -1059,8 +1059,8 @@ for the interactive mode."
 		         "Sys_blocked_io" "Undefined_recursive_module")
                        'symbols)
           . font-lock-builtin-face)
-         ("\\[[ \t]*\\]" . tuareg-font-lock-constructor-face)
-         ("[])a-zA-Z0-9 \t]\\(::\\)[[(a-zA-Z0-9 \t]"
+         ("\\[[ \t]*\\]" . tuareg-font-lock-constructor-face) ; []
+         ("[])a-zA-Z0-9 \t]\\(::\\)[[(a-zA-Z0-9 \t]" ; :: (not not ::…)
           1 tuareg-font-lock-constructor-face)
          ;; Constructors
          (,(concat "\\(" uid "\\)[^.]")  1 tuareg-font-lock-constructor-face)
