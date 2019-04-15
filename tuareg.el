@@ -1155,6 +1155,8 @@ for the interactive mode."
             (setq tuareg--pattern-matcher-limit (1- (point)))))
       ;; move the point back for the sub-matcher
       (goto-char opoint))
+    (put-text-property (point) tuareg--pattern-matcher-limit
+                       'font-lock-multiline t)
     tuareg--pattern-matcher-limit))
 
 (defun tuareg--pattern-pre-form-fun ()
@@ -1168,6 +1170,8 @@ for the interactive mode."
     (setq tuareg--pattern-matcher-limit (point))
     ;; move the point back for the sub-matcher
     (goto-char opoint)
+    (put-text-property (point) tuareg--pattern-matcher-limit
+                       'font-lock-multiline t)
     tuareg--pattern-matcher-limit))
 
 (defun tuareg--pattern-vars-matcher (limit)
