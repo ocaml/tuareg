@@ -1142,6 +1142,11 @@ for the interactive mode."
             (looking-at "[ \t\n]*exception\\_>")) ; "let exception"
         (setq tuareg--pattern-matcher-limit opoint)
 
+      ;; When in parens, no need to go beyond the closing one
+      (when (>= depth 1)
+        (up-list)
+        (if (< (point) limit) (setq limit (point)))
+        (goto-char opoint))
       ;; Detect "="
       (while (and (search-forward "=" limit t)
                   (> (car (syntax-ppss)) depth)))
@@ -1168,6 +1173,11 @@ for the interactive mode."
          (depth (car state)))
     (if (nth 8 state)                         ; in string or comment
         (setq tuareg--pattern-matcher-limit opoint)
+
+      (when (>= depth 1)
+        (up-list)
+        (if (< (point) limit) (setq limit (point)))
+        (goto-char opoint))
       (while (and (search-forward "-" limit t)
                   (or (> (car (syntax-ppss)) depth)
                       (not (char-equal ?> (char-after))))))
