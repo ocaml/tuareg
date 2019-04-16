@@ -1079,8 +1079,8 @@ for the interactive mode."
          (,(concat "\\(?:" let-binding-g3 "\\|" gclass-gparams "\\)")
           (tuareg--pattern-vars-matcher (tuareg--pattern-pre-form-let) nil
                                         (0 font-lock-variable-name-face keep))
-          ("[ \t\n]*:\\([^=]+\\)=" nil nil ; def followed by type
-           (1 font-lock-type-face keep)))
+          (tuareg--pattern-maybe-type-matcher nil nil ; def followed by type
+                                              (1 font-lock-type-face keep)))
          (,(concat "\\_<fun\\_>" maybe-infix-ext+attr)
           (tuareg--pattern-vars-matcher (tuareg--pattern-pre-form-fun) nil
                                         (0 font-lock-variable-name-face keep)))
@@ -1088,8 +1088,8 @@ for the interactive mode."
           (1 font-lock-function-name-face keep t); method name
           (tuareg--pattern-vars-matcher (tuareg--pattern-pre-form-let) nil
                                         (0 font-lock-variable-name-face keep))
-          ("[ \t\n]*:\\([^=]+\\)=" nil nil ; method followed by type
-           (1 font-lock-type-face keep)))
+          (tuareg--pattern-maybe-type-matcher nil nil ; method followed by type
+                                              (1 font-lock-type-face keep)))
          (,(concat "\\_<object *(\\(" lid "\\) *\\(?:: *\\("
                    balanced-braces "\\)\\)?)")
           (1 font-lock-variable-name-face)
@@ -1131,6 +1131,10 @@ for the interactive mode."
   "Limit for the matcher of function arguments")
 (make-variable-buffer-local 'tuareg--pattern-matcher-limit)
 
+(defvar tuareg--pattern-matcher-type-limit 0
+  "Limit for the type of a let bound definition.")
+(make-variable-buffer-local 'tuareg--pattern-matcher-type-limit)
+
 (defun tuareg--pattern-pre-form-let ()
   "Return the position of \"=\" marking the end of \"let\"."
   (let* ((opoint (point))
@@ -1140,7 +1144,9 @@ for the interactive mode."
     (if (or (nth 8 state)                         ; in string or comment
             (looking-at "[ \t\n]*open\\_>")       ; "let open"
             (looking-at "[ \t\n]*exception\\_>")) ; "let exception"
-        (setq tuareg--pattern-matcher-limit opoint)
+        (progn ; bail out
+          (setq tuareg--pattern-matcher-limit opoint)
+          (setq tuareg--pattern-matcher-type-limit opoint))
 
       ;; When in parens, no need to go beyond the closing one
       (when (>= depth 1)
@@ -1150,6 +1156,7 @@ for the interactive mode."
       ;; Detect "="
       (while (and (search-forward "=" limit t)
                   (> (car (syntax-ppss)) depth)))
+      (setq tuareg--pattern-matcher-type-limit (point))
       (setq tuareg--pattern-matcher-limit (1- (point))); "=" excluded
       ;; Look whether the definition ends with a return type
       (when (and (search-backward ":" opoint t)
@@ -1218,8 +1225,19 @@ If it succeeds, it moves the point after the variable name and set
                 (put-text-property beg-ty (1- (point)) 'face
                                    'font-lock-type-face)
                 t)
-          (goto-char (match-end 0)))))
+            (goto-char (match-end 0)))))
        (t t)))))
+
+(defun tuareg--pattern-maybe-type-matcher (limit)
+  "Match a possible type after a let binding.
+Run only once."
+  ;; This function is needed because we want to ensure that the search
+  ;; is bounded by the detected "=".
+  (when (and (<= (point) tuareg--pattern-matcher-type-limit)
+             (re-search-forward "[ \t\n]*:\\([^=]+\\)="
+                                tuareg--pattern-matcher-type-limit t))
+    (goto-char limit) ; Do not run a second time
+    t))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                    Keymap
