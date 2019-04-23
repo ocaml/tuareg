@@ -1598,9 +1598,9 @@ For use on `electric-indent-functions'."
 
 (defun tuareg-smie--forward-token ()
   (tuareg-skip-blank-and-comments)
-  (buffer-substring-no-properties
-   (point)
-   (progn (if (zerop (skip-syntax-forward "."))
+  (let ((start (point))
+        (end nil))
+    (if (zerop (skip-syntax-forward "."))
               (let ((start (point)))
                 (skip-syntax-forward "w_'")
                 ;; Watch out for floats!
@@ -1614,36 +1614,48 @@ For use on `electric-indent-functions'."
             ;; considered as a single symbol, but in reality, it's part of the
             ;; operator chars, since "+." and friends are operators.
             (while (not (and (zerop (skip-chars-forward "."))
-                             (zerop (skip-syntax-forward "."))))))
-          (point))))
+                             (zerop (skip-syntax-forward ".")))))
+            (when (and (eq (char-before) ?%)
+                       (looking-at "[[:alpha:]]+"))
+              ;; Infix extension nodes, bug#121
+              (setq end (1- (point)))
+              (goto-char (match-end 0))))
+    (buffer-substring-no-properties start (or end (point)))))
 
 (defun tuareg-smie--backward-token ()
   (forward-comment (- (point)))
-  (buffer-substring-no-properties
-   (point)
-   (progn (if (and (zerop (skip-chars-backward "."))
-                   (zerop (skip-syntax-backward ".")))
-              (progn
-                (skip-syntax-backward "w_'")
-                ;; Watch out for floats!
-                (and (memq (char-before) '(?- ?+))
-                     (memq (char-after) '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9 ?0))
-                     (save-excursion
-                       (forward-char -1) (skip-syntax-backward "w_")
-                       (looking-at tuareg-smie--float-re))
-                     (>= (match-end 0) (point))
-                     (goto-char (match-beginning 0))))
-            (cond
-             ((memq (char-after) '(?\; ?,)) nil) ; ".;" is not a token.
-             ((and (eq (char-after) ?\.)
-                   (memq (char-before) '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9 ?0)))
-              (skip-chars-backward "0-9")) ; A float number!
-             (t ;; The "." char is given symbol property so that "M.x" is
-              ;; considered as a single symbol, but in reality, it's part of
-              ;; the operator chars, since "+." and friends are operators.
-              (while (not (and (zerop (skip-chars-backward "."))
-                               (zerop (skip-syntax-backward "."))))))))
-          (point))))
+  (let ((end (point)))
+    (if (and (zerop (skip-chars-backward "."))
+             (zerop (skip-syntax-backward ".")))
+        (progn
+          (skip-syntax-backward "w_'")
+          ;; Watch out for floats!
+          (pcase (char-before)
+            ((or `?- `?+)
+             (and (memq (char-after) '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9 ?0))
+                  (save-excursion
+                    (forward-char -1) (skip-syntax-backward "w_")
+                    (looking-at tuareg-smie--float-re))
+                  (>= (match-end 0) (point))
+                  (goto-char (match-beginning 0))))
+            (`?%                        ;extension node, bug#121
+             (let ((pos (point)))
+               (forward-char -1)
+               (if (and (zerop (skip-chars-backward "."))
+                        (zerop (skip-syntax-backward ".")))
+                   (goto-char pos)
+                 (setq end (1- pos)))))))
+      (cond
+       ((memq (char-after) '(?\; ?,)) nil) ; ".;" is not a token.
+       ((and (eq (char-after) ?\.)
+             (memq (char-before) '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9 ?0)))
+        (skip-chars-backward "0-9"))    ; A float number!
+       (t ;; The "." char is given symbol property so that "M.x" is
+        ;; considered as a single symbol, but in reality, it's part of
+        ;; the operator chars, since "+." and friends are operators.
+        (while (not (and (zerop (skip-chars-backward "."))
+                         (zerop (skip-syntax-backward "."))))))))
+    (buffer-substring-no-properties (point) end)))
 
 (defun tuareg-smie-forward-token ()
   "Move point to the end of the next token and return its SMIE name."
@@ -3523,11 +3535,13 @@ Short cuts for interaction within the REPL:
 (defun tuareg-imenu-create-index ()
   "Create an index alist for OCaml files using `merlin-imenu' or `caml-mode'.
 See `imenu-create-index-function'."
+  (or (require 'merlin-imenu nil t)
+      (let (abbrevs-changed)            ;Workaround for tuareg#146
+        (require 'caml nil t)))
   (cond
-   ((require 'merlin-imenu nil t)
+   ((fboundp 'merlin-imenu-create-index)
     (merlin-imenu-create-index))
-   ((let (abbrevs-changed)            ;Workaround for tuareg#146
-      (require 'caml nil t))
+   ((fboundp 'caml-create-index-function)
     (caml-create-index-function))
    (t
     (message "Install Merlin or caml-mode.")

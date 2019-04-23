@@ -783,9 +783,9 @@ let () =
 
 let () =
   f 1
-  |! (fun x ->
+  |> (fun x ->
     g x x)
-  |! (fun y ->
+  |> (fun y ->
     h y y)
 
 let () =
@@ -919,7 +919,7 @@ let () =
   { A.
     b =
       C.d e ~f:(fun g -> (h.I.j.K.l, m))
-      |! begin fun n ->
+      |> begin fun n ->
          match O.p n with
          | `Q r -> r
          | `S _k -> assert false
@@ -948,18 +948,18 @@ let x =
 let c f =
   if S.is_file f then
     S.load f C.t
-    |! fun x -> c := Some x
+    |> fun x -> c := Some x
   else
-    C.s C.default |! S.save f
-    |! fun () -> c := None
+    C.s C.default |> S.save f
+    |> fun () -> c := None
 
 let c f =
   if S.is_file f then (
     S.load f C.t
-    |! fun x -> c := Some x
+    |> fun x -> c := Some x
   ) else (
-    C.s C.default |! S.save f
-    |! fun () -> c := None)
+    C.s C.default |> S.save f
+    |> fun () -> c := None)
 
 let foo x =
   f1 x >= f2 x
@@ -1008,9 +1008,9 @@ let foo =
   List.map z
     ~f:(fun m ->
       M.q m
-      |! T.u ~pr ~verbose:false
+      |> T.u ~pr ~verbose:false
            ~p:H.P.US ~is_bar:false)
-  |! List.sort ~cmp:(fun a b ->
+  |> List.sort ~cmp:(fun a b ->
          compare
            (I.r a.T.s)
            (I.r b.T.s))
@@ -1042,7 +1042,7 @@ let variants a =
      let a1 = String.concat ~sep:"-" [ s1; s2; s3; "055" ] in (* Comment.  *)
      List.map [ a0; a1; a]
        ~f:(fun a_s -> lookup a_s)
-     |! List.flatten
+     |> List.flatten
   | _ -> failwith "bad"
 
 let f a1 a2 a3
