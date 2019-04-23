@@ -242,11 +242,9 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
   "bug-reports: \"" _ "\"" > \n
   "doc: \"" _ "\"" > \n
   "build: [" > \n
-  "[\"dune\" \"subst\"] {pinned}" > \n
+  "[\"dune\" \"subst\" ] {pinned}" > \n
   "[\"dune\" \"build\" \"-p\" name \"-j\" jobs]" > \n
-  "[\"dune\" \"build\" \"@doc\"] {with-doc}" > \n
-  "]" > \n
-  "run-test: [" > \n
+  "[\"dune\" \"build\" \"-p\" name \"-j\" jobs \"@doc\"] {with-doc}" > \n
   "[\"dune\" \"runtest\" \"-p\" name \"-j\" jobs] {with-test}" > \n
   "]" > \n
   "depends: [" > \n
