@@ -810,10 +810,10 @@ for the interactive mode."
                                 "present" "automaton" "where" "match"
                                 "with" "do" "done" "unless" "until"
                                 "reset" "every")))
-         (let-binding-g3 ; 3 groups
+         (let-binding-g4 ; 4 groups
           (concat "\\<\\(?:\\(let\\)\\(" maybe-infix-ext+attr
-		  "\\)\\(?: +" (if (tuareg-editing-ls3) let-ls3 "rec")
-		  "\\)?\\|\\(and\\)\\) +"))
+		  "\\)\\(?: +\\(" (if (tuareg-editing-ls3) let-ls3 "rec")
+		  "\\)\\)?\\|\\(and\\)\\) +"))
          ;; group for possible class param
          (gclass-gparams
           (concat "\\(\\_<class\\(?: +type\\)?\\(?: +virtual\\)?\\>\\)"
@@ -955,12 +955,13 @@ for the interactive mode."
              (2 font-lock-function-name-face))
             ;; Highlight "let" and function names (their argument
             ;; patterns can then be treated uniformly with variable bindings)
-            (,(concat let-binding-g3 "\\(?:\\(" lid
+            (,(concat let-binding-g4 "\\(?:\\(" lid
                       "\\) *\\(?:[^ =,:a]\\|a[^s]\\)\\)?")
              (1 tuareg-font-lock-governing-face keep t)
              (2 tuareg-font-lock-infix-extension-node-face keep t)
              (3 tuareg-font-lock-governing-face keep t)
-             (4 font-lock-function-name-face keep t))
+             (4 tuareg-font-lock-governing-face keep t)
+             (5 font-lock-function-name-face keep t))
             (,(concat "\\<\\(module\\)\\(" maybe-infix-ext+attr "\\)"
 	              "\\(\\(?: +type\\)?\\(?: +rec\\)?\\)\\>\\(?: *\\("
                       uid "\\)\\)?")
@@ -998,9 +999,9 @@ for the interactive mode."
      (append
       common-keywords
       `(;; Basic way of matching functions
-        (,(concat let-binding-g3 "\\(" lid "\\) *= *\\(fun\\(?:ction\\)?\\)\\>")
-         (4 font-lock-function-name-face)
-         (5 font-lock-keyword-face))
+        (,(concat let-binding-g4 "\\(" lid "\\) *= *\\(fun\\(?:ction\\)?\\)\\>")
+         (5 font-lock-function-name-face)
+         (6 font-lock-keyword-face))
         ,@(and tuareg-font-lock-symbols
                (tuareg-font-lock-symbols-keywords)))))
      (setq
@@ -1071,12 +1072,12 @@ for the interactive mode."
          (,(concat "\\<let +exception +\\(" uid "\\)")
           1 tuareg-font-lock-constructor-face)
          ;; let-bindings (let f : type = fun)
-         (,(concat let-binding-g3 "\\(" lid "\\) *\\(?:: *\\([^=]+\\)\\)?= *"
+         (,(concat let-binding-g4 "\\(" lid "\\) *\\(?:: *\\([^=]+\\)\\)?= *"
                    "fun\\(?:ction\\)?\\>")
-          (4 font-lock-function-name-face nil t)
-          (5 font-lock-type-face keep t))
+          (5 font-lock-function-name-face nil t)
+          (6 font-lock-type-face keep t))
          ;; let binding variables
-         (,(concat "\\(?:" let-binding-g3 "\\|" gclass-gparams "\\)")
+         (,(concat "\\(?:" let-binding-g4 "\\|" gclass-gparams "\\)")
           (tuareg--pattern-vars-matcher (tuareg--pattern-pre-form-let) nil
                                         (0 font-lock-variable-name-face keep))
           (tuareg--pattern-maybe-type-matcher nil nil ; def followed by type
