@@ -952,7 +952,7 @@ for the interactive mode."
             ;; External function declaration
             (,(concat "\\<\\(external\\)\\>\\(?: +\\(" lid "\\)\\)?")
              (1 tuareg-font-lock-governing-face)
-             (2 font-lock-function-name-face))
+             (2 font-lock-function-name-face keep t))
             ;; Highlight "let" and function names (their argument
             ;; patterns can then be treated uniformly with variable bindings)
             (,(concat let-binding-g4 "\\(?:\\(" lid
