@@ -1111,6 +1111,9 @@ for the interactive mode."
       (append
        tuareg-font-lock-keywords-1
        `(;; https://caml.inria.fr/pub/docs/manual-ocaml-4.07/lex.html#infix-symbol
+         (,(concat "( *\\([-=<>@^|&+*/$%!]" operator-char
+                   "*\\|[#?~]" operator-char "+\\) *)")
+          1 font-lock-function-name-face)
          ;; Do no highlight relation operators (=, <, >) nor
          ;; arithmetic ones (too common, thus too much color).
          (,(concat
