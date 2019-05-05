@@ -810,10 +810,14 @@ for the interactive mode."
                                 "present" "automaton" "where" "match"
                                 "with" "do" "done" "unless" "until"
                                 "reset" "every")))
+         (operator-char "[!$%&*+-./:<=>?@^|~]")
+         (binding-operator-char
+          (concat "\\(?:[-$&*+/<=>@^|]" operator-char "*\\)"))
          (let-binding-g4 ; 4 groups
-          (concat "\\<\\(?:\\(let\\)\\(" maybe-infix-ext+attr
+          (concat "\\<\\(?:\\(let" binding-operator-char "?\\)"
+                  "\\(" maybe-infix-ext+attr
 		  "\\)\\(?: +\\(" (if (tuareg-editing-ls3) let-ls3 "rec")
-		  "\\)\\)?\\|\\(and\\)\\) +"))
+		  "\\)\\)?\\|\\(and" binding-operator-char "?\\)\\) +"))
          ;; group for possible class param
          (gclass-gparams
           (concat "\\(\\_<class\\(?: +type\\)?\\(?: +virtual\\)?\\>\\)"
@@ -902,7 +906,7 @@ for the interactive mode."
                       "\\(" maybe-infix-ext+attr "\\)")
              (1 tuareg-font-lock-governing-face)
              (2 tuareg-font-lock-infix-extension-node-face keep))
-            (,(regexp-opt '("constraint" "in" "and" "end") 'symbols)
+            (,(regexp-opt '("constraint" "in" "end") 'symbols)
              . tuareg-font-lock-governing-face)
             ,@(if (tuareg-editing-ls3)
                   `((,(concat "\\<\\(let[ \t]+" let-ls3 "\\)\\>")
@@ -953,6 +957,9 @@ for the interactive mode."
             (,(concat "\\_<\\(external\\)\\_>\\(?: +\\(" lid "\\)\\)?")
              (1 tuareg-font-lock-governing-face)
              (2 font-lock-function-name-face keep t))
+            ;; Binding operators
+            (,(concat "( *\\(\\(?:let\\|and\\)" binding-operator-char "\\) *)")
+             1 font-lock-function-name-face)
             ;; Highlight "let" and function names (their argument
             ;; patterns can then be treated uniformly with variable bindings)
             (,(concat let-binding-g4 "\\(?:\\(" lid
@@ -1106,16 +1113,15 @@ for the interactive mode."
        `(;; https://caml.inria.fr/pub/docs/manual-ocaml-4.07/lex.html#infix-symbol
          ;; Do no highlight relation operators (=, <, >) nor
          ;; arithmetic ones (too common, thus too much color).
-         (,(let ((operator-char "[!$%&*+-./:<=>?@^|~]"))
-             (concat
-              "[@^&$%!]" operator-char "*\\|[|#?~]" operator-char "+\\|"
-              (regexp-opt
-               (if (tuareg-editing-ls3)
-                   '("asr" "asl" "lsr" "lsl" "or" "lor" "and" "land" "lxor"
-                     "not" "lnot" "mod" "fby" "pre" "last" "at")
-                 '("asr" "asl" "lsr" "lsl" "or" "lor" "land"
-                   "lxor" "not" "lnot" "mod"))
-               'symbols)))
+         (,(concat
+            "[@^&$%!]" operator-char "*\\|[|#?~]" operator-char "+\\|"
+            (regexp-opt
+             (if (tuareg-editing-ls3)
+                 '("asr" "asl" "lsr" "lsl" "or" "lor" "and" "land" "lxor"
+                   "not" "lnot" "mod" "fby" "pre" "last" "at")
+               '("asr" "asl" "lsr" "lsl" "or" "lor" "land"
+                 "lxor" "not" "lnot" "mod"))
+             'symbols))
           . tuareg-font-lock-operator-face)))))
   (setq font-lock-defaults
         `((tuareg-font-lock-keywords
