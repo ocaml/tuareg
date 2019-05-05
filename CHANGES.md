@@ -9,8 +9,9 @@
   of function, class, and method arguments (including setting the
   `font-lock-multiline` property); `[]` and `::` have the constructor
   face; first class module, `type nonrec`, `raise_notrace`, `with
-  type` are handled.  Moreover, font-lock now has 3 possible levels of
-  fontification (see the README).
+  type` are handled.  Finer highlighting of infix operators.  Support
+  for [binding operators][].  Moreover, font-lock now has 3 possible
+  levels of fontification (see the README).
 * The switch .ml ↔ .mli now uses the Emacs built-in `find-file` and
   was extended to `.eliom` ↔ `.eliomi` and `.mly` ↔ `.mli`.
 * Set `beginning-of-defun-function` and `end-of-defun-function` which
@@ -33,6 +34,7 @@
 Note that the mode `tuareg-dune` which was in the development version
 of this package is now part of [Dune](https://github.com/ocaml/dune).
 
+[binding operators]: https://caml.inria.fr/pub/docs/manual-ocaml-4.08/manual046.html
 
 2.1.0 2017-11-10
 ----------------
