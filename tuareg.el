@@ -801,7 +801,7 @@ for the interactive mode."
                   "\\(?: *\\. *" extended-module-name "\\)*"))
          (modtype-path (concat "\\(?:" extended-module-path "\\.\\)*" id))
          (typevar "'[A-Za-z_][A-Za-z0-9_']*\\>")
-         (typeparam (concat "[+-]?" typevar))
+         (typeparam (concat "\\(?:[+-]?" typevar "\\|_\\)"))
          (typeparams (concat "\\(?:" typeparam "\\|( *"
                              typeparam " *\\(?:, *" typeparam " *\\)*)\\)"))
          (typedef (concat "\\(?:" typeparams " *\\)?" lid))
