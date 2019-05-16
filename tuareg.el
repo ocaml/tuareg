@@ -1160,9 +1160,8 @@ for the interactive mode."
 
       ;; When in parens, no need to go beyond the closing one
       (when (>= depth 1)
-        (up-list)
-        (if (< (point) limit) (setq limit (point)))
-        (goto-char opoint))
+        (let ((closing-brace (scan-lists opoint 1 1)))
+          (if (< closing-brace limit) (setq limit closing-brace))))
       ;; Detect "="
       (while (and (search-forward "=" limit t)
                   (> (car (syntax-ppss)) depth)))
@@ -1192,9 +1191,8 @@ for the interactive mode."
         (setq tuareg--pattern-matcher-limit opoint)
 
       (when (>= depth 1)
-        (up-list)
-        (if (< (point) limit) (setq limit (point)))
-        (goto-char opoint))
+        (let ((closing-brace (scan-lists opoint 1 1)))
+          (if (< closing-brace limit) (setq limit closing-brace))))
       (while (and (search-forward "-" limit t)
                   (or (> (car (syntax-ppss)) depth)
                       (not (char-equal ?> (char-after))))))
