@@ -814,7 +814,7 @@ for the interactive mode."
          (binding-operator-char
           (concat "\\(?:[-$&*+/<=>@^|]" operator-char "*\\)"))
          (let-binding-g4 ; 4 groups
-          (concat "\\<\\(?:\\(let" binding-operator-char "?\\)"
+          (concat "\\_<\\(?:\\(let" binding-operator-char "?\\)"
                   "\\(" maybe-infix-ext+attr
 		  "\\)\\(?: +\\(" (if (tuareg-editing-ls3) let-ls3 "rec")
 		  "\\)\\)?\\|\\(and" binding-operator-char "?\\)\\) +"))
@@ -1145,22 +1145,31 @@ for the interactive mode."
   "Limit for the type of a let bound definition.")
 (make-variable-buffer-local 'tuareg--pattern-matcher-type-limit)
 
+(defun tuareg--font-lock-in-string-or-comment ()
+  "Returns t if the point is inside a string or a comment.
+This based on the fontification and is faster than calling `syntax-ppss'."
+  (let* ((face (get-text-property (point) 'face)))
+    (and (symbolp face)
+         (or (eq face 'font-lock-comment-face)
+             (eq face 'font-lock-comment-delimiter-face)
+             (eq face 'font-lock-doc-face)
+             (eq face 'font-lock-string-face)))))
+
 (defun tuareg--pattern-pre-form-let ()
   "Return the position of \"=\" marking the end of \"let\"."
-  (let* ((opoint (point))
-         (limit (+ opoint 800))
-         (state (syntax-ppss))
-         (depth (car state)))
-    (if (or (nth 8 state)                         ; in string or comment
-            (looking-at "[ \t\n]*open\\_>")       ; "let open"
-            (looking-at "[ \t\n]*exception\\_>")) ; "let exception"
-        (progn ; bail out
-          (setq tuareg--pattern-matcher-limit opoint)
-          (setq tuareg--pattern-matcher-type-limit opoint))
+  (if (or (tuareg--font-lock-in-string-or-comment)
+          (looking-at "[ \t\n]*open\\_>")       ; "let open"
+          (looking-at "[ \t\n]*exception\\_>")) ; "let exception"
+      (progn ; bail out
+        (setq tuareg--pattern-matcher-limit (point))
+        (setq tuareg--pattern-matcher-type-limit (point)))
 
+    (let* ((opoint (point))
+           (limit (+ opoint 800))
+           (depth (car (syntax-ppss))))
       ;; When in parens, no need to go beyond the closing one
       (when (>= depth 1)
-        (let ((closing-brace (scan-lists opoint 1 1)))
+        (let ((closing-brace (1- (scan-lists opoint 1 1))))
           (if (< closing-brace limit) (setq limit closing-brace))))
       ;; Detect "="
       (while (and (search-forward "=" limit t)
@@ -1183,15 +1192,14 @@ for the interactive mode."
 
 (defun tuareg--pattern-pre-form-fun ()
   "Return the position of \"->\" marking the end of \"fun\"."
-  (let* ((opoint (point))
-         (limit (+ opoint 800))
-         (state (syntax-ppss))
-         (depth (car state)))
-    (if (nth 8 state)                         ; in string or comment
-        (setq tuareg--pattern-matcher-limit opoint)
+  (if (tuareg--font-lock-in-string-or-comment)
+      (setq tuareg--pattern-matcher-limit (point))
 
+    (let* ((opoint (point))
+           (limit (+ opoint 800))
+           (depth (car (syntax-ppss))))
       (when (>= depth 1)
-        (let ((closing-brace (scan-lists opoint 1 1)))
+        (let ((closing-brace (1- (scan-lists opoint 1 1))))
           (if (< closing-brace limit) (setq limit closing-brace))))
       (while (and (search-forward "-" limit t)
                   (or (> (car (syntax-ppss)) depth)
