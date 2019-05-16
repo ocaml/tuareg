@@ -1166,24 +1166,32 @@ This based on the fontification and is faster than calling `syntax-ppss'."
 
     (let* ((opoint (point))
            (limit (+ opoint 800))
-           (depth (car (syntax-ppss))))
-      ;; When in parens, no need to go beyond the closing one
-      (when (>= depth 1)
-        (let ((closing-brace (1- (scan-lists opoint 1 1))))
-          (if (< closing-brace limit) (setq limit closing-brace))))
-      ;; Detect "="
-      (while (and (search-forward "=" limit t)
-                  (> (car (syntax-ppss)) depth)))
-      (setq tuareg--pattern-matcher-type-limit (point))
-      (setq tuareg--pattern-matcher-limit (1- (point))); "=" excluded
-      ;; Look whether the definition ends with a return type
-      (when (and (search-backward ":" opoint t)
-                 (<= (car (syntax-ppss)) depth))
-        ;; Make sure it is not a label
-        (skip-chars-backward "a-zA-Z0-9_'")
-        (if (not (or (char-equal ?\~ (char-before))
-                     (char-equal ?\? (char-before))))
-            (setq tuareg--pattern-matcher-limit (1- (point)))))
+           pos)
+      (setq tuareg--pattern-matcher-limit nil)
+      (while (and
+              (setq pos (re-search-forward "[=({:]" limit t))
+              (progn
+                (backward-char)
+                (cond
+                 ((or (char-equal ?\( (char-after))
+                      (char-equal ?{  (char-after)))
+                  ;; Skip balanced braces
+                  (if (ignore-errors (forward-list))
+                      t
+                    (goto-char (1- pos))
+                    nil)) ; If braces are not balanced, stop.
+                 ((char-equal ?: (char-after))
+                  ;; Make sure it is not a label
+                  (skip-chars-backward "a-zA-Z0-9_'")
+                  (if (not (or (char-equal ?~ (char-before))
+                               (char-equal ?? (char-before))))
+                      (setq tuareg--pattern-matcher-limit (1- pos)))
+                  (goto-char pos)
+                  t)
+                 (t nil)))))
+      (setq tuareg--pattern-matcher-type-limit (1+ (point))); include "="
+      (unless tuareg--pattern-matcher-limit
+        (setq tuareg--pattern-matcher-limit (point)))
       ;; move the point back for the sub-matcher
       (goto-char opoint))
     (put-text-property (point) tuareg--pattern-matcher-limit
@@ -1197,13 +1205,18 @@ This based on the fontification and is faster than calling `syntax-ppss'."
 
     (let* ((opoint (point))
            (limit (+ opoint 800))
-           (depth (car (syntax-ppss))))
-      (when (>= depth 1)
-        (let ((closing-brace (1- (scan-lists opoint 1 1))))
-          (if (< closing-brace limit) (setq limit closing-brace))))
-      (while (and (search-forward "-" limit t)
-                  (or (> (car (syntax-ppss)) depth)
-                      (not (char-equal ?> (char-after))))))
+           pos)
+      (while (and
+              (setq pos (re-search-forward "[-({]" limit t))
+              (cond
+               ((or (char-equal ?\( (char-before))
+                    (char-equal ?{  (char-before)))
+                (backward-char)
+                (if (ignore-errors (forward-list))
+                    t
+                  (goto-char (1- pos))
+                  nil)) ; If braces are not balanced, stop.
+              (t (not (char-equal ?> (char-after)))))))
       (setq tuareg--pattern-matcher-limit (point))
       ;; move the point back for the sub-matcher
       (goto-char opoint)
