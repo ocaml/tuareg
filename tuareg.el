@@ -993,8 +993,8 @@ for the interactive mode."
              (3 font-lock-function-name-face keep t))
             ;; "type lid" anywhere (e.g. "let f (type t) x =")
             ;; introduces a new type
-            (,(concat "\\_<\\(type\\)\\(" maybe-infix-ext+attr
-                      "\\)\\(?: +\\(nonrec\\)\\)?\\_>\\(?:"
+            (,(concat "\\_<\\(type\\_>\\)\\(" maybe-infix-ext+attr
+                      "\\)\\(?: +\\(nonrec\\_>\\)\\)?\\(?:"
                       tuareg--whitespace-re
                       "\\(" typedef "\\)\\)?")
              (1 tuareg-font-lock-governing-face)
