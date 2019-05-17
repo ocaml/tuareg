@@ -1150,10 +1150,10 @@ for the interactive mode."
 This based on the fontification and is faster than calling `syntax-ppss'."
   (let* ((face (get-text-property (point) 'face)))
     (and (symbolp face)
-         (or (eq face 'font-lock-comment-face)
-             (eq face 'font-lock-comment-delimiter-face)
-             (eq face 'font-lock-doc-face)
-             (eq face 'font-lock-string-face)))))
+         (memq face '(font-lock-comment-face
+                      font-lock-comment-delimiter-face
+                      font-lock-doc-face
+                      font-lock-string-face)))))
 
 (defun tuareg--pattern-pre-form-let ()
   "Return the position of \"=\" marking the end of \"let\"."
