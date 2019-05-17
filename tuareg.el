@@ -231,6 +231,12 @@ setting this variable to nil.  You should probably have this on,
 though, if you also have `tuareg-electric-indent' on."
   :group 'tuareg :type 'boolean)
 
+(defcustom tuareg-highlight-all-operators nil
+  "If t, highlight all operators (as opposed to unusual ones).
+This is not turned on by default because this makes font-lock
+much less efficient."
+  :group 'tuareg :type 'boolean)
+
 (defcustom tuareg-other-file-alist
   '(("\\.mli\\'" (".ml" ".mll" ".mly"))
     ("\\.ml\\'" (".mli"))
@@ -810,7 +816,9 @@ for the interactive mode."
                                 "present" "automaton" "where" "match"
                                 "with" "do" "done" "unless" "until"
                                 "reset" "every")))
-         (operator-char "[!$%&*+-./:<=>?@^|~]")
+         (before-operator-char "[^-!$%&*+./:<=>?@^|~#?]")
+         (operator-char         "[-!$%&*+./:<=>?@^|~]")
+         (operator-char-no>     "[-!$%&*+./:<=?@^|~]"); for "->"
          (binding-operator-char
           (concat "\\(?:[-$&*+/<=>@^|]" operator-char "*\\)"))
          (let-binding-g4 ; 4 groups
@@ -1000,7 +1008,8 @@ for the interactive mode."
              (1 tuareg-font-lock-governing-face)
              (2 tuareg-font-lock-infix-extension-node-face keep)
              (3 tuareg-font-lock-governing-face keep t)
-             (4 font-lock-type-face keep t)))))
+             (4 font-lock-type-face keep t))))
+         tuareg-font-lock-keywords-1-extra)
     (setq
      tuareg-font-lock-keywords
      (append
@@ -1010,10 +1019,8 @@ for the interactive mode."
          (5 font-lock-function-name-face)
          (6 font-lock-keyword-face))
         )))
-     (setq
-      tuareg-font-lock-keywords-1
-      (append
-       common-keywords
+    (setq
+     tuareg-font-lock-keywords-1-extra
        `(("\\_<\\(false\\|true\\)\\_>" . font-lock-constant-face)
          (,(regexp-opt '("true" "false" "__LOC__" "__FILE__" "__LINE__"
                          "__MODULE__" "__POS__" "__LOC_OF__" "__LINE_OF__"
@@ -1104,27 +1111,45 @@ for the interactive mode."
          (,(concat "\\_<object *( *\\(" typevar "\\|_\\) *)")
           1 font-lock-type-face)
          ,@(and tuareg-font-lock-symbols
-                (tuareg-font-lock-symbols-keywords)))))
-     (setq
-      tuareg-font-lock-keywords-2
-      (append
-       tuareg-font-lock-keywords-1
-       `(;; https://caml.inria.fr/pub/docs/manual-ocaml-4.07/lex.html#infix-symbol
-         (,(concat "( *\\([-=<>@^|&+*/$%!]" operator-char
-                   "*\\|[#?~]" operator-char "+\\) *)")
-          1 font-lock-function-name-face)
-         ;; Do no highlight relation operators (=, <, >) nor
-         ;; arithmetic ones (too common, thus too much color).
-         (,(concat
-            "[@^&$%!]" operator-char "*\\|[|#?~]" operator-char "+\\|"
-            (regexp-opt
-             (if (tuareg-editing-ls3)
-                 '("asr" "asl" "lsr" "lsl" "or" "lor" "and" "land" "lxor"
-                   "not" "lnot" "mod" "fby" "pre" "last" "at")
-               '("asr" "asl" "lsr" "lsl" "or" "lor" "land"
-                 "lxor" "not" "lnot" "mod"))
-             'symbols))
-          . tuareg-font-lock-operator-face)))))
+                (tuareg-font-lock-symbols-keywords))))
+    (setq
+     tuareg-font-lock-keywords-1
+     (append common-keywords
+             tuareg-font-lock-keywords-1-extra))
+    (setq
+     tuareg-font-lock-keywords-2
+     `(,@common-keywords
+       ;; https://caml.inria.fr/pub/docs/manual-ocaml/lex.html#infix-symbol
+       (,(concat "( *\\([-=<>@^|&+*/$%!]" operator-char
+                 "*\\|[#?~]" operator-char "+\\) *)")
+        1 font-lock-function-name-face)
+       ;; By default do no highlight relation operators (=, <, >) nor
+       ;; arithmetic operators because it is slow.  However,
+       ;; optionally allow it by popular demand.
+       ,@(if tuareg-highlight-all-operators
+             ;; Highlight "@", "+",... after "let…[@…]" but before
+             ;; "let" rules remove the highlighting of "=".
+             `((,(concat before-operator-char
+                         "\\([=<>@^&+*/$%!]" operator-char "*\\|:=\\|"
+                         "[|#?~]" operator-char "+\\)")
+                1 tuareg-font-lock-operator-face)
+               ;; "-" is special: avoid "->" and "-13"
+               (,(concat "\\(-\\)\\(?:[^0-9>]\\|\\("
+                         operator-char-no> operator-char "*\\)\\)")
+                (1 tuareg-font-lock-operator-face)
+                (2 tuareg-font-lock-operator-face keep t)))
+           `((,(concat "[@^&$%!]" operator-char "*\\|"
+                       "[|#?~]" operator-char "+")
+              . tuareg-font-lock-operator-face)))
+       (,(regexp-opt
+          (if (tuareg-editing-ls3)
+              '("asr" "asl" "lsr" "lsl" "or" "lor" "and" "land" "lxor"
+                "not" "lnot" "mod" "fby" "pre" "last" "at")
+            '("asr" "asl" "lsr" "lsl" "or" "lor" "land"
+              "lxor" "not" "lnot" "mod"))
+          'symbols)
+        1 tuareg-font-lock-operator-face)
+       ,@tuareg-font-lock-keywords-1-extra)))
   (setq font-lock-defaults
         `((tuareg-font-lock-keywords
            tuareg-font-lock-keywords-1
@@ -1191,6 +1216,8 @@ This based on the fontification and is faster than calling `syntax-ppss'."
       (setq tuareg--pattern-matcher-type-limit (1+ (point))); include "="
       (unless tuareg--pattern-matcher-limit
         (setq tuareg--pattern-matcher-limit (point)))
+      ;; Remove any possible highlithing on "="
+      (put-text-property (point) (1+ (point)) 'face nil)
       ;; move the point back for the sub-matcher
       (goto-char opoint))
     (put-text-property (point) tuareg--pattern-matcher-limit
@@ -1234,6 +1261,8 @@ If it succeeds, it moves the point after the variable name and set
         t
       (cond
        ((char-equal ?= (char-after))
+        ;; Remove possible fontification of "=" (e.g. as an operator)
+        (put-text-property (point) (1+ (point)) 'face nil)
         ;; Decide whether it is ?(v =...) or {x = v; x = v}
         (goto-char (match-beginning 0))
         (skip-chars-backward " \t\n")

@@ -133,6 +133,11 @@ Tips & customization
 
 [font-lock-maximum-decoration]: https://www.gnu.org/software/emacs/manual/html_node/emacs/Font-Lock.html
 
+- Fontifying all operators (as opposed to only non-standard ones) is a
+  costly operation that slows down font-lock.  This is why it is
+  disabled by default.  If you nonetheless want it, set
+  `tuareg-highlight-all-operators` to `t` in your [Init File][].
+
 - You can turn on and off the rendering of certain sequences of
   characters as symbols (such as `∔` and `∧` instead of `+.`and `&&`),
   use `prettify-symbols-mode` or use the check box in the _Tuareg
