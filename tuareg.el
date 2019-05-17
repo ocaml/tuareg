@@ -1009,8 +1009,7 @@ for the interactive mode."
         (,(concat let-binding-g4 "\\(" lid "\\) *= *\\(fun\\(?:ction\\)?\\)\\>")
          (5 font-lock-function-name-face)
          (6 font-lock-keyword-face))
-        ,@(and tuareg-font-lock-symbols
-               (tuareg-font-lock-symbols-keywords)))))
+        )))
      (setq
       tuareg-font-lock-keywords-1
       (append
