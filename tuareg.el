@@ -1021,97 +1021,97 @@ for the interactive mode."
         )))
     (setq
      tuareg-font-lock-keywords-1-extra
-       `(("\\_<\\(false\\|true\\)\\_>" . font-lock-constant-face)
-         (,(regexp-opt '("true" "false" "__LOC__" "__FILE__" "__LINE__"
-                         "__MODULE__" "__POS__" "__LOC_OF__" "__LINE_OF__"
-                         "__POS_OF__")
-                       'symbols)
-          . font-lock-constant-face)
-         (,(let ((kwd '("as" "do" "done" "downto" "else" "for" "if"
-                        "then" "to" "try" "when" "while" "new"
-                        "lazy" "assert" "exception")))
-             (if (tuareg-editing-ls3)
-                 (progn (push "reset" kwd)  (push "merge" kwd)
-                        (push "emit" kwd)  (push "period" kwd)))
-             (regexp-opt kwd 'symbols))
-          . font-lock-keyword-face)
-         (,(concat "\\_<exception +\\(" uid "\\)")
-          1 tuareg-font-lock-constructor-face)
-         ;; (M: S) -- only color S here (may be "A.T with type t = s")
-         (,(concat "( *" uid " *: *\\("
-                   modtype-path "\\(?: *\\_<with\\_>"
-                   balanced-braces "\\)?\\) *)")
-          1 tuareg-font-lock-module-face keep)
-         ;; module A(B: _)(C: _) : D = E, including "module A : E"
-         (,(concat "\\_<module +" uid tuareg--whitespace-re
-                   "\\(\\(?:( *" uid " *: *"
-                   modtype-path "\\(?: *\\_<with\\_>" balanced-braces "\\)?"
-                   " *)" tuareg--whitespace-re "\\)*\\)\\(?::"
-                   tuareg--whitespace-re "\\(" modtype-path
-                   "\\) *\\)?\\(?:=" tuareg--whitespace-re
-                   "\\(" extended-module-path "\\)\\)?")
-          (1 font-lock-variable-name-face keep); functor (module) variable
-          (2 tuareg-font-lock-module-face keep t)
-          (3 tuareg-font-lock-module-face keep t))
-         (,(concat "\\_<functor\\> *( *\\(" uid "\\) *: *\\("
-                   modtype-path "\\) *)")
-          (1 font-lock-variable-name-face keep); functor (module) variable
-          (2 tuareg-font-lock-module-face keep))
-         ;; Other uses of "with", "mutable", "private", "virtual"
-         (,(regexp-opt '("of" "with" "mutable" "private" "virtual") 'symbols)
-          . font-lock-keyword-face)
-         ;; labels
-         (,(concat "\\([?~]" lid "\\)" tuareg--whitespace-re ":[^:>=]")
-          1 tuareg-font-lock-label-face keep)
-         ;; label in a type signature
-         (,(concat "\\(?:->\\|:[^:>=]\\)" tuareg--whitespace-re
-                   "\\(" lid "\\)[ \t]*:[^:>=]")
-          1 tuareg-font-lock-label-face keep)
-         ;; Polymorphic variants (take precedence on builtin names)
-         (,(concat "`" id) . tuareg-font-lock-constructor-face)
-         (,(regexp-opt '("failwith" "failwithf" "exit" "at_exit" "invalid_arg"
-                         "parser" "raise" "raise_notrace" "ref" "ignore"
-		         "Match_failure" "Assert_failure" "Invalid_argument"
-		         "Failure" "Not_found" "Out_of_memory" "Stack_overflow"
-		         "Sys_error" "End_of_file" "Division_by_zero"
-		         "Sys_blocked_io" "Undefined_recursive_module")
-                       'symbols)
-          . font-lock-builtin-face)
-         ("\\[[ \t]*\\]" . tuareg-font-lock-constructor-face) ; []
-         ("[])a-zA-Z0-9 \t]\\(::\\)[[(a-zA-Z0-9 \t]" ; :: (not not ::…)
-          1 tuareg-font-lock-constructor-face)
-         ;; Constructors
-         (,(concat "\\(" uid "\\)[^.]")  1 tuareg-font-lock-constructor-face)
-         (,(concat "\\_<let +exception +\\(" uid "\\)")
-          1 tuareg-font-lock-constructor-face)
-         ;; let-bindings (let f : type = fun)
-         (,(concat let-binding-g4 "\\(" lid "\\) *\\(?:: *\\([^=]+\\)\\)?= *"
-                   "fun\\(?:ction\\)?\\>")
-          (5 font-lock-function-name-face nil t)
-          (6 font-lock-type-face keep t))
-         ;; let binding variables
-         (,(concat "\\(?:" let-binding-g4 "\\|" gclass-gparams "\\)")
-          (tuareg--pattern-vars-matcher (tuareg--pattern-pre-form-let) nil
-                                        (0 font-lock-variable-name-face keep))
-          (tuareg--pattern-maybe-type-matcher nil nil ; def followed by type
-                                              (1 font-lock-type-face keep)))
-         (,(concat "\\_<fun\\_>" maybe-infix-ext+attr)
-          (tuareg--pattern-vars-matcher (tuareg--pattern-pre-form-fun) nil
-                                        (0 font-lock-variable-name-face keep)))
-         (,(concat "\\_<method!? +\\(" lid "\\)")
-          (1 font-lock-function-name-face keep t); method name
-          (tuareg--pattern-vars-matcher (tuareg--pattern-pre-form-let) nil
-                                        (0 font-lock-variable-name-face keep))
-          (tuareg--pattern-maybe-type-matcher nil nil ; method followed by type
-                                              (1 font-lock-type-face keep)))
-         (,(concat "\\_<object *(\\(" lid "\\) *\\(?:: *\\("
-                   balanced-braces "\\)\\)?)")
-          (1 font-lock-variable-name-face)
-          (2 font-lock-type-face keep t))
-         (,(concat "\\_<object *( *\\(" typevar "\\|_\\) *)")
-          1 font-lock-type-face)
-         ,@(and tuareg-font-lock-symbols
-                (tuareg-font-lock-symbols-keywords))))
+     `(("\\_<\\(false\\|true\\)\\_>" . font-lock-constant-face)
+       (,(regexp-opt '("true" "false" "__LOC__" "__FILE__" "__LINE__"
+                       "__MODULE__" "__POS__" "__LOC_OF__" "__LINE_OF__"
+                       "__POS_OF__")
+                     'symbols)
+        . font-lock-constant-face)
+       (,(let ((kwd '("as" "do" "done" "downto" "else" "for" "if"
+                      "then" "to" "try" "when" "while" "new"
+                      "lazy" "assert" "exception")))
+           (if (tuareg-editing-ls3)
+               (progn (push "reset" kwd)  (push "merge" kwd)
+                      (push "emit" kwd)  (push "period" kwd)))
+           (regexp-opt kwd 'symbols))
+        . font-lock-keyword-face)
+       (,(concat "\\_<exception +\\(" uid "\\)")
+        1 tuareg-font-lock-constructor-face)
+       ;; (M: S) -- only color S here (may be "A.T with type t = s")
+       (,(concat "( *" uid " *: *\\("
+                 modtype-path "\\(?: *\\_<with\\_>"
+                 balanced-braces "\\)?\\) *)")
+        1 tuareg-font-lock-module-face keep)
+       ;; module A(B: _)(C: _) : D = E, including "module A : E"
+       (,(concat "\\_<module +" uid tuareg--whitespace-re
+                 "\\(\\(?:( *" uid " *: *"
+                 modtype-path "\\(?: *\\_<with\\_>" balanced-braces "\\)?"
+                 " *)" tuareg--whitespace-re "\\)*\\)\\(?::"
+                 tuareg--whitespace-re "\\(" modtype-path
+                 "\\) *\\)?\\(?:=" tuareg--whitespace-re
+                 "\\(" extended-module-path "\\)\\)?")
+        (1 font-lock-variable-name-face keep); functor (module) variable
+        (2 tuareg-font-lock-module-face keep t)
+        (3 tuareg-font-lock-module-face keep t))
+       (,(concat "\\_<functor\\> *( *\\(" uid "\\) *: *\\("
+                 modtype-path "\\) *)")
+        (1 font-lock-variable-name-face keep); functor (module) variable
+        (2 tuareg-font-lock-module-face keep))
+       ;; Other uses of "with", "mutable", "private", "virtual"
+       (,(regexp-opt '("of" "with" "mutable" "private" "virtual") 'symbols)
+        . font-lock-keyword-face)
+       ;; labels
+       (,(concat "\\([?~]" lid "\\)" tuareg--whitespace-re ":[^:>=]")
+        1 tuareg-font-lock-label-face keep)
+       ;; label in a type signature
+       (,(concat "\\(?:->\\|:[^:>=]\\)" tuareg--whitespace-re
+                 "\\(" lid "\\)[ \t]*:[^:>=]")
+        1 tuareg-font-lock-label-face keep)
+       ;; Polymorphic variants (take precedence on builtin names)
+       (,(concat "`" id) . tuareg-font-lock-constructor-face)
+       (,(regexp-opt '("failwith" "failwithf" "exit" "at_exit" "invalid_arg"
+                       "parser" "raise" "raise_notrace" "ref" "ignore"
+		       "Match_failure" "Assert_failure" "Invalid_argument"
+		       "Failure" "Not_found" "Out_of_memory" "Stack_overflow"
+		       "Sys_error" "End_of_file" "Division_by_zero"
+		       "Sys_blocked_io" "Undefined_recursive_module")
+                     'symbols)
+        . font-lock-builtin-face)
+       ("\\[[ \t]*\\]" . tuareg-font-lock-constructor-face) ; []
+       ("[])a-zA-Z0-9 \t]\\(::\\)[[(a-zA-Z0-9 \t]" ; :: (not not ::…)
+        1 tuareg-font-lock-constructor-face)
+       ;; Constructors
+       (,(concat "\\(" uid "\\)[^.]")  1 tuareg-font-lock-constructor-face)
+       (,(concat "\\_<let +exception +\\(" uid "\\)")
+        1 tuareg-font-lock-constructor-face)
+       ;; let-bindings (let f : type = fun)
+       (,(concat let-binding-g4 "\\(" lid "\\) *\\(?:: *\\([^=]+\\)\\)?= *"
+                 "fun\\(?:ction\\)?\\>")
+        (5 font-lock-function-name-face nil t)
+        (6 font-lock-type-face keep t))
+       ;; let binding variables
+       (,(concat "\\(?:" let-binding-g4 "\\|" gclass-gparams "\\)")
+        (tuareg--pattern-vars-matcher (tuareg--pattern-pre-form-let) nil
+                                      (0 font-lock-variable-name-face keep))
+        (tuareg--pattern-maybe-type-matcher nil nil ; def followed by type
+                                            (1 font-lock-type-face keep)))
+       (,(concat "\\_<fun\\_>" maybe-infix-ext+attr)
+        (tuareg--pattern-vars-matcher (tuareg--pattern-pre-form-fun) nil
+                                      (0 font-lock-variable-name-face keep)))
+       (,(concat "\\_<method!? +\\(" lid "\\)")
+        (1 font-lock-function-name-face keep t); method name
+        (tuareg--pattern-vars-matcher (tuareg--pattern-pre-form-let) nil
+                                      (0 font-lock-variable-name-face keep))
+        (tuareg--pattern-maybe-type-matcher nil nil ; method followed by type
+                                            (1 font-lock-type-face keep)))
+       (,(concat "\\_<object *(\\(" lid "\\) *\\(?:: *\\("
+                 balanced-braces "\\)\\)?)")
+        (1 font-lock-variable-name-face)
+        (2 font-lock-type-face keep t))
+       (,(concat "\\_<object *( *\\(" typevar "\\|_\\) *)")
+        1 font-lock-type-face)
+       ,@(and tuareg-font-lock-symbols
+              (tuareg-font-lock-symbols-keywords))))
     (setq
      tuareg-font-lock-keywords-1
      (append common-keywords
