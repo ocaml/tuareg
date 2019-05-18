@@ -1137,7 +1137,11 @@ for the interactive mode."
                (,(concat "\\(-\\)\\(?:[^0-9>]\\|\\("
                          operator-char-no> operator-char "*\\)\\)")
                 (1 tuareg-font-lock-operator-face)
-                (2 tuareg-font-lock-operator-face keep t)))
+                (2 tuareg-font-lock-operator-face keep t))
+               (,(regexp-opt '("type" "module" "module type"
+                               "val" "val mutable")
+                             'symbols)
+                (tuareg--pattern-equal-matcher nil nil nil)))
            `((,(concat "[@^&$%!]" operator-char "*\\|"
                        "[|#?~]" operator-char "+")
               . tuareg-font-lock-operator-face)))
@@ -1249,6 +1253,33 @@ This based on the fontification and is faster than calling `syntax-ppss'."
       (put-text-property (point) tuareg--pattern-matcher-limit
                          'font-lock-multiline t))
     tuareg--pattern-matcher-limit))
+
+(defun tuareg--pattern-equal-matcher (limit)
+  "Find \"=\" and \"+=\" and remove its highlithing."
+  (unless (tuareg--font-lock-in-string-or-comment)
+    (let (pos)
+      (while (and
+              (<= (point) limit)
+              (setq pos (re-search-forward "[+=({[]" limit t))
+              (progn
+                (backward-char)
+                (cond
+                 ((or (char-equal ?\( (char-after))
+                      (char-equal ?{  (char-after))
+                      (char-equal ?\[ (char-after)))
+                  ;; Skip balanced braces
+                  (if (ignore-errors (forward-list))
+                      t
+                    (goto-char (1- pos))
+                    nil)) ; If braces are not balanced, stop.
+                 ((char-equal ?+ (char-after))
+                  (if (char-equal ?= (char-after pos))
+                      (put-text-property (point) (1+ pos) 'face nil)
+                    (forward-char)
+                    t))
+                 (t
+                  (put-text-property (point) (1+ (point)) 'face nil))))))
+      nil)))
 
 (defun tuareg--pattern-vars-matcher (limit)
   "Match a variable name after the point.
