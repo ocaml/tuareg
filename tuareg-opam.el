@@ -1,4 +1,4 @@
-;;; tuareg-opam.el --- Mode for editing opam files   -*- coding: utf-8 -*-
+;;; tuareg-opam.el --- Mode for editing opam files   -*- coding: utf-8; lexical-binding:t -*-
 
 ;; Copyright (C) 2017- Christophe Troestler
 
@@ -48,6 +48,14 @@
 (defvar tuareg-opam-error-face 'tuareg-opam-error-face
   "Face for constructs considered as errors (e.g. deprecated constructs).")
 
+(defface tuareg-opam-pkg-variable-name-face
+  '((t (:inherit font-lock-variable-name-face :slant italic)))
+  "Face for package specific variables."
+  :group 'tuareg-opam)
+
+(defvar tuareg-opam-pkg-variable-name-face 'tuareg-opam-pkg-variable-name-face
+  "Face for package specific variables.")
+
 (defconst tuareg-opam-keywords
   '("opam-version" "name" "version" "maintainer" "authors"
     "license" "homepage" "doc" "bug-reports" "dev-repo"
@@ -96,15 +104,24 @@
      1 font-lock-keyword-face)
     (,tuareg-opam-scopes-regex . font-lock-constant-face)
     (,tuareg-opam-variables-regex . font-lock-variable-name-face)
-    (,(concat "%{" tuareg-opam-variables-regex "}%")
+    (,(concat "%{" tuareg-opam-variables-regex "\\(?:}%\\|?\\)")
      (1 font-lock-variable-name-face t))
-    ("%{\\([a-zA-Z_][a-zA-Z0-9_+-]*\\):\\([a-zA-Z][a-zA-Z0-9_+-]\\)}%"
-     (1 font-lock-constant-face t)
-     (2 font-lock-variable-name-face t))
     (,(concat "%{\\([a-zA-Z_][a-zA-Z0-9_+-]*\\):"
-              tuareg-opam-pkg-variables-regex "}%")
-     (1 font-lock-constant-face t)
-     (2 font-lock-builtin-face t)))
+              tuareg-opam-pkg-variables-regex "\\(?:}%\\|?\\)")
+     (1 font-lock-type-face t)
+     (2 font-lock-variable-name-face t t))
+    (,(concat "%{\\([a-zA-Z_][a-zA-Z0-9_+-]*\\):"
+              "\\([a-zA-Z][a-zA-Z0-9_+-]*\\)\\(?:}%\\|?\\)")
+     (1 font-lock-type-face t)
+     (2 tuareg-opam-pkg-variable-name-face t t))
+    ;; "package-name:var-name" anywhere (do not force)
+    (,(concat "\\_<\\([a-zA-Z_][a-zA-Z0-9_+-]*\\):"
+              tuareg-opam-pkg-variables-regex)
+     (1 font-lock-type-face)
+     (2 font-lock-variable-name-face))
+    ("\\_<\\([a-zA-Z_][a-zA-Z0-9_+-]*\\):\\([a-zA-Z][a-zA-Z0-9_+-]*\\)\\_>"
+     (1 font-lock-type-face)
+     (2 tuareg-opam-pkg-variable-name-face)))
   "Highlighting for OPAM files")
 
 
