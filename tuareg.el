@@ -2571,24 +2571,23 @@ This function moves the point."
 (defun tuareg--fill-comment ()
   "Assumes the point is inside a comment and justify it.
 This function moves the point."
-  (let* ((start (set-marker (make-marker) (nth 8 (syntax-ppss))))
-         (end (make-marker))
-         fill-prefix
-         (use-hard-newlines t))
-    (goto-char (marker-position start))
+  (let* ((comstart (nth 8 (syntax-ppss)))
+         (comend (make-marker))
+         (parstart (make-marker))
+         (parend (make-marker)))
+    (save-excursion
+      (goto-char comstart)
+      (forward-comment 1)
+      (set-marker comend (point)))
+    (save-restriction
+      (narrow-to-region comstart comend)
+      (set-marker parstart (save-excursion (backward-paragraph) (point)))
+      (set-marker parend (save-excursion (forward-paragraph) (point))))
     (indent-according-to-mode)
-    (setq fill-prefix (make-string (+ 3 (current-column)) ?\ ))
-    (forward-comment 1)
-    (set-marker end (point))
-    (goto-char (marker-position start))
-    (let ((e (marker-position end)))
-      (while (re-search-forward "\n\n" e t)
-        (put-text-property (match-beginning 0) (match-end 0) 'hard 't)))
-    (fill-region start end)
-    (remove-text-properties (marker-position start) (marker-position end)
-                            '(hard))
-    (set-marker start nil)
-    (set-marker end nil)))
+    (fill-region-as-paragraph parstart parend)
+    (set-marker comend nil)
+    (set-marker parstart nil)
+    (set-marker parend nil)))
 
 (defun tuareg-indent-phrase ()
   "Depending of the context: justify and indent a comment,
