@@ -1021,8 +1021,7 @@ for the interactive mode."
         )))
     (setq
      tuareg-font-lock-keywords-1-extra
-     `(("\\_<\\(false\\|true\\)\\_>" . font-lock-constant-face)
-       (,(regexp-opt '("true" "false" "__LOC__" "__FILE__" "__LINE__"
+     `((,(regexp-opt '("true" "false" "__LOC__" "__FILE__" "__LINE__"
                        "__MODULE__" "__POS__" "__LOC_OF__" "__LINE_OF__"
                        "__POS_OF__")
                      'symbols)
