@@ -824,7 +824,7 @@ for the interactive mode."
          (let-binding-g4 ; 4 groups
           (concat "\\_<\\(?:\\(let\\_>" binding-operator-char "?\\)"
                   "\\(" maybe-infix-ext+attr
-		  "\\)\\(?: +\\(" (if (tuareg-editing-ls3) let-ls3 "rec")
+		  "\\)\\(?: +\\(" (if (tuareg-editing-ls3) let-ls3 "rec\\_>")
 		  "\\)\\)?\\|\\(and" binding-operator-char "?\\)\\)"))
          ;; group for possible class param
          (gclass-gparams
