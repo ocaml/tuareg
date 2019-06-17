@@ -907,6 +907,13 @@ for the interactive mode."
              (1 font-lock-keyword-face)
              (2 tuareg-font-lock-module-face)
              (3 tuareg-font-lock-module-face))
+            (,(concat "\\_<\\(module\\)\\(" maybe-infix-ext+attr "\\)"
+	              "\\(\\(?: +type\\)?\\(?: +rec\\)?\\)\\>\\(?: *\\("
+                      uid "\\)\\)?")
+             (1 tuareg-font-lock-governing-face)
+             (2 tuareg-font-lock-infix-extension-node-face)
+             (3 tuareg-font-lock-governing-face)
+             (4 tuareg-font-lock-module-face keep t))
             ("\\_<let +exception\\_>" . tuareg-font-lock-governing-face)
             (,(concat (regexp-opt '("sig" "struct" "functor" "inherit"
                                     "initializer" "object" "begin")
@@ -977,13 +984,6 @@ for the interactive mode."
              (3 tuareg-font-lock-governing-face keep t)
              (4 tuareg-font-lock-governing-face keep t)
              (5 font-lock-function-name-face keep t))
-            (,(concat "\\_<\\(module\\)\\(" maybe-infix-ext+attr "\\)"
-	              "\\(\\(?: +type\\)?\\(?: +rec\\)?\\)\\>\\(?: *\\("
-                      uid "\\)\\)?")
-             (1 tuareg-font-lock-governing-face)
-             (2 tuareg-font-lock-infix-extension-node-face)
-             (3 tuareg-font-lock-governing-face)
-             (4 tuareg-font-lock-module-face keep t))
             (,(concat "\\_<\\(include\\)\\_>\\(?: +\\("
                       extended-module-path "\\|( *"
                       extended-module-path " *: *" balanced-braces " *)\\)\\)?")
