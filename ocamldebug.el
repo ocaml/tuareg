@@ -62,31 +62,35 @@
 (defvar ocamldebug-prompt-pattern "^(\\(ocd\\|cdb\\)) *"
   "A regexp to recognize the prompt for ocamldebug.")
 
-(defvar ocamldebug-overlay-event nil
-  "Overlay for displaying the current event.")
-(defvar ocamldebug-overlay-under nil
-  "Overlay for displaying the current event.")
-(defvar ocamldebug-event-marker nil
+(defvar ocamldebug-overlay-event
+  (let ((ol (make-overlay (point) (point))))
+    (overlay-put ol 'face 'ocamldebug-event)
+    (delete-overlay ol) ;; Disconnect it from current buffer.
+    ol)
+  "Overlay for displaying the first/last char of current event.")
+(defvar ocamldebug-overlay-under
+  (let ((ol (make-overlay (point) (point))))
+    (overlay-put ol 'face 'ocamldebug-underline)
+    (delete-overlay ol) ;; Disconnect it from current buffer.
+    ol)
+  "Overlay for displaying the rest of current event.")
+(defvar ocamldebug-event-marker (make-marker)
   "Marker for displaying the current event.")
 
 (defvar ocamldebug-track-frame t
   "*If non-nil, always display current frame position in another window.")
 
-(cond
- (window-system
-  (make-face 'ocamldebug-event)
-  (make-face 'ocamldebug-underline)
-  (unless (face-differs-from-default-p 'ocamldebug-event)
-    (invert-face 'ocamldebug-event))
-  (unless (face-differs-from-default-p 'ocamldebug-underline)
-    (set-face-underline 'ocamldebug-underline t))
-  (setq ocamldebug-overlay-event (make-overlay 1 1))
-  (overlay-put ocamldebug-overlay-event 'face 'ocamldebug-event)
-  (setq ocamldebug-overlay-under (make-overlay 1 1))
-  (overlay-put ocamldebug-overlay-under 'face 'ocamldebug-underline))
- (t
-  (setq ocamldebug-event-marker (make-marker))
-  (setq overlay-arrow-string "=>")))
+(defface ocamldebug-event
+  '((t :invert t))
+  "Face to highlight the first/last char of current event."
+  :group 'tuareg)
+
+(defface ocamldebug-underline
+  ;; FIXME: The name should describe what it's used for, not what it looks
+  ;; like by default!
+  '((t :underline t))
+  "Face to highlight the rest of current event."
+  :group 'tuareg)
 
 ;;; OCamldebug mode.
 
@@ -704,7 +708,7 @@ Obeying it means displaying in another window the specified file and line."
             (move-overlay ocamldebug-overlay-under
                           (+ spos 1) epos buffer))
         (move-overlay ocamldebug-overlay-event (1- epos) epos buffer)
-        (move-overlay ocamldebug-overlay-under spos (- epos 1) buffer))
+        (move-overlay ocamldebug-overlay-under spos (1- epos) buffer))
     (with-current-buffer buffer
       (goto-char pos)
       (beginning-of-line)
