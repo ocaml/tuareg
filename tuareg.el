@@ -977,8 +977,8 @@ for the interactive mode."
              1 font-lock-function-name-face)
             ;; Highlight "let" and function names (their argument
             ;; patterns can then be treated uniformly with variable bindings)
-            (,(concat let-binding-g4 " *\\(?:\\(" lid
-                      "\\) *\\(?:[^ =,:a]\\|a[^s]\\)\\)?")
+            (,(concat let-binding-g4 " *\\(?:\\(" lid "\\) *"
+                      "\\(?:[^ =,:a]\\|a\\(?:[^s]\\|s[^[:space:]]\\)\\)\\)?")
              (1 tuareg-font-lock-governing-face keep t)
              (2 tuareg-font-lock-infix-extension-node-face keep t)
              (3 tuareg-font-lock-governing-face keep t)
