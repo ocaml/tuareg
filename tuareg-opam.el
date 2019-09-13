@@ -266,7 +266,7 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
   "]" > \n
   "depends: [" > \n
   "\"ocaml\" {>= \"4.02\"}" > \n
-  "\"dune\" {build}" > \n
+  "\"dune\"" > \n
   "]" > \n
   "synopsis: \"\"" > \n
   "description: \"\"\"" > \n
