@@ -2497,9 +2497,9 @@ See variable `beginning-of-defun-function'."
   "Apr 10, 2019")
 
 (defun tuareg-discover-phrase (&optional pos)
-  "Return a triplet (BEGIN END END-WITH-COMMENTS) for the OCaml
-phrase around POS.  In case of error, move the point at the
-beginning of the error and return `nil'."
+  "Return a couple (BEGIN . END) for the OCaml phrase around POS,
+including comments after the phrase.  In case of error, move the
+point at the beginning of the error and return `nil'."
   (let ((complete-phrase t)
         begin end)
     (save-excursion
