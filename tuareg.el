@@ -2048,7 +2048,7 @@ Return values can be
       (`:elem (cond
                ((eq token 'basic) tuareg-default-indent)
                ;; The default tends to indent much too deep.
-               ((eq token 'empty-line-token) ";")))
+               ((eq token 'empty-line-token) ";;")))
       (`:list-intro (member token '("fun")))
       (`:close-all t)
       (`:before
@@ -2290,6 +2290,7 @@ whereas with a nil value you get
   (unless (or tuareg-indent-align-with-first-arg
               (nth 8 (syntax-ppss))
               (looking-at comment-start-skip)
+              (looking-at "[ \t]*$") ;; bug#179
               (numberp (nth 1 (save-excursion (smie-indent-forward-token))))
               (numberp (nth 2 (save-excursion (smie-indent-backward-token)))))
     (save-excursion
