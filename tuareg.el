@@ -2496,17 +2496,17 @@ See variable `beginning-of-defun-function'."
   'tuareg-backward-beginning-of-defun
   "Apr 10, 2019")
 
-(defun tuareg-discover-phrase (&optional pos)
+(defun tuareg-region-of-defun (&optional pos)
   "Return a couple (BEGIN . END) for the OCaml phrase around POS,
 including comments after the phrase.  In case of error, move the
 point at the beginning of the error and return `nil'."
   (let ((complete-phrase t)
         begin end)
     (save-excursion
-      (if pos (goto-char pos)  (setq pos (point)))
+      (if pos (goto-char pos))
       (tuareg-backward-beginning-of-defun)
       (setq begin (point))
-      (tuareg-end-of-defun)
+      (tuareg-end-of-defun) ; OK as point is as beginning of defun
       (setq end (point))
       ;; Check if we were not stuck (after POS) because the phrase was
       ;; not well parenthesized.
@@ -2518,6 +2518,19 @@ point at the beginning of the error and return `nil'."
         (cons begin end)
       (goto-char end)
       nil)))
+
+(defun tuareg-discover-phrase (&optional pos)
+  "Return a triplet (BEGIN END END-WITH-COMMENTS) for the OCaml
+phrase around POS.  In case of error, move the point at the
+beginning of the error and return `nil'."
+  (let ((r (tuareg-region-of-defun pos))
+        end-without-comments)
+    (when r
+      ;; Remove possible comments after the phrase.
+      (goto-char (cdr r))
+      (forward-comment (- (point)))
+      (setq end-without-comments (point))
+      (list (car r) end-without-comments (cdr r)))))
 
 (defun tuareg--string-boundaries ()
   "Assume point is inside a string and return (START . END), the
@@ -2598,7 +2611,7 @@ or indent all lines in the current phrase."
         (tuareg--fill-string))
        ((nth 4 ppss)
         (tuareg--fill-comment))
-       (t (let ((phrase (tuareg-discover-phrase)))
+       (t (let ((phrase (tuareg-region-of-defun)))
             (if phrase
                 (indent-region (car phrase) (cdr phrase)))))))))
 
@@ -3326,14 +3339,11 @@ It is assumed that the range START-END delimit valid OCaml phrases."
   (setq tuareg-interactive-last-phrase-pos-in-source start)
   (save-excursion
     (goto-char start)
-    (setq start (car (tuareg-discover-phrase)))
-    (if start
-        (progn
-          (goto-char end)
-          (setq end (cdr (tuareg-discover-phrase)))
-          (if end
-              (tuareg-interactive--send-region start end)
-            (message "The expression after the point is not well braced.")))
+    (tuareg-backward-beginning-of-defun)
+    (setq start (point))
+    (setq end (cdr (tuareg-region-of-defun end)))
+    (if end
+        (tuareg-interactive--send-region start end)
       (message "The expression after the point is not well braced."))))
 
 (define-obsolete-function-alias 'tuareg-narrow-to-phrase 'narrow-to-defun
@@ -3349,12 +3359,9 @@ It is assumed that the range START-END delimit valid OCaml phrases."
     (let ((phrase (tuareg-discover-phrase)))
       (if phrase
           (progn
-            ;; Remove comments after the phrase
-            (goto-char (cdr phrase))
-            (forward-comment (- (point)))
-            (tuareg-interactive--send-region (car phrase) (point))
+            (tuareg-interactive--send-region (car phrase) (cadr phrase))
             (if tuareg-skip-after-eval-phrase
-              (progn (goto-char (cdr phrase))
+              (progn (goto-char (caddr phrase))
                      (tuareg-skip-blank-and-comments))
               (goto-char opoint)))
         (message "The expression after the point is not well braced.")))))
