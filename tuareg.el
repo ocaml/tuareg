@@ -330,21 +330,6 @@ Valid names are `browse-url', `browse-url-firefox', etc."
 ;;   (e.g., ocaml vs. metaocaml buffers)
 ;; (make-variable-buffer-local 'tuareg-interactive-program)
 
-(defcustom tuareg-opam-insinuate nil
-  "By default, Tuareg will use the environment that Emacs was
-launched in.  That environment may not contain an OCaml
-compiler (say, because Emacs was launched graphically and the
-path is set in ~/.bashrc) and will remain unchanged when one
-issue an \"opam switch\" in a shell.  If this variable is set to
-t, Tuareg will try to use opam to set the right environment for
-`compile', `run-ocaml' and `merlin-mode' based on the current
-opam switch at the time the command is run (provided opam is
-found).  You may also use `tuareg-opam-update-env' to set the
-environment for another compiler from within emacs (without
-changing the opam switch).  Beware that setting it to t causes
-problems if you compile under tramp."
-  :group 'tuareg :type 'boolean)
-
 (defgroup tuareg-faces nil
   "Special faces for the Tuareg mode."
   :group 'tuareg)
@@ -3008,87 +2993,6 @@ lines? \\([0-9]+\\)-?\\([0-9]+\\)?\
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               OPAM
-
-(defconst tuareg-opam-compilers
-  (when (file-directory-p "~/.opam")
-    (let ((c (directory-files "~/.opam" t "[0-9]+\\.[0-9]+\\.[0-9]+")))
-      (if (file-directory-p "~/.opam/system")
-	  (cons "~/.opam/system" c)
-	c)))
-  "The list of OPAM directories for the installed compilers.")
-
-(defvar tuareg-opam
-  (let ((opam (executable-find "opam")))
-    (if opam opam
-      (let ((opam (locate-file "bin/opam" tuareg-opam-compilers)))
-        (if (and opam (file-executable-p opam)) opam)))) ; or nil
-  "The full path of the opam executable or `nil' if opam wasn't found.")
-
-(defun tuareg-shell-command-to-string (command)
-  "Similar to shell-command-to-string, but returns nil when the
-process return code is not 0 (shell-command-to-string returns the
-error message as a string)."
-  (let* ((return-value 0)
-         (return-string
-          (with-output-to-string
-            (with-current-buffer standard-output
-              (setq return-value
-                    (process-file shell-file-name nil '(t nil)
-                                  nil shell-command-switch command))))))
-    (if (= return-value 0) return-string nil)))
-
-(defun tuareg-opam-config-env (&optional switch)
-  "Get the opam environment for the given switch (or the default
-switch if none is provied) and return a list of lists of the
-form (n v) where n is the name of the environment variable and v
-its value (both being strings).  If opam is not found or the
-switch is not installed, `nil' is returned."
-  (let* ((switch (if switch (concat " --switch " switch)))
-	 (get-env (concat tuareg-opam " config env --sexp" switch))
-	 (opam-env (tuareg-shell-command-to-string get-env)))
-    (if opam-env
-	(car (read-from-string opam-env)))))
-
-(defun tuareg-opam-installed-compilers ()
-  (let* ((cmd1 (concat tuareg-opam " switch list -i -s"))
-         (cmd2 (concat tuareg-opam " switch list -s")); opam2
-	 (cpl (or (tuareg-shell-command-to-string cmd1)
-                  (tuareg-shell-command-to-string cmd2))))
-    (if cpl (split-string cpl "[ \f\t\n\r\v]+" t) '())))
-
-(defun tuareg-opam-current-compiler ()
-  (let* ((cmd (concat tuareg-opam " switch show -s"))
-	 (cpl (tuareg-shell-command-to-string cmd)))
-    (when cpl
-      (replace-regexp-in-string "[ \t\n]*" "" cpl))))
-
-(defun tuareg-opam-update-env (switch)
-  "Update the environment to follow current OPAM switch configuration."
-  (interactive
-   (let* ((compl (tuareg-opam-installed-compilers))
-	  (current (tuareg-opam-current-compiler))
-	  (default (if current current "current"))
-	  (prompt (format "opam switch (default: %s): " default)))
-     (list (completing-read prompt compl))))
-  (let* ((switch (if (string= switch "") nil switch))
-	 (env (tuareg-opam-config-env switch)))
-    (if env
-	(dolist (v env)
-	  (setenv (car v) (cadr v))
-	  (when (string= (car v) "PATH")
-	    (setq exec-path (split-string (cadr v) path-separator))))
-      (message "Switch %s does not exist (or opam not found)" switch))))
-
-
-;; OPAM compilation
-(defun tuareg--compile-opam (&rest _)
-  "Advice to update the OPAM environment to sync it with the OPAM
-switch before compiling."
-  (let* ((env (tuareg-opam-config-env)))
-    (when env
-      (setq-local compilation-environment
-                  (mapcar (lambda(v) (concat (car v) "=" (cadr v)))
-                          (tuareg-opam-config-env))))))
 
 (when (and tuareg-opam-insinuate tuareg-opam)
   (setq tuareg-interactive-program
