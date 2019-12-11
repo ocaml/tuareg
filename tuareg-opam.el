@@ -421,4 +421,4 @@ switch before compiling."
 (add-to-list 'auto-mode-alist '("[./]opam_?\\'" . tuareg-opam-mode))
 
 
-(provide 'tuareg-opam-mode)
+(provide 'tuareg-opam)
