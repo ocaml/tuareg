@@ -861,14 +861,6 @@ for the interactive mode."
              (2 font-lock-type-face))
             (":[\n]? *\\(\\<type\\>\\)"
              (1 font-lock-keyword-face))
-            ;; (expr: t) and (expr :> t) If `t' is longer then one
-            ;; word, require a space before.  Not only this is more
-            ;; readable but it also avoids that `~label:expr var` is
-            ;; taken as a type annotation when surrounded by
-            ;; parentheses.
-            (,(concat "(" balanced-braces-no-end-operator ":>?\\(['_A-Za-z]+"
-                      "\\| [ \n'_A-Za-z]" balanced-braces-no-string "\\))")
-             1 font-lock-type-face keep)
             ;; (lid: t), before function definitions
             (,(concat "(" lid " *:\\(['_A-Za-z]"
                       balanced-braces-no-string "\\))")
@@ -948,6 +940,18 @@ for the interactive mode."
             (,(concat "\\<\\(open\\(?:! +\\|\\> *\\)\\)\\(" module-path "\\)?")
              (1 tuareg-font-lock-governing-face)
              (2 tuareg-font-lock-module-face keep t))
+            ;; (expr: t) and (expr :> t) If `t' is longer then one
+            ;; word, require a space before.  Not only this is more
+            ;; readable but it also avoids that `~label:expr var` is
+            ;; taken as a type annotation when surrounded by
+            ;; parentheses.  Done last so that it does not apply if
+            ;; already highlighted (let x : t = u in ...) but before
+            ;; module paths (expr : X.t).
+            (,(concat "(" balanced-braces-no-end-operator ":>? *\\(?:\n *\\)?"
+                      "\\(['_A-Za-z]" balanced-braces-no-string
+                      "\\|(" balanced-braces-no-string ")"
+                      balanced-braces-no-string"\\))")
+             1 font-lock-type-face)
             ;; module paths A.B.
             (,(concat module-path "\\.") . tuareg-font-lock-module-face)
             ,@(and tuareg-support-metaocaml
