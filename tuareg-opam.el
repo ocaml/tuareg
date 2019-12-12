@@ -333,7 +333,7 @@ its value (both being strings).  If opam is not found or the
 switch is not installed, `nil' is returned."
   (let* ((switch (if switch (concat " --switch " switch)))
 	 (get-env (concat tuareg-opam " config env --sexp" switch))
-	 (opam-env (tuareg-shell-command-to-string get-env)))
+	 (opam-env (tuareg--shell-command-to-string get-env)))
     (if opam-env
 	(car (read-from-string opam-env)))))
 
@@ -352,7 +352,7 @@ changing the opam switch).  Beware that setting it to t causes
 problems if you compile under tramp."
   :group 'tuareg :type 'boolean)
 
-(defun tuareg-shell-command-to-string (command)
+(defun tuareg--shell-command-to-string (command)
   "Similar to shell-command-to-string, but returns nil when the
 process return code is not 0 (shell-command-to-string returns the
 error message as a string)."
@@ -373,20 +373,20 @@ its value (both being strings).  If opam is not found or the
 switch is not installed, `nil' is returned."
   (let* ((switch (if switch (concat " --switch " switch)))
 	 (get-env (concat tuareg-opam " config env --sexp" switch))
-	 (opam-env (tuareg-shell-command-to-string get-env)))
+	 (opam-env (tuareg--shell-command-to-string get-env)))
     (if opam-env
 	(car (read-from-string opam-env)))))
 
 (defun tuareg-opam-installed-compilers ()
   (let* ((cmd1 (concat tuareg-opam " switch list -i -s"))
          (cmd2 (concat tuareg-opam " switch list -s")); opam2
-	 (cpl (or (tuareg-shell-command-to-string cmd1)
-                  (tuareg-shell-command-to-string cmd2))))
+	 (cpl (or (tuareg--shell-command-to-string cmd1)
+                  (tuareg--shell-command-to-string cmd2))))
     (if cpl (split-string cpl "[ \f\t\n\r\v]+" t) '())))
 
 (defun tuareg-opam-current-compiler ()
   (let* ((cmd (concat tuareg-opam " switch show -s"))
-	 (cpl (tuareg-shell-command-to-string cmd)))
+	 (cpl (tuareg--shell-command-to-string cmd)))
     (when cpl
       (replace-regexp-in-string "[ \t\n]*" "" cpl))))
 
