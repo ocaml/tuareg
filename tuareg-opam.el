@@ -390,6 +390,7 @@ switch is not installed, `nil' is returned."
     (when cpl
       (replace-regexp-in-string "[ \t\n]*" "" cpl))))
 
+;;;###autoload
 (defun tuareg-opam-update-env (switch)
   "Update the environment to follow current OPAM switch configuration."
   (interactive
