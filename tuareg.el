@@ -810,10 +810,10 @@ for the interactive mode."
           (concat "\\_<\\(?:\\(let\\_>" binding-operator-char "?\\)"
                   "\\(" maybe-infix-ext+attr
 		  "\\)\\(?: +\\(" (if (tuareg-editing-ls3) let-ls3 "rec\\_>")
-		  "\\)\\)?\\|\\(and" binding-operator-char "?\\)\\)"))
+		  "\\)\\)?\\|\\(and\\_>" binding-operator-char "?\\)\\)"))
          ;; group for possible class param
          (gclass-gparams
-          (concat "\\(\\_<class\\(?: +type\\)?\\(?: +virtual\\)?\\>\\)"
+          (concat "\\(\\_<class\\(?: +type\\)?\\(?: +virtual\\)?\\_>\\)"
                   " *\\(\\[ *" typevar " *\\(?:, *" typevar " *\\)*\\] *\\)?"))
          ;; font-lock rules common to all levels
          (common-keywords
@@ -912,7 +912,7 @@ for the interactive mode."
                   `((,(concat "\\<\\(let[ \t]+" let-ls3 "\\)\\>")
                      . tuareg-font-lock-governing-face)))
             ;; "with type": "with" treated as a governing keyword
-            (,(concat "\\<\\(\\(?:with\\|and\\) +type\\(?: +nonrec\\)?\\>\\) *"
+            (,(concat "\\<\\(\\(?:with\\|and\\) +type\\(?: +nonrec\\)?\\_>\\) *"
                       "\\(" typeconstr "\\)?")
              (1 tuareg-font-lock-governing-face keep)
              (2 font-lock-type-face keep t))
@@ -925,8 +925,8 @@ for the interactive mode."
             ;; "!", "mutable", "virtual" treated as governing keywords
             (,(concat "\\<\\(\\(?:val\\(" maybe-infix-ext+attr "\\)"
 	              (if (tuareg-editing-ls3) "\\|reset\\|do")
-                      "\\)!? +\\(?:mutable\\(?: +virtual\\)?\\>"
-                      "\\|virtual\\(?: +mutable\\)?\\>\\)"
+                      "\\)!? +\\(?:mutable\\(?: +virtual\\)?\\_>"
+                      "\\|virtual\\(?: +mutable\\)?\\_>\\)"
 	              "\\|val!\\(" maybe-infix-ext+attr "\\)\\)"
                       "\\(?: *\\(" lid "\\)\\)?")
              (2 tuareg-font-lock-infix-extension-node-face keep t)
@@ -958,7 +958,8 @@ for the interactive mode."
              (1 tuareg-font-lock-governing-face)
              (2 font-lock-function-name-face keep t))
             ;; Binding operators
-            (,(concat "( *\\(\\(?:let\\|and\\)" binding-operator-char "\\) *)")
+            (,(concat "( *\\(\\(?:let\\|and\\)\\_>"
+                      binding-operator-char "\\) *)")
              1 font-lock-function-name-face)
             ;; Highlight "let" and function names (their argument
             ;; patterns can then be treated uniformly with variable bindings)
