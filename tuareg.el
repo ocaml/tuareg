@@ -1191,8 +1191,7 @@ This based on the fontification and is faster than calling `syntax-ppss'."
               (progn
                 (backward-char)
                 (cond
-                 ((or (char-equal ?\( (char-after))
-                      (char-equal ?{  (char-after)))
+                 ((memq (char-after) '(?\( ?\{))
                   ;; Skip balanced braces
                   (if (ignore-errors (forward-list))
                       t
@@ -1201,8 +1200,7 @@ This based on the fontification and is faster than calling `syntax-ppss'."
                  ((char-equal ?: (char-after))
                   ;; Make sure it is not a label
                   (skip-chars-backward "a-zA-Z0-9_'")
-                  (if (not (or (char-equal ?~ (char-before))
-                               (char-equal ?? (char-before))))
+                  (if (not (memq (char-before) '(?~ ??)))
                       (setq tuareg--pattern-matcher-limit (1- pos)))
                   (goto-char pos)
                   t)
@@ -1210,8 +1208,9 @@ This based on the fontification and is faster than calling `syntax-ppss'."
       (setq tuareg--pattern-matcher-type-limit (1+ (point))); include "="
       (unless tuareg--pattern-matcher-limit
         (setq tuareg--pattern-matcher-limit (point)))
-      ;; Remove any possible highlithing on "="
-      (put-text-property (point) (1+ (point)) 'face nil)
+      ;; Remove any possible highlighting on "="
+      (unless (eobp)
+        (put-text-property (point) (1+ (point)) 'face nil))
       ;; move the point back for the sub-matcher
       (goto-char opoint))
     (put-text-property (point) tuareg--pattern-matcher-limit
