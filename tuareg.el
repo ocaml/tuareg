@@ -1211,7 +1211,8 @@ This based on the fontification and is faster than calling `syntax-ppss'."
       (unless tuareg--pattern-matcher-limit
         (setq tuareg--pattern-matcher-limit (point)))
       ;; Remove any possible highlithing on "="
-      (put-text-property (point) (1+ (point)) 'face nil)
+      (and (< tuareg--pattern-matcher-type-limit (point-max))
+           (put-text-property (point) (1+ (point)) 'face nil))
       ;; move the point back for the sub-matcher
       (goto-char opoint))
     (put-text-property (point) tuareg--pattern-matcher-limit
