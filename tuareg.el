@@ -1339,7 +1339,6 @@ Run only once."
     (define-key map "\C-c\C-k" 'tuareg-kill-ocaml)
     (define-key map "\C-c\C-n" 'tuareg-next-phrase)
     (define-key map "\C-c\C-p" 'tuareg-previous-phrase)
-    (define-key map [(backspace)] 'backward-delete-char-untabify)
     (define-key map [(control c) (home)]
       'tuareg-move-inside-module-or-class-opening)
     (define-key map "\C-c`" 'tuareg-interactive-next-error-source)
