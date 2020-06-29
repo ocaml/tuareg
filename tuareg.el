@@ -1908,7 +1908,7 @@ Return values can be
          (t t)))))))
 
 (defun tuareg-smie-backward-token ()
-  "Move point to the beginning of the next token and return its SMIE name."
+  "Move point to the beginning of the previous token and return its SMIE name."
   (let ((tok (tuareg-smie--backward-token)))
     (cond
      ;; Distinguish a let expression from a let declaration.
@@ -2371,38 +2371,36 @@ Return the token starting the phrase (`nil' if it is an expression)."
   (let ((state (syntax-ppss)))
     (if (nth 3 state); in a string
         (goto-char (nth 8 state))
-      ;; If on a word (e.g., "let" or "end"), move to the end of it.
-      ;; In particular, even if at the beginning of the "let" of a
-      ;; definition, one will not jump to the previous one.
-      (or (/= (skip-syntax-forward "w_") 0)
+      ;; If inside a word (e.g., "let" or "end"), move to the end of it.
+      (or (looking-at (rx symbol-start))
+          (/= (skip-syntax-forward "w_") 0)
           (tuareg--skip-backward-comments-semicolon))))
-  (let (td tok
-        (opoint (point)))
-    (setq td (smie-backward-sexp ";;")); for expressions
+  (let ((opoint (point))
+        (td (smie-backward-sexp ";;"))) ; for expressions
     (cond
      ((and (car td) (member (nth 2 td) tuareg-starters-syms))
-      (goto-char (nth 1 td)) (setq tok (nth 2 td)))
-     ((and (car td) (string= (nth 2 td) ";;")))
+      (goto-char (nth 1 td))
+      (nth 2 td))
      (t
       (goto-char opoint)
-      (while (progn
-               (setq td (smie-backward-sexp 'halfsexp))
-               (cond
-                ((and (car td)
-                      (member (nth 2 td) tuareg-starters-syms))
-                 (goto-char (nth 1 td)) (setq tok (nth 2 td)) nil)
-                ((and (car td) (string= (nth 2 td) ";;"))
-                 nil)
-                ((and (car td) (not (numberp (car td))))
-                 (unless (bobp)
+      (let ((tok nil))
+        (while (let ((td (smie-backward-sexp 'halfsexp)))
+                 (cond
+                  ((and (car td) (member (nth 2 td) tuareg-starters-syms))
                    (goto-char (nth 1 td))
-                   ;; Make sure there is not a preceding ;;
-                   (setq opoint (point))
-                   (let ((tok (tuareg-smie-backward-token)))
-                     (goto-char opoint)
-                     (not (string= tok ";;")))))
-                (t t))))))
-    tok))
+                   (setq tok (nth 2 td))
+                   nil)
+                  ((and (car td) (string= (nth 2 td) ";;"))
+                   nil)
+                  ((and (car td) (not (numberp (car td))))
+                   (unless (bobp)
+                     (goto-char (nth 1 td))
+                     ;; Make sure there is not a preceding ;;
+                     (let ((tok (tuareg-smie-backward-token)))
+                       (goto-char (nth 1 td))
+                       (not (string= tok ";;")))))
+                  (t t))))
+        tok)))))
 
 (defun tuareg--skip-double-semicolon ()
   (tuareg-skip-blank-and-comments)
@@ -2423,20 +2421,36 @@ See variable `end-of-defun-function'."
 See variable `beginning-of-defun-function'."
   (interactive "^P")
   (unless arg (setq arg 1))
-  (cond
-   ((> arg 0)
-    (while (and (> arg 0) (not (bobp)))
-      (tuareg-backward-beginning-of-defun)
-      (cl-decf arg)))
-   (t
-    (tuareg-backward-beginning-of-defun)
-    (unless (bobp) (tuareg-end-of-defun))
-    (while (and (< arg 0) (not (eobp)))
-      (tuareg--skip-double-semicolon)
-      (smie-forward-sexp 'halfsexp)
-      (cl-incf arg))
-    (tuareg-backward-beginning-of-defun)))
-  t); whether an experssion or a def, we found something.
+  (let ((ret t))
+    (cond
+     ((>= arg 0)
+      (while (and (> arg 0) ret)
+        (unless (tuareg-backward-beginning-of-defun)
+          (setq ret nil))
+        (cl-decf arg)))
+     (t
+      (while (and (< arg 0) ret)
+        (let ((start (point)))
+          (tuareg-end-of-defun)
+          (skip-chars-forward " \t\n")
+          (tuareg--skip-forward-comments-semicolon)
+          (let ((end (point)))
+            (tuareg-backward-beginning-of-defun)
+            ;; Did we make forward progress?
+            (when (<= (point) start)
+              ;; No, try again.
+              (goto-char end)
+              (tuareg-end-of-defun)
+              (skip-chars-forward " \t\n")
+              (tuareg--skip-forward-comments-semicolon)
+              (tuareg-backward-beginning-of-defun)
+              ;; This time?
+              (when (<= (point) start)
+                ;; No, no more defuns.
+                (goto-char (point-max))
+                (setq ret nil)))))
+        (cl-incf arg))))
+    ret))
 
 (defun tuareg-skip-siblings ()
   (while (and (not (bobp))
