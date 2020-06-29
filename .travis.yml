@@ -19,6 +19,7 @@ before_install:
 script:
   - emacs --version
   - make elc
+  - make check-ert
   - make indent-test
 
 notifications:
