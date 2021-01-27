@@ -3118,7 +3118,7 @@ lines? \\([0-9]+\\)-?\\([0-9]+\\)?\
 (require 'tuareg-opam)
 (when (and tuareg-opam-insinuate tuareg-opam)
   (setq tuareg-interactive-program
-        (concat tuareg-opam " config exec -- ocaml"))
+        (concat tuareg-opam " exec -- ocaml"))
 
   (advice-add 'compile :before #'tuareg--compile-opam)
 
