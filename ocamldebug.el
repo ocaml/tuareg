@@ -42,6 +42,7 @@
                   "tuareg" (file-name-directory (or load-file-name
                                                     byte-compile-current-file))))
 (require 'derived)
+(require 'seq)
 
 ;;; Variables.
 
@@ -717,8 +718,48 @@ Obeying it means displaying in another window the specified file and line."
 
 ;;; Miscellaneous.
 
+(defun ocamldebug--read-from-file (file)
+  "Read FILE as a list of sexps. If invalid syntax, return nil and message the error."
+  (with-temp-buffer
+    (save-excursion
+      (insert "(\n")
+      (insert-file-contents file)
+      (goto-char (point-max))
+      (insert "\n)\n"))
+    (condition-case err
+        (read (current-buffer))
+      ((error err) (progn (message "Error reading file %S: %S" file err) nil)))))
+
+(defun ocamldebug--find-single-library (sexps)
+  "If list SEXPS has a single element whose `car' is \"library\", return it.
+Otherwise return `nil'."
+  (let ((libs (seq-filter (lambda (elt) (equal (car elt) 'library)) sexps)))
+    (and (null (cdr libs)) (car libs))))
+
+(defun ocamldebug--dune-library-name (lib)
+  "With LIB a dune-syntax library stanza, get its name as a string."
+  (let ((field (or (seq-find (lambda (field) (and (consp field) (equal (car field) 'name))) lib)
+                   (seq-find (lambda (field) (and (consp field) (equal (car field) 'public\_name))) lib))))
+    (symbol-name (car (cdr field)))))
+
+(defun ocamldebug--upcase-first-char (arg)
+  "Set the first character of ARG to uppercase."
+  (concat (upcase (substring arg 0 1)) (substring arg 1 (length arg))))
+
 (defun ocamldebug-module-name (filename)
-  (substring filename (string-match "\\([^/]*\\)\\.ml$" filename) (match-end 1)))
+  "Return module name for ocamldebug, taking into account dune wrapping.
+(for now only understands dune files with a single library stanza)"
+  (let ((mod (substring filename (string-match "\\([^/]*\\)\\.ml$" filename) (match-end 1)))
+        (dune (concat (file-name-directory filename) "dune")))
+    (if (file-exists-p dune)
+        (let* ((contents (ocamldebug--read-from-file dune))
+               (lib (and contents (ocamldebug--find-single-library contents)))
+               (is-wrapped (and lib (null (seq-contains-p lib '(wrapped false)))))
+               (libname (and is-wrapped (ocamldebug--dune-library-name lib))))
+          (if libname
+              (concat libname "__" (ocamldebug--upcase-first-char mod))
+            mod))
+      mod)))
 
 ;; The ocamldebug-call function must do the right thing whether its
 ;; invoking keystroke is from the ocamldebug buffer itself (via
