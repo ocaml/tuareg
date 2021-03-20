@@ -350,7 +350,7 @@ problems if you compile under tramp."
   :group 'tuareg :type 'boolean)
 
 (defun tuareg--shell-command-to-string (command)
-  "Similar to shell-command-to-string, but returns nil when the
+  "Similar to `shell-command-to-string', but returns nil when the
 process return code is not 0 (shell-command-to-string returns the
 error message as a string)."
   (let* ((return-value 0)
