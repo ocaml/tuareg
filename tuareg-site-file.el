@@ -1,4 +1,4 @@
-;;; tuareg-site-file.el --- Automatically extracted autoloads.
+;;; tuareg-site-file.el --- Automatically extracted autoloads.  -*- lexical-binding: t; -*-
 ;;; Code:
 (add-to-list 'load-path
              (or (file-name-directory load-file-name) (car load-path)))
@@ -15,7 +15,7 @@ the ocamldebug commands `cd DIR' and `directory'.
 
 \(fn PGM-PATH)" t nil)
 
-(defalias 'camldebug 'ocamldebug)
+(defalias 'camldebug #'ocamldebug)
 
 ;;;***
 
@@ -74,7 +74,7 @@ Run an OCaml REPL process.  I/O via buffer `*OCaml*'.
 
 \(fn)" t nil)
 
-(defalias 'run-ocaml 'tuareg-run-ocaml)
+(defalias 'run-ocaml #'tuareg-run-ocaml)
 
 (add-to-list 'interpreter-mode-alist '("ocamlrun" . tuareg-mode))
 

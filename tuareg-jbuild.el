@@ -1,4 +1,4 @@
-;;; tuareg-jbuild.el --- Mode for editing jbuild files   -*- coding: utf-8 -*-
+;;; tuareg-jbuild.el --- Mode for editing jbuild files   -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2017- Christophe Troestler
 
@@ -206,7 +206,7 @@
      "%s '%s'; sibling-p:%s parent:%s hanging:%s = %s"
      kind token
      (ignore-errors (smie-rule-sibling-p))
-     (ignore-errors smie--parent)
+     (bound-and-true-p smie--parent)
      (ignore-errors (smie-rule-hanging-p))
      value)
     value))
@@ -470,19 +470,19 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
 
 (defvar tuareg-jbuild-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-c" 'compile)
-    (define-key map "\C-c.v" 'tuareg-jbuild-insert-version-form)
-    (define-key map "\C-c.l" 'tuareg-jbuild-insert-library-form)
-    (define-key map "\C-c.e" 'tuareg-jbuild-insert-executable-form)
-    (define-key map "\C-c.x" 'tuareg-jbuild-insert-executables-form)
-    (define-key map "\C-c.r" 'tuareg-jbuild-insert-rule-form)
-    (define-key map "\C-c.p" 'tuareg-jbuild-insert-ocamllex-form)
-    (define-key map "\C-c.y" 'tuareg-jbuild-insert-ocamlyacc-form)
-    (define-key map "\C-c.m" 'tuareg-jbuild-insert-menhir-form)
-    (define-key map "\C-c.a" 'tuareg-jbuild-insert-alias-form)
-    (define-key map "\C-c.i" 'tuareg-jbuild-insert-install-form)
-    (define-key map "\C-c.c" 'tuareg-jbuild-insert-copyfiles-form)
-    (define-key map "\C-c.d" 'tuareg-jbuild-insert-documentation-form)
+    (define-key map "\C-c\C-c" #'compile)
+    (define-key map "\C-c.v" #'tuareg-jbuild-insert-version-form)
+    (define-key map "\C-c.l" #'tuareg-jbuild-insert-library-form)
+    (define-key map "\C-c.e" #'tuareg-jbuild-insert-executable-form)
+    (define-key map "\C-c.x" #'tuareg-jbuild-insert-executables-form)
+    (define-key map "\C-c.r" #'tuareg-jbuild-insert-rule-form)
+    (define-key map "\C-c.p" #'tuareg-jbuild-insert-ocamllex-form)
+    (define-key map "\C-c.y" #'tuareg-jbuild-insert-ocamlyacc-form)
+    (define-key map "\C-c.m" #'tuareg-jbuild-insert-menhir-form)
+    (define-key map "\C-c.a" #'tuareg-jbuild-insert-alias-form)
+    (define-key map "\C-c.i" #'tuareg-jbuild-insert-install-form)
+    (define-key map "\C-c.c" #'tuareg-jbuild-insert-copyfiles-form)
+    (define-key map "\C-c.d" #'tuareg-jbuild-insert-documentation-form)
     map)
   "Keymap used in Tuareg-jbuild mode.")
 
@@ -503,8 +503,7 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
        ["alias" tuareg-jbuild-insert-alias-form t]
        ["install" tuareg-jbuild-insert-install-form t]
        ["copy_files" tuareg-jbuild-insert-copyfiles-form t]
-       )))
-  (easy-menu-add tuareg-jbuild-mode-menu))
+       ))))
 
 
 ;;;###autoload
@@ -526,10 +525,18 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
   (tuareg-jbuild-build-menu)
   (run-mode-hooks 'tuareg-jbuild-mode-hook))
 
-
 ;;;###autoload
 (add-to-list 'auto-mode-alist
              '("\\(?:\\`\\|/\\)jbuild\\(?:\\.inc\\)?\\'" . tuareg-jbuild-mode))
 
+(define-derived-mode tuareg-dune-mode tuareg-jbuild-mode "Tuareg-Dune"
+  "Major mode to edit Dune files."
+  ;; FIXME: Actually adapt the above code to the new Dune syntax!
+  )
+
+;;;###autoload
+(add-to-list 'auto-mode-alist
+             '("\\(?:\\`\\|/\\)dune\\(\\|-workspace\\|-project\\)\\'"
+               . tuareg-dune-mode))
 
 (provide 'tuareg-jbuild-mode)

@@ -102,13 +102,13 @@
 (defvar ocamldebug-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-c" ocamldebug-prefix-map)
-    (define-key map "\C-l" 'ocamldebug-refresh)
+    (define-key map "\C-l" #'ocamldebug-refresh)
     ;; This is already the default anyway!
     ;;(define-key map "\t" 'comint-dynamic-complete)
     (define-key map "\M-?"
       ;; FIXME: This binding is wrong since comint-dynamic-list-completions
       ;; is a function, not a command.
-      'comint-dynamic-list-completions)
+      #'comint-dynamic-list-completions)
     map))
 
 (define-derived-mode ocamldebug-mode comint-mode "OCaml-Debugger"
@@ -184,7 +184,7 @@ representation is simply concatenated with the COMMAND."
                (interactive "P")
                (ocamldebug-call ,name ,args
                                 (ocamldebug-numeric-arg arg))))
-       (define-key ocamldebug-prefix-map ,key ',fun))))
+       (define-key ocamldebug-prefix-map ,key #',fun))))
 
 (def-ocamldebug "step"	"\C-s"	"Step one source line with display.")
 (def-ocamldebug "run"	"\C-r"	"Run the program.")
@@ -474,7 +474,7 @@ around point."
         nil
       ocamldebug-complete-list)))
 
-(define-key tuareg-mode-map "\C-x " 'ocamldebug-break)
+(define-key tuareg-mode-map "\C-x " #'ocamldebug-break)
 
 (defvar ocamldebug-command-name "ocamldebug"
   "Pathname for executing the OCaml debugger.")
@@ -521,7 +521,7 @@ the ocamldebug commands `cd DIR' and `directory'."
   (ocamldebug-set-buffer)))
 
 ;;;###autoload
-(defalias 'camldebug 'ocamldebug)
+(defalias 'camldebug #'ocamldebug)
 
 (defun ocamldebug-set-buffer ()
   (if (eq major-mode 'ocamldebug-mode)
@@ -669,9 +669,7 @@ Obeying it means displaying in another window the specified file and line."
 ;; Put the mark on this character in that buffer.
 
 (defun ocamldebug-display-line (true-file schar echar kind)
-  ;; FIXME: What is this pre-display-buffer-function?
-  (let* ((pre-display-buffer-function nil) ; screw it, put it all in one screen
-	 (pop-up-windows t)
+  (let* ((pop-up-windows t)
 	 (buffer (find-file-noselect true-file))
 	 (window (display-buffer buffer t))
          (spos) (epos) (pos))

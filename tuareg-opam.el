@@ -29,7 +29,7 @@
 
 (defvar tuareg-opam-mode-map
   (let ((map (make-keymap)))
-    (define-key map "\C-j" 'newline-and-indent)
+    (define-key map "\C-j" #'newline-and-indent)
     map)
   "Keymap for tuareg-opam mode")
 
@@ -59,16 +59,14 @@
 
 (defface tuareg-opam-error-face
   '((t (:inherit error)))
-  "Face for constructs considered as errors (e.g. deprecated constructs)."
-  :group 'tuareg-opam)
+  "Face for constructs considered as errors (e.g. deprecated constructs).")
 
 (defvar tuareg-opam-error-face 'tuareg-opam-error-face
   "Face for constructs considered as errors (e.g. deprecated constructs).")
 
 (defface tuareg-opam-pkg-variable-name-face
   '((t (:inherit font-lock-variable-name-face :slant italic)))
-  "Face for package specific variables."
-  :group 'tuareg-opam)
+  "Face for package specific variables.")
 
 (defvar tuareg-opam-pkg-variable-name-face 'tuareg-opam-pkg-variable-name-face
   "Face for package specific variables.")
@@ -214,7 +212,7 @@ See `prettify-symbols-alist' for more information.")
      "%s '%s'; sibling-p:%s parent:%s prev-is-[:%s hanging:%s = %s"
      kind token
      (ignore-errors (smie-rule-sibling-p))
-     (ignore-errors smie--parent)
+     (bound-and-true-p smie--parent)
      (ignore-errors (smie-rule-prev-p "["))
      (ignore-errors (smie-rule-hanging-p))
      value)
@@ -293,7 +291,7 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
 
 (defvar tuareg-opam-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c.o" 'tuareg-opam-insert-opam-form)
+    (define-key map "\C-c.o" #'tuareg-opam-insert-opam-form)
     map)
   "Keymap used in Tuareg-opam mode.")
 
@@ -302,8 +300,7 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
     tuareg-opam-mode-menu  (list tuareg-opam-mode-map)
     "Tuareg-opam mode menu."
     '("OPAM"
-      ["Skeleton" tuareg-opam-insert-opam-form t]))
-  (easy-menu-add tuareg-opam-mode-menu))
+      ["Skeleton" tuareg-opam-insert-opam-form t])))
 
 
 ;;;###autoload
@@ -364,18 +361,6 @@ error message as a string)."
                     (process-file shell-file-name nil '(t nil)
                                   nil shell-command-switch command))))))
     (if (= return-value 0) return-string nil)))
-
-(defun tuareg-opam-config-env (&optional switch)
-  "Get the opam environment for the given switch (or the default
-switch if none is provied) and return a list of lists of the
-form (n v) where n is the name of the environment variable and v
-its value (both being strings).  If opam is not found or the
-switch is not installed, `nil' is returned."
-  (let* ((switch (if switch (concat " --switch " switch)))
-	 (get-env (concat tuareg-opam " config env --sexp" switch))
-	 (opam-env (tuareg--shell-command-to-string get-env)))
-    (if opam-env
-	(car (read-from-string opam-env)))))
 
 (defun tuareg-opam-installed-compilers ()
   (let* ((cmd1 (concat tuareg-opam " switch list -i -s"))

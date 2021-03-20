@@ -1,6 +1,7 @@
 ;;; tuareg.el --- OCaml mode for Emacs.  -*- coding: utf-8; lexical-binding:t -*-
 
 ;; Copyright (C) 1997-2006 Albert Cohen, all rights reserved.
+;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
 ;; Copyright (C) 2009-2010 Jane Street Holding, LLC.
 ;; Licensed under the GNU General Public License.
 
@@ -74,6 +75,8 @@
 (eval-when-compile (require 'cl-lib))
 (require 'easymenu)
 (require 'find-file)
+(require 'caml-help nil t)
+(require 'caml-types nil t)
 
 (defconst tuareg-mode-revision
   (eval-when-compile
@@ -123,7 +126,7 @@
 ;;                    Import types and help features
 
 (defvar tuareg-with-caml-mode-p
-  (and (require 'caml-types nil t) (require 'caml-help nil t)))
+  (and (featurep 'caml-types) (featurep 'caml-help)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                       User customizable variables
@@ -629,13 +632,8 @@ Regexp match data 0 points to the chars."
     (modify-syntax-entry ?\" "\"" st) ; " is a string delimiter
     (modify-syntax-entry ?\\ "\\" st)
     (modify-syntax-entry ?*  ". 23" st)
-    (condition-case nil
-        (progn
-          (modify-syntax-entry ?\( "()1n" st)
-          (modify-syntax-entry ?\) ")(4n" st))
-      (error               ;XEmacs signals an error instead of ignoring `n'.
-       (modify-syntax-entry ?\( "()1" st)
-       (modify-syntax-entry ?\) ")(4" st)))
+    (modify-syntax-entry ?\( "()1n" st)
+    (modify-syntax-entry ?\) ")(4n" st))
     st)
   "Syntax table in use in Tuareg mode buffers.")
 
@@ -1270,7 +1268,7 @@ This based on the fontification and is faster than calling `syntax-ppss'."
                   (put-text-property (point) (1+ (point)) 'face nil))))))
       nil)))
 
-(defun tuareg--pattern-vars-matcher (limit)
+(defun tuareg--pattern-vars-matcher (_limit)
   "Match a variable name after the point.
 If it succeeds, it moves the point after the variable name and set
 `match-data'.  See e.g., `font-lock-keywords'."
@@ -1321,50 +1319,51 @@ Run only once."
 
 (defvar tuareg-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\M-q" 'tuareg-indent-phrase)
-    (define-key map "\C-c\C-q" 'tuareg-indent-phrase)
+    (define-key map "\M-q" #'tuareg-indent-phrase)
+    (define-key map [?\C-c ?\C-\;] #'tuareg-comment-dwim)
+    (define-key map "\C-c\C-q" #'tuareg-indent-phrase)
     ;; Don't bother: it's the global default anyway.
-    ;;(define-key map "\M-\C-\\" 'indent-region)
-    (define-key map "\C-c\C-a" 'tuareg-find-alternate-file)
-    (define-key map "\C-c\C-c" 'compile)
-    (define-key map "\C-c\C-w" 'tuareg-opam-update-env)
-    (define-key map "\C-xnd" 'tuareg-narrow-to-phrase)
-    (define-key map "\M-\C-x" 'tuareg-eval-phrase)
-    (define-key map "\C-x\C-e" 'tuareg-eval-phrase)
-    (define-key map "\C-c\C-e" 'tuareg-eval-phrase)
-    (define-key map "\C-c\C-r" 'tuareg-eval-region)
-    (define-key map "\C-c\C-b" 'tuareg-eval-buffer)
-    (define-key map "\C-c\C-s" 'tuareg-run-ocaml)
-    (define-key map "\C-c\C-i" 'tuareg-interrupt-ocaml)
-    (define-key map "\C-c\C-k" 'tuareg-kill-ocaml)
-    (define-key map "\C-c\C-n" 'tuareg-next-phrase)
-    (define-key map "\C-c\C-p" 'tuareg-previous-phrase)
-    (define-key map [(control c) (home)]
-      'tuareg-move-inside-module-or-class-opening)
-    (define-key map "\C-c`" 'tuareg-interactive-next-error-source)
-    (define-key map "\C-c?" 'tuareg-interactive-next-error-source)
-    (define-key map "\C-c.c" 'tuareg-insert-class-form)
-    (define-key map "\C-c.b" 'tuareg-insert-begin-form)
-    (define-key map "\C-c.f" 'tuareg-insert-for-form)
-    (define-key map "\C-c.w" 'tuareg-insert-while-form)
-    (define-key map "\C-c.i" 'tuareg-insert-if-form)
-    (define-key map "\C-c.l" 'tuareg-insert-let-form)
-    (define-key map "\C-c.m" 'tuareg-insert-match-form)
-    (define-key map "\C-c.t" 'tuareg-insert-try-form)
+    ;;(define-key map "\M-\C-\\" #'indent-region)
+    (define-key map "\C-c\C-a" #'tuareg-find-alternate-file)
+    (define-key map "\C-c\C-c" #'compile)
+    (define-key map "\C-c\C-w" #'tuareg-opam-update-env)
+    (define-key map "\C-xnd" #'tuareg-narrow-to-phrase)
+    (define-key map "\M-\C-x" #'tuareg-eval-phrase)
+    (define-key map "\C-x\C-e" #'tuareg-eval-phrase)
+    (define-key map "\C-c\C-e" #'tuareg-eval-phrase)
+    (define-key map "\C-c\C-r" #'tuareg-eval-region)
+    (define-key map "\C-c\C-b" #'tuareg-eval-buffer)
+    (define-key map "\C-c\C-s" #'tuareg-run-ocaml)
+    (define-key map "\C-c\C-i" #'tuareg-interrupt-ocaml)
+    (define-key map "\C-c\C-k" #'tuareg-kill-ocaml)
+    ;; (define-key map "\C-c\C-n" #'tuareg-next-phrase)
+    ;; (define-key map "\C-c\C-p" #'tuareg-previous-phrase)
+    ;; (define-key map [(control c) (home)]
+    ;;   #'tuareg-move-inside-module-or-class-opening)
+    (define-key map "\C-c`" #'tuareg-interactive-next-error-source)
+    (define-key map "\C-c?" #'tuareg-interactive-next-error-source)
+    (define-key map "\C-c.c" #'tuareg-insert-class-form)
+    (define-key map "\C-c.b" #'tuareg-insert-begin-form)
+    (define-key map "\C-c.f" #'tuareg-insert-for-form)
+    (define-key map "\C-c.w" #'tuareg-insert-while-form)
+    (define-key map "\C-c.i" #'tuareg-insert-if-form)
+    (define-key map "\C-c.l" #'tuareg-insert-let-form)
+    (define-key map "\C-c.m" #'tuareg-insert-match-form)
+    (define-key map "\C-c.t" #'tuareg-insert-try-form)
     (when tuareg-with-caml-mode-p
       ;; Trigger caml-types
-      (define-key map [?\C-c ?\C-t] 'caml-types-show-type)  ; "type"
-      (define-key map [?\C-c ?\C-f] 'caml-types-show-call)  ; "function"
-      (define-key map [?\C-c ?\C-l] 'caml-types-show-ident) ; "let"
+      (define-key map [?\C-c ?\C-t] #'caml-types-show-type)  ; "type"
+      (define-key map [?\C-c ?\C-f] #'caml-types-show-call)  ; "function"
+      (define-key map [?\C-c ?\C-l] #'caml-types-show-ident) ; "let"
       ;; To prevent misbehavior in case of error during exploration.
-      (define-key map [?\C-c mouse-1] 'caml-types-mouse-ignore)
-      (define-key map [?\C-c down-mouse-1] 'caml-types-explore)
+      (define-key map [?\C-c mouse-1] #'caml-types-mouse-ignore)
+      (define-key map [?\C-c down-mouse-1] #'caml-types-explore)
       ;; Trigger caml-help
-      (define-key map [?\C-c ?\C-i] 'ocaml-add-path)
-      (define-key map [?\C-c ?\[] 'ocaml-open-module)
-      (define-key map [?\C-c ?\]] 'ocaml-close-module)
-      (define-key map [?\C-c ?\C-h] 'caml-help)
-      (define-key map [?\C-c ?\t] 'tuareg-complete))
+      (define-key map [?\C-c ?\C-i] #'ocaml-add-path)
+      (define-key map [?\C-c ?\[] #'ocaml-open-module)
+      (define-key map [?\C-c ?\]] #'ocaml-close-module)
+      (define-key map [?\C-c ?\C-h] #'caml-help)
+      (define-key map [?\C-c ?\t] #'tuareg-complete))
     map)
   "Keymap used in Tuareg mode.")
 
@@ -2481,7 +2480,7 @@ See variable `beginning-of-defun-function'."
       fullname)))
 
 (define-obsolete-function-alias 'tuareg--beginning-of-phrase
-  'tuareg-backward-beginning-of-defun
+  #'tuareg-backward-beginning-of-defun
   "Apr 10, 2019")
 
 (defun tuareg-region-of-defun (&optional pos)
@@ -2660,12 +2659,10 @@ or indent all lines in the current phrase."
             (tuareg-comment-or-uncomment-region (line-beginning-position)
                                                 (line-end-position) arg)))))))
 
-(define-key tuareg-mode-map [?\C-c ?\C-\;] 'tuareg-comment-dwim)
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                              The major mode
 
-(defalias 'tuareg-find-alternate-file 'ff-get-other-file)
+(defalias 'tuareg-find-alternate-file #'ff-get-other-file)
 
 (defun tuareg--switch-outside-build ()
   "If the current buffer refers to a file under a _build
@@ -2776,8 +2773,7 @@ expansion at run-time, if the run-time version of Emacs does know this macro."
 (define-derived-mode tuareg-mode prog-mode "Tuareg"
   "Major mode for editing OCaml code.
 
-Dedicated to Emacs and XEmacs, version 21 and higher.  Provides
-automatic indentation and compilation interface.  Performs font/color
+Provides automatic indentation and compilation interface.  Performs font/color
 highlighting using Font-Lock.  It is designed for OCaml but handles
 Caml Light as well.
 
@@ -3018,16 +3014,16 @@ lines? \\([0-9]+\\)-?\\([0-9]+\\)?\
 
 (defvar tuareg-interactive-mode-map
   (let ((map (copy-keymap comint-mode-map)))
-    (define-key map "\C-c\C-i" 'tuareg-interrupt-ocaml)
-    (define-key map "\C-c\C-k" 'tuareg-kill-ocaml)
-    (define-key map "\C-c`" 'tuareg-interactive-next-error-repl)
-    (define-key map "\C-c?" 'tuareg-interactive-next-error-repl)
-    (define-key map "\C-m" 'tuareg-interactive-send-input)
+    (define-key map "\C-c\C-i" #'tuareg-interrupt-ocaml)
+    (define-key map "\C-c\C-k" #'tuareg-kill-ocaml)
+    (define-key map "\C-c`" #'tuareg-interactive-next-error-repl)
+    (define-key map "\C-c?" #'tuareg-interactive-next-error-repl)
+    (define-key map "\C-m" #'tuareg-interactive-send-input)
     (define-key map [(shift return)]
-      'tuareg-interactive-send-input-end-of-phrase)
+      #'tuareg-interactive-send-input-end-of-phrase)
     (define-key map [(ctrl return)]
-      'tuareg-interactive-send-input-end-of-phrase)
-    (define-key map [kp-enter] 'tuareg-interactive-send-input-end-of-phrase)
+      #'tuareg-interactive-send-input-end-of-phrase)
+    (define-key map [kp-enter] #'tuareg-interactive-send-input-end-of-phrase)
     map))
 
 (defconst tuareg-interactive-buffer-name "*OCaml*")
@@ -3139,7 +3135,6 @@ Short cuts for interactions with the REPL:
             tuareg-interactive-error-font-lock)
     (font-lock-mode 1))
 
-  (easy-menu-add tuareg-interactive-mode-menu)
   (tuareg-update-options-menu))
 
 ;;;###autoload
@@ -3150,7 +3145,7 @@ Short cuts for interactions with the REPL:
   (display-buffer tuareg-interactive-buffer-name))
 
 ;;;###autoload
-(defalias 'run-ocaml 'tuareg-run-ocaml)
+(defalias 'run-ocaml #'tuareg-run-ocaml)
 
 ;;;###autoload
 (add-to-list 'interpreter-mode-alist '("ocamlrun" . tuareg-mode))
@@ -3254,7 +3249,7 @@ It is assumed that the range START-END delimit valid OCaml phrases."
         (tuareg-interactive--send-region start end)
       (message "The expression after the point is not well braced."))))
 
-(define-obsolete-function-alias 'tuareg-narrow-to-phrase 'narrow-to-defun
+(define-obsolete-function-alias 'tuareg-narrow-to-phrase #'narrow-to-defun
   "Apr 10, 2019")
 
 (defun tuareg-eval-phrase ()
@@ -3377,8 +3372,7 @@ Short cuts for interaction within the REPL:
       ["Kill OCaml REPL" tuareg-kill-ocaml
        :active (comint-check-proc tuareg-interactive-buffer-name)]
       ["Evaluate Region" tuareg-eval-region
-       ;; Region-active-p for XEmacs and mark-active for Emacs
-       :active mark-active]
+       :active (use-region-p)]
       ["Evaluate Phrase" tuareg-eval-phrase t]
       ["Evaluate Buffer" tuareg-eval-buffer t])
      ("OCaml Forms"
@@ -3420,7 +3414,6 @@ Short cuts for interaction within the REPL:
      ["About" tuareg-about t]
      ["Short Cuts" tuareg-short-cuts]
      ["Help" tuareg-help t]))
-  (easy-menu-add tuareg-mode-menu)
   (tuareg-update-options-menu))
 
 (defun tuareg-toggle-option (symbol)
@@ -3471,8 +3464,8 @@ Short cuts for interaction within the REPL:
 (defvar tuareg-library-mode-map
   (let ((map (make-keymap)))
     (suppress-keymap map)
-    (define-key map [return] 'tuareg-library-find-file)
-    (define-key map [mouse-2] 'tuareg-library-mouse-find-file)
+    (define-key map [return] #'tuareg-library-find-file)
+    (define-key map [mouse-2] #'tuareg-library-mouse-find-file)
     map))
 
 (defun tuareg-browse-library ()

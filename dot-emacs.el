@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 (require 'tuareg)
 
 ;; See README
@@ -22,8 +23,8 @@
 
 
 ;; Easy keys to navigate errors after compilation:
-(define-key tuareg-mode-map [(f12)] 'next-error)
-(define-key tuareg-mode-map [(shift f12)] 'previous-error)
+(define-key tuareg-mode-map [(f12)] #'next-error)
+(define-key tuareg-mode-map [(shift f12)] #'previous-error)
 
 
 ;; Use Merlin if available
@@ -32,7 +33,7 @@
   (add-to-list 'auto-mode-alist '("/\\.merlin\\'" . conf-mode))
 
   (when (functionp 'merlin-document)
-    (define-key tuareg-mode-map (kbd "\C-c\C-h") 'merlin-document))
+    (define-key tuareg-mode-map (kbd "\C-c\C-h") #'merlin-document))
 
   ;; Run Merlin if a .merlin file in the parent dirs is detected
   (add-hook 'tuareg-mode-hook
