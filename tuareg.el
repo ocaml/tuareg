@@ -633,7 +633,7 @@ Regexp match data 0 points to the chars."
     (modify-syntax-entry ?\\ "\\" st)
     (modify-syntax-entry ?*  ". 23" st)
     (modify-syntax-entry ?\( "()1n" st)
-    (modify-syntax-entry ?\) ")(4n" st))
+    (modify-syntax-entry ?\) ")(4n" st)
     st)
   "Syntax table in use in Tuareg mode buffers.")
 
