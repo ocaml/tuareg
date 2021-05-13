@@ -3,6 +3,53 @@
 (require 'tuareg)
 (require 'ert)
 
+(defconst tuareg-test-dir
+  (file-name-directory (or load-file-name buffer-file-name)))
+
+(defun tuareg-test--remove-indentation ()
+  "Remove all indentation in the current buffer."
+  (goto-char (point-min))
+  (while (re-search-forward (rx bol (+ (in " \t"))) nil t)
+    (let ((syntax (save-match-data (syntax-ppss))))
+      (unless (or (nth 3 syntax)        ; not in string literal
+                  (nth 4 syntax))       ; nor in comment
+        (replace-match "")))))
+
+(ert-deftest tuareg-indent-good ()
+  "Check indentation that we do handle satisfactorily."
+  (let ((file (expand-file-name "indent-test.ml" tuareg-test-dir))
+        (text (lambda () (buffer-substring-no-properties
+                          (point-min) (point-max)))))
+    (with-temp-buffer
+      (insert-file-contents file)
+      (tuareg-mode)
+      (let ((orig (funcall text)))
+        ;; Remove the indentation and check that we get the original text.
+        (tuareg-test--remove-indentation)
+        (indent-region (point-min) (point-max))
+        (should (equal (funcall text) orig))
+        ;; Indent again to verify idempotency.
+        (indent-region (point-min) (point-max))
+        (should (equal (funcall text) orig))))))
+
+(ert-deftest tuareg-indent-bad ()
+  "Check indentation that we do not yet handle satisfactorily."
+  :expected-result :failed
+  (let ((file (expand-file-name "indent-test-failed.ml" tuareg-test-dir))
+        (text (lambda () (buffer-substring-no-properties
+                          (point-min) (point-max)))))
+    (with-temp-buffer
+      (insert-file-contents file)
+      (tuareg-mode)
+      (let ((orig (funcall text)))
+        ;; Remove the indentation and check that we get the original text.
+        (tuareg-test--remove-indentation)
+        (indent-region (point-min) (point-max))
+        (should (equal (funcall text) orig))
+        ;; Indent again to verify idempotency.
+        (indent-region (point-min) (point-max))
+        (should (equal (funcall text) orig))))))
+
 (ert-deftest tuareg-beginning-of-defun ()
   ;; Check that `beginning-of-defun' works as expected: move backwards
   ;; to the beginning of the current top-level definition (defun), or

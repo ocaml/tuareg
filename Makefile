@@ -65,10 +65,8 @@ uninstall :
 .PHONY: refresh
 refresh:
 
-check : sample.ml.test check-ert
-
-.PHONY: check-ert
-check-ert:
+.PHONY: check
+check:
 	$(EMACS) -batch -Q -L . -l tuareg-tests -f ert-run-tests-batch-and-exit
 
 %.test: % $(ELC) refresh
