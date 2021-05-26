@@ -2362,8 +2362,16 @@ Return a non-nil value if a comment was skipped."
   (skip-chars-forward " \t;")
   (while (tuareg--skip-forward-comment)))
 
-(defconst tuareg-starters-syms
-  '("type" "d-let" "exception" "module" "class" "val" "external" "open"))
+(defvar-local tuareg-smie--forward-and-cache nil
+  "Alist memoising positions from (smie-forward-sexp \"and\").")
+
+(defvar-local tuareg-smie--backward-and-cache nil
+  "Alist memoising results from (smie-backward-sexp \"and\").")
+
+(defvar-local tuareg-smie--and-cache-tick nil
+  "Buffer-modification tick at which and-caches are valid.
+Applies to `tuareg-smie--forward-and-cache'
+and `tuareg-smie--backward-and-cache'.")
 
 (defun tuareg-backward-beginning-of-defun ()
   "Move the point backward to the beginning of a definition.
@@ -2375,45 +2383,94 @@ Return the token starting the phrase (`nil' if it is an expression)."
       (or (looking-at (rx symbol-start))
           (/= (skip-syntax-forward "w_") 0)
           (tuareg--skip-backward-comments-semicolon))))
-  (let ((opoint (point))
-        (td (smie-backward-sexp ";;"))) ; for expressions
-    (cond
-     ((and (car td) (member (nth 2 td) tuareg-starters-syms))
-      (goto-char (nth 1 td))
-      (nth 2 td))
-     (t
-      (goto-char opoint)
-      (let ((tok nil))
-        (while (let ((td (smie-backward-sexp 'halfsexp)))
-                 (cond
-                  ((and (car td) (member (nth 2 td) tuareg-starters-syms))
-                   (goto-char (nth 1 td))
-                   (setq tok (nth 2 td))
-                   nil)
-                  ((and (car td) (string= (nth 2 td) ";;"))
-                   nil)
-                  ((and (car td) (not (numberp (car td))))
-                   (unless (bobp)
-                     (goto-char (nth 1 td))
-                     ;; Make sure there is not a preceding ;;
-                     (let ((tok (tuareg-smie-backward-token)))
-                       (goto-char (nth 1 td))
-                       (not (string= tok ";;")))))
-                  (t t))))
-        tok)))))
+  ;; We treat each "and" clause belonging to "d-let" or "type" as defuns
+  ;; in the own right since that is how programmers think about it.
+  (let* ((and-pos nil)
+         (ret-tok nil)
+         (tick (buffer-chars-modified-tick))
+         (cache-valid (eql tuareg-smie--and-cache-tick tick)))
+    (while
+        (and (not (bobp))
+             ;; Memoised call to (smie-backward-exp "and")
+             (let* ((cached
+                     (and cache-valid
+                          (assq (point) tuareg-smie--backward-and-cache)))
+                    (td (if cached
+                            (cdr cached)
+                          (unless cache-valid
+                            (setq tuareg-smie--forward-and-cache nil)
+                            (setq tuareg-smie--backward-and-cache nil)
+                            (setq tuareg-smie--and-cache-tick tick)
+                            (setq cache-valid t))
+                          (let* ((pt (point))
+                                 (r (smie-backward-sexp "and")))
+                            (push (cons pt r)
+                                  tuareg-smie--backward-and-cache)
+                            r))))
+               (and (nth 0 td)
+                    (let ((tpos (nth 1 td))
+                          (tok (nth 2 td)))
+                      (cond
+                       ;; Arrived at a token that always starts a defun.
+                       ((member tok '("type" "d-let" "exception" "module"
+                                      "class" "val" "external" "open"))
+                        (if (and and-pos (member tok '("d-let" "type")))
+                            ;; Previously found "and" is the start of the
+                            ;; defun: return it.
+                            (progn
+                              (goto-char and-pos)
+                              (setq ret-tok "and"))
+                          ;; This is the start of the defun.
+                          (goto-char tpos)
+                          (setq ret-tok tok))
+                        nil)
+                       ;; Arrived at "and": keep going backwards to find
+                       ;; out whether it was the start of a defun.
+                       ((equal tok "and")
+                        (unless and-pos
+                          (setq and-pos tpos))
+                        (goto-char tpos)
+                        t)
+                       ;; Arrived at "let": keep going backwards.
+                       ((equal tok "let")
+                        ;; Any previous "and" was not the start of a defun.
+                        (setq and-pos nil)
+                        (goto-char tpos)
+                        t)
+                       ;; Other tokens not starting a defun: keep going.
+                       ((member tok '(";;" "do" "downto" "to"))
+                        (goto-char tpos)
+                        t)
+                       ;; Left bracket or similar: keep going.
+                       ((not (numberp (nth 0 td)))
+                        (goto-char tpos)
+                        t)
+                       ;; Something else: stop.
+                       (t nil)))))))
+    ret-tok))
 
-(defun tuareg--skip-double-semicolon ()
-  (tuareg-skip-blank-and-comments)
-  (when (looking-at ";;[ \t\n]*")
-    (goto-char (match-end 0))))
+(defun tuareg-smie--forward-sexp-and ()
+  "Memoised (smie-forward-sexp \"and\"), point motion only."
+  (let* ((tick (buffer-chars-modified-tick))
+         (cache-valid (eql tuareg-smie--and-cache-tick tick))
+         (cached (and cache-valid
+                      (assq (point) tuareg-smie--forward-and-cache))))
+    (if cached
+        (goto-char (cdr cached))
+      (unless cache-valid
+        (setq tuareg-smie--forward-and-cache nil)
+        (setq tuareg-smie--backward-and-cache nil)
+        (setq tuareg-smie--and-cache-tick tick))
+      (let ((pt (point)))
+        (smie-forward-sexp "and")
+        (push (cons pt (point)) tuareg-smie--forward-and-cache)))))
 
 (defun tuareg-end-of-defun ()
   "Assuming that we are at the beginning of a definition, move to its end.
 See variable `end-of-defun-function'."
   (interactive)
-  (let ((td (smie-forward-sexp ";;"))) ; for expressions
-    (when (member (nth 2 td) tuareg-starters-syms)
-      (smie-forward-sexp 'halfsexp)))
+  (tuareg-smie--forward-token)       ; Skip the head token.
+  (tuareg-smie--forward-sexp-and)
   (tuareg--skip-forward-comments-semicolon))
 
 (defun tuareg-beginning-of-defun (&optional arg)

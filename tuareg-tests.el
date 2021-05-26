@@ -77,4 +77,93 @@
       ;; case does not seem to be very well-defined.
       )))
 
+(ert-deftest tuareg-chained-defun ()
+  ;; Check motion by defuns that are chained by "and".
+  (with-temp-buffer
+    (tuareg-mode)
+    (let (p0 p1 p2a p2b p3 p4 p5a p5b p6 p7 p8a p8b)
+      (insert "(* *)\n\n")
+      (setq p0 (point))
+      (insert "type t1 =\n"
+              "  A\n")
+      (setq p1 (point))
+      (insert "and t2 =\n"
+              "  B\n")
+      (setq p2a (point))
+      (insert "\n")
+      (setq p2b (point))
+      (insert "and t3 =\n"
+              "  C\n")
+      (setq p3a (point))
+      (insert "\n")
+      (setq p3b (point))
+      (insert "let f1 x =\n"
+              "  aa\n")
+      (setq p4 (point))
+      (insert "and f2 x =\n"
+              "  bb\n")
+      (setq p5a (point))
+      (insert "\n")
+      (setq p5b (point))
+      (insert "and f3 x =\n"
+              "  let ff1 y =\n"
+              "    cc\n"
+              "  and ff2 y = (\n")
+      (setq p6 (point))
+      (insert "    qq ww) + dd\n"
+              "  and ff3 y =\n"
+              "    for i = 1 to 10 do\n"
+              "      ee;\n")
+      (setq p7 (point))
+      (insert "      ff;\n"
+              "    done\n")
+      (setq p8a (point))
+      (insert "\n")
+      (setq p8b (point))
+      (insert "exception E\n")
+
+      ;; Walk backwards from the end.
+      (goto-char (point-max))
+      (beginning-of-defun)
+      (should (equal (point) p8b))
+      (beginning-of-defun)
+      (should (equal (point) p5b))
+      (beginning-of-defun)
+      (should (equal (point) p4))
+      (beginning-of-defun)
+      (should (equal (point) p3b))
+      (beginning-of-defun)
+      (should (equal (point) p2b))
+      (beginning-of-defun)
+      (should (equal (point) p1))
+      (beginning-of-defun)
+      (should (equal (point) p0))
+      (beginning-of-defun)
+      (should (equal (point) (point-min)))
+
+      ;; Walk forwards from the beginning.
+      (end-of-defun)
+      (should (equal (point) p1))
+      (end-of-defun)
+      (should (equal (point) p2a))
+      (end-of-defun)
+      (should (equal (point) p3a))
+      (end-of-defun)
+      (should (equal (point) p4))
+      (end-of-defun)
+      (should (equal (point) p5a))
+      (end-of-defun)
+      (should (equal (point) p8a))
+      (end-of-defun)
+      (should (equal (point) (point-max)))
+
+      ;; Jumps from inside a defun.
+      (goto-char p7)
+      (beginning-of-defun)
+      (should (equal (point) p5b))
+
+      (goto-char p6)
+      (end-of-defun)
+      (should (equal (point) p8a)))))
+
 (provide 'tuareg-tests)
