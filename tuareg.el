@@ -1327,7 +1327,6 @@ Run only once."
     (define-key map "\C-c\C-a" #'tuareg-find-alternate-file)
     (define-key map "\C-c\C-c" #'compile)
     (define-key map "\C-c\C-w" #'tuareg-opam-update-env)
-    (define-key map "\C-xnd" #'tuareg-narrow-to-phrase)
     (define-key map "\M-\C-x" #'tuareg-eval-phrase)
     (define-key map "\C-x\C-e" #'tuareg-eval-phrase)
     (define-key map "\C-c\C-e" #'tuareg-eval-phrase)
