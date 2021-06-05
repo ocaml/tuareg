@@ -50,6 +50,23 @@
         (indent-region (point-min) (point-max))
         (should (equal (funcall text) orig))))))
 
+(defmacro tuareg--lets (&rest forms)
+  "Execute FORMS in sequence, binding new vars as they occur.
+Every expression in FORMS can be any normal ELisp expression,
+with the added form (let VAR VAL) which will bind VAR to the value of VAL.
+Returns the value of the last FORM."
+  (declare (indent 0) (debug (&rest [&or ("let" symbolp form) form])))
+  (let ((exps '())
+        (bindings '()))
+    (dolist (form forms)
+      (pcase form
+        (`(let ,(and (pred symbolp) var) ,val)
+         (push (list var (macroexp-progn (nreverse (cons val exps))))
+               bindings)
+         (setq exps '()))
+        (_ (push form exps))))
+    `(let* ,(nreverse bindings) . ,(nreverse exps))))
+
 (ert-deftest tuareg-beginning-of-defun ()
   ;; Check that `beginning-of-defun' works as expected: move backwards
   ;; to the beginning of the current top-level definition (defun), or
@@ -57,20 +74,20 @@
   ;; found, nil if none.
   (with-temp-buffer
     (tuareg-mode)
-    (let (p1 p2 p3 p4)
+    (tuareg--lets
       (insert "(* first line *)\n\n")
-      (setq p1 (point))
+      (let p1 (point))
       (insert "type ty =\n"
               "  | Goo\n"
               "  | Baa of int\n\n")
-      (setq p2 (point))
+      (let p2 (point))
       (insert "let a = ho hum\n"
               ";;\n\n")
-      (setq p3 (point))
+      (let p3 (point))
       (insert "let g u =\n"
               "  while mo ma do\n"
               "    we wo;\n")
-      (setq p4 (point))
+      (let p4 (point))
       (insert "    ze zo\n"
               "  done\n")
 
@@ -128,45 +145,45 @@
   ;; Check motion by defuns that are chained by "and".
   (with-temp-buffer
     (tuareg-mode)
-    (let (p0 p1 p2a p2b p3a p3b p4 p5a p5b p6 p7 p8a p8b)
+    (tuareg--lets
       (insert "(* *)\n\n")
-      (setq p0 (point))
+      (let p0 (point))
       (insert "type t1 =\n"
               "  A\n")
-      (setq p1 (point))
+      (let p1 (point))
       (insert "and t2 =\n"
               "  B\n")
-      (setq p2a (point))
+      (let p2a (point))
       (insert "\n")
-      (setq p2b (point))
+      (let p2b (point))
       (insert "and t3 =\n"
               "  C\n")
-      (setq p3a (point))
+      (let p3a (point))
       (insert "\n")
-      (setq p3b (point))
+      (let p3b (point))
       (insert "let f1 x =\n"
               "  aa\n")
-      (setq p4 (point))
+      (let p4 (point))
       (insert "and f2 x =\n"
               "  bb\n")
-      (setq p5a (point))
+      (let p5a (point))
       (insert "\n")
-      (setq p5b (point))
+      (let p5b (point))
       (insert "and f3 x =\n"
               "  let ff1 y =\n"
               "    cc\n"
               "  and ff2 y = (\n")
-      (setq p6 (point))
+      (let p6 (point))
       (insert "    qq ww) + dd\n"
               "  and ff3 y =\n"
               "    for i = 1 to 10 do\n"
               "      ee;\n")
-      (setq p7 (point))
+      (let p7 (point))
       (insert "      ff;\n"
               "    done\n")
-      (setq p8a (point))
+      (let p8a (point))
       (insert "\n")
-      (setq p8b (point))
+      (let p8b (point))
       (insert "exception E\n")
 
       ;; Walk backwards from the end.
