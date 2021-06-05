@@ -128,7 +128,7 @@
   ;; Check motion by defuns that are chained by "and".
   (with-temp-buffer
     (tuareg-mode)
-    (let (p0 p1 p2a p2b p3 p4 p5a p5b p6 p7 p8a p8b)
+    (let (p0 p1 p2a p2b p3a p3b p4 p5a p5b p6 p7 p8a p8b)
       (insert "(* *)\n\n")
       (setq p0 (point))
       (insert "type t1 =\n"
