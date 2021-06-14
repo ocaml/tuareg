@@ -2362,40 +2362,58 @@ Return a non-nil value if a comment was skipped."
   (while (tuareg--skip-forward-comment)))
 
 (defvar-local tuareg-smie--forward-and-cache nil
-  "Alist memoising positions from (smie-forward-sexp \"and\").")
+  "Alist memoising results from (smie-forward-sexp \"and\").")
 
 (defvar-local tuareg-smie--backward-and-cache nil
-  "Alist memoising results from (smie-backward-sexp \"and\").")
+  "Alist memoising results from (smie-backward-sexp \"and\").
+Each element is (POS-BEFORE POS-AFTER VALUE) where POS-BEFORE and
+POS-AFTER are the positions before and after the call
+respectivaly, and VALUE what the call returned.")
 
 (defvar-local tuareg-smie--and-cache-tick nil
   "Buffer-modification tick at which and-caches are valid.
 Applies to `tuareg-smie--forward-and-cache'
 and `tuareg-smie--backward-and-cache'.")
 
-(defun tuareg-backward-beginning-of-defun ()
+(defun tuareg-backward-beginning-of-defun (&optional stay-in-current)
   "Move the point backward to the beginning of a definition.
-Return the token starting the phrase (`nil' if it is an expression)."
+Return the token starting the phrase (`nil' if it is an expression).
+If STAY-IN-CURRENT is non-nil, don't go to the previous defun if already
+at the start of one."
   (let ((state (syntax-ppss)))
-    (if (nth 3 state); in a string
-        (goto-char (nth 8 state))
-      ;; If inside a word (e.g., "let" or "end"), move to the end of it.
-      (or (looking-at (rx symbol-start))
-          (/= (skip-syntax-forward "w_") 0)
-          (tuareg--skip-backward-comments-semicolon))))
+    (cond
+     ;; In a string: move to its end (via the beginning).
+     ((nth 3 state)
+      (goto-char (nth 8 state))
+      (smie-forward-sexp))
+     ;; In a comment: move to its beginning.
+     ((nth 4 state)
+      (goto-char (nth 8 state)))
+     ;; At start of a word and we may move to previous defun: stay put.
+     ((and (not stay-in-current)
+           (looking-at (rx symbol-start))))
+     ;; If in or at the beginning of a word, move to the end.
+     ((/= (skip-syntax-forward "w_") 0))
+     ;; Otherwise, skip possibly trailing ";;".
+     (t (tuareg--skip-backward-comments-semicolon))))
+
   ;; We treat each "and" clause belonging to "d-let" or "type" as defuns
   ;; in the own right since that is how programmers think about it.
-  (let* ((and-pos nil)
+  (let* ((opoint (point))
+         (and-pos nil)
          (ret-tok nil)
          (tick (buffer-chars-modified-tick))
          (cache-valid (eql tuareg-smie--and-cache-tick tick)))
     (while
         (and (not (bobp))
-             ;; Memoised call to (smie-backward-exp "and")
+             ;; Memoised call to (smie-backward-sexp "and")
              (let* ((cached
                      (and cache-valid
                           (assq (point) tuareg-smie--backward-and-cache)))
                     (td (if cached
-                            (cdr cached)
+                            (progn
+                              (goto-char (nth 1 cached))
+                              (nth 2 cached))
                           (unless cache-valid
                             (setq tuareg-smie--forward-and-cache nil)
                             (setq tuareg-smie--backward-and-cache nil)
@@ -2403,7 +2421,7 @@ Return the token starting the phrase (`nil' if it is an expression)."
                             (setq cache-valid t))
                           (let* ((pt (point))
                                  (r (smie-backward-sexp "and")))
-                            (push (cons pt r)
+                            (push (list pt (point) r)
                                   tuareg-smie--backward-and-cache)
                             r))))
                (and (nth 0 td)
@@ -2436,8 +2454,17 @@ Return the token starting the phrase (`nil' if it is an expression)."
                         (setq and-pos nil)
                         (goto-char tpos)
                         t)
-                       ;; Other tokens not starting a defun: keep going.
-                       ((member tok '(";;" "do" "downto" "to"))
+                       ((equal tok ";;")
+                        (if (and (= (point) opoint) (not stay-in-current))
+                            ;; Assume this ";;" to be the last part of
+                            ;; the defun to go past: skip and continue.
+                            (progn
+                              (goto-char tpos)
+                              t)
+                          ;; This marks the beginning of the defun.
+                          (setq ret-tok t)  ; Any non-nil value should do.
+                          nil))
+                       ((member tok '("do" "downto" "to"))
                         (goto-char tpos)
                         t)
                        ;; Left bracket or similar: keep going.
@@ -2470,6 +2497,24 @@ See variable `end-of-defun-function'."
   (interactive)
   (tuareg-smie--forward-token)       ; Skip the head token.
   (tuareg-smie--forward-sexp-and)
+  (let ((end (point)))
+    ;; Check whether this defun is part of a let...and... chain that
+    ;; ends with "in", in which case it is a single big defun.
+    ;; Otherwise, go back to the first end position.
+    (while
+        (let ((tok (tuareg-smie--forward-token)))
+          (cond ((equal tok "and")
+                 ;; Skip the "and" clause and keep looking.
+                 (tuareg-smie--forward-sexp-and)
+                 t)
+                ((equal tok "in")
+                 ;; It's an expression, not a declaration: go to its end.
+                 (tuareg-smie--forward-sexp-and)
+                 nil)
+                (t
+                 ;; No "in" found; use what we had at the start.
+                 (goto-char end)
+                 nil)))))
   (tuareg--skip-forward-comments-semicolon))
 
 (defun tuareg-beginning-of-defun (&optional arg)
@@ -2514,7 +2559,7 @@ See variable `beginning-of-defun-function'."
                 (or (null (car td))
                     (and (string= (nth 2 td) ";;")
                          (tuareg-smie-backward-token)))))
-    (tuareg-backward-beginning-of-defun)
+    (tuareg-backward-beginning-of-defun t)
     (forward-comment (- (point))))
   (when (looking-at-p "in")
     ;; Skip over `local...in' and continue.
@@ -2523,7 +2568,7 @@ See variable `beginning-of-defun-function'."
     (tuareg-skip-siblings)))
 
 (defun tuareg--current-fun-name ()
-  (when (tuareg-backward-beginning-of-defun)
+  (when (tuareg-backward-beginning-of-defun t)
     (save-excursion (tuareg-smie-forward-token)
                     (tuareg-skip-blank-and-comments)
                     (let ((name (tuareg-smie-forward-token)))
@@ -2561,9 +2606,16 @@ point at the beginning of the error and return `nil'."
         begin end)
     (save-excursion
       (if pos (goto-char pos))
-      (tuareg-backward-beginning-of-defun)
+      ;; If the beginning of the defun was an "and", try again until we
+      ;; get to the start of the phrase.
+      (while (equal (tuareg-backward-beginning-of-defun t) "and")
+        (forward-char -1))
       (setq begin (point))
-      (tuareg-end-of-defun) ; OK as point is as beginning of defun
+      ;; Go all the way to the end of the phrase (not just the defun,
+      ;; which could end at an "and").
+      (tuareg-smie-forward-token)
+      (smie-forward-sexp ";;")
+      (tuareg--skip-forward-comments-semicolon)
       (setq end (point))
       ;; Check if we were not stuck (after POS) because the phrase was
       ;; not well parenthesized.
