@@ -1476,7 +1476,7 @@ For use on `electric-indent-functions'."
             (def-in-exp (defs "in" exp))
             (def (var "d=" exp) (id "d=" datatype) (id "d=" module))
             (idtype (id ":" type))
-            (var (id) ("m-type" var) ("d-type" var) ("rec" var)
+            (var (id) ("m-type" var) ("d-type" var) ("c-type" var) ("rec" var)
                  ("private" var) (idtype)
                  ("l-module" var) ("l-class" var))
             (exception (id "of" type))
@@ -1932,12 +1932,13 @@ Return values can be
                         (tuareg-smie--label-colon-p))))
           (if (member nearest '("with" "|" "fun" "function" "functor"))
               tok "t->"))))
-     ;; Handle "module type", mod-constraint's "with/and type" and
-     ;; polymorphic syntax.
+     ;; Handle "module type", "class type", mod-constraint's "with/and type"
+     ;; and polymorphic syntax.
      ((equal tok "type")
       (save-excursion
         (let ((prev (tuareg-smie--backward-token)))
           (cond ((equal prev "module") "m-type")
+                ((equal prev "class") "c-type")
                 ((member prev '("and" "with")) "w-type")
                 ((equal prev ":") "d-type"); ": type a. ..."
                 (t tok)))))

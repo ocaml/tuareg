@@ -342,4 +342,23 @@ Returns the value of the last FORM."
                     (list p3 (1- p4) (1- p4))))
      )))
 
+(ert-deftest tuareg-class-type ()
+  (with-temp-buffer
+    (tuareg-mode)
+    (tuareg--lets
+     (insert "class type my_class_type =\n"
+             "  object\n"
+             "    method meth_1 : int\n"
+             "    method meth_2 : unit\n"
+             "  end;;\n")
+     (let p1 (point))
+
+     (goto-char (point-min))
+     (end-of-defun)
+     (should (equal (point) p1))
+     (beginning-of-defun)
+     (should (equal (point) (point-min)))
+     (should (equal (tuareg-discover-phrase (point-min))
+                    (list (point-min) (1- p1) (1- p1)))))))
+
 (provide 'tuareg-tests)
