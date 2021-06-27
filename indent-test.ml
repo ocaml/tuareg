@@ -852,9 +852,36 @@ let () =
       >>= fun () -> step2)
 
 class c (a : b) =
-object
+  object
+    inherit d
+    method m = 1
+  end
+
+class c (a : b) =
+  object(self)
+    inherit d
+    method m = 1
+  end
+
+class c (a : b) = object
   inherit d
   method m = 1
+end
+
+class c (a : b) = object(self)
+  inherit d
+  method m = 1
+end
+
+class type restricted_point_type =
+  object
+    method get_x : int
+    method bump : unit
+  end
+
+class type restricted_point_type = object
+  method get_x : int
+  method bump : unit
 end
 
 let f = {

@@ -2221,7 +2221,7 @@ Return values can be
    ;; An important role of this first condition is to call smie-indent-virtual
    ;; so that we get called back to compute the (virtual) indentation of
    ;; "object", thus making sure we get called back to apply the second rule.
-   ((and (member token '("inherit" "val" "method" "constraint"))
+   ((and (member token '("inherit" "val" "method" "constraint" "initializer"))
          (smie-rule-parent-p "object"))
     (save-excursion
       (forward-word 1)
@@ -2229,7 +2229,8 @@ Return values can be
       (let ((col (smie-indent-virtual)))
         `(column . ,(+ tuareg-default-indent col)))))
    ;; For "class foo = object(type)...end", align object...end with class.
-   ((and (equal token "object") (smie-rule-parent-p "class"))
+   ((and (equal token "object") (smie-rule-parent-p "class")
+         (not (smie-rule-bolp)))
     (smie-rule-parent))))
 
 (defun tuareg-smie--if-then-hack (token)
