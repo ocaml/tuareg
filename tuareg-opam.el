@@ -329,7 +329,7 @@ form (n v) where n is the name of the environment variable and v
 its value (both being strings).  If opam is not found or the
 switch is not installed, `nil' is returned."
   (let* ((switch (if switch (concat " --switch " switch)))
-	 (get-env (concat tuareg-opam " config env --sexp" switch))
+	 (get-env (concat tuareg-opam " env --sexp" switch))
 	 (opam-env (tuareg--shell-command-to-string get-env)))
     (if opam-env
 	(car (read-from-string opam-env)))))
