@@ -460,8 +460,9 @@ Valid names are `browse-url', `browse-url-firefox', etc."
 
 (defface tuareg-font-lock-extension-node-face
   (if tuareg-faces-inherit-p
-      '((t :inherit tuareg-font-lock-infix-extension-node-face
-           :background "gray92"))
+      '((default :inherit tuareg-font-lock-infix-extension-node-face)
+        (((background dark)) :foreground "LightSteelBlue")
+        (t :background "gray92"))
     '((((background light)) (:foreground "Orchid" :background "gray92"))
       (((background dark)) (:foreground "LightSteelBlue" :background "gray92"))
       (t (:foreground "LightSteelBlue"))))
