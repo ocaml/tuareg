@@ -709,6 +709,42 @@ Regexp match data 0 points to the chars."
                                 'syntax-table (string-to-syntax "|")))))
         (c (error "Unexpected char '%c' starting delimited string" c))))))
 
+(defmacro tuareg--syntax-rules (&rest rules)
+  "Generate a function to parse according to RULES.
+Each argument has the form (RE BODY...) where RE is a regexp to
+match and BODY what to execute upon match. BODY is executed with
+point at the end of the match, `start' bound to the start of the
+match and `group' to the number of the first group in RE, if any.
+The returned function takes the two arguments BEGIN and END
+delimiting the region of interest. "
+  (let ((group-number 1)
+        (clauses nil)
+        (regexps nil))
+    (dolist (rule rules)
+      (let* ((re (macroexpand (car rule)))
+             (body (cdr rule))
+             (re-ngroups (regexp-opt-depth re))
+             (clause-body
+              (if (> re-ngroups 0)
+                  `((let ((group ,(1+ group-number)))
+                      ,@body))
+                body)))
+        (push re regexps)
+        (push `((match-beginning ,group-number) . ,clause-body)
+              clauses)
+        (setq group-number (+ group-number 1 re-ngroups))))
+    (let ((combined-re (mapconcat (lambda (re) (concat "\\(" re "\\)"))
+                                  (nreverse regexps) "\\|"))
+          (begin (gensym "begin"))
+          (end (gensym "end")))
+      `(lambda (,begin ,end)
+         (goto-char ,begin)
+         (while (and (< (point) ,end)
+                     (re-search-forward ,combined-re ,end t)
+                     (let ((start (match-beginning 0)))
+                       (cond . ,(nreverse clauses))
+                       t)))))))
+
 ;; FIXME: using nil here is a tad unstable -- sometimes we get a full
 ;; fontification as code (which is nice!), sometimes not.
 (defconst tuareg-font-lock-doc-code-face nil
@@ -726,123 +762,107 @@ Regexp match data 0 points to the chars."
       (setq end (- end 2)))             ; stop before closing "*)"
     (save-excursion
       (let ((case-fold-search nil))
-        (goto-char beg)
-        (while
-            (and
-             (< (point) end)
-             (re-search-forward
-              (rx
-               (or
-                (group-n 1 "[")
-                (group-n 2 "]")
-                (group-n 3 "@" (group-n 4 (+ (in "a-z" "_"))))
-                (group-n 5 "{"
-                         (or
-                          (group-n 6 "!"
-                                   (? (or "tag" "module" "modtype" "class"
-                                          "classtype" "val" "type"
-                                          "exception" "attribute" "method"
-                                          "section" "const" "recfield")
-                                      ":")
-                                   (group-n 7 (* (in "a-zA-Z0-9" "_.'"))))
-                          (group-n 8 "v" (in " \t\n"))
-                          (or (or "-" ":" "_" "^"
-                                  "b" "i" "e" "C" "L" "R"
-                                  "ul" "ol" "%"
-                                  "")
-                              ;; Section header with optional label.
-                              (seq (+ digit)
-                                   (? ":"
-                                      (+ (in "a-zA-Z0-9" "_")))))))
-                (group-n 9 "}")
-                (group-n 10 "<" (? "/")
-                         (or "b" "i" "code" "ul" "ol" "li"
-                             "center" "left" "right"
-                             (seq "h" (+ digit)))
-                         ">")
-                (seq "\\" (in "{}[]@"))))
-              end t)
-             (let ((start (match-beginning 0)))
-               (cond
-                ;; [ ... ]
-                ((match-beginning 1)
-                 ;; Fontify opening bracket.
-                 (put-text-property start (1+ start) 'face
-                                    'tuareg-font-lock-doc-markup-face)
-                 ;; Skip balanced set of brackets.
-                 (let ((level 1))
-                   (while (and (< (point) end)
-                               (re-search-forward (rx (? "\\") (in "[]"))
-                                                  end 'noerror)
-                               (let ((next (char-after (match-beginning 0))))
-                                 (cond
-                                  ((eq next ?\[)
-                                   (setq level (1+ level))
-                                   t)
-                                  ((eq next ?\])
-                                   (setq level (1- level))
-                                   (if (> level 0)
-                                       t
-                                     (forward-char -1)
-                                     nil))
-                                  (t t)))))
-                   (put-text-property (1+ start) (point) 'face
-                                      tuareg-font-lock-doc-code-face)
-                   (if (> level 0)
-                       ;; Highlight unbalanced opening bracket.
-                       (put-text-property start (1+ start) 'face
-                                          'tuareg-font-lock-error-face)
-                     ;; Fontify closing bracket.
-                     (put-text-property (point) (1+ (point)) 'face
-                                        'tuareg-font-lock-doc-markup-face)
-                     (forward-char 1))))
-
-                ;; Unbalanced "]"
-                ((match-beginning 2)
-                 (put-text-property start (1+ start) 'face
-                                    'tuareg-font-lock-error-face))
-
-                ;; @-tags.
-                ((match-beginning 3)
-                 (put-text-property start (point) 'face
-                                    'tuareg-font-lock-doc-markup-face)
-                 ;; Use code face for the first argument of some tags.
-                 (when (and (member (match-string 4)
-                                    '("param" "raise" "before"))
-                            (looking-at (rx (+ space)
-                                            (group
-                                             (+ (in "a-zA-Z0-9" "_.'-"))))))
-                   (put-text-property (match-beginning 1) (match-end 1) 'face
-                                      tuareg-font-lock-doc-code-face)
-                   (goto-char (match-end 0))))
-
-                ;; Cross-reference.
-                ((match-beginning 6)
-                 (put-text-property start (match-beginning 7) 'face
-                                    'tuareg-font-lock-doc-markup-face)
-                 ;; Use code face for the reference.
-                 (put-text-property (match-beginning 7) (match-end 7) 'face
-                                    tuareg-font-lock-doc-code-face))
-
-                ;; {v ... v}
-                ((match-beginning 8)
-                 (put-text-property start (+ 3 start) 'face
-                                    'tuareg-font-lock-doc-markup-face)
-                 (let ((verbatim-end end))
-                   (when (re-search-forward (rx (in " \t\n") "v}")
+        (funcall
+         (tuareg--syntax-rules
+          ((rx "[")
+           ;; Fontify opening bracket.
+           (put-text-property start (1+ start) 'face
+                              'tuareg-font-lock-doc-markup-face)
+           ;; Skip balanced set of brackets.
+           (let ((level 1))
+             (while (and (< (point) end)
+                         (re-search-forward (rx (? "\\") (in "[]"))
                                             end 'noerror)
-                     (setq verbatim-end (match-beginning 0))
-                     (put-text-property verbatim-end (point) 'face
-                                        'tuareg-font-lock-doc-markup-face))
-                   (put-text-property (+ 3 start) verbatim-end 'face
-                                      'tuareg-font-lock-doc-verbatim-face)))
+                         (let ((next (char-after (match-beginning 0))))
+                           (cond
+                            ((eq next ?\[)
+                             (setq level (1+ level))
+                             t)
+                            ((eq next ?\])
+                             (setq level (1- level))
+                             (if (> level 0)
+                                 t
+                               (forward-char -1)
+                               nil))
+                            (t t)))))
+             (put-text-property (1+ start) (point) 'face
+                                tuareg-font-lock-doc-code-face)
+             (if (> level 0)
+                 ;; Highlight unbalanced opening bracket.
+                 (put-text-property start (1+ start) 'face
+                                    'tuareg-font-lock-error-face)
+               ;; Fontify closing bracket.
+               (put-text-property (point) (1+ (point)) 'face
+                                  'tuareg-font-lock-doc-markup-face)
+               (forward-char 1))))
 
-                ;; Other {} and <> markup.
-                ((or (match-beginning 5) (match-beginning 9)
-                     (match-beginning 10))
-                 (put-text-property start (point) 'face
-                                    'tuareg-font-lock-doc-markup-face)))
-               t))))))
+          ((rx "]")
+           (put-text-property start (1+ start) 'face
+                              'tuareg-font-lock-error-face))
+
+          ;; @-tag.
+          ((rx "@" (group (+ (in "a-z" "_"))))
+           (put-text-property start (point) 'face
+                              'tuareg-font-lock-doc-markup-face)
+           ;; Use code face for the first argument of some tags.
+           (when (and (member (match-string group)
+                              '("param" "raise" "before"))
+                      (looking-at (rx (+ space)
+                                      (group
+                                       (+ (in "a-zA-Z0-9" "_.'-"))))))
+             (put-text-property (match-beginning 1) (match-end 1) 'face
+                                tuareg-font-lock-doc-code-face)
+             (goto-char (match-end 0))))
+
+          ;; Cross-reference.
+          ((rx "{!" (? (or "tag" "module" "modtype" "class"
+                            "classtype" "val" "type"
+                            "exception" "attribute" "method"
+                            "section" "const" "recfield")
+                        ":")
+                (group (* (in "a-zA-Z0-9" "_.'"))))
+           (put-text-property start (match-beginning group) 'face
+                              'tuareg-font-lock-doc-markup-face)
+           ;; Use code face for the reference.
+           (put-text-property (match-beginning group) (match-end group) 'face
+                              tuareg-font-lock-doc-code-face))
+
+          ;; {v ... v}
+          ((rx "{v" (in " \t\n"))
+           (put-text-property start (+ 3 start) 'face
+                              'tuareg-font-lock-doc-markup-face)
+           (let ((verbatim-end end))
+             (when (re-search-forward (rx (in " \t\n") "v}")
+                                      end 'noerror)
+               (setq verbatim-end (match-beginning 0))
+               (put-text-property verbatim-end (point) 'face
+                                  'tuareg-font-lock-doc-markup-face))
+             (put-text-property (+ 3 start) verbatim-end 'face
+                                'tuareg-font-lock-doc-verbatim-face)))
+
+          ;; Other {..} and <..> constructs.
+          ((rx (or (seq "{"
+                        (or (or "-" ":" "_" "^"
+                                "b" "i" "e" "C" "L" "R"
+                                "ul" "ol" "%"
+                                "")
+                            ;; Section header with optional label.
+                            (seq (+ digit)
+                                 (? ":"
+                                    (+ (in "a-zA-Z0-9" "_"))))))
+                   "}"
+                   ;; HTML-style tags
+                   (seq "<" (? "/")
+                        (or "b" "i" "code" "ul" "ol" "li"
+                            "center" "left" "right"
+                            (seq "h" (+ digit)))
+                        ">")))
+           (put-text-property start (point) 'face
+                              'tuareg-font-lock-doc-markup-face))
+
+          ;; Escaped syntax characters.
+          ((rx "\\" (in "{}[]@"))))
+         beg end))))
   nil)
 
 (defun tuareg-font-lock-syntactic-face-function (state)
