@@ -3152,17 +3152,25 @@ Short cuts for interactions with the REPL:
   (rx bol
       (* " ")
       (group                                ; 1: HIGHLIGHT
-       "File "
+       (or "File "
+           ;; Exception backtrace.
+           (seq
+            (or "Raised at" "Re-raised at" "Raised by primitive operation at"
+                "Called from")
+            (* nonl)            ; OCaml ≥4.11: " FUNCTION in"
+            " file "))
        (group (? "\""))                     ; 2
        (group (+ (not (in "\t\n \",<>"))))  ; 3: FILE
        (backref 2)
+       (? " (inlined)")
        ", line" (? "s") " "
        (group (+ (in "0-9")))               ; 4: LINE-START
        (? "-" (group (+ (in "0-9"))))       ; 5; LINE-END
        (? ", character" (? "s") " "
           (group (+ (in "0-9")))            ; 6: COL-START
           (? "-" (group (+ (in "0-9")))))   ; 7: COL-END
-       ":")
+       ;; Colon not present in backtraces.
+       (? ":"))
       (? "\n"
          (* (in "\t "))
          (* (or (seq (+ (in "0-9"))
@@ -3175,7 +3183,8 @@ Short cuts for interactions with the REPL:
                 (? " " (+ (in "0-9")))
                 (? " [" (+ (in "a-z0-9-")) "]")
                 ":")))
-  "Regular expression matching the error messages produced by ocamlc/ocamlopt.")
+  "Regular expression matching the error messages produced by ocamlc/ocamlopt.
+Also matches source references in exception backtraces.")
 
 (when (boundp 'compilation-error-regexp-alist-alist)
   (setq compilation-error-regexp-alist-alist

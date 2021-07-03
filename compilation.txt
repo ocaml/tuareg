@@ -120,3 +120,31 @@ File "moo.ml", line 6, characters 6-10:
 6 |   let fish = 13 in
           ^^^^
 Warning 26 [unused-var]: unused variable fish.
+
+
+* Backtrace messages
+
+Before 4.11:
+
+OCAMLRUNPARAM=b ./bad
+Fatal error: exception Bad.Disaster("oh no!")
+Raised at file "bad.ml", line 5, characters 4-22
+Called from file "bad.ml" (inlined), line 9, characters 2-5
+Called from file "bad.ml", line 12, characters 8-18
+
+4.11 and later:
+
+OCAMLRUNPARAM=b ./bad
+Fatal error: exception Bad.Disaster("oh no!")
+Raised at Bad.f in file "bad.ml", line 5, characters 4-22
+Called from Bad.g in file "bad.ml" (inlined), line 9, characters 2-5
+Called from Bad in file "bad.ml", line 12, characters 8-18
+
+OCAMLRUNPARAM=b ./bad
+Fatal error: exception Sys_error("non.existing.file: No such file or directory")
+Raised by primitive operation at Stdlib.open_in_gen in file "stdlib.ml", line 399, characters 28-54
+Called from Bad.h in file "bad.ml", line 7, characters 13-40
+Called from Bad.f in file "bad.ml", line 13, characters 4-7
+Re-raised at Bad.f in file "bad.ml", line 14, characters 12-19
+Called from Bad.g in file "bad.ml", line 17, characters 2-5
+Called from Bad in file "bad.ml", line 20, characters 8-18
