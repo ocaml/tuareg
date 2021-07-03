@@ -112,3 +112,11 @@ Warning 3: This expression has type M/2.t but an expression was expected of type
          Definition of module M/1
        File "main.ml", line 7, characters 0-32:
          Definition of module M/2
+
+
+* Since OCaml 4.12, warnings come with mnemonics.
+
+File "moo.ml", line 6, characters 6-10:
+6 |   let fish = 13 in
+          ^^^^
+Warning 26 [unused-var]: unused variable fish.
