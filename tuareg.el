@@ -3174,8 +3174,9 @@ Short cuts for interactions with the REPL:
             "\n"
             (* (in "\t ")))
          (group "Warning"                   ; 8: WARNING
-                (? " " (+ (in "0-9"))))
-         ":"))
+                (? " " (+ (in "0-9")))
+                (? " [" (+ (in "a-z0-9-")) "]")
+                ":")))
   "Regular expression matching the error messages produced by ocamlc/ocamlopt.")
 
 (when (boundp 'compilation-error-regexp-alist-alist)
