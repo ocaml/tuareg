@@ -3158,12 +3158,10 @@ Short cuts for interactions with the REPL:
        (backref 2)
        ", line" (? "s") " "
        (group (+ (in "0-9")))               ; 4: LINE-START
-       (? "-")
-       (? (group (+ (in "0-9"))))           ; 5; LINE-END
+       (? "-" (group (+ (in "0-9"))))       ; 5; LINE-END
        (? ", character" (? "s") " "
           (group (+ (in "0-9")))            ; 6: COL-START
-          (? "-")
-          (? (group (+ (in "0-9")))))       ; 7: COL-END
+          (? "-" (group (+ (in "0-9")))))   ; 7: COL-END
        ":")
       (? "\n"
          (* (in "\t "))
