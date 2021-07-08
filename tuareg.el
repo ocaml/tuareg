@@ -2497,26 +2497,35 @@ at the start of one."
   "Assuming that we are at the beginning of a definition, move to its end.
 See variable `end-of-defun-function'."
   (interactive)
-  (tuareg-smie--forward-token)       ; Skip the head token.
-  (tuareg-smie--forward-sexp-and)
-  (let ((end (point)))
-    ;; Check whether this defun is part of a let...and... chain that
-    ;; ends with "in", in which case it is a single big defun.
-    ;; Otherwise, go back to the first end position.
-    (while
-        (let ((tok (tuareg-smie--forward-token)))
-          (cond ((equal tok "and")
-                 ;; Skip the "and" clause and keep looking.
-                 (tuareg-smie--forward-sexp-and)
-                 t)
-                ((equal tok "in")
-                 ;; It's an expression, not a declaration: go to its end.
-                 (tuareg-smie--forward-sexp-and)
-                 nil)
-                (t
-                 ;; No "in" found; use what we had at the start.
-                 (goto-char end)
-                 nil)))))
+  (let* ((start (point))
+         (head (tuareg-smie--forward-token)))       ; Skip the head token.
+    (cond
+     ((member head '("type" "d-let" "let" "and" "exception" "module"
+                     "class" "val" "external" "open"))
+      ;; Non-expression defun.
+      (tuareg-smie--forward-sexp-and)
+      (let ((end (point)))
+        ;; Check whether this defun is part of a let...and... chain that
+        ;; ends with "in", in which case it is a single big defun.
+        ;; Otherwise, go back to the first end position.
+        (while
+            (let ((tok (tuareg-smie--forward-token)))
+              (cond ((equal tok "and")
+                     ;; Skip the "and" clause and keep looking.
+                     (tuareg-smie--forward-sexp-and)
+                     t)
+                    ((equal tok "in")
+                     ;; It's an expression, not a declaration: go to its end.
+                     (tuareg-smie--forward-sexp-and)
+                     nil)
+                    (t
+                     ;; No "in" found; use what we had at the start.
+                     (goto-char end)
+                     nil))))))
+     (t
+      ;; Expression: go back and skip it all at once.
+      (goto-char start)
+      (smie-forward-sexp ";;"))))
   (tuareg--skip-forward-comments-semicolon))
 
 (defun tuareg-beginning-of-defun (&optional arg)
@@ -2615,7 +2624,11 @@ point at the beginning of the error and return `nil'."
       (setq begin (point))
       ;; Go all the way to the end of the phrase (not just the defun,
       ;; which could end at an "and").
-      (tuareg-smie-forward-token)
+      (let ((head (tuareg-smie-forward-token)))
+        (unless (member head '("type" "d-let" "let" "and" "exception" "module"
+                               "class" "val" "external" "open"))
+          ;; Expression phrase.
+          (goto-char begin)))
       (smie-forward-sexp ";;")
       (tuareg--skip-forward-comments-semicolon)
       (setq end (point))

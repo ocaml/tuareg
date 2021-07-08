@@ -230,7 +230,7 @@ Returns the value of the last FORM."
       (end-of-defun)
       (should (equal (point) p8a)))))
 
-(ert-deftest tuareg-phrase-discovery ()
+(ert-deftest tuareg-phrase-discovery-1 ()
   (with-temp-buffer
     (tuareg-mode)
     (tuareg--lets
@@ -242,16 +242,13 @@ Returns the value of the last FORM."
      (insert "and g x =\n"
              "  x * 2\n")
      (let p2b (point))
+     (insert "type ta = A\n"
+             "        | B of tb\n")
+     (let p3a (point))
+     (insert "and tb = C\n"
+             "       | D of ta\n")
+     (let p3b (point))
      (insert ";;\n")
-     (let p2c (point))
-     (insert "(1 < 2) = false;;\n")
-     (let p3 (point))
-     (insert "'a';;\n")
-     (let p4 (point))
-     (insert "\"abc\" ^ \" \" ^ \"def\";;\n")
-     (let p5 (point))
-     (insert "{|with \\ special \" chars|};;\n")
-     (let p6 (point))
 
      (goto-char (point-min))
      (end-of-defun)
@@ -261,22 +258,14 @@ Returns the value of the last FORM."
      (end-of-defun)
      (should (equal (point) p2b))
      (end-of-defun)
-     (should (equal (point) p3))
+     (should (equal (point) p3a))
      (end-of-defun)
-     (should (equal (point) p4))
-     (end-of-defun)
-     (should (equal (point) p5))
-     (end-of-defun)
-     (should (equal (point) p6))
+     (should (equal (point) p3b))
 
      (beginning-of-defun)
-     (should (equal (point) p5))
+     (should (equal (point) p3a))
      (beginning-of-defun)
-     (should (equal (point) p4))
-     (beginning-of-defun)
-     (should (equal (point) p3))
-     (beginning-of-defun)
-     (should (equal (point) p2c))
+     (should (equal (point) p2b))
      (beginning-of-defun)
      (should (equal (point) p2a))
      (beginning-of-defun)
@@ -288,15 +277,56 @@ Returns the value of the last FORM."
                     (list (point-min) (1- p1) (1- p1))))
      (should (equal (tuareg-discover-phrase p1)
                     (list p1 (1- p2b) (1- p2b))))
-     (should (equal (tuareg-discover-phrase p2c)
-                    (list p2c (1- p3) (1- p3))))
-     (should (equal (tuareg-discover-phrase p3)
-                    (list p3 (1- p4) (1- p4))))
-     (should (equal (tuareg-discover-phrase p4)
-                    (list p4 (1- p5) (1- p5))))
-     (should (equal (tuareg-discover-phrase p5)
-                    (list p5 (1- p6) (1- p6))))
-     )))
+     (should (equal (tuareg-discover-phrase p2b)
+                    (list p2b (1- p3b) (1- p3b)))))))
+
+(ert-deftest tuareg-phrase-discovery-2 ()
+  (let ((lines
+         '("(1 < 2) = false;;"
+           "'a';;"
+           "\"abc\" ^ \" \" ^ \"def\";;"
+           "{|with \\ special \" chars|};;"
+           "max 1 2;;"
+           "if true then 1 else 2 ;;"
+           "while false do print_endline \"a\" done ;;"
+           "for i = 1 to 3 do print_int i done ;;"
+           "open Stdlib.Printf;;"
+           "begin print_char 'a'; print_char 'b'; end ;;"
+           "match [1;2] with a :: _ -> a | [] -> 3 ;;"
+           "exception E of int * string ;;"
+           "external myid : 'a -> 'a = \"%identity\";;"
+           "class k = object method m = 1 end;;")))
+
+    (with-temp-buffer
+      (tuareg-mode)
+      (dolist (line lines)
+        (insert line "\n"))
+
+      ;; Check movement by defun.
+      (goto-char (point-min))
+      (let ((pos (point-min)))
+        (dolist (line lines)
+          (let ((next-pos (+ pos (length line) 1)))
+            (ert-info ((prin1-to-string line) :prefix "line: ")
+              (end-of-defun)
+              (should (equal (point) next-pos))
+              (setq pos next-pos))))
+
+        (dolist (line (reverse lines))
+          (let ((prev-pos (- pos (length line) 1)))
+            (ert-info ((prin1-to-string line) :prefix "line: ")
+              (beginning-of-defun)
+              (should (equal (point) prev-pos))
+              (setq pos prev-pos)))))
+
+      ;; Check phrase discovery.
+      (let ((pos (point-min)))
+        (dolist (line lines)
+          (let ((next-pos (+ pos (length line) 1)))
+            (ert-info ((prin1-to-string line) :prefix "line: ")
+              (should (equal (tuareg-discover-phrase pos)
+                             (list pos (1- next-pos) (1- next-pos))))
+              (setq pos next-pos))))))))
 
 (ert-deftest tuareg-defun-separator ()
   ;; Check correct handling of ";;"-separated defuns/phrases.
