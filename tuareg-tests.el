@@ -1,6 +1,7 @@
 ;;; tests for tuareg.el                       -*- lexical-binding: t -*-
 
 (require 'tuareg)
+(require 'compile)
 (require 'ert)
 
 (defconst tuareg-test-dir
@@ -390,5 +391,144 @@ Returns the value of the last FORM."
      (should (equal (point) (point-min)))
      (should (equal (tuareg-discover-phrase (point-min))
                     (list (point-min) (1- p1) (1- p1)))))))
+
+(defconst tuareg-test--compilation-messages
+  '((("File \"file.ml\", line 4, characters 6-7:\n"
+      "Error: This expression has type int\n"
+      "This is not a function; it cannot be applied.\n")
+     ((1 error "file.ml" 4 4 6 7)))
+    (("File \"file.ml\", line 3, characters 6-7:\n"
+      "Warning 26: unused variable y.\n")
+     ((1 warning "file.ml" 3 3 6 7)))
+
+    (("File \"helloworld.ml\", line 2, characters 36-64:\n"
+      "2 | module rec A: sig type t += A end = struct type t += A = B.A end\n"
+      "                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n"
+      "Error: Cannot safely evaluate the definition of the following cycle\n"
+      "       of recursively-defined modules: A -> B -> A.\n")
+     ((1 error "helloworld.ml" 2 2 36 64)))
+    (("File \"helloworld.ml\", lines 4-7, characters 6-3:\n"
+      "4 | ......struct\n"
+      "5 |   module F(X:sig end) = struct end\n"
+      "6 |   let f () = B.value\n"
+      "7 | end\n"
+      "Error: Cannot safely evaluate the definition of the following cycle\n"
+      "       of recursively-defined modules: A -> B -> A.\n")
+     ((1 error "helloworld.ml" 4 7 6 3)))
+    (("File \"robustmatch.ml\", lines 33-37, characters 6-23:\n"
+      " 9 | ......match t1, t2, x with\n"
+      "10 |       | AB, AB, A -> ()\n"
+      "11 |       | MAB, _, A -> ()\n"
+      "12 |       | _,  AB, B -> ()\n"
+      "13 |       | _, MAB, B -> ()\n"
+      "Warning 8: this pattern-matching is not exhaustive.\n"
+      "Here is an example of a case that is not matched:\n"
+      "(AB, MAB, A)\n")
+     ((1 warning "robustmatch.ml" 33 37 6 23)))
+    (("File \"robustmatch.ml\", lines 33-37, characters 6-23:\n"
+      " 9 | ......match t1, t2, x with\n"
+      "10 |       | AB, AB, A -> ()\n"
+      "11 |       | MAB, _, A -> ()\n"
+      "12 |       | _,  AB, B -> ()\n"
+      "13 |       | _, MAB, B -> ()\n"
+      "Warning 8 [partial-match]: this pattern-matching is not exhaustive.\n"
+      "Here is an example of a case that is not matched:\n"
+      "(AB, MAB, A)\n")
+     ((1 warning "robustmatch.ml" 33 37 6 23)))
+    (("File \"main.ml\", line 13, characters 34-35:\n"
+      "13 |   let f : M.t -> M.t = fun M.C -> y\n"
+      "                                       ^\n"
+      "Error: This expression has type M/2.t but an expression was expected of type\n"
+      "         M/1.t\n"
+      "       File \"main.ml\", line 10, characters 2-41:\n"
+      "         Definition of module M/1\n"
+      "       File \"main.ml\", line 7, characters 0-32:\n"
+      "         Definition of module M/2\n")
+     ((1 error "main.ml" 13 13 34 35)
+      (225 error "main.ml" 10 10 2 41)
+      (308 error "main.ml" 7 7 0 32)))
+    (("Fatal error: exception Bad.Disaster(\"oh no!\")\n"
+      "Raised at file \"bad.ml\", line 5, characters 4-22\n"
+      "Called from file \"worse.ml\" (inlined), line 9, characters 2-5\n"
+      "Called from file \"worst.ml\", line 12, characters 8-18\n")
+     ((47 error "bad.ml" 5 5 4 22)
+      (96 error "worse.ml" 9 9 2 5)
+      (158 error "worst.ml" 12 12 8 18)))
+    (("Fatal error: exception Bad.Disaster(\"oh no!\")\n"
+      "Raised at Bad.f in file \"bad.ml\", line 5, characters 4-22\n"
+      "Called from Bad.g in file \"worse.ml\" (inlined), line 9, characters 2-5\n"
+      "Called from Bad in file \"worst.ml\", line 12, characters 8-18\n")
+     ((47 error "bad.ml" 5 5 4 22)
+      (105 error "worse.ml" 9 9 2 5)
+      (176 error "worst.ml" 12 12 8 18)))
+    (("Fatal error: exception Hell\n"
+      "Raised by primitive operation at Murky.depths in file \"inferno.ml\", line 399, characters 28-54\n"
+      "Called from Nasty.f in file \"nasty.ml\", line 7, characters 13-40\n"
+      "Re-raised at Smelly.f in file \"smelly.ml\", line 14, characters 12-19\n"
+      "Called from Rubbish.g in file \"rubbish.ml\", line 17, characters 2-5\n")
+     ((29 error "inferno.ml" 399 399 28 54)
+      (124 error "nasty.ml" 7 7 13 40)
+      (189 error "smelly.ml" 14 14 12 19)
+      (258 error "rubbish.ml" 17 17 2 5))))
+  "Compilation message test data.
+Each element is (STRINGS ERRORS) where
+
+ STRINGS is a list of strings forming the message when concatenated
+ ERRORS is a list of error descriptions, each being
+
+  (POS TYPE FILE LINE-START LINE-END COLUMN-START COLUMN-END)
+
+ where
+
+  POS is the position of the error in the message (1-based)
+  TYPE is one of `error', `warning' or `info'
+  FILE is the file name of the error
+  LINE-START, LINE-END, COLUMN-START and COLUMN-END are the reported
+   line and column numbers, start and end, for that error")
+
+(defun tuareg-test--extract-message-info (string pos)
+  "Parse STRING as a compilation message.
+Return (FILE TYPE START-LINE END-LINE START-COL END-COL)."
+  (with-temp-buffer
+    ;; This function makes some assumptions about the compilation-mode
+    ;; internals and may need adjustment to work with future Emacs
+    ;; versions.
+    (font-lock-mode -1)
+    (let ((compilation-locs (make-hash-table)))
+      (insert string)
+      (compilation-parse-errors (point-min) (point-max))
+      (let ((msg (get-text-property pos 'compilation-message)))
+        (and msg
+             (let* ((loc (compilation--message->loc msg))
+                    (end-loc (compilation--message->end-loc msg))
+                    (type (compilation--message->type msg))
+                    (start-line (compilation--loc->line loc))
+                    (start-col (compilation--loc->col loc))
+                    (end-line (compilation--loc->line end-loc))
+                    (end-col (compilation--loc->col end-loc))
+                    (fs (compilation--loc->file-struct loc))
+                    (file (caar fs)))
+               (list file
+                     (pcase type
+                       (0 'info)
+                       (1 'warning)
+                       (2 'error))
+                     start-line end-line
+                     ;; Emacs internally adds 1 to the end column so
+                     ;; we compensate for that to get the actual
+                     ;; number in the message.
+                     start-col (and end-col (1- end-col)))))))))
+
+(ert-deftest tuareg-compilation-message ()
+  (dolist (case tuareg-test--compilation-messages)
+    (let ((str (apply #'concat (nth 0 case)))
+          (errors (nth 1 case)))
+      (ert-info (str :prefix "message: ")
+        (pcase-dolist (`(,pos ,type ,file ,start-line ,end-line
+                              ,start-col ,end-col)
+                       errors)
+          (should (equal (tuareg-test--extract-message-info str pos)
+                         (list file type
+                               start-line end-line start-col end-col))))))))
 
 (provide 'tuareg-tests)
