@@ -801,7 +801,9 @@ delimiting the region of interest. "
                               'tuareg-font-lock-error-face))
 
           ;; @-tag.
-          ((rx "@" (group (+ (in "a-z" "_"))))
+          ((rx "@" (group (or "author" "deprecated" "param" "raise" "return"
+                              "see" "since" "before" "version"))
+               word-end)
            (put-text-property start (point) 'face
                               'tuareg-font-lock-doc-markup-face)
            ;; Use code face for the first argument of some tags.
