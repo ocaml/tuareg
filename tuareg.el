@@ -3149,12 +3149,41 @@ Short cuts for interactions with the REPL:
 ;; the language is not English.  Hence we add a regexp.
 
 (defconst tuareg--error-regexp
-  "^ *\\(File \\(\"?\\)\\([^,\" \n\t<>]+\\)\\2, \
-lines? \\([0-9]+\\)-?\\([0-9]+\\)?\
-\\(?:, characters? \\([0-9]+\\)-?\\([0-9]+\\)?\\)?:\\)\
-\\(?:\n[ \t]*\\(?:\\(?:[0-9]+ | .*\\|\\^+\\)\n[ \t]*\\)*\
-\\(Warning\\(?: [0-9]+\\)?\\):\\)?"
-  "Regular expression matching the error messages produced by ocamlc/ocamlopt.")
+  (rx bol
+      (* " ")
+      (group                                ; 1: HIGHLIGHT
+       (or "File "
+           ;; Exception backtrace.
+           (seq
+            (or "Raised at" "Called from")
+            (* nonl)            ; OCaml ≥4.11: " FUNCTION in"
+            " file "))
+       (group (? "\""))                     ; 2
+       (group (+ (not (in "\t\n \",<>"))))  ; 3: FILE
+       (backref 2)
+       (? " (inlined)")
+       ", line" (? "s") " "
+       (group (+ (in "0-9")))               ; 4: LINE-START
+       (? "-" (group (+ (in "0-9"))))       ; 5; LINE-END
+       (? ", character" (? "s") " "
+          (group (+ (in "0-9")))            ; 6: COL-START
+          (? "-" (group (+ (in "0-9")))))   ; 7: COL-END
+       ;; Colon not present in backtraces.
+       (? ":"))
+      (? "\n"
+         (* (in "\t "))
+         (* (or (seq (+ (in "0-9"))
+                     " | "
+                     (* nonl))
+                (+ "^"))
+            "\n"
+            (* (in "\t ")))
+         (group "Warning"                   ; 8: WARNING
+                (? " " (+ (in "0-9")))
+                (? " [" (+ (in "a-z0-9-")) "]")
+                ":")))
+  "Regular expression matching the error messages produced by ocamlc/ocamlopt.
+Also matches source references in exception backtraces.")
 
 (when (boundp 'compilation-error-regexp-alist-alist)
   (push `(ocaml ,tuareg--error-regexp 3 (4 . 5) (6 . 7) (8) 1
