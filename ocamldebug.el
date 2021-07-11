@@ -195,6 +195,7 @@ representation is simply concatenated with the COMMAND."
 (def-ocamldebug "close"  "\C-c"  "Close the current module." "%m")
 (def-ocamldebug "finish" "\C-f"	"Finish executing current function.")
 (def-ocamldebug "print"	"\C-p"	"Print value of symbol at point."	"%e")
+(def-ocamldebug "back"   "\C-b"	"Step back one source line (skip functions)")
 (def-ocamldebug "next"   "\C-n"	"Step one source line (skip functions)")
 (def-ocamldebug "up"     "<"  "Go up N stack frames (numeric arg) with display")
 (def-ocamldebug "down"  ">" "Go down N stack frames (numeric arg) with display")
