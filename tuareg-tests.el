@@ -396,17 +396,17 @@ Returns the value of the last FORM."
   '((("File \"file.ml\", line 4, characters 6-7:\n"
       "Error: This expression has type int\n"
       "This is not a function; it cannot be applied.\n")
-     ((1 error "file.ml" 4 4 6 7)))
+     ((1 error "file.ml" 4 4 6 6)))
     (("File \"file.ml\", line 3, characters 6-7:\n"
       "Warning 26: unused variable y.\n")
-     ((1 warning "file.ml" 3 3 6 7)))
+     ((1 warning "file.ml" 3 3 6 6)))
 
     (("File \"helloworld.ml\", line 2, characters 36-64:\n"
       "2 | module rec A: sig type t += A end = struct type t += A = B.A end\n"
       "                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n"
       "Error: Cannot safely evaluate the definition of the following cycle\n"
       "       of recursively-defined modules: A -> B -> A.\n")
-     ((1 error "helloworld.ml" 2 2 36 64)))
+     ((1 error "helloworld.ml" 2 2 36 63)))
     (("File \"helloworld.ml\", lines 4-7, characters 6-3:\n"
       "4 | ......struct\n"
       "5 |   module F(X:sig end) = struct end\n"
@@ -414,7 +414,7 @@ Returns the value of the last FORM."
       "7 | end\n"
       "Error: Cannot safely evaluate the definition of the following cycle\n"
       "       of recursively-defined modules: A -> B -> A.\n")
-     ((1 error "helloworld.ml" 4 7 6 3)))
+     ((1 error "helloworld.ml" 4 7 6 2)))
     (("File \"robustmatch.ml\", lines 33-37, characters 6-23:\n"
       " 9 | ......match t1, t2, x with\n"
       "10 |       | AB, AB, A -> ()\n"
@@ -424,7 +424,7 @@ Returns the value of the last FORM."
       "Warning 8: this pattern-matching is not exhaustive.\n"
       "Here is an example of a case that is not matched:\n"
       "(AB, MAB, A)\n")
-     ((1 warning "robustmatch.ml" 33 37 6 23)))
+     ((1 warning "robustmatch.ml" 33 37 6 22)))
     (("File \"robustmatch.ml\", lines 33-37, characters 6-23:\n"
       " 9 | ......match t1, t2, x with\n"
       "10 |       | AB, AB, A -> ()\n"
@@ -434,7 +434,7 @@ Returns the value of the last FORM."
       "Warning 8 [partial-match]: this pattern-matching is not exhaustive.\n"
       "Here is an example of a case that is not matched:\n"
       "(AB, MAB, A)\n")
-     ((1 warning "robustmatch.ml" 33 37 6 23)))
+     ((1 warning "robustmatch.ml" 33 37 6 22)))
     (("File \"main.ml\", line 13, characters 34-35:\n"
       "13 |   let f : M.t -> M.t = fun M.C -> y\n"
       "                                       ^\n"
@@ -444,32 +444,32 @@ Returns the value of the last FORM."
       "         Definition of module M/1\n"
       "       File \"main.ml\", line 7, characters 0-32:\n"
       "         Definition of module M/2\n")
-     ((1 error "main.ml" 13 13 34 35)
-      (225 error "main.ml" 10 10 2 41)
-      (308 error "main.ml" 7 7 0 32)))
+     ((1 error "main.ml" 13 13 34 34)
+      (225 error "main.ml" 10 10 2 40)
+      (308 error "main.ml" 7 7 0 31)))
     (("Fatal error: exception Bad.Disaster(\"oh no!\")\n"
       "Raised at file \"bad.ml\", line 5, characters 4-22\n"
       "Called from file \"worse.ml\" (inlined), line 9, characters 2-5\n"
       "Called from file \"worst.ml\", line 12, characters 8-18\n")
-     ((47 error "bad.ml" 5 5 4 22)
-      (96 error "worse.ml" 9 9 2 5)
-      (158 error "worst.ml" 12 12 8 18)))
+     ((47 error "bad.ml" 5 5 4 21)
+      (96 error "worse.ml" 9 9 2 4)
+      (158 error "worst.ml" 12 12 8 17)))
     (("Fatal error: exception Bad.Disaster(\"oh no!\")\n"
       "Raised at Bad.f in file \"bad.ml\", line 5, characters 4-22\n"
       "Called from Bad.g in file \"worse.ml\" (inlined), line 9, characters 2-5\n"
       "Called from Bad in file \"worst.ml\", line 12, characters 8-18\n")
-     ((47 error "bad.ml" 5 5 4 22)
-      (105 error "worse.ml" 9 9 2 5)
-      (176 error "worst.ml" 12 12 8 18)))
+     ((47 error "bad.ml" 5 5 4 21)
+      (105 error "worse.ml" 9 9 2 4)
+      (176 error "worst.ml" 12 12 8 17)))
     (("Fatal error: exception Hell\n"
       "Raised by primitive operation at Murky.depths in file \"inferno.ml\", line 399, characters 28-54\n"
       "Called from Nasty.f in file \"nasty.ml\", line 7, characters 13-40\n"
       "Re-raised at Smelly.f in file \"smelly.ml\", line 14, characters 12-19\n"
       "Called from Rubbish.g in file \"rubbish.ml\", line 17, characters 2-5\n")
-     ((29 error "inferno.ml" 399 399 28 54)
-      (124 error "nasty.ml" 7 7 13 40)
-      (189 error "smelly.ml" 14 14 12 19)
-      (258 error "rubbish.ml" 17 17 2 5))))
+     ((29 error "inferno.ml" 399 399 28 53)
+      (124 error "nasty.ml" 7 7 13 39)
+      (189 error "smelly.ml" 14 14 12 18)
+      (258 error "rubbish.ml" 17 17 2 4))))
   "Compilation message test data.
 Each element is (STRINGS ERRORS) where
 
