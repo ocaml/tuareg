@@ -3179,11 +3179,15 @@ Short cuts for interactions with the REPL:
   "Regular expression matching the error messages produced by ocamlc/ocamlopt.")
 
 (when (boundp 'compilation-error-regexp-alist-alist)
+  (setq compilation-error-regexp-alist-alist
+        (assq-delete-all 'ocaml compilation-error-regexp-alist-alist))
   (push `(ocaml ,tuareg--error-regexp 3 (4 . 5) (6 . 7) (8) 1
                 (8 font-lock-function-name-face))
         compilation-error-regexp-alist-alist))
 
 (when (boundp 'compilation-error-regexp-alist)
+  (setq compilation-error-regexp-alist
+        (delq 'ocaml compilation-error-regexp-alist))
   (push 'ocaml compilation-error-regexp-alist)
 
   (eval-after-load 'caml
