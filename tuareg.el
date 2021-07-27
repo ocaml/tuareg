@@ -764,12 +764,13 @@ delimiting the region of interest. "
       (let ((case-fold-search nil))
         (funcall
          (tuareg--syntax-rules
-          ((rx "[")
+          ((rx (or "[" "{["))
            ;; Fontify opening bracket.
-           (put-text-property start (1+ start) 'face
+           (put-text-property start (point) 'face
                               'tuareg-font-lock-doc-markup-face)
            ;; Skip balanced set of brackets.
-           (let ((level 1))
+           (let ((start-end (point))
+                 (level 1))
              (while (and (< (point) end)
                          (re-search-forward (rx (? "\\") (in "[]"))
                                             end 'noerror)
@@ -785,11 +786,11 @@ delimiting the region of interest. "
                                (forward-char -1)
                                nil))
                             (t t)))))
-             (put-text-property (1+ start) (point) 'face
+             (put-text-property start-end (point) 'face
                                 tuareg-font-lock-doc-code-face)
              (if (> level 0)
                  ;; Highlight unbalanced opening bracket.
-                 (put-text-property start (1+ start) 'face
+                 (put-text-property start start-end 'face
                                     'tuareg-font-lock-error-face)
                ;; Fontify closing bracket.
                (put-text-property (point) (1+ (point)) 'face
@@ -817,11 +818,11 @@ delimiting the region of interest. "
              (goto-char (match-end 0))))
 
           ;; Cross-reference.
-          ((rx "{!" (? (or "tag" "module" "modtype" "class"
-                            "classtype" "val" "type"
-                            "exception" "attribute" "method"
-                            "section" "const" "recfield")
-                        ":")
+          ((rx (or "{!" "{{!")
+               (? (or "tag" "module" "modtype" "class" "classtype" "val" "type"
+                      "exception" "attribute" "method" "section" "const"
+                      "recfield")
+                  ":")
                 (group (* (in "a-zA-Z0-9" "_.'"))))
            (put-text-property start (match-beginning group) 'face
                               'tuareg-font-lock-doc-markup-face)
@@ -847,7 +848,7 @@ delimiting the region of interest. "
                         (or (or "-" ":" "_" "^"
                                 "b" "i" "e" "C" "L" "R"
                                 "ul" "ol" "%"
-                                "")
+                                "{:")
                             ;; Section header with optional label.
                             (seq (+ digit)
                                  (? ":"
