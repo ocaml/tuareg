@@ -248,8 +248,8 @@ Returns the value of the last FORM."
      (let p3a (point))
      (insert "and tb = C\n"
              "       | D of ta\n")
-     (let p3b (point))
      (insert ";;\n")
+     (let p3b (point))
 
      (goto-char (point-min))
      (end-of-defun)
@@ -336,12 +336,19 @@ Returns the value of the last FORM."
     (tuareg--lets
      (insert "let _ = tata 3 ;;\n")
      (let p1 (point))
-     (insert "let _ = titi 4 ;;\n")
-     (let p2 (point))
      (insert "abc def ;;\n")
+     (let p2 (point))
+     (insert "let _ = tata 3\n"
+             ";;\n")
      (let p3 (point))
-     (insert "ghi jkl ;;\n")
+     (insert "ghi jkl\n"
+             ";;\n")
      (let p4 (point))
+     (insert "type spell =\n"
+             "  | Frotz\n"
+             "  | Xyzzy\n"
+             ";;\n")
+     (let p5 (point))
 
      (goto-char (point-min))
      (end-of-defun)
@@ -351,6 +358,10 @@ Returns the value of the last FORM."
      (end-of-defun)
      (should (equal (point) p3))
      (end-of-defun)
+     (should (equal (point) p4))
+     (end-of-defun)
+     (should (equal (point) p5))
+     (beginning-of-defun)
      (should (equal (point) p4))
      (beginning-of-defun)
      (should (equal (point) p3))
@@ -371,6 +382,8 @@ Returns the value of the last FORM."
                     (list p2 (1- p3) (1- p3))))
      (should (equal (tuareg-discover-phrase p3)
                     (list p3 (1- p4) (1- p4))))
+     (should (equal (tuareg-discover-phrase p4)
+                    (list p4 (1- p5) (1- p5))))
      )))
 
 (ert-deftest tuareg-class-type ()
