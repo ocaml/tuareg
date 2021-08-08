@@ -2532,7 +2532,8 @@ Return a non-nil value if a comment was skipped."
 
 (defun tuareg--skip-forward-comments-semicolon ()
   "Skip ';;' and then 'sticky' comments after a definition."
-  (skip-chars-forward " \t;")
+  (when (looking-at (rx (* (in " \t\n")) ";;"))
+    (goto-char (match-end 0)))
   (while (tuareg--skip-forward-comment)))
 
 (defvar-local tuareg-smie--forward-and-cache nil
