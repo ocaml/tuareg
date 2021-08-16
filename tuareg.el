@@ -472,7 +472,9 @@ Valid names are `browse-url', `browse-url-firefox', etc."
   'tuareg-font-lock-extension-node-face)
 
 (defface tuareg-font-lock-doc-markup-face
-  '((t :inherit font-lock-constant-face)) ; FIXME: find something better
+  `((t :inherit ,(if (facep 'font-lock-doc-markup-face)
+                     font-lock-doc-markup-face     ; Emacs ≥28.
+                   font-lock-constant-face)))
   "Face for mark-up syntax in OCaml doc comments."
   :group 'tuareg-faces)
 
