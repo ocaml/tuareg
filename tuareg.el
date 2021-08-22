@@ -78,6 +78,7 @@
 (require 'caml-help nil t)
 (require 'caml-types nil t)
 (require 'tuareg-opam)
+(require 'tuareg-compat)
 
 (defconst tuareg-mode-revision
   (eval-when-compile
@@ -3156,7 +3157,6 @@ Short cuts for interactions with the REPL:
     (tuareg--install-font-lock)
     (setq-local beginning-of-defun-function #'tuareg-beginning-of-defun)
     (setq-local end-of-defun-function #'tuareg-end-of-defun)
-
     (setq imenu-create-index-function #'tuareg-imenu-create-index)
     (run-mode-hooks 'tuareg-load-hook)))
 
