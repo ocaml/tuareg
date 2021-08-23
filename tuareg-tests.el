@@ -532,17 +532,41 @@ Return (FILE TYPE START-LINE END-LINE START-COL END-COL)."
                      ;; number in the message.
                      start-col (and end-col (1- end-col)))))))))
 
+(defun tuareg-test--have-end-column-bug ()
+  "Check for the compilation message end-column bug."
+  (let ((compilation-error-regexp-alist
+         `((,(rx bol
+                 (group (+ alnum)) ","
+                 (group (+ digit)) ","
+                 (group (+ digit)) ","
+                 (group (+ digit)) ","
+                 (+ digit) ";")
+            1 (2 . 3) (4 . (lambda () 17))))))
+    (pcase (tuareg-test--extract-message-info "abc,1,2,3,4; error\n" 1)
+      (`(,_ ,_ ,_ ,_ ,_ 16) t)
+      (`(,_ ,_ ,_ ,_ ,_ 17) nil)
+      (x (error "%S" x)))))
+
 (ert-deftest tuareg-compilation-message ()
-  (dolist (case tuareg-test--compilation-messages)
-    (let ((str (apply #'concat (nth 0 case)))
-          (errors (nth 1 case)))
-      (ert-info (str :prefix "message: ")
-        (pcase-dolist (`(,pos ,type ,file ,start-line ,end-line
-                              ,start-col ,end-col)
-                       errors)
-          (should (equal (tuareg-test--extract-message-info str pos)
-                         (list file type
-                               start-line end-line start-col end-col))))))))
+  (let ((buggy-emacs-28 (and (equal emacs-major-version 28)
+                             (tuareg-test--have-end-column-bug))))
+    (dolist (case tuareg-test--compilation-messages)
+      (let ((str (apply #'concat (nth 0 case)))
+            (errors (nth 1 case)))
+        (ert-info (str :prefix "message: ")
+          (pcase-dolist (`(,pos ,type ,file ,start-line ,end-line
+                                ,start-col ,end-col)
+                         errors)
+            ;; Temporary hack to make the tests pass until the Emacs snapshot
+            ;; used in the CI has been updated to the version expected by
+            ;; the code (ie, where the compilation message column bug has been
+            ;; fixed). The bug was fixed in emacs/master
+            ;; aa5437493b1ca539409495ecdc54cf420ea110b9.
+            (when buggy-emacs-28
+              (setq end-col (1- end-col)))
+            (should (equal (tuareg-test--extract-message-info str pos)
+                           (list file type
+                                 start-line end-line start-col end-col)))))))))
 
 (defun tuareg-test--comment-region (text)
   (with-temp-buffer
