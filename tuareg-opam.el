@@ -224,12 +224,12 @@ See `prettify-symbols-alist' for more information.")
 (require 'flymake)
 
 (defalias 'tuareg-opam--flymake-proc-init-create-temp-buffer-copy
-  (if (functionp #'flymake-proc-init-create-temp-buffer-copy)
+  (if (fboundp 'flymake-proc-init-create-temp-buffer-copy)
       'flymake-proc-init-create-temp-buffer-copy
     'flymake-init-create-temp-buffer-copy))
 
 (defalias 'tuareg-opam--proc-create-temp-inplace
-  (if (functionp #'flymake-proc-create-temp-inplace)
+  (if (fboundp 'flymake-proc-create-temp-inplace)
       'flymake-proc-create-temp-inplace
     'flymake-create-temp-inplace))
 
@@ -313,6 +313,11 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
   (setq indent-tabs-mode nil)
   (setq-local require-final-newline mode-require-final-newline)
   (smie-setup tuareg-opam-smie-grammar #'tuareg-opam-smie-rules)
+
+  ;; Explicit variable declarations to avoid Emacs 24 warnings
+  (defvar tuareg-opam--flymake-proc-allowed-file-name-masks)
+  (defvar tuareg-opam--flymake-proc-err-line-patterns)
+
   (push tuareg-opam--allowed-file-name-masks
         tuareg-opam--flymake-proc-allowed-file-name-masks)
   (setq-local tuareg-opam--flymake-proc-err-line-patterns
