@@ -77,6 +77,7 @@
 (require 'find-file)
 (require 'caml-help nil t)
 (require 'caml-types nil t)
+(require 'tuareg-opam)
 
 (defconst tuareg-mode-revision
   (eval-when-compile
@@ -473,8 +474,8 @@ Valid names are `browse-url', `browse-url-firefox', etc."
 
 (defface tuareg-font-lock-doc-markup-face
   `((t :inherit ,(if (facep 'font-lock-doc-markup-face)
-                     font-lock-doc-markup-face     ; Emacs ≥28.
-                   font-lock-constant-face)))
+                     'font-lock-doc-markup-face     ; Emacs ≥28.
+                   'font-lock-constant-face)))
   "Face for mark-up syntax in OCaml doc comments."
   :group 'tuareg-faces)
 
@@ -583,7 +584,8 @@ do not perturb in essential ways the alignment are used.  See
 See `prettify-symbols-compose-predicate'."
   ;; Refine `prettify-symbols-default-compose-p' so as not to compose
   ;; symbols for errors,...
-  (and (prettify-symbols-default-compose-p start end match)
+  (and (fboundp 'prettify-symbols-default-compose-p)
+       (prettify-symbols-default-compose-p start end match)
        (not (memq (get-text-property start 'face)
                   '(tuareg-font-lock-error-face
                     tuareg-font-lock-interactive-output-face
@@ -737,8 +739,8 @@ delimiting the region of interest. "
         (setq group-number (+ group-number 1 re-ngroups))))
     (let ((combined-re (mapconcat (lambda (re) (concat "\\(" re "\\)"))
                                   (nreverse regexps) "\\|"))
-          (begin (gensym "begin"))
-          (end (gensym "end")))
+          (begin (make-symbol "begin"))
+          (end (make-symbol "end")))
       `(lambda (,begin ,end)
          (goto-char ,begin)
          (while (and (< (point) ,end)
@@ -1488,6 +1490,18 @@ Run only once."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                    Keymap
+
+;; Functions from the caml-mode package that may or may not be
+;; available during compilation.
+(declare-function caml-help "caml-help" (arg))
+(declare-function ocaml-open-module "caml-help" (arg))
+(declare-function ocaml-close-module "caml-help" (arg))
+(declare-function ocaml-add-path "caml-help" (dir &optional path))
+(declare-function caml-types-explore "caml-types" (event))
+(declare-function caml-types-mouse-ignore "caml-types" (event))
+(declare-function caml-types-show-ident "caml-types" (arg))
+(declare-function caml-types-show-call "caml-types" (arg))
+(declare-function caml-types-show-type "caml-types" (arg))
 
 (defvar tuareg-mode-map
   (let ((map (make-sparse-keymap)))
@@ -3058,8 +3072,9 @@ expansion at run-time, if the run-time version of Emacs does know this macro."
             (append tuareg-prettify-symbols-basic-alist
                     tuareg-prettify-symbols-extra-alist)
           tuareg-prettify-symbols-basic-alist))
-  (setq prettify-symbols-compose-predicate
-        #'tuareg--prettify-symbols-compose-p)
+  (when (boundp 'prettify-symbols-compose-predicate) ; Emacs 25 or later
+    (setq prettify-symbols-compose-predicate
+          #'tuareg--prettify-symbols-compose-p))
   (setq-local open-paren-in-column-0-is-defun-start nil)
 
   (add-hook 'completion-at-point-functions #'tuareg-completion-at-point nil t)
@@ -3345,7 +3360,6 @@ OCaml uses exclusive end-columns but Emacs wants them to be inclusive."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               OPAM
 
-(require 'tuareg-opam)
 (when (and tuareg-opam-insinuate tuareg-opam)
   (setq tuareg-interactive-program
         (concat tuareg-opam " exec -- ocaml"))
@@ -3616,7 +3630,7 @@ It is assumed that the range START-END delimit valid OCaml phrases."
           (progn
             (tuareg-interactive--send-region (car phrase) (cadr phrase))
             (if tuareg-skip-after-eval-phrase
-              (progn (goto-char (caddr phrase))
+              (progn (goto-char (car (cddr phrase)))
                      (tuareg-skip-blank-and-comments))
               (goto-char opoint)))
         (message "The expression after the point is not well braced.")))))
