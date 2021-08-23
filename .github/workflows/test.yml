@@ -1,0 +1,39 @@
+name: test
+
+on:
+  push:
+    paths-ignore:
+      - '*.md'
+      - 'COPYING'
+      - 'HISTORY'
+  pull_request:
+    paths-ignore:
+      - '*.md'
+      - 'COPYING'
+      - 'HISTORY'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        emacs_version:
+          - "24.4"
+          - "25.3"
+          - "26.3"
+          - "27.2"
+          - snapshot
+    steps:
+      - name: Set up Emacs
+        uses: purcell/setup-emacs@master
+        with:
+          version: ${{matrix.emacs_version}}
+
+      - name: Check out tuareg
+        uses: actions/checkout@v2
+
+      - name: Byte-compile
+        run: make elc
+
+      - name: Test
+        run: make check
