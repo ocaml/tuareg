@@ -49,8 +49,11 @@ INSTALL_CP = $(CP)
 
 all elc : $(ELC) tuareg-site-file.el
 
+elc-werror: WERROR=--eval '(setq byte-compile-error-on-warn t)'
+elc-werror: elc
+
 %.elc : %.el
-	$(EMACS) --batch -L . --no-init-file -f batch-byte-compile $<
+	$(EMACS) --batch -L . --no-init-file $(WERROR) -f batch-byte-compile $<
 	@echo "Files byte-compiled using $(EMACS)"
 
 install : $(INSTALL_FILES)
