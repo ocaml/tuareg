@@ -11,11 +11,13 @@
 ;;      Till Varoquaux <till@pps.jussieu.fr>
 ;;      Sean McLaughlin <seanmcl@gmail.com>
 ;;      Stefan Monnier <monnier@iro.umontreal.ca>
+;; Maintainer: Christophe Troestler <Christophe.Troestler@umons.ac.be>
+;;      Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Created: 8 Jan 1997
 ;; Version: 2.3.0
-;; Package-Requires: ((caml "3.12.0.1") (emacs "24.4"))
+;; Package-Requires: ((emacs "24.4") (caml "4.8") (cl-lib "0.5"))
 ;; Keywords: ocaml languages
-;; URL: https://github.com/ocaml/tuareg
+;; Homepage: https://github.com/ocaml/tuareg
 ;; EmacsWiki: TuaregMode
 
 ;;; Commentary:
