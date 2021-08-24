@@ -3230,13 +3230,13 @@ OCaml uses exclusive end-columns but Emacs wants them to be inclusive."
         (delq 'ocaml compilation-error-regexp-alist))
   (push 'ocaml compilation-error-regexp-alist)
 
-  (eval-after-load 'caml
-    ;; caml-mode also changes `compilation-error-regexp-alist' with a
-    ;; too simple regexp.  Make sure the one above comes first.
-    #'(lambda()
-        (setq compilation-error-regexp-alist
-              (delete 'ocaml compilation-error-regexp-alist))
-        (push 'ocaml compilation-error-regexp-alist))))
+  (with-eval-after-load 'caml
+    ;; Older versions of caml-mode also changes
+    ;; `compilation-error-regexp-alist' with a too simple regexp.
+    ;; Make sure the one above comes first.
+    (setq compilation-error-regexp-alist
+          (delq 'ocaml compilation-error-regexp-alist))
+    (push 'ocaml compilation-error-regexp-alist)))
 
 
 ;; Wrapper around next-error.
