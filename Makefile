@@ -37,7 +37,6 @@ endif
 endif
 EMACS ?= emacs
 
-#ENABLE_SMIE = --eval '(setq tuareg-use-smie t)'
 RM ?= rm -f
 CP ?= cp -f
 LN = ln
@@ -45,7 +44,7 @@ DIFF = diff -u -B
 
 INSTALL_RM_R = $(RM) -r
 INSTALL_MKDIR = mkdir -p
-INSTALL_CP = $(CP)
+INSTALL_CP = cp
 
 all elc : $(ELC) tuareg-site-file.el
 
