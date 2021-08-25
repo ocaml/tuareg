@@ -3147,7 +3147,6 @@ Short cuts for interactions with the REPL:
     (setq-local comment-start "(* ")
     (setq-local comment-end " *)")
     (setq-local comment-start-skip "(\\*+[ \t]*")
-    (setq-local comment-style 'multi-line)
     ;; `ocamlc' counts columns from 0, contrary to other tools which start at 1.
     (setq-local compilation-first-column 0)
     (setq-local compilation-error-screen-columns nil)

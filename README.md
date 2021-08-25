@@ -128,6 +128,17 @@ Tips & customization
 
   [electric-indent-mode]: https://www.gnu.org/software/emacs/manual/html_node/emacs/Indent-Convenience.html
 
+- Tuareg respects you default commenting style.  However, in OCaml,
+  commenting a region is usually done with a single multi-line comment
+  and without leading stars on each line.  You can have that behavior
+  in OCaml buffers by setting:
+
+        (add-hook 'tuareg-mode-hook
+                  (lambda()
+                    (setq-local comment-style 'multi-line)
+                    (setq-local comment-continue "   ")))
+
+
 - Syntax highlighting has 3 levels.  You can select the one you prefer
   by setting [font-lock-maximum-decoration][] from `0` to `2`.  By
   default, [font-lock-maximum-decoration][] is set to `t` which
