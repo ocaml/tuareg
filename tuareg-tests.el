@@ -531,4 +531,44 @@ Return (FILE TYPE START-LINE END-LINE START-COL END-COL)."
                          (list file type
                                start-line end-line start-col end-col))))))))
 
+(defun tuareg-test--comment-region (text)
+  (with-temp-buffer
+    (tuareg-mode)
+    (insert text)
+    (comment-region (point-min) (point-max))
+    (buffer-string)))
+
+(ert-deftest tuareg-comment-region-style ()
+  "Check that commenting out code works as expected. See issue #216."
+  ;; Non-indented code.
+  (let ((comment-style 'indent))
+    (should (equal (tuareg-test--comment-region
+                    "let f x =\n  g x\n    y\n")
+                   "(* let f x = *)\n(*   g x *)\n(*     y *)\n")))
+  (let ((comment-style 'multi-line)
+        (comment-continue " * "))
+    (should (equal (tuareg-test--comment-region
+                    "let f x =\n  g x\n    y\n")
+                   "(* let f x =\n *   g x\n *     y *)\n")))
+  (let ((comment-style 'multi-line)
+        (comment-continue "   "))
+    (should (equal (tuareg-test--comment-region
+                    "let f x =\n  g x\n    y\n")
+                   "(* let f x =\n     g x\n       y *)\n")))
+  ;; Indented code.
+  (let ((comment-style 'indent))
+    (should (equal (tuareg-test--comment-region
+                    "  epsilon\n    tau\n")
+                   "  (* epsilon *)\n  (*   tau *)\n")))
+  (let ((comment-style 'multi-line)
+        (comment-continue " * "))
+    (should (equal (tuareg-test--comment-region
+                    "  epsilon\n    tau\n")
+                   "  (* epsilon\n   *   tau *)\n")))
+  (let ((comment-style 'multi-line)
+        (comment-continue "   "))
+    (should (equal (tuareg-test--comment-region
+                    "  epsilon\n    tau\n")
+                   "  (* epsilon\n       tau *)\n"))))
+
 (provide 'tuareg-tests)
