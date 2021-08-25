@@ -1,4 +1,6 @@
+[![NonGNU ELPA](https://elpa.nongnu.org/nongnu/tuareg.svg)](https://elpa.nongnu.org/nongnu/tuareg.html)
 [![MELPA](https://melpa.org/packages/tuareg-badge.svg)](https://melpa.org/#/tuareg)
+[![DebianBadge](https://badges.debian.net/badges/debian/stable/elpa-tuareg/version.svg)](https://packages.debian.org/stable/elpa-tuareg)
 [![LGPL v2](https://img.shields.io/badge/licence-lgpl2-blue.svg)](COPYING)
 [![Build Status](https://travis-ci.org/ocaml/tuareg.svg?branch=master)](https://travis-ci.org/ocaml/tuareg)
 
