@@ -625,4 +625,32 @@ Return (FILE TYPE START-LINE END-LINE START-COL END-COL)."
                     "  epsilon\n    tau\n")
                    "  (* epsilon\n       tau *)\n"))))
 
+(defun tuareg-test--comment-uncomment-region (text)
+  (equal text
+         (with-temp-buffer
+           (tuareg-mode)
+           (insert text)
+           (comment-region (point-min) (point-max))
+           (uncomment-region (point-min) (point-max))
+           (buffer-string))))
+
+(ert-deftest tuareg-comment-uncomment-region ()
+  "Check that commenting out code then uncommenting it leads to
+the original code."
+  (should (let ((comment-style 'indent))
+            (tuareg-test--comment-uncomment-region
+             "let f x =\n  g x\n    y\n")))
+  (should (let ((comment-style 'multi-line)
+                (comment-continue " * "))
+            (tuareg-test--comment-uncomment-region
+             "let f x =\n  g x\n    y\n")))
+  (should (let ((comment-style 'multi-line))
+            (tuareg-test--comment-uncomment-region
+             "let f x =\n  g x\n    y\n")))
+  (should (let ((comment-style 'multi-line)
+                (comment-continue "   "))
+            (tuareg-test--comment-uncomment-region
+             "let f x =\n  g x\n    y\n"))))
+
+
 (provide 'tuareg-tests)
