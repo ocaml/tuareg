@@ -578,33 +578,38 @@ Return (FILE TYPE START-LINE END-LINE START-COL END-COL)."
 (ert-deftest tuareg-comment-region-style ()
   "Check that commenting out code works as expected. See issue #216."
   ;; Non-indented code.
-  (let ((comment-style 'indent))
-    (should (equal (tuareg-test--comment-region
+  (should (let ((comment-style 'indent))
+            (equal (tuareg-test--comment-region
                     "let f x =\n  g x\n    y\n")
                    "(* let f x = *)\n(*   g x *)\n(*     y *)\n")))
-  (let ((comment-style 'multi-line)
-        (comment-continue " * "))
-    (should (equal (tuareg-test--comment-region
+  (should (let ((comment-style 'multi-line)
+                (comment-continue " * "))
+            (equal (tuareg-test--comment-region
                     "let f x =\n  g x\n    y\n")
                    "(* let f x =\n *   g x\n *     y *)\n")))
-  (let ((comment-style 'multi-line)
-        (comment-continue "   "))
-    (should (equal (tuareg-test--comment-region
+  (should (let ((comment-style 'multi-line))
+            ;; `comment-continue' should default to " * "
+            (equal (tuareg-test--comment-region
+                    "let f x =\n  g x\n    y\n")
+                   "(* let f x =\n *   g x\n *     y *)\n")))
+  (should (let ((comment-style 'multi-line)
+                (comment-continue "   "))
+            (equal (tuareg-test--comment-region
                     "let f x =\n  g x\n    y\n")
                    "(* let f x =\n     g x\n       y *)\n")))
   ;; Indented code.
-  (let ((comment-style 'indent))
-    (should (equal (tuareg-test--comment-region
+  (should (let ((comment-style 'indent))
+            (equal (tuareg-test--comment-region
                     "  epsilon\n    tau\n")
                    "  (* epsilon *)\n  (*   tau *)\n")))
-  (let ((comment-style 'multi-line)
-        (comment-continue " * "))
-    (should (equal (tuareg-test--comment-region
+  (should (let ((comment-style 'multi-line)
+                (comment-continue " * "))
+            (equal (tuareg-test--comment-region
                     "  epsilon\n    tau\n")
                    "  (* epsilon\n   *   tau *)\n")))
-  (let ((comment-style 'multi-line)
-        (comment-continue "   "))
-    (should (equal (tuareg-test--comment-region
+  (should (let ((comment-style 'multi-line)
+                (comment-continue "   "))
+            (equal (tuareg-test--comment-region
                     "  epsilon\n    tau\n")
                    "  (* epsilon\n       tau *)\n"))))
 
