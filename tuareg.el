@@ -3206,10 +3206,9 @@ Short cuts for interactions with the REPL:
                 (+ "^"))
             "\n"
             (* (in "\t ")))
-         (group-n 8 "Warning"                   ; 8: WARNING
-                (? " " (+ (in "0-9")))
-                (? " [" (+ (in "a-z0-9-")) "]")
-                ":")))
+         (group-n 8 (or "Warning" "Alert")      ; 8: WARNING
+                  (* (not (in ":\n")))
+                  ":")))
   "Regular expression matching the error messages produced by ocamlc/ocamlopt.
 Also matches source references in exception backtraces.")
 
