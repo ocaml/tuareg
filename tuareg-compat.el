@@ -6,7 +6,6 @@
 (require 'newcomment)
 
 ;; Emacs < 26
-
 (defun tuareg--comment-padright--advice (origfn &rest args)
   (let ((str (nth 0 args)))
     (unless (and (eq major-mode 'tuareg-mode)
@@ -194,5 +193,234 @@ out."
   (advice-add 'comment-region-default-1 :around
               #'tuareg--comment-region-default-1--advice))
 
+;; FIX: uncommenting
+
+;; Emacs < 27
+(defun tuareg--uncomment-region-default (beg end &optional arg)
+  "Uncomment each line in the BEG .. END region.
+The numeric prefix ARG can specify a number of chars to remove from the
+comment delimiters.
+This function is the default value of `uncomment-region-function'."
+  (goto-char beg)
+  (setq end (copy-marker end))
+  (let* ((numarg (prefix-numeric-value arg))
+	 (ccs comment-continue)
+	 (srei (or (comment-padright ccs 're)
+                   (and (stringp comment-continue) comment-continue)))
+	 (csre (comment-padright comment-start 're))
+	 (sre (and srei (concat "^\\s-*?\\(" srei "\\)")))
+	 spt)
+    (while (and (< (point) end)
+		(setq spt (comment-search-forward end t)))
+      (let ((ipt (point))
+	    ;; Find the end of the comment.
+	    (ept (progn
+		   (goto-char spt)
+		   (unless (or (comment-forward)
+			       ;; Allow non-terminated comments.
+			       (eobp))
+		     (error "Can't find the comment end"))
+		   (point)))
+	    (box nil)
+	    (box-equal nil))	   ;Whether we might be using `=' for boxes.
+	(save-restriction
+	  (narrow-to-region spt ept)
+
+	  ;; Remove the comment-start.
+	  (goto-char ipt)
+	  (skip-syntax-backward " ")
+	  ;; A box-comment starts with a looong comment-start marker.
+	  (when (and (or (and (= (- (point) (point-min)) 1)
+			      (setq box-equal t)
+			      (looking-at "=\\{7\\}")
+			      (not (eq (char-before (point-max)) ?\n))
+			      (skip-chars-forward "="))
+			 (> (- (point) (point-min) (length comment-start)) 7))
+		     (> (count-lines (point-min) (point-max)) 2))
+	    (setq box t))
+	  ;; Skip the padding.  Padding can come from comment-padding and/or
+	  ;; from comment-start, so we first check comment-start.
+	  (if (or (save-excursion (goto-char (point-min)) (looking-at csre))
+		  (looking-at (regexp-quote comment-padding)))
+	      (goto-char (match-end 0)))
+	  (when (and sre (looking-at (concat "\\s-*\n\\s-*" srei)))
+	    (goto-char (match-end 0)))
+	  (if (null arg) (delete-region (point-min) (point))
+            (let ((opoint (point-marker)))
+              (skip-syntax-backward " ")
+              (delete-char (- numarg))
+              (unless (and (not (bobp))
+                           (save-excursion (goto-char (point-min))
+                                           (looking-at comment-start-skip)))
+                ;; If there's something left but it doesn't look like
+                ;; a comment-start any more, just remove it.
+                (delete-region (point-min) opoint))))
+
+	  ;; Remove the end-comment (and leading padding and such).
+	  (goto-char (point-max)) (comment-enter-backward)
+	  ;; Check for special `=' used sometimes in comment-box.
+	  (when (and box-equal (not (eq (char-before (point-max)) ?\n)))
+	    (let ((pos (point)))
+	      ;; skip `=' but only if there are at least 7.
+	      (when (> (skip-chars-backward "=") -7) (goto-char pos))))
+	  (unless (looking-at "\\(\n\\|\\s-\\)*\\'")
+	    (when (and (bolp) (not (bobp))) (backward-char))
+	    (if (null arg) (delete-region (point) (point-max))
+	      (skip-syntax-forward " ")
+	      (delete-char numarg)
+	      (unless (or (eobp) (looking-at comment-end-skip))
+		;; If there's something left but it doesn't look like
+		;; a comment-end any more, just remove it.
+		(delete-region (point) (point-max)))))
+
+	  ;; Unquote any nested end-comment.
+	  (comment-quote-nested comment-start comment-end t)
+
+	  ;; Eliminate continuation markers as well.
+	  (when sre
+	    (let* ((cce (comment-string-reverse (or comment-continue
+						    comment-start)))
+		   (erei (and box (comment-padleft cce 're)))
+		   (ere (and erei (concat "\\(" erei "\\)\\s-*$"))))
+	      (goto-char (point-min))
+	      (while (progn
+		       (if (and ere (re-search-forward
+				     ere (line-end-position) t))
+			   (replace-match "" t t nil (if (match-end 2) 2 1))
+			 (setq ere nil))
+		       (forward-line 1)
+		       (re-search-forward sre (line-end-position) t))
+		(replace-match "" t t nil (if (match-end 2) 2 1)))))
+	  ;; Go to the end for the next comment.
+	  (goto-char (point-max))))))
+  (set-marker end nil))
+
+(defun tuareg--uncomment-region-default--advice (origfn &rest args)
+  (apply (if (eq major-mode 'tuareg-mode)
+             'tuareg--uncomment-region-default
+           origfn)
+         args))
+
+(when (and (< emacs-major-version 27) (fboundp 'uncomment-region-default))
+  (advice-add 'uncomment-region-default :around
+              #'tuareg--uncomment-region-default--advice))
+
+;; Emacs 27
+(defun tuareg--uncomment-region-default-1 (beg end &optional arg)
+  "Uncomment each line in the BEG .. END region.
+The numeric prefix ARG can specify a number of chars to remove from the
+comment delimiters.
+This function is the default value of `uncomment-region-function'."
+  (goto-char beg)
+  (setq end (copy-marker end))
+  (let* ((numarg (prefix-numeric-value arg))
+	 (ccs comment-continue)
+	 (srei (or (comment-padright ccs 're)
+                   (and (stringp comment-continue) comment-continue)))
+	 (csre (comment-padright comment-start 're))
+	 (sre (and srei (concat "^\\s-*?\\(" srei "\\)")))
+	 spt)
+    (while (and (< (point) end)
+		(setq spt (comment-search-forward end t)))
+      (let ((ipt (point))
+	    ;; Find the end of the comment.
+	    (ept (progn
+		   (goto-char spt)
+		   (unless (or (comment-forward)
+			       ;; Allow non-terminated comments.
+			       (eobp))
+		     (error "Can't find the comment end"))
+		   (point)))
+	    (box nil)
+	    (box-equal nil))	   ;Whether we might be using `=' for boxes.
+	(save-restriction
+	  (narrow-to-region spt ept)
+
+	  ;; Remove the comment-start.
+	  (goto-char ipt)
+	  (skip-syntax-backward " ")
+	  ;; A box-comment starts with a looong comment-start marker.
+	  (when (and (or (and (= (- (point) (point-min)) 1)
+			      (setq box-equal t)
+			      (looking-at "=\\{7\\}")
+			      (not (eq (char-before (point-max)) ?\n))
+			      (skip-chars-forward "="))
+			 (> (- (point) (point-min) (length comment-start)) 7))
+		     (> (count-lines (point-min) (point-max)) 2))
+	    (setq box t))
+	  ;; Skip the padding.  Padding can come from comment-padding and/or
+	  ;; from comment-start, so we first check comment-start.
+	  (if (or (save-excursion (goto-char (point-min)) (looking-at csre))
+		  (looking-at (regexp-quote comment-padding)))
+	      (goto-char (match-end 0)))
+	  (when (and sre (looking-at (concat "\\s-*\n\\s-*" srei)))
+	    (goto-char (match-end 0)))
+	  (if (null arg) (delete-region (point-min) (point))
+            (let ((opoint (point-marker)))
+              (skip-syntax-backward " ")
+              (delete-char (- numarg))
+              (unless (and (not (bobp))
+                           (save-excursion (goto-char (point-min))
+                                           (looking-at comment-start-skip)))
+                ;; If there's something left but it doesn't look like
+                ;; a comment-start any more, just remove it.
+                (delete-region (point-min) opoint))))
+
+	  ;; Remove the end-comment (and leading padding and such).
+	  (goto-char (point-max)) (comment-enter-backward)
+	  ;; Check for special `=' used sometimes in comment-box.
+	  (when (and box-equal (not (eq (char-before (point-max)) ?\n)))
+	    (let ((pos (point)))
+	      ;; skip `=' but only if there are at least 7.
+	      (when (> (skip-chars-backward "=") -7) (goto-char pos))))
+	  (unless (looking-at "\\(\n\\|\\s-\\)*\\'")
+	    (when (and (bolp) (not (bobp))) (backward-char))
+	    (if (null arg) (delete-region (point) (point-max))
+	      (skip-syntax-forward " ")
+	      (delete-char numarg)
+	      (unless (or (eobp) (looking-at comment-end-skip))
+		;; If there's something left but it doesn't look like
+		;; a comment-end any more, just remove it.
+		(delete-region (point) (point-max)))))
+
+	  ;; Unquote any nested end-comment.
+	  (comment-quote-nested comment-start comment-end t)
+
+	  ;; Eliminate continuation markers as well.
+	  (when sre
+	    (let* ((cce (comment-string-reverse (or comment-continue
+						    comment-start)))
+		   (erei (and box (comment-padleft cce 're)))
+		   (ere (and erei (concat "\\(" erei "\\)\\s-*$"))))
+	      (goto-char (point-min))
+	      (while (progn
+		       (if (and ere (re-search-forward
+				     ere (line-end-position) t))
+			   (replace-match "" t t nil (if (match-end 2) 2 1))
+			 (setq ere nil))
+		       (forward-line 1)
+		       (re-search-forward sre (line-end-position) t))
+		(replace-match "" t t nil (if (match-end 2) 2 1)))))
+	  ;; Go to the end for the next comment.
+	  (goto-char (point-max)))
+        ;; Remove any obtrusive spaces left preceding a tab at `spt'.
+        (when (and (eq (char-after spt) ?\t) (eq (char-before spt) ? )
+                   (> tab-width 0))
+          (save-excursion
+            (goto-char spt)
+            (let* ((fcol (current-column))
+                   (slim (- (point) (mod fcol tab-width))))
+              (delete-char (- (skip-chars-backward " " slim)))))))))
+  (set-marker end nil))
+
+(defun tuareg--uncomment-region-default-1--advice (origfn &rest args)
+  (apply (if (eq major-mode 'tuareg-mode)
+             'tuareg--uncomment-region-default-1
+           origfn)
+         args))
+
+(when (and (<= emacs-major-version 28) (fboundp 'uncomment-region-default-1))
+  (advice-add 'uncomment-region-default-1 :around
+              #'tuareg--uncomment-region-default-1--advice))
 
 (provide 'tuareg-compat)
