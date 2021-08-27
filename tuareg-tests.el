@@ -460,6 +460,11 @@ Returns the value of the last FORM."
      ((1 error "main.ml" 13 13 34 34)
       (225 info "main.ml" 10 10 2 40)
       (308 info "main.ml" 7 7 0 31)))
+    (("File \"alrt.ml\", line 25, characters 9-10:\n"
+      "25 |   val x: t [@@ocaml.deprecated]\n"
+      "              ^\n"
+      "Alert deprecated: t\n")
+     ((1 warning "alrt.ml" 25 25 9 9)))
     (("Fatal error: exception Bad.Disaster(\"oh no!\")\n"
       "Raised at file \"bad.ml\", line 5, characters 4-22\n"
       "Called from file \"worse.ml\" (inlined), line 9, characters 2-5\n"

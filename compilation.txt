@@ -122,6 +122,14 @@ File "moo.ml", line 6, characters 6-10:
 Warning 26 [unused-var]: unused variable fish.
 
 
+* Alert: treat like warning
+
+File "alrt.ml", line 25, characters 9-10:
+25 |   val x: t [@@ocaml.deprecated]
+              ^
+Alert deprecated: t
+
+
 * Backtrace messages
 
 Before 4.11:
