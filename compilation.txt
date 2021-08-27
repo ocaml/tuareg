@@ -93,26 +93,6 @@ Error: This expression has type M/2.t but an expression was expected of type
        File "main.ml", line 7, characters 0-32:
          Definition of module M/2
 
-File "main.ml", line 13, characters 34-35:
-13 |   let f : M.t -> M.t = fun M.C -> y
-                                       ^
-Warning 3: This expression has type M/2.t but an expression was expected of type
-         M/1.t
-       File "main.ml", lines 10-12, characters 2-5:
-         Definition of module M/1
-       File "main.ml", line 7, characters 0-32:
-         Definition of module M/2
-
-File "main.ml", line 13, characters 34-35:
-13 |   let f : M.t -> M.t = fun M.C -> y
-                                       ^
-Warning 3: This expression has type M/2.t but an expression was expected of type
-         M/1.t
-       File "main.ml", lines 10-12, characters 2-5:
-         Definition of module M/1
-       File "main.ml", line 7, characters 0-32:
-         Definition of module M/2
-
 
 * Since OCaml 4.12, warnings come with mnemonics.
 
@@ -120,6 +100,22 @@ File "moo.ml", line 6, characters 6-10:
 6 |   let fish = 13 in
           ^^^^
 Warning 26 [unused-var]: unused variable fish.
+
+
+* Example of a warning with ancillary locations
+
+File "urk.ml", line 1:
+Warning 63 [erroneous-printed-signature]: The printed interface differs from the inferred interface.
+The inferred interface contained items which could not be printed
+properly due to name collisions between identifiers.
+File "urk.ml", lines 23-25, characters 2-5:
+  Definition of module M/1
+File "urk.ml", lines 17-20, characters 0-3:
+  Definition of module M/2
+Beware that this warning is purely informational and will not catch
+all instances of erroneous printed interface.
+module M : sig type t val v : t end
+module F : sig module M : sig val v : M.t end val v : M/2.t end
 
 
 * Alert: treat like warning
