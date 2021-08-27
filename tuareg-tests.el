@@ -458,8 +458,8 @@ Returns the value of the last FORM."
       "       File \"main.ml\", line 7, characters 0-32:\n"
       "         Definition of module M/2\n")
      ((1 error "main.ml" 13 13 34 34)
-      (225 error "main.ml" 10 10 2 40)
-      (308 error "main.ml" 7 7 0 31)))
+      (225 info "main.ml" 10 10 2 40)
+      (308 info "main.ml" 7 7 0 31)))
     (("Fatal error: exception Bad.Disaster(\"oh no!\")\n"
       "Raised at file \"bad.ml\", line 5, characters 4-22\n"
       "Called from file \"worse.ml\" (inlined), line 9, characters 2-5\n"

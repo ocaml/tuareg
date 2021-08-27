@@ -3172,7 +3172,12 @@ Short cuts for interactions with the REPL:
 
 (defconst tuareg--error-regexp
   (rx bol
-      (* " ")
+      ;; Require either zero or 7 leading spaces, to avoid matching
+      ;; Python tracebacks. Assume that spaces mean that this is an
+      ;; ancillary location that should have level Info.
+      ;; FIXME: Ancillary locations for warnings probably have no spaces
+      ;; and are now treated as errors. Fortunately these are rare.
+      (? (group-n 9 "       "))                 ; 9: INFO
       (group-n 1                                ; 1: HIGHLIGHT
        (or "File "
            ;; Exception backtrace.
@@ -3220,7 +3225,8 @@ OCaml uses exclusive end-columns but Emacs wants them to be inclusive."
 (when (boundp 'compilation-error-regexp-alist-alist)
   (setq compilation-error-regexp-alist-alist
         (assq-delete-all 'ocaml compilation-error-regexp-alist-alist))
-  (push `(ocaml ,tuareg--error-regexp 3 (4 . 5) (6 . tuareg--end-column) (8) 1
+  (push `(ocaml ,tuareg--error-regexp 3 (4 . 5) (6 . tuareg--end-column)
+                (8 . 9) 1
                 (8 font-lock-function-name-face))
         compilation-error-regexp-alist-alist))
 
