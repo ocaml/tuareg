@@ -149,7 +149,9 @@ Tips & customization
 - Fontifying all operators (as opposed to only non-standard ones) is a
   costly operation that slows down font-lock.  This is why it is
   disabled by default.  If you nonetheless want it, set
-  `tuareg-highlight-all-operators` to `t` in your [Init File][].
+  `tuareg-highlight-all-operators` to `t` in your [Init File][]
+  (before `tuareg-mode` is initialized; in particular, not in a hook
+  added to `'tuareg-mode-hook`).
 
 - You can turn on and off the rendering of certain sequences of
   characters as symbols (such as `∔` and `∧` instead of `+.`and `&&`),
