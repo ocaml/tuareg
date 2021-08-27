@@ -3173,7 +3173,7 @@ Short cuts for interactions with the REPL:
 (defconst tuareg--error-regexp
   (rx bol
       (* " ")
-      (group                                ; 1: HIGHLIGHT
+      (group-n 1                                ; 1: HIGHLIGHT
        (or "File "
            ;; Exception backtrace.
            (seq
@@ -3181,16 +3181,16 @@ Short cuts for interactions with the REPL:
                 "Called from")
             (* nonl)            ; OCaml ≥4.11: " FUNCTION in"
             " file "))
-       (group (? "\""))                     ; 2
-       (group (+ (not (in "\t\n \",<>"))))  ; 3: FILE
+       (group-n 2 (? "\""))                     ; 2
+       (group-n 3 (+ (not (in "\t\n \",<>"))))  ; 3: FILE
        (backref 2)
        (? " (inlined)")
        ", line" (? "s") " "
-       (group (+ (in "0-9")))               ; 4: LINE-START
-       (? "-" (group (+ (in "0-9"))))       ; 5; LINE-END
+       (group-n 4 (+ (in "0-9")))               ; 4: LINE-START
+       (? "-" (group-n 5 (+ (in "0-9"))))       ; 5; LINE-END
        (? ", character" (? "s") " "
-          (group (+ (in "0-9")))            ; 6: COL-START
-          (? "-" (group (+ (in "0-9")))))   ; 7: COL-END
+          (group-n 6 (+ (in "0-9")))            ; 6: COL-START
+          (? "-" (group-n 7 (+ (in "0-9")))))   ; 7: COL-END
        ;; Colon not present in backtraces.
        (? ":"))
       (? "\n"
@@ -3201,7 +3201,7 @@ Short cuts for interactions with the REPL:
                 (+ "^"))
             "\n"
             (* (in "\t ")))
-         (group "Warning"                   ; 8: WARNING
+         (group-n 8 "Warning"                   ; 8: WARNING
                 (? " " (+ (in "0-9")))
                 (? " [" (+ (in "a-z0-9-")) "]")
                 ":")))
