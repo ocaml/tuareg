@@ -1,4 +1,4 @@
-;;; tuareg.el --- OCaml mode for Emacs.  -*- coding: utf-8; lexical-binding:t -*-
+;;; tuareg.el --- OCaml mode  -*- coding: utf-8; lexical-binding:t -*-
 
 ;; Copyright (C) 1997-2006 Albert Cohen, all rights reserved.
 ;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
