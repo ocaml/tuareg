@@ -1972,7 +1972,7 @@ For use on `electric-indent-functions'."
         "d-let"))))
 
 (defun tuareg-smie--label-colon-p ()
-  (and (not (zerop (skip-chars-backward "[[:alnum:]]_")))
+  (and (not (zerop (skip-chars-backward "[:alnum:]_")))
        (or (not (zerop (skip-chars-backward "?~")))
            (save-excursion
              (member (tuareg-smie--backward-token)

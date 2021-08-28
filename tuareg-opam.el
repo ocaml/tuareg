@@ -119,14 +119,14 @@
      1 font-lock-keyword-face)
     (,tuareg-opam-scopes-regex . font-lock-constant-face)
     (,tuareg-opam-variables-regex . font-lock-variable-name-face)
-    (,(concat "%{" tuareg-opam-variables-regex "\\(?:}%\\|?\\)")
+    (,(concat "%{" tuareg-opam-variables-regex "\\(?:}%\\|\\?\\)")
      (1 font-lock-variable-name-face t))
     (,(concat "%{\\([a-zA-Z_][a-zA-Z0-9_+-]*\\):"
-              tuareg-opam-pkg-variables-regex "\\(?:}%\\|?\\)")
+              tuareg-opam-pkg-variables-regex "\\(?:}%\\|\\?\\)")
      (1 font-lock-type-face t)
      (2 font-lock-variable-name-face t t))
     (,(concat "%{\\([a-zA-Z_][a-zA-Z0-9_+-]*\\):"
-              "\\([a-zA-Z][a-zA-Z0-9_+-]*\\)\\(?:}%\\|?\\)")
+              "\\([a-zA-Z][a-zA-Z0-9_+-]*\\)\\(?:}%\\|\\?\\)")
      (1 font-lock-type-face t)
      (2 tuareg-opam-pkg-variable-name-face t t))
     ;; "package-name:var-name" anywhere (do not force)
