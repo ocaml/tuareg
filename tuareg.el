@@ -15,7 +15,7 @@
 ;;      Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Created: 8 Jan 1997
 ;; Version: 2.3.0
-;; Package-Requires: ((emacs "24.4") (caml "4.8") (cl-lib "0.5"))
+;; Package-Requires: ((emacs "24.4") (caml "4.8"))
 ;; Keywords: ocaml languages
 ;; Homepage: https://github.com/ocaml/tuareg
 ;; EmacsWiki: TuaregMode
@@ -341,10 +341,6 @@ Valid names are `browse-url', `browse-url-firefox', etc."
   "Special faces for the Tuareg mode."
   :group 'tuareg)
 
-(defconst tuareg-faces-inherit-p
-  (and (boundp 'face-attribute-name-alist)
-       (assq :inherit face-attribute-name-alist)))
-
 (defface tuareg-font-lock-governing-face
   '((((class color) (type tty)) (:bold t))
     (((background light)) (:foreground "black" :bold t))
@@ -424,10 +420,7 @@ Valid names are `browse-url', `browse-url-firefox', etc."
   'tuareg-font-lock-interactive-output-face)
 
 (defface tuareg-font-lock-interactive-error-face
-  (if tuareg-faces-inherit-p
-      '((t :inherit font-lock-warning-face))
-    '((((background light)) (:foreground "red3"))
-      (t (:foreground "red2"))))
+  '((t :inherit font-lock-warning-face))
   "Face description for all REPL errors."
   :group 'tuareg-faces)
 (defvar tuareg-font-lock-interactive-error-face
@@ -442,34 +435,23 @@ Valid names are `browse-url', `browse-url-firefox', etc."
   'tuareg-font-lock-interactive-directive-face)
 
 (defface tuareg-font-lock-attribute-face
-  (if tuareg-faces-inherit-p
-      '((t :inherit font-lock-preprocessor-face))
-    '((((background light)) (:foreground "DodgerBlue2"))
-      (t (:foreground "LightSteelBlue"))))
+  '((t :inherit font-lock-preprocessor-face))
   "Face description for OCaml attribute annotations."
   :group 'tuareg-faces)
 (defvar tuareg-font-lock-attribute-face
   'tuareg-font-lock-attribute-face)
 
 (defface tuareg-font-lock-infix-extension-node-face
-  (if tuareg-faces-inherit-p
-      '((t :inherit font-lock-preprocessor-face))
-    '((((background light)) (:foreground "Orchid"))
-      (((background dark)) (:foreground "LightSteelBlue"))
-      (t (:foreground "LightSteelBlue"))))
+  '((t :inherit font-lock-preprocessor-face))
   "Face description for OCaml the infix extension node."
   :group 'tuareg-faces)
 (defvar tuareg-font-lock-infix-extension-node-face
   'tuareg-font-lock-infix-extension-node-face)
 
 (defface tuareg-font-lock-extension-node-face
-  (if tuareg-faces-inherit-p
-      '((default :inherit tuareg-font-lock-infix-extension-node-face)
-        (((background dark)) :foreground "LightSteelBlue")
-        (t :background "gray92"))
-    '((((background light)) (:foreground "Orchid" :background "gray92"))
-      (((background dark)) (:foreground "LightSteelBlue" :background "gray92"))
-      (t (:foreground "LightSteelBlue"))))
+  '((default :inherit tuareg-font-lock-infix-extension-node-face)
+    (((background dark)) :foreground "LightSteelBlue")
+    (t :background "gray92"))
   "Face description for OCaml extension nodes."
   :group 'tuareg-faces)
 (defvar tuareg-font-lock-extension-node-face
@@ -524,9 +506,8 @@ alignment and can thus lead to surprises.  On recent Emacs >= 24.4,
 use `prettify-symbols-mode'."
   :group 'tuareg :type 'boolean)
 
-(when (fboundp 'prettify-symbols-mode)
-  (make-obsolete-variable 'tuareg-font-lock-symbols
-                          'prettify-symbols-mode "Emacs-24.4"))
+(make-obsolete-variable 'tuareg-font-lock-symbols
+                        'prettify-symbols-mode "Emacs-24.4")
 
 (defcustom tuareg-prettify-symbols-full nil
   "If non-nil, add fun and -> and such to be prettified with symbols.
@@ -624,9 +605,7 @@ Regexp match data 0 points to the chars."
                            tuareg-prettify-symbols-extra-alist)
                  tuareg-prettify-symbols-basic-alist)))
     (dolist (x alist)
-      (when (and (if (fboundp 'char-displayable-p)
-                     (char-displayable-p (cdr x))
-                   t)
+      (when (and (char-displayable-p (cdr x))
                  (not (assoc (car x) alist))) ; not yet in alist.
         (push x alist)))
     (when alist
@@ -3221,26 +3200,23 @@ OCaml uses exclusive end-columns but Emacs wants them to be inclusive."
           ;; off by one.
           (if (>= emacs-major-version 28) -1 0))))
 
-(when (boundp 'compilation-error-regexp-alist-alist)
-  (setq compilation-error-regexp-alist-alist
-        (assq-delete-all 'ocaml compilation-error-regexp-alist-alist))
-  (push `(ocaml ,tuareg--error-regexp 3 (4 . 5) (6 . tuareg--end-column)
-                (8 . 9) 1
-                (8 font-lock-function-name-face))
-        compilation-error-regexp-alist-alist))
+(setq compilation-error-regexp-alist-alist
+      (assq-delete-all 'ocaml compilation-error-regexp-alist-alist))
+(push `(ocaml ,tuareg--error-regexp 3 (4 . 5) (6 . tuareg--end-column)
+              (8 . 9) 1 (8 font-lock-function-name-face))
+      compilation-error-regexp-alist-alist)
 
-(when (boundp 'compilation-error-regexp-alist)
+(setq compilation-error-regexp-alist
+      (delq 'ocaml compilation-error-regexp-alist))
+(push 'ocaml compilation-error-regexp-alist)
+
+(with-eval-after-load 'caml
+  ;; Older versions of caml-mode also changes
+  ;; `compilation-error-regexp-alist' with a too simple regexp.
+  ;; Make sure the one above comes first.
   (setq compilation-error-regexp-alist
         (delq 'ocaml compilation-error-regexp-alist))
-  (push 'ocaml compilation-error-regexp-alist)
-
-  (with-eval-after-load 'caml
-    ;; Older versions of caml-mode also changes
-    ;; `compilation-error-regexp-alist' with a too simple regexp.
-    ;; Make sure the one above comes first.
-    (setq compilation-error-regexp-alist
-          (delq 'ocaml compilation-error-regexp-alist))
-    (push 'ocaml compilation-error-regexp-alist)))
+  (push 'ocaml compilation-error-regexp-alist))
 
 
 ;; Wrapper around next-error.
