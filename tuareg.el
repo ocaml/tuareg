@@ -3219,35 +3219,6 @@ OCaml uses exclusive end-columns but Emacs wants them to be inclusive."
   (push 'ocaml compilation-error-regexp-alist))
 
 
-;; Wrapper around next-error.
-
-;; itz 04-21-96 instead of defining a new function, use defadvice
-;; that way we get our effect even when we do \C-x` in compilation buffer
-
-;; smclaughlin 07-19-11 defadvice is to be avoided.  It makes debugging
-;; much more difficult.  If you really want this behavior, write your
-;; own next-error-function.  In particular, it breaks when omake is
-;; used.
-
-;; (defadvice next-error (after tuareg-next-error activate)
-;;  "Read the extra positional information provided by the OCaml compiler.
-
-;; Puts the point and the mark exactly around the erroneous program
-;; fragment. The erroneous fragment is also temporarily highlighted if
-;; possible."
-;;  (when (eq major-mode 'tuareg-mode)
-;;    (let ((beg nil) (end nil))
-;;      (with-current-buffer compilation-last-buffer
-;;        (save-excursion
-;;          (goto-char (window-point (get-buffer-window (current-buffer) t)))
-;;          (when (looking-at tuareg-error-chars-regexp)
-;;            (setq beg (string-to-number (match-string-no-properties 1))
-;;                  end (string-to-number (match-string-no-properties 2))))))
-;;      (beginning-of-line)
-;;      (when beg
-;;        (setq beg (+ (point) beg) end (+ (point) end))
-;;        (goto-char beg) (push-mark end t t)))))
-
 (autoload 'ocaml-module-alist "caml-help")
 (autoload 'ocaml-visible-modules "caml-help")
 (autoload 'ocaml-module-symbols "caml-help")
