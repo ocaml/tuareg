@@ -1490,8 +1490,6 @@ Run only once."
     (define-key map "\M-q" #'tuareg-indent-phrase)
     (define-key map [?\C-c ?\C-\;] #'tuareg-comment-dwim)
     (define-key map "\C-c\C-q" #'tuareg-indent-phrase)
-    ;; Don't bother: it's the global default anyway.
-    ;;(define-key map "\M-\C-\\" #'indent-region)
     (define-key map "\C-c\C-a" #'tuareg-find-alternate-file)
     (define-key map "\C-c\C-c" #'compile)
     (define-key map "\C-c\C-w" #'tuareg-opam-update-env)
@@ -1503,10 +1501,6 @@ Run only once."
     (define-key map "\C-c\C-s" #'tuareg-run-ocaml)
     (define-key map "\C-c\C-i" #'tuareg-interrupt-ocaml)
     (define-key map "\C-c\C-k" #'tuareg-kill-ocaml)
-    ;; (define-key map "\C-c\C-n" #'tuareg-next-phrase)
-    ;; (define-key map "\C-c\C-p" #'tuareg-previous-phrase)
-    ;; (define-key map [(control c) (home)]
-    ;;   #'tuareg-move-inside-module-or-class-opening)
     (define-key map "\C-c`" #'tuareg-interactive-next-error-source)
     (define-key map "\C-c?" #'tuareg-interactive-next-error-source)
     (define-key map "\C-c.c" #'tuareg-insert-class-form)
