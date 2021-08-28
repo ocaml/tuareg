@@ -53,7 +53,6 @@ elc-werror: elc
 
 %.elc : %.el
 	$(EMACS) --batch -L . --no-init-file $(WERROR) -f batch-byte-compile $<
-	@echo "Files byte-compiled using $(EMACS)"
 
 install : $(INSTALL_FILES)
 	$(INSTALL_MKDIR) $(INSTALL_DIR)
