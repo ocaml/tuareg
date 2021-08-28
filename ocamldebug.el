@@ -272,7 +272,7 @@ representation is simply concatenated with the COMMAND."
   "Go to the execution time TIME.
 
 Without TIME, the command behaves as follows: In the ocamldebug buffer,
-if the point at buffer end, goto time 0\; otherwise, try to obtain the
+if the point at buffer end, goto time 0; otherwise, try to obtain the
 time from context around point.  In an OCaml buffer, try to find the
 time associated in execution history with the current point location.
 
