@@ -38,9 +38,10 @@
 
 (require 'comint)
 (require 'shell)
-(require 'tuareg (expand-file-name
-                  "tuareg" (file-name-directory (or load-file-name
-                                                    byte-compile-current-file))))
+(require 'tuareg (expand-file-name "tuareg" (file-name-directory
+                                             (or load-file-name
+                                                 byte-compile-current-file
+                                                 buffer-file-name))))
 (require 'derived)
 
 ;;; Variables.
@@ -112,7 +113,6 @@
     map))
 
 (define-derived-mode ocamldebug-mode comint-mode "OCaml-Debugger"
-
   "Major mode for interacting with an ocamldebug process.
 
 The following commands are available:
@@ -202,11 +202,10 @@ representation is simply concatenated with the COMMAND."
   "@ \"%m\" # %c")
 
 (defun ocamldebug-kill-filter (string)
-  ;gob up stupid questions :-)
+  ;; Gob up stupid questions :-)
   (setq ocamldebug-filter-accumulator
 	(concat ocamldebug-filter-accumulator string))
-  (when (string-match "\\(.* \\)(y or n) "
-                      ocamldebug-filter-accumulator)
+  (when (string-match "\\(.* \\)(y or n) " ocamldebug-filter-accumulator)
     (setq ocamldebug-kill-output
 	  (cons t (match-string 1 ocamldebug-filter-accumulator)))
     (setq ocamldebug-filter-accumulator ""))
@@ -225,7 +224,7 @@ representation is simply concatenated with the COMMAND."
 (defun ocamldebug-kill ()
   "Kill the program."
   (interactive)
-  (let ((ocamldebug-kill-output))
+  (let (ocamldebug-kill-output)
     (with-current-buffer ocamldebug-current-buffer
       (let ((proc (get-buffer-process (current-buffer)))
 	    (ocamldebug-filter-function #'ocamldebug-kill-filter))
@@ -240,7 +239,7 @@ representation is simply concatenated with the COMMAND."
 ;;FIXME: ocamldebug doesn't output the Hide marker on kill
 
 (defun ocamldebug-goto-filter (string)
-  ;accumulate onto previous output
+  ;; Accumulate onto previous output
   (setq ocamldebug-filter-accumulator
 	(concat ocamldebug-filter-accumulator string))
   (when (or (string-match (concat
@@ -257,8 +256,7 @@ representation is simply concatenated with the COMMAND."
 	  (match-string 2 ocamldebug-filter-accumulator))
     (setq ocamldebug-filter-accumulator
 	  (substring ocamldebug-filter-accumulator (1- (match-end 0)))))
-  (when (string-match comint-prompt-regexp
-                      ocamldebug-filter-accumulator)
+  (when (string-match comint-prompt-regexp ocamldebug-filter-accumulator)
     (setq ocamldebug-goto-output (or ocamldebug-goto-output 'fail))
     (setq ocamldebug-filter-accumulator ""))
   (when (string-match "\n\\(.*\\)\\'" ocamldebug-filter-accumulator)
@@ -268,7 +266,6 @@ representation is simply concatenated with the COMMAND."
 
 (def-ocamldebug "goto" "\C-g")
 (defun ocamldebug-goto (&optional time)
-
   "Go to the execution time TIME.
 
 Without TIME, the command behaves as follows: In the ocamldebug buffer,
@@ -278,7 +275,6 @@ time associated in execution history with the current point location.
 
 With a negative TIME, move that many lines backward in the ocamldebug
 buffer, then try to obtain the time from context around point."
-
   (interactive "P")
   (cond
    (time
@@ -293,25 +289,25 @@ buffer, then try to obtain the time from context around point."
 	      (error "I don't have %d times in my history"
 		     (- 1 ntime))))))))
    ((eq (current-buffer) ocamldebug-current-buffer)
-      (let ((time (cond
-		   ((eobp) 0)
-		   ((save-excursion
-		      (beginning-of-line 1)
-		      (looking-at "^Time : \\([0-9]+\\) - pc : [0-9]+ "))
-		    (string-to-number (match-string 1)))
-		   ((string-to-number (ocamldebug-format-command "%e"))))))
-	(ocamldebug-call "goto" nil time)))
+    (let ((time (cond
+		 ((eobp) 0)
+		 ((save-excursion
+		    (beginning-of-line 1)
+		    (looking-at "^Time : \\([0-9]+\\) - pc : [0-9]+ "))
+		  (string-to-number (match-string 1)))
+		 ((string-to-number (ocamldebug-format-command "%e"))))))
+      (ocamldebug-call "goto" nil time)))
    (t
     (let ((module (ocamldebug-module-name (buffer-file-name)))
 	  (ocamldebug-goto-position (int-to-string (1- (point))))
-	  (ocamldebug-goto-output) (address))
-      ;get a list of all events in the current module
+	  ocamldebug-goto-output address)
+      ;; Get a list of all events in the current module
       (with-current-buffer ocamldebug-current-buffer
 	(let* ((proc (get-buffer-process (current-buffer)))
 	       (ocamldebug-filter-function #'ocamldebug-goto-filter))
 	  (ocamldebug-call-1 (concat "info events " module))
 	  (while (not (and ocamldebug-goto-output
-		      (zerop (length ocamldebug-filter-accumulator))))
+		           (zerop (length ocamldebug-filter-accumulator))))
 	    (accept-process-output proc))
 	  (setq address (unless (eq ocamldebug-goto-output 'fail)
 			  (re-search-backward
@@ -360,7 +356,6 @@ try to find the breakpoint associated with the current point location.
 With a negative ARG, look for the -ARGth breakpoint pattern in the
 ocamldebug buffer, then try to obtain the breakpoint info from context
 around point."
-
   (interactive "P")
   (cond
    (arg
@@ -391,7 +386,7 @@ around point."
       (with-current-buffer ocamldebug-current-buffer
 	(let ((proc (get-buffer-process (current-buffer)))
 	      (ocamldebug-filter-function #'ocamldebug-delete-filter)
-	      (ocamldebug-delete-output))
+	      ocamldebug-delete-output)
 	  (ocamldebug-call-1 "info break")
 	  (while (not (and ocamldebug-delete-output
 			   (zerop (length
@@ -533,7 +528,7 @@ the ocamldebug commands `cd DIR' and `directory'."
 (defun ocamldebug-marker-filter (string)
   (setq ocamldebug-filter-accumulator
 	(concat ocamldebug-filter-accumulator string))
-  (let ((output "") (begin))
+  (let ((output "") begin)
     ;; Process all the complete markers in this chunk.
     (while (setq begin
 		 (string-match
@@ -586,7 +581,7 @@ the ocamldebug commands `cd DIR' and `directory'."
 
 (defun ocamldebug-filter (proc string)
   (when (buffer-name (process-buffer proc))
-    (let ((process-window))
+    (let (process-window)
       (with-current-buffer (process-buffer proc)
         ;; If we have been so requested, delete the debugger prompt.
         (when (marker-buffer ocamldebug-delete-prompt-marker)
@@ -659,9 +654,9 @@ Obeying it means displaying in another window the specified file and line."
   (if (not ocamldebug-last-frame)
       (ocamldebug-remove-current-event)
     (ocamldebug-display-line (nth 0 ocamldebug-last-frame)
-                            (nth 3 ocamldebug-last-frame)
-                            (nth 4 ocamldebug-last-frame)
-                            (nth 2 ocamldebug-last-frame)))
+                             (nth 3 ocamldebug-last-frame)
+                             (nth 4 ocamldebug-last-frame)
+                             (nth 2 ocamldebug-last-frame)))
   (setq ocamldebug-last-frame-displayed-p t))
 
 ;; Make sure the file named TRUE-FILE is in a buffer that appears on the screen
@@ -672,7 +667,7 @@ Obeying it means displaying in another window the specified file and line."
   (let* ((pop-up-windows t)
 	 (buffer (find-file-noselect true-file))
 	 (window (display-buffer buffer t))
-         (spos) (epos) (pos))
+         spos epos pos)
     (with-current-buffer buffer
       (save-restriction
 	(widen)
