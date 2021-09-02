@@ -2920,11 +2920,10 @@ This function moves the point."
                (goto-char par-start)
                (let ((col
                       (if (and in-doc-comment
-                               (looking-at (rx "@" (+ (in "a-z")) symbol-end)))
-                          (progn
-                            ;; Indent after @tag. Is this excessive?
-                            (goto-char (match-end 0))
-                            (1+ (current-column)))
+                               (looking-at-p
+                                (rx "@" (+ (in "a-z")) symbol-end)))
+                          ;; Indent two spaces under @tag.
+                          (+ 2 (current-column))
                         (current-column))))
                  (make-string col ?\s)))))
         (fill-region-as-paragraph par-start par-end)))))
@@ -3175,8 +3174,8 @@ file outside _build? "))
                     (skip-chars-forward " \t")
                     (when (and in-doc-comment
                                (not tag-starts-line)
-                               (looking-at (rx "@" (+ (in "a-z")) " ")))
-                      (goto-char (match-end 0))))
+                               (looking-at-p (rx "@" (+ (in "a-z")) " ")))
+                      (forward-char 2)))
                   (current-column))))
            (indent-line-to indent-col)
            t))))

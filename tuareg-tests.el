@@ -718,7 +718,7 @@ the original code."
                          "      beta\n"
                          "  \n"
                          "      gamma\n")))
-  ;; Indent to text after @-tags in doc comments.
+  ;; Indent text after @-tags in doc comments by 2 more spaces.
   (should (equal (tuareg-test--do-at-line
                   (concat "  (** alpha\n"
                           "        @param beta\n"
@@ -726,7 +726,7 @@ the original code."
                   2 #'indent-for-tab-command)
                  (concat "  (** alpha\n"
                          "        @param beta\n"
-                         "               gamma\n")))
+                         "          gamma\n")))
   ;; An @-tag starts a new paragraph.
   (should (equal (tuareg-test--do-at-line
                   (concat "  (** alpha\n"
@@ -799,7 +799,7 @@ the original code."
                           "      beta\n"
                           "       @param gamma delta epsilon\n"
                           "       @param zeta eta\n"
-                          "              theta iota\n")))
+                          "         theta iota\n")))
   )
 
 
