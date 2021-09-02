@@ -2882,24 +2882,52 @@ This function moves the point."
 (defun tuareg--fill-comment ()
   "Assumes the point is inside a comment and justify it.
 This function moves the point."
-  (let* ((start (set-marker (make-marker) (nth 8 (syntax-ppss))))
-         (end (make-marker))
-         fill-prefix
-         (use-hard-newlines t))
-    (goto-char (marker-position start))
-    (indent-according-to-mode)
-    (setq fill-prefix (make-string (+ 3 (current-column)) ?\ ))
-    (forward-comment 1)
-    (set-marker end (point))
-    (goto-char (marker-position start))
-    (let ((e (marker-position end)))
-      (while (re-search-forward "\n\n" e t)
-        (put-text-property (match-beginning 0) (match-end 0) 'hard 't)))
-    (fill-region start end)
-    (remove-text-properties (marker-position start) (marker-position end)
-                            '(hard))
-    (set-marker start nil)
-    (set-marker end nil)))
+  (let* ((com-start (nth 8 (syntax-ppss)))
+         content-start
+         com-end
+         in-doc-comment
+         par-start
+         par-end)
+    (save-excursion
+      (goto-char com-start)
+      (setq content-start (and (looking-at comment-start-skip)
+                               (match-end 0)))
+      (setq in-doc-comment (looking-at-p (rx "(**" (not (in "*")))))
+      (forward-comment 1)
+      (setq com-end (point)))
+
+    ;; In doc comments, let @tags start a paragraph.
+    (let ((paragraph-start
+           (if in-doc-comment
+               (concat paragraph-start
+                       "\\|"
+                       (rx (* (in " \t")) "@" (+ (in "a-z")) symbol-end))
+             paragraph-start)))
+      (save-restriction
+        (narrow-to-region content-start com-end)
+        (save-excursion
+          (skip-chars-forward " \t")
+          (backward-paragraph)
+          (skip-chars-forward " \t\n")
+          (setq par-start (point))
+          (forward-paragraph)
+          (setq par-end (point))))
+
+      ;; Set `fill-prefix' to preserve the indentation of the start of the
+      ;; paragraph, assuming that is what the user wants.
+      (let ((fill-prefix
+             (save-excursion
+               (goto-char par-start)
+               (let ((col
+                      (if (and in-doc-comment
+                               (looking-at (rx "@" (+ (in "a-z")) symbol-end)))
+                          (progn
+                            ;; Indent after @tag. Is this excessive?
+                            (goto-char (match-end 0))
+                            (1+ (current-column)))
+                        (current-column))))
+                 (make-string col ?\s)))))
+        (fill-region-as-paragraph par-start par-end)))))
 
 (defun tuareg-indent-phrase ()
   "Depending of the context: justify and indent a comment,
@@ -3118,6 +3146,47 @@ file outside _build? "))
          (t (list here-beg here-end here-beg here-end t))))))
    (t (funcall orig-fun))))
 
+(defun tuareg--indent-line-inside-comment ()
+  "Indent the current line if it is inside a comment."
+  (let ((ppss (syntax-ppss)))
+    (and (nth 4 ppss)
+         (let ((indent-col
+                (save-excursion
+                  (let* ((com-start (nth 8 ppss))
+                         (in-doc-comment
+                          (save-excursion
+                            (goto-char com-start)
+                            (looking-at-p (rx "(**" (not (in "*"))))))
+                         tag-starts-line)
+                    ;; Use the indentation of the previous nonempty line.
+                    ;; If we are in a doc comment and that line
+                    ;; starts with an @tag, and the current line
+                    ;; doesn't, then indent to after the @tag.
+                    (goto-char (max com-start (line-beginning-position)))
+                    (setq tag-starts-line
+                          (and in-doc-comment
+                               (looking-at-p
+                                (rx (* (in " \t"))
+                                    "@" (+ (in "a-z")) symbol-end))))
+                    (skip-chars-backward " \t\n" com-start)
+                    (goto-char (max com-start (line-beginning-position)))
+                    (when (looking-at (rx "(*" (* "*")))
+                      (goto-char (match-end 0)))
+                    (skip-chars-forward " \t")
+                    (when (and in-doc-comment
+                               (not tag-starts-line)
+                               (looking-at (rx "@" (+ (in "a-z")) " ")))
+                      (goto-char (match-end 0))))
+                  (current-column))))
+           (indent-line-to indent-col)
+           t))))
+
+(defun tuareg--indent-line (orig-fun)
+  (let ((res (funcall orig-fun)))
+    (if (eq res 'noindent)
+        (tuareg--indent-line-inside-comment)
+      res)))
+
 (defun tuareg--common-mode-setup ()
   (setq-local syntax-propertize-function #'tuareg-syntax-propertize)
   (setq-local parse-sexp-ignore-comments t)
@@ -3130,6 +3199,8 @@ file outside _build? "))
     ;; hasn't provided any alternative so far :-(
     (add-function :before (local 'smie--hanging-eolp-function)
                   #'tuareg--hanging-eolp-advice))
+  (add-function :around (local 'indent-line-function)
+                #'tuareg--indent-line)
   (add-hook 'smie-indent-functions #'tuareg-smie--args nil t)
   (add-hook 'smie-indent-functions #'tuareg-smie--inside-string nil t)
   (setq-local add-log-current-defun-function #'tuareg-current-fun-name)

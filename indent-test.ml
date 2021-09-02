@@ -44,11 +44,14 @@ let qs1 = {| quoted string |}   (* (issue #24) *)
 let qs2 = {eof| other quoted string   |noteof}  |eof}
 
 (* ocp-indent does it as follows:
-let test1 = with_connection (fun conn ->
-    do_something conn x;
-    ...
-  )
-    toto
+
+   let test1 = with_connection (fun conn ->
+   ␣␣␣␣do_something conn x;
+   ␣␣␣␣...
+   ␣␣)
+   ␣␣␣␣toto
+
+   (space written as ␣ to avoid reindent smashing this comment)
  *)
 let test1 = with_connection (fun conn ->
                 do_something conn x;

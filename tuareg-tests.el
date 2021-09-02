@@ -652,5 +652,155 @@ the original code."
             (tuareg-test--comment-uncomment-region
              "let f x =\n  g x\n    y\n"))))
 
+(defun tuareg-test--do-at (text pos fun)
+  "Call FUN in TEXT at POS and return the resulting text."
+  (with-temp-buffer
+    (tuareg-mode)
+    (electric-indent-mode 1)
+    (insert text)
+    (goto-char pos)
+    (funcall fun)
+    (buffer-substring-no-properties (point-min) (point-max))))
+
+(defun tuareg-test--line-start (text line)
+  "Position of start of LINE (0-based) in TEXT."
+  (let ((ofs 0))
+    (while (and (> line 0)
+                (let ((nl (string-match-p "\n" text ofs)))
+                  (setq ofs (1+ nl))
+                  (setq line (1- line)))))
+    (1+ ofs)))
+
+(defun tuareg-test--do-at-line (text line fun)
+  "Call FUN in TEXT at start of LINE (0-based) and return the resulting text."
+  (tuareg-test--do-at text (tuareg-test--line-start text line) fun))
+
+(ert-deftest tuareg-indent-comment-text ()
+  ;; Indenting a line should use the indentation of the previous line's text.
+  (should (equal (tuareg-test--do-at-line
+                  (concat "  (** alpha\n"
+                          "beta\n")
+                  1 #'indent-for-tab-command)
+                 (concat "  (** alpha\n"
+                         "      beta\n")))
+  ;; Tab should indent even at the end of the line.
+  (should (equal (tuareg-test--do-at
+                  (concat "  (** alpha\n"
+                          "beta")
+                  17 #'indent-for-tab-command)
+                 (concat "  (** alpha\n"
+                         "      beta")))
+  ;; An interactive `newline' should indent the new line correctly
+  ;; in Emacs 28 and later.
+  (when (>= emacs-major-version 28)
+    (should (equal (tuareg-test--do-at
+                    "(** alpha"
+                    10 (lambda () (call-interactively #'newline)))
+                   (concat "(** alpha\n"
+                           "    "))))
+  ;; The previous line's indentation should be respected and preserved.
+  (should (equal (tuareg-test--do-at-line
+                  (concat "  (* alpha\n"
+                          "       beta\n"
+                          " gamma\n")
+                  2 #'indent-for-tab-command)
+                 (concat "  (* alpha\n"
+                         "       beta\n"
+                         "       gamma\n")))
+  ;; Use the previous nonempty line for indentation.
+  (should (equal (tuareg-test--do-at-line
+                  (concat "  (* alpha\n"
+                          "      beta\n"
+                          "  \n"
+                          " gamma\n")
+                  3 #'indent-for-tab-command)
+                 (concat "  (* alpha\n"
+                         "      beta\n"
+                         "  \n"
+                         "      gamma\n")))
+  ;; Indent to text after @-tags in doc comments.
+  (should (equal (tuareg-test--do-at-line
+                  (concat "  (** alpha\n"
+                          "        @param beta\n"
+                          " gamma\n")
+                  2 #'indent-for-tab-command)
+                 (concat "  (** alpha\n"
+                         "        @param beta\n"
+                         "               gamma\n")))
+  ;; An @-tag starts a new paragraph.
+  (should (equal (tuareg-test--do-at-line
+                  (concat "  (** alpha\n"
+                          "        @param beta\n"
+                          " @return gamma\n")
+                  2 #'indent-for-tab-command)
+                 (concat "  (** alpha\n"
+                         "        @param beta\n"
+                         "        @return gamma\n")))
+  ;; @-tags are not special in plain comments.
+  (should (equal (tuareg-test--do-at-line
+                  (concat "  (* alpha\n"
+                          "        @param beta\n"
+                          " gamma\n")
+                  2 #'indent-for-tab-command)
+                 (concat "  (* alpha\n"
+                         "        @param beta\n"
+                         "        gamma\n")))
+  ;; Filling one paragraph does not affect other paragraphs.
+  (should (equal (tuareg-test--do-at-line
+                  (concat "  (* alpha beta gamma\n"
+                          "delta epsilon\n"
+                          "\n"
+                          "zeta eta theta iota kappa *)\n")
+                  1 (lambda () (let ((fill-column 17))
+                                 (funcall (local-key-binding (kbd "M-q"))))))
+                 (concat "  (* alpha beta\n"
+                         "     gamma delta\n"
+                         "     epsilon\n"
+                          "\n"
+                          "zeta eta theta iota kappa *)\n")))
+  ;; Filling affects the preceding paragraph, not the succeeding.
+  (should (equal (tuareg-test--do-at-line
+                  (concat "  (* alpha beta gamma\n"
+                          "delta epsilon\n"
+                          "\n"
+                          "zeta eta theta iota kappa *)\n")
+                  2 (lambda () (let ((fill-column 17))
+                                 (funcall (local-key-binding (kbd "M-q"))))))
+                 (concat "  (* alpha beta\n"
+                         "     gamma delta\n"
+                         "     epsilon\n"
+                          "\n"
+                          "zeta eta theta iota kappa *)\n")))
+
+  ;; A paragraph's indentation is determined by its first line.
+  (should (equal (tuareg-test--do-at-line
+                  (concat "  (* alpha\n"
+                          "     beta\n"
+                          "\n"
+                          "       gamma\n"
+                          "delta epsilon zeta eta *)\n")
+                  3 (lambda () (let ((fill-column 19))
+                                 (funcall (local-key-binding (kbd "M-q"))))))
+                  (concat "  (* alpha\n"
+                          "     beta\n"
+                          "\n"
+                          "       gamma delta\n"
+                          "       epsilon zeta\n"
+                          "       eta *)\n")))
+  ;; @-tags separate paragraphs in doc comments.
+  (should (equal (tuareg-test--do-at-line
+                  (concat "  (** alpha\n"
+                          "      beta\n"
+                          "       @param gamma delta epsilon\n"
+                          "       @param zeta eta theta iota\n")
+                  4 (lambda () (let ((fill-column 25))
+                                 (funcall (local-key-binding (kbd "M-q"))))))
+                  (concat "  (** alpha\n"
+                          "      beta\n"
+                          "       @param gamma delta epsilon\n"
+                          "       @param zeta eta\n"
+                          "              theta iota\n")))
+  )
+
 
 (provide 'tuareg-tests)
