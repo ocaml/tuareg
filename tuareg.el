@@ -3065,18 +3065,41 @@ expansion at run-time, if the run-time version of Emacs does know this macro."
     (if (equal "->" (nth 2 (smie-forward-sexp "-dlpd-")))
         (smie-indent-forward-token))))
 
-(defun tuareg--blink-matching-check (start end)
+(defun tuareg--point-before-comment-p ()
+  "Return non-nil if a comment follows the point."
   (let ((pt (point)))
-    (if (and (> pt (+ (point-min) 3))
-             (eq (char-before) ?\))
-             (eq (char-before (1- pt)) ?*)
-             (save-excursion
-               (and (forward-comment -1)
-                    (forward-comment 1)
-                    (eq (point) pt))))
-        ;; Immediately after a comment-ending "*)" -- no mismatch error.
-        nil
-      (smie-blink-matching-check start end))))
+    (and (< (+ pt 2) (point-max))
+         (eq (char-after) ?\()
+         (eq (char-after (1+ pt)) ?*)
+         (save-excursion
+           (and (forward-comment 1)
+                (forward-comment -1)
+                (eq (point) pt))))))
+
+(defun tuareg--point-after-comment-p ()
+  "Return non-nil if a comment precedes the point."
+  (let ((pt (point)))
+    (and (> pt (+ (point-min) 3))
+         (eq (char-before) ?\))
+         (eq (char-before (1- pt)) ?*)
+         (save-excursion
+           (and (forward-comment -1)
+                (forward-comment 1)
+                (eq (point) pt))))))
+
+(defun tuareg--blink-matching-check (start end)
+  (if (tuareg--point-after-comment-p)
+      ;; Immediately after a comment-ending "*)" -- no mismatch error.
+      nil
+    (smie-blink-matching-check start end)))
+
+(defvar show-paren-data-function); Silence the byte-compiler
+(declare-function show-paren--default "paren" ())
+
+(defun tuareg--show-paren ()
+  (if (or (tuareg--point-before-comment-p) (tuareg--point-after-comment-p))
+      nil
+    (show-paren--default)))
 
 (defun tuareg--common-mode-setup ()
   (setq-local syntax-propertize-function #'tuareg-syntax-propertize)
@@ -3095,6 +3118,7 @@ expansion at run-time, if the run-time version of Emacs does know this macro."
   (add-hook 'smie-indent-functions #'tuareg-smie--args nil t)
   (add-hook 'smie-indent-functions #'tuareg-smie--inside-string nil t)
   (setq-local add-log-current-defun-function #'tuareg-current-fun-name)
+  (setq-local show-paren-data-function #'tuareg--show-paren)
   (setq prettify-symbols-alist
         (if tuareg-prettify-symbols-full
             (append tuareg-prettify-symbols-basic-alist
