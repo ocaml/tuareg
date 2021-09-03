@@ -77,6 +77,7 @@
 (eval-when-compile (require 'cl-lib))
 (require 'easymenu)
 (require 'find-file)
+(require 'subr-x)
 (require 'caml-help nil t)
 (require 'caml-types nil t)
 (require 'tuareg-opam)
@@ -2983,7 +2984,7 @@ or indent all lines in the current phrase."
           (if (cddr data)
               (setq sig (merlin--type-enclosing-text data))))))
     (when (and sig (string-match "\\`sig\\>" sig) (>= (length sig) 9))
-      (setq sig (substring sig 6 -3))
+      (setq sig (string-trim (substring sig 3 -3)))
       (replace-regexp-in-string "\n  " "\n" sig))))
 
 (defun tuareg--ff-file-created-hook ()
