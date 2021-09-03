@@ -2964,6 +2964,42 @@ or indent all lines in the current phrase."
 
 (defalias 'tuareg-find-alternate-file #'ff-get-other-file)
 
+(defvar merlin-enclosing-types); Silence the byte-compiler.
+(defvar merlin-enclosing-offset)
+(declare-function merlin--type-enclosing-query "merlin" ())
+(declare-function merlin--type-enclosing-text "merlin" (item))
+
+(defun tuareg--merlin-buffer-signature (buf)
+  "Return the signature of BUF or nil if there was a problem."
+  (let (sig)
+    (with-temp-buffer
+      (insert "module TuaregBufferSignature = struct\n")
+      (insert-buffer-substring-no-properties buf)
+      (insert "\nend")
+      (goto-char (point-min))
+      (when (merlin--type-enclosing-query)
+        ;; Similar to `merlin--type-enclosing-go' but return the type.
+        (let ((data (elt merlin-enclosing-types merlin-enclosing-offset)))
+          (if (cddr data)
+              (setq sig (merlin--type-enclosing-text data))))))
+    (when (and sig (string-match "\\`sig\\>" sig) (>= (length sig) 9))
+      (setq sig (substring sig 6 -3))
+      (replace-regexp-in-string "\n  " "\n" sig))))
+
+(defun tuareg--ff-file-created-hook ()
+  (when (and (string-match "\\.mli\\'" (buffer-file-name))
+             (y-or-n-p "Try to generate interface?"))
+    (if (require 'merlin nil t)
+        (let* (ml-buf ty)
+          (ff-find-the-other-file);; back to .ml
+          ;; FIXME: special action for .pp.ml files?
+          (setq ml-buf (current-buffer))
+          (ff-find-the-other-file)
+          (setq ty (tuareg--merlin-buffer-signature ml-buf))
+          (when ty
+            (insert ty)))
+      (message "Install the OPAM package \"merlin\" and follow the Emacs instructions."))))
+
 (defun tuareg--switch-outside-build ()
   "If the current buffer refers to a file under a _build
 directory and a corresponding file exists outside the _build
@@ -3127,6 +3163,7 @@ Short cuts for interactions with the REPL:
     (setq indent-tabs-mode nil)
     (setq ff-search-directories '(".")
           ff-other-file-alist tuareg-other-file-alist)
+    (add-hook 'ff-file-created-hook #'tuareg--ff-file-created-hook)
     (tuareg--common-mode-setup)
     (tuareg--install-font-lock)
     (setq-local beginning-of-defun-function #'tuareg-beginning-of-defun)
