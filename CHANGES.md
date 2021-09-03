@@ -13,7 +13,11 @@
   for [binding operators][].  Moreover, font-lock now has 3 possible
   levels of fontification (see the README).
 * The switch .ml ↔ .mli now uses the Emacs built-in `find-file` and
-  was extended to `.eliom` ↔ `.eliomi` and `.mly` ↔ `.mli`.
+  was extended to `.eliom` ↔ `.eliomi` and `.mly` ↔ `.mli`.  It also
+  work for pre-processed files named `.pp.ml` and `.pp.mli`.
+* When switching from an `.ml` to a non-existing `.mli` file using
+  <kbd>C-cC-a</kbd>, one is offered to fill the `.mli` buffer with the
+  generated interface.
 * Set `beginning-of-defun-function` and `end-of-defun-function` which
   allows to go to the beginning of the current function (resp. end)
   with <kbd>C-M-home</kbd>, <kbd>C-M-a</kbd> or <kbd>ESC
