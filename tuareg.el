@@ -3065,12 +3065,26 @@ expansion at run-time, if the run-time version of Emacs does know this macro."
     (if (equal "->" (nth 2 (smie-forward-sexp "-dlpd-")))
         (smie-indent-forward-token))))
 
+(defun tuareg--blink-matching-check (start end)
+  (let ((pt (point)))
+    (if (and (> pt (+ (point-min) 3))
+             (eq (char-before) ?\))
+             (eq (char-before (1- pt)) ?*)
+             (save-excursion
+               (and (forward-comment -1)
+                    (forward-comment 1)
+                    (eq (point) pt))))
+        ;; Immediately after a comment-ending "*)" -- no mismatch error.
+        nil
+      (smie-blink-matching-check start end))))
+
 (defun tuareg--common-mode-setup ()
   (setq-local syntax-propertize-function #'tuareg-syntax-propertize)
   (setq-local parse-sexp-ignore-comments t)
   (smie-setup tuareg-smie-grammar #'tuareg-smie-rules
               :forward-token #'tuareg-smie-forward-token
               :backward-token #'tuareg-smie-backward-token)
+  (setq-local blink-matching-check-function #'tuareg--blink-matching-check)
   (tuareg--eval-when-macrop add-function
     (when (boundp 'smie--hanging-eolp-function)
       ;; FIXME: As its name implies, smie--hanging-eolp-function
