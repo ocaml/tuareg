@@ -3177,52 +3177,74 @@ Short cuts for interactions with the REPL:
 
 (require 'compile)
 
-;; In some versions of Emacs, the regexps in
-;; compilation-error-regexp-alist do not match the error messages when
-;; the language is not English.  Hence we add a regexp.
+;; Autoload the addition of the compilation error matcher so that it works
+;; even if the user hasn't visited any OCaml files or loaded Tuareg by other
+;; means.
 
-(defconst tuareg--error-regexp
-  (rx bol
-      ;; Require either zero or 7 leading spaces, to avoid matching
-      ;; Python tracebacks. Assume that spaces mean that this is an
-      ;; ancillary location that should have level Info.
-      ;; FIXME: Ancillary locations for warnings probably have no spaces
-      ;; and are now treated as errors. Fortunately these are rare.
-      (? (group-n 9 "       "))                 ; 9: INFO
-      (group-n 1                                ; 1: HIGHLIGHT
-       (or "File "
-           ;; Exception backtrace.
-           (seq
-            (or "Raised at" "Re-raised at" "Raised by primitive operation at"
-                "Called from")
-            (* nonl)            ; OCaml ≥4.11: " FUNCTION in"
-            " file "))
-       (group-n 2 (? "\""))                     ; 2
-       (group-n 3 (+ (not (in "\t\n \",<>"))))  ; 3: FILE
-       (backref 2)
-       (? " (inlined)")
-       ", line" (? "s") " "
-       (group-n 4 (+ (in "0-9")))               ; 4: LINE-START
-       (? "-" (group-n 5 (+ (in "0-9"))))       ; 5; LINE-END
-       (? ", character" (? "s") " "
-          (group-n 6 (+ (in "0-9")))            ; 6: COL-START
-          (? "-" (group-n 7 (+ (in "0-9")))))   ; 7: COL-END
-       ;; Colon not present in backtraces.
-       (? ":"))
-      (? "\n"
-         (* (in "\t "))
-         (* (or (seq (+ (in "0-9"))
-                     " | "
-                     (* nonl))
-                (+ "^"))
-            "\n"
-            (* (in "\t ")))
-         (group-n 8 (or "Warning" "Alert")      ; 8: WARNING
-                  (* (not (in ":\n")))
-                  ":")))
-  "Regular expression matching the error messages produced by ocamlc/ocamlopt.
-Also matches source references in exception backtraces.")
+;;;###autoload
+(with-eval-after-load 'compile
+  (let ((rule
+         (eval-when-compile
+           `(ocaml
+             ,(rx
+               bol
+               ;; Require either zero or 7 leading spaces, to avoid matching
+               ;; Python tracebacks. Assume that spaces mean that this is an
+               ;; ancillary location that should have level Info.
+               ;; FIXME: Ancillary locations for warnings probably
+               ;; have no spaces and are now treated as errors.
+               ;; Fortunately these are rare.
+               (? (group-n 9 "       "))                        ; 9: INFO
+               (group-n 1                                       ; 1: HIGHLIGHT
+                        (or "File "
+                            ;; Exception backtrace.
+                            (seq
+                             (or "Raised at" "Re-raised at"
+                                 "Raised by primitive operation at"
+                                 "Called from")
+                             (* nonl)            ; OCaml ≥4.11: " FUNCTION in"
+                             " file "))
+                        (group-n 2 (? "\""))                    ; 2
+                        (group-n 3 (+ (not (in "\t\n \",<>")))) ; 3: FILE
+                        (backref 2)
+                        (? " (inlined)")
+                        ", line" (? "s") " "
+                        (group-n 4 (+ (in "0-9")))              ; 4: LINE-START
+                        (? "-" (group-n 5 (+ (in "0-9"))))      ; 5; LINE-END
+                        (? ", character" (? "s") " "
+                           (group-n 6 (+ (in "0-9")))           ; 6: COL-START
+                           (? "-" (group-n 7 (+ (in "0-9")))))  ; 7: COL-END
+                        ;; Colon not present in backtraces.
+                        (? ":"))
+               (? "\n"
+                  (* (in "\t "))
+                  (* (or (seq (+ (in "0-9"))
+                              " | "
+                              (* nonl))
+                         (+ "^"))
+                     "\n"
+                     (* (in "\t ")))
+                  (group-n 8 (or "Warning" "Alert")             ; 8: WARNING
+                           (* (not (in ":\n")))
+                           ":")))
+             3 (4 . 5) (6 . tuareg--end-column) (8 . 9) 1
+             (8 font-lock-function-name-face)))))
 
+    (defvar compilation-error-regexp-alist)
+    (defvar compilation-error-regexp-alist-alist)
+
+    (setq compilation-error-regexp-alist-alist
+          (assq-delete-all 'ocaml compilation-error-regexp-alist-alist))
+    (push rule compilation-error-regexp-alist-alist)
+
+    (setq compilation-error-regexp-alist
+          (delq 'ocaml compilation-error-regexp-alist))
+    (push 'ocaml compilation-error-regexp-alist)))
+
+;; `tuareg--end-column' is autoloaded because it is used in the
+;; compilation pattern rule above.
+
+;;;###autoload
 (defun tuareg--end-column ()
   "Return the end-column number in a parsed OCaml message.
 OCaml uses exclusive end-columns but Emacs wants them to be inclusive."
@@ -3232,18 +3254,12 @@ OCaml uses exclusive end-columns but Emacs wants them to be inclusive."
           ;; off by one.
           (if (>= emacs-major-version 28) -1 0))))
 
-(setq compilation-error-regexp-alist-alist
-      (assq-delete-all 'ocaml compilation-error-regexp-alist-alist))
-(push `(ocaml ,tuareg--error-regexp 3 (4 . 5) (6 . tuareg--end-column)
-              (8 . 9) 1 (8 font-lock-function-name-face))
-      compilation-error-regexp-alist-alist)
-
 (setq compilation-error-regexp-alist
       (delq 'ocaml compilation-error-regexp-alist))
 (push 'ocaml compilation-error-regexp-alist)
 
 (with-eval-after-load 'caml
-  ;; Older versions of caml-mode also changes
+  ;; Older versions of caml-mode also change
   ;; `compilation-error-regexp-alist' with a too simple regexp.
   ;; Make sure the one above comes first.
   (setq compilation-error-regexp-alist
