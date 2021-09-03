@@ -3437,8 +3437,44 @@ OCaml uses exclusive end-columns but Emacs wants them to be inclusive."
 (defconst tuareg-interactive-buffer-name "*OCaml*")
 
 (defconst tuareg-interactive-error-range-regexp
-  "[ \t]*Characters \\([0-9]+\\)-\\([1-9][0-9]*\\):\n"
-  "Regexp matching the char numbers in OCaml REPL's error messages.")
+  (rx (* (in "\t "))
+      (? "Line" (? "s") " "
+         (group-n 1 (+ (in "0-9")))     ; starting line
+         (? "-"
+            (group-n 2 (+ (in "0-9")))) ; ending line
+         ", ")
+      (in "Cc") "haracters "
+      (group-n 3 (+ (in "0-9")))        ; starting character
+      "-"
+      (group-n 4 (+ (in "0-9")))        ; ending character
+      ":\n")
+  "Regexp matching the line and char numbers in OCaml REPL's error messages.")
+
+(defun tuareg--interactive-error-range (base-pos text-buffer)
+  "Decode range in `tuareg-interactive-error-range-regexp' match.
+BASE-POS is the start, in TEXT-BUFFER, of the text to
+which the matched error refers. Return (BEG-POS . END-POS)."
+  (let* ((match-num (lambda (group)
+                      (and (match-beginning group)
+                           (string-to-number (match-string group)))))
+         (beg-line (funcall match-num 1))
+         (end-line (funcall match-num 2))
+         (beg-char (funcall match-num 3))
+         (end-char (funcall match-num 4)))
+    (with-current-buffer text-buffer
+      (save-excursion
+        (goto-char base-pos)
+        (when (and beg-line (> beg-line 1))
+          (forward-line (1- beg-line)))
+        (forward-char beg-char)
+        (let ((beg-pos (point)))
+          (if end-line
+              (progn
+                (forward-line (- end-line beg-line))
+                (forward-char end-char))
+            (forward-char (- end-char beg-char)))
+          (let ((end-pos (point)))
+            (cons beg-pos end-pos)))))))
 
 (defconst tuareg-interactive-error-regexp
   "\n\\(Error: [^#]*\\)")
@@ -3474,12 +3510,12 @@ OCaml uses exclusive end-columns but Emacs wants them to be inclusive."
             (goto-char comint-last-input-end)
             (cond
              ((looking-at tuareg-interactive-error-range-regexp)
-              (let ((beg (string-to-number (match-string-no-properties 1)))
-                    (end (string-to-number (match-string-no-properties 2))))
+              (let* ((range (tuareg--interactive-error-range
+                             comint-last-input-start (current-buffer)))
+                     (beg (car range))
+                     (end (cdr range)))
                 (put-text-property
-                 (+ comint-last-input-start beg)
-                 (+ comint-last-input-start end)
-                 'font-lock-face 'tuareg-font-lock-error-face))
+                 beg end 'font-lock-face 'tuareg-font-lock-error-face))
               (goto-char comint-last-input-end)
               (when (re-search-forward tuareg-interactive-error-regexp nil t)
                 (let ((errbeg (match-beginning 1))
@@ -3691,46 +3727,42 @@ It is assumed that the range START-END delimit valid OCaml phrases."
 
 (defun tuareg-interactive-next-error-source ()
   (interactive)
-  (let ((error-pos) (beg 0) (end 0))
-    (with-current-buffer tuareg-interactive-buffer-name
-      (goto-char tuareg-interactive-last-phrase-pos-in-repl)
-      (setq error-pos
-            (re-search-forward tuareg-interactive-error-range-regexp
-                               (point-max) t))
-      (when error-pos
-        (setq beg (string-to-number (match-string-no-properties 1))
-              end (string-to-number (match-string-no-properties 2)))))
-    (if (not error-pos)
+  (let* ((source-buffer (current-buffer))
+         (range
+          (with-current-buffer tuareg-interactive-buffer-name
+            (goto-char tuareg-interactive-last-phrase-pos-in-repl)
+            (and (re-search-forward tuareg-interactive-error-range-regexp nil t)
+                 (tuareg--interactive-error-range
+                  tuareg-interactive-last-phrase-pos-in-source
+                  source-buffer)))))
+    (if (not range)
         (message "No syntax or typing error in last phrase.")
-      (setq beg (+ tuareg-interactive-last-phrase-pos-in-source beg)
-            end (+ tuareg-interactive-last-phrase-pos-in-source end))
-      (goto-char beg)
-      (move-overlay tuareg-interactive-next-error-olv beg end)
-      (unwind-protect
-          (sit-for 60 t)
-        (delete-overlay tuareg-interactive-next-error-olv))
-      )))
+      (let ((beg (car range))
+            (end (cdr range)))
+        (goto-char beg)
+        (move-overlay tuareg-interactive-next-error-olv beg end)
+        (unwind-protect
+            (sit-for 60 t)
+          (delete-overlay tuareg-interactive-next-error-olv))))))
 
 (defun tuareg-interactive-next-error-repl ()
   (interactive)
-  (let ((error-pos) (beg 0) (end 0))
-    (save-excursion
-      (goto-char tuareg-interactive-last-phrase-pos-in-repl)
-      (setq error-pos
-            (re-search-forward tuareg-interactive-error-range-regexp
-                               (point-max) t))
-      (when error-pos
-        (setq beg (string-to-number (match-string-no-properties 1))
-              end (string-to-number (match-string-no-properties 2)))))
-    (if (not error-pos)
+  (let ((range
+         (save-excursion
+           (goto-char tuareg-interactive-last-phrase-pos-in-repl)
+           (and (re-search-forward tuareg-interactive-error-range-regexp nil t)
+                (tuareg--interactive-error-range
+                 tuareg-interactive-last-phrase-pos-in-repl
+                 (current-buffer))))))
+    (if (not range)
         (message "No syntax or typing error in last phrase.")
-      (setq beg (+ tuareg-interactive-last-phrase-pos-in-repl beg)
-            end (+ tuareg-interactive-last-phrase-pos-in-repl end))
-      (move-overlay tuareg-interactive-next-error-olv beg end)
-      (unwind-protect
-          (sit-for 60 t)
-        (delete-overlay tuareg-interactive-next-error-olv))
-      (goto-char beg))))
+      (let ((beg (car range))
+            (end (cdr range)))
+        (move-overlay tuareg-interactive-next-error-olv beg end)
+        (unwind-protect
+            (sit-for 60 t)
+          (delete-overlay tuareg-interactive-next-error-olv))
+        (goto-char beg)))))
 
 (defun tuareg-interrupt-ocaml ()
   (interactive)
