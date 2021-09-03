@@ -3683,15 +3683,16 @@ It is assumed that the range START-END delimit valid OCaml phrases."
 (defun tuareg-eval-region (start end)
   "Eval the current region in the OCaml REPL."
   (interactive "r")
+  ;; Use the smallest region containing the phrase(s) at either endpoint.
+  (dolist (pos (list start end))
+    (save-excursion
+      (goto-char pos)
+      (let ((phrase (tuareg-discover-phrase)))
+        (when phrase
+          (setq start (min start (car phrase)))
+          (setq end (max end (cadr phrase)))))))
   (setq tuareg-interactive-last-phrase-pos-in-source start)
-  (save-excursion
-    (goto-char start)
-    (tuareg-backward-beginning-of-defun)
-    (setq start (point))
-    (setq end (cdr (tuareg-region-of-defun end)))
-    (if end
-        (tuareg-interactive--send-region start end)
-      (message "The expression after the point is not well braced."))))
+  (tuareg-interactive--send-region start end))
 
 (define-obsolete-function-alias 'tuareg-narrow-to-phrase #'narrow-to-defun
   "Apr 10, 2019")
