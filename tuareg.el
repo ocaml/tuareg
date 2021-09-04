@@ -3661,6 +3661,7 @@ otherwise a newline is inserted and the lines are indented."
 It is assumed that the range START-END delimit valid OCaml phrases."
   (save-excursion (tuareg-run-process-if-needed))
   (comint-preinput-scroll-to-bottom)
+  (setq tuareg-interactive-last-phrase-pos-in-source start)
   (let* ((phrases (buffer-substring-no-properties start end))
          (phrases (replace-regexp-in-string "[ \t\n]*\\(;;[ \t\n]*\\)?\\'" ""
                                             phrases))
@@ -3683,36 +3684,50 @@ It is assumed that the range START-END delimit valid OCaml phrases."
 (defun tuareg-eval-region (start end)
   "Eval the current region in the OCaml REPL."
   (interactive "r")
-  ;; Use the smallest region containing the phrase(s) at either endpoint.
-  (dolist (pos (list start end))
-    (save-excursion
-      (goto-char pos)
-      (let ((phrase (tuareg-discover-phrase)))
-        (when phrase
-          (setq start (min start (car phrase)))
-          (setq end (max end (cadr phrase)))))))
-  (setq tuareg-interactive-last-phrase-pos-in-source start)
   (tuareg-interactive--send-region start end))
 
 (define-obsolete-function-alias 'tuareg-narrow-to-phrase #'narrow-to-defun
   "Apr 10, 2019")
 
 (defun tuareg-eval-phrase ()
-  "Eval the surrounding OCaml phrase (or block) in the OCaml REPL."
+  "Eval the surrounding OCaml phrase (or block) in the OCaml REPL.
+If the region is active, evaluate all phrases intersecting the region."
   (interactive)
-  (let ((opoint (point)))
-    ;; Move before the comment, if we are in one.
-    (let ((ppss (syntax-ppss)))
-      (if (nth 4 ppss) (goto-char (- (nth 8 ppss) 1))))
-    (let ((phrase (tuareg-discover-phrase)))
-      (if phrase
-          (progn
-            (tuareg-interactive--send-region (car phrase) (cadr phrase))
-            (if tuareg-skip-after-eval-phrase
-              (progn (goto-char (car (cddr phrase)))
-                     (tuareg-skip-blank-and-comments))
-              (goto-char opoint)))
-        (message "The expression after the point is not well braced.")))))
+  (let ((opoint (point))
+        start end)
+    (cond
+     ((region-active-p)
+      (let ((rbeg (region-beginning))
+            (rend (region-end)))
+        (setq start rbeg)
+        (setq end rend)
+        ;; Extend the region at the endpoints if they are in a phrase.
+        (save-excursion
+          (dolist (pos (list rbeg rend))
+            (goto-char pos)
+            (let* ((phrase (tuareg-discover-phrase))
+                   (beg-phrase (car phrase))
+                   (end-phrase (cadr phrase)))
+              (when (and phrase
+                         (> end-phrase rbeg)
+                         (< beg-phrase rend))
+                ;; A phrase intersects the region; extend.
+                (setq start (min start beg-phrase))
+                (setq end (max end end-phrase))))))))
+     (t
+      ;; Move before the comment, if we are in one.
+      (let ((ppss (syntax-ppss)))
+        (if (nth 4 ppss) (goto-char (1- (nth 8 ppss)))))
+      (let ((phrase (tuareg-discover-phrase)))
+        (unless phrase
+          (user-error "Expression after the point is not well braced"))
+        (setq start (car phrase))
+        (setq end (cadr phrase)))))
+    (tuareg-interactive--send-region start end)
+    (if (not tuareg-skip-after-eval-phrase)
+        (goto-char opoint)
+      (goto-char end)
+      (tuareg-skip-blank-and-comments))))
 
 (defun tuareg-eval-buffer ()
   "Send the buffer to the Tuareg Interactive process."
