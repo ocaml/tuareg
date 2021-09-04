@@ -283,47 +283,47 @@ buffer, then try to obtain the time from context around point."
 	(save-selected-window
 	  (select-window (get-buffer-window ocamldebug-current-buffer))
 	  (save-excursion
-	    (if (re-search-backward "^Time : [0-9]+ - pc : [0-9]+ "
-				    nil t (- 1 ntime))
-		(ocamldebug-goto nil)
-	      (error "I don't have %d times in my history"
-		     (- 1 ntime))))))))
+            (if (re-search-backward "^Time : [0-9]+ - pc : [0-9]+ "
+                                    nil t (- 1 ntime))
+                (ocamldebug-goto nil)
+              (error "I don't have %d times in my history"
+                     (- 1 ntime))))))))
    ((eq (current-buffer) ocamldebug-current-buffer)
     (let ((time (cond
-		 ((eobp) 0)
-		 ((save-excursion
-		    (beginning-of-line 1)
-		    (looking-at "^Time : \\([0-9]+\\) - pc : [0-9]+ "))
-		  (string-to-number (match-string 1)))
-		 ((string-to-number (ocamldebug-format-command "%e"))))))
+                 ((eobp) 0)
+                 ((save-excursion
+                    (beginning-of-line 1)
+                    (looking-at "^Time : \\([0-9]+\\) - pc : [0-9]+ "))
+                  (string-to-number (match-string 1)))
+                 ((string-to-number (ocamldebug-format-command "%e"))))))
       (ocamldebug-call "goto" nil time)))
    (t
     (let ((module (ocamldebug-module-name (buffer-file-name)))
-	  (ocamldebug-goto-position (int-to-string (1- (point))))
-	  ocamldebug-goto-output address)
+          (ocamldebug-goto-position (int-to-string (1- (point))))
+          ocamldebug-goto-output address)
       ;; Get a list of all events in the current module
       (with-current-buffer ocamldebug-current-buffer
-	(let* ((proc (get-buffer-process (current-buffer)))
-	       (ocamldebug-filter-function #'ocamldebug-goto-filter))
-	  (ocamldebug-call-1 (concat "info events " module))
-	  (while (not (and ocamldebug-goto-output
-		           (zerop (length ocamldebug-filter-accumulator))))
-	    (accept-process-output proc))
-	  (setq address (unless (eq ocamldebug-goto-output 'fail)
-			  (re-search-backward
-			   (concat "^Time : \\([0-9]+\\) - pc : "
-				   ocamldebug-goto-output
-				   " - module "
-				   module "$")
+        (let* ((proc (get-buffer-process (current-buffer)))
+               (ocamldebug-filter-function #'ocamldebug-goto-filter))
+          (ocamldebug-call-1 (concat "info events " module))
+          (while (not (and ocamldebug-goto-output
+                           (zerop (length ocamldebug-filter-accumulator))))
+            (accept-process-output proc))
+          (setq address (unless (eq ocamldebug-goto-output 'fail)
+                          (re-search-backward
+                           (concat "^Time : \\([0-9]+\\) - pc : "
+                                   ocamldebug-goto-output
+                                   " - module "
+                                   module "$")
                            nil t)
-			  (match-string 1)))))
+                          (match-string 1)))))
       (if address (ocamldebug-call "goto" nil (string-to-number address))
-	(error "No time at %s at %s" module ocamldebug-goto-position))))))
+        (error "No time at %s at %s" module ocamldebug-goto-position))))))
 
 
 (defun ocamldebug-delete-filter (string)
   (setq ocamldebug-filter-accumulator
-	(concat ocamldebug-filter-accumulator string))
+        (concat ocamldebug-filter-accumulator string))
   (when (string-match
          (concat "\\(\n\\|\\`\\)[ \t]*\\([0-9]+\\)[ \t]+[0-9]+[ \t]*in "
                  (regexp-quote ocamldebug-delete-file)
@@ -331,16 +331,16 @@ buffer, then try to obtain the time from context around point."
                  ocamldebug-delete-position "\n")
          ocamldebug-filter-accumulator)
     (setq ocamldebug-delete-output
-	  (match-string 2 ocamldebug-filter-accumulator))
+          (match-string 2 ocamldebug-filter-accumulator))
     (setq ocamldebug-filter-accumulator
-	  (substring ocamldebug-filter-accumulator (1- (match-end 0)))))
+          (substring ocamldebug-filter-accumulator (1- (match-end 0)))))
   (when (string-match comint-prompt-regexp
                       ocamldebug-filter-accumulator)
     (setq ocamldebug-delete-output (or ocamldebug-delete-output 'fail))
     (setq ocamldebug-filter-accumulator ""))
   (if (string-match "\n\\(.*\\)\\'" ocamldebug-filter-accumulator)
       (setq ocamldebug-filter-accumulator
-	    (match-string 1 ocamldebug-filter-accumulator)))
+            (match-string 1 ocamldebug-filter-accumulator)))
   "")
 
 
@@ -361,11 +361,11 @@ around point."
    (arg
     (let ((narg (ocamldebug-numeric-arg arg)))
       (if (> narg 0) (ocamldebug-call "delete" nil narg)
-	(with-current-buffer ocamldebug-current-buffer
-	  (if (re-search-backward "^Breakpoint [0-9]+ at [0-9]+ : file "
-				  nil t (- 1 narg))
-	      (ocamldebug-delete nil)
-	    (error "I don't have %d breakpoints in my history"
+        (with-current-buffer ocamldebug-current-buffer
+          (if (re-search-backward "^Breakpoint [0-9]+ at [0-9]+ : file "
+                                  nil t (- 1 narg))
+              (ocamldebug-delete nil)
+            (error "I don't have %d breakpoints in my history"
 		     (- 1 narg)))))))
    ((eq (current-buffer) ocamldebug-current-buffer)
     (let* ((bpline "^Breakpoint \\([0-9]+\\) at [0-9]+ : file ")

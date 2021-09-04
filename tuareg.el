@@ -691,7 +691,7 @@ Regexp match data 0 points to the chars."
                      (buffer-substring (point)
                                        (progn (skip-chars-forward "a-z_")
                                               (point))))))
-	   (when (search-forward (concat "|" id "}") end 'move)
+           (when (search-forward (concat "|" id "}") end 'move)
              (put-text-property (1- (point)) (point)
                                 'syntax-table (string-to-syntax "|")))))
         (c (error "Unexpected char '%c' starting delimited string" c))))))
@@ -902,9 +902,9 @@ for the interactive mode."
   (let* ((id tuareg--id-re)
          (lid tuareg--lid-re)
          (uid tuareg--uid-re)
-	 (attr-id1 "\\<[A-Za-z_][A-Za-z0-9_']*\\>")
-	 (attr-id (concat attr-id1 "\\(?:\\." attr-id1 "\\)*"))
-	 (maybe-infix-extension (concat "\\(?:%" attr-id "\\)?")); at most 1
+         (attr-id1 "\\<[A-Za-z_][A-Za-z0-9_']*\\>")
+         (attr-id (concat attr-id1 "\\(?:\\." attr-id1 "\\)*"))
+         (maybe-infix-extension (concat "\\(?:%" attr-id "\\)?")); at most 1
          ;; Matches braces balanced on max 3 levels.
          (balanced-braces
           (let ((b "\\(?:[^()]\\|(")
@@ -927,15 +927,15 @@ for the interactive mode."
                     "\\|~\\(?:[!$%&*+-./:<=>?@^|~]+" end-op
                     "\\|[a-z][a-zA-Z0-9]*[: ]\\)"
                     "\\|(" braces e)))
-	 (balanced-brackets
+         (balanced-brackets
           (let ((b "\\(?:[^][]\\|\\[")
                 (e "\\]\\)*"))
             (concat b b b "[^][]*" e e e)))
-	 (maybe-infix-attribute
-	  (concat "\\(?:\\[@" attr-id balanced-brackets "\\]\\)*"))
-	 (maybe-infix-ext+attr
-	  (concat maybe-infix-extension maybe-infix-attribute))
-	 ;; FIXME: module paths with functor applications
+         (maybe-infix-attribute
+          (concat "\\(?:\\[@" attr-id balanced-brackets "\\]\\)*"))
+         (maybe-infix-ext+attr
+          (concat maybe-infix-extension maybe-infix-attribute))
+         ;; FIXME: module paths with functor applications
          (module-path (concat uid "\\(?:\\." uid "\\)*"))
          (typeconstr (concat "\\(?:" module-path "\\.\\)?" lid))
          (extended-module-name
@@ -962,8 +962,8 @@ for the interactive mode."
          (let-binding-g4 ; 4 groups
           (concat "\\_<\\(?:\\(let\\_>" binding-operator-char "?\\)"
                   "\\(" maybe-infix-ext+attr
-		  "\\)\\(?: +\\(" (if (tuareg-editing-ls3) let-ls3 "rec\\_>")
-		  "\\)\\)?\\|\\(and\\_>" binding-operator-char "?\\)\\)"))
+                  "\\)\\(?: +\\(" (if (tuareg-editing-ls3) let-ls3 "rec\\_>")
+                  "\\)\\)?\\|\\(and\\_>" binding-operator-char "?\\)\\)"))
          ;; group for possible class param
          (gclass-gparams
           (concat "\\(\\_<class\\(?: +type\\)?\\(?: +virtual\\)?\\_>\\)"
@@ -975,9 +975,9 @@ for the interactive mode."
             ;; cppo
             (,(concat "^ *#"
                       (regexp-opt '("define" "undef" "if" "ifdef" "ifndef"
-				    "else" "elif" "endif" "include"
-				    "warning" "error" "ext" "endext")
-				  'symbols))
+                                    "else" "elif" "endif" "include"
+                                    "warning" "error" "ext" "endext")
+                                  'symbols))
              . font-lock-preprocessor-face)
             ;; Directives
             ,@(if interactive-p
@@ -1001,7 +1001,7 @@ for the interactive mode."
             (,(concat "[^;];\\(" maybe-infix-extension "\\)")
              1 tuareg-font-lock-infix-extension-node-face)
             (,(concat "\\_<\\(function\\)\\_>\\(" maybe-infix-ext+attr "\\)"
-	              tuareg--whitespace-re "\\(" lid "\\)?")
+                      tuareg--whitespace-re "\\(" lid "\\)?")
              (1 font-lock-keyword-face)
              (2 tuareg-font-lock-infix-extension-node-face keep)
              (3 font-lock-variable-name-face nil t))
@@ -1027,18 +1027,18 @@ for the interactive mode."
             ;; First class modules.  In these contexts, "val" and "module"
             ;; are not considered as "governing" (main structure of the code).
             (,(concat "( *\\(module\\) +\\(" module-path "\\) *\\(?:: *\\("
-	              balanced-braces-no-string "\\)\\)?)")
+                      balanced-braces-no-string "\\)\\)?)")
              (1 font-lock-keyword-face)
              (2 tuareg-font-lock-module-face)
              (3 tuareg-font-lock-module-face keep t))
             (,(concat "( *\\(val\\) +\\("
                       balanced-braces-no-end-operator "\\): +\\("
-	              balanced-braces-no-string "\\))")
+                      balanced-braces-no-string "\\))")
              (1 font-lock-keyword-face)
              (2 tuareg-font-lock-module-face)
              (3 tuareg-font-lock-module-face))
             (,(concat "\\_<\\(module\\)\\(" maybe-infix-ext+attr "\\)"
-	              "\\(\\(?: +type\\)?\\(?: +rec\\)?\\)\\>\\(?: *\\("
+                      "\\(\\(?: +type\\)?\\(?: +rec\\)?\\)\\>\\(?: *\\("
                       uid "\\)\\)?")
              (1 tuareg-font-lock-governing-face)
              (2 tuareg-font-lock-infix-extension-node-face)
@@ -1069,10 +1069,10 @@ for the interactive mode."
              (3 tuareg-font-lock-module-face keep t))
             ;; "!", "mutable", "virtual" treated as governing keywords
             (,(concat "\\<\\(\\(?:val\\(" maybe-infix-ext+attr "\\)"
-	              (if (tuareg-editing-ls3) "\\|reset\\|do")
+                      (if (tuareg-editing-ls3) "\\|reset\\|do")
                       "\\)!? +\\(?:mutable\\(?: +virtual\\)?\\_>"
                       "\\|virtual\\(?: +mutable\\)?\\_>\\)"
-	              "\\|val!\\(" maybe-infix-ext+attr "\\)\\)"
+                      "\\|val!\\(" maybe-infix-ext+attr "\\)\\)"
                       "\\(?: *\\(" lid "\\)\\)?")
              (2 tuareg-font-lock-infix-extension-node-face keep t)
              (3 tuareg-font-lock-infix-extension-node-face keep t)
@@ -1080,7 +1080,7 @@ for the interactive mode."
              (4 font-lock-variable-name-face nil t))
             ;; "val" without "!", "mutable" or "virtual"
             (,(concat "\\_<\\(val\\)\\_>\\(" maybe-infix-ext+attr "\\)"
-	              "\\(?: +\\(" lid "\\)\\)?")
+                      "\\(?: +\\(" lid "\\)\\)?")
              (1 tuareg-font-lock-governing-face keep)
              (2 tuareg-font-lock-infix-extension-node-face keep)
              (3 font-lock-function-name-face keep t))
@@ -1214,10 +1214,10 @@ for the interactive mode."
        (,(concat "`" id) . tuareg-font-lock-constructor-face)
        (,(regexp-opt '("failwith" "failwithf" "exit" "at_exit" "invalid_arg"
                        "parser" "raise" "raise_notrace" "ref" "ignore"
-		       "Match_failure" "Assert_failure" "Invalid_argument"
-		       "Failure" "Not_found" "Out_of_memory" "Stack_overflow"
-		       "Sys_error" "End_of_file" "Division_by_zero"
-		       "Sys_blocked_io" "Undefined_recursive_module")
+                       "Match_failure" "Assert_failure" "Invalid_argument"
+                       "Failure" "Not_found" "Out_of_memory" "Stack_overflow"
+                       "Sys_error" "End_of_file" "Division_by_zero"
+                       "Sys_blocked_io" "Undefined_recursive_module")
                      'symbols)
         . font-lock-builtin-face)
        ("\\[[ \t]*\\]" . tuareg-font-lock-constructor-face) ; []
@@ -1576,7 +1576,7 @@ For use on `electric-indent-functions'."
              (insert (car inners)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;				 SMIE
+;;;                              SMIE
 
 ;; TODO:
 ;; - Obey tuareg-*-indent customization variables.
@@ -1799,12 +1799,12 @@ For use on `electric-indent-functions'."
              (setq tok (tuareg-smie--backward-token))
              (if (not (zerop (length tok)))
                  (not (member tok tokens))
-	       (unless (bobp)
-		 (condition-case err
-		     (progn (backward-sexp) t)
-		   (scan-error
-		    (setq tok (buffer-substring (nth 3 err) (1+ (nth 3 err))))
-		    nil))))))
+               (unless (bobp)
+                 (condition-case err
+                     (progn (backward-sexp) t)
+                   (scan-error
+                    (setq tok (buffer-substring (nth 3 err) (1+ (nth 3 err))))
+                    nil))))))
     tok))
 
 (defun tuareg-smie--search-forward (tokens)
@@ -1813,12 +1813,12 @@ For use on `electric-indent-functions'."
              (setq tok (tuareg-smie--forward-token))
              (if (not (zerop (length tok)))
                  (not (member tok tokens))
-	       (unless (eobp)
-		 (condition-case err
-		     (progn (forward-sexp) t)
-		   (scan-error
-		    (setq tok (buffer-substring (nth 2 err) (nth 3 err)))
-		    nil))))))
+               (unless (eobp)
+                 (condition-case err
+                     (progn (forward-sexp) t)
+                   (scan-error
+                    (setq tok (buffer-substring (nth 2 err) (nth 3 err)))
+                    nil))))))
     tok))
 
 (defun tuareg-skip-blank-and-comments ()
@@ -2039,7 +2039,7 @@ Return values can be
                        "val" "method" "=" ":="
                        "if" "then" "else" "->" ";" ))
            (nearest (tuareg-smie--search-backward telltale)))
-      (cond				;Issue #7
+      (cond                             ;Issue #7
        ((and (member nearest '("type" "module"))
              (member (tuareg-smie--backward-token) '("with" "and"))) "c=")
        (t ":=")))))
@@ -2090,7 +2090,7 @@ Return values can be
           (while (progn
                    (setq nearest (tuareg-smie--search-backward
                                   '("with" "|" "fun" "function" "functor"
-				    "type" ":" "of")))
+                                    "type" ":" "of")))
                    (and (equal nearest ":")
                         (tuareg-smie--label-colon-p))))
           (if (member nearest '("with" "|" "fun" "function" "functor"))
@@ -2145,10 +2145,10 @@ Return values can be
           tok)))
      ((equal tok "exception")
       (let ((back-tok (save-excursion (tuareg-smie--backward-token))))
-	(cond
-	 ((member back-tok '("|" "with")) "exception-case")
-	 ((equal back-tok "let") "exception-let")
-	 (t tok))))
+        (cond
+         ((member back-tok '("|" "with")) "exception-case")
+         ((equal back-tok "let") "exception-let")
+         (t tok))))
      ((string-match-p "\\`[[:alpha:]_].*\\.\\'"  tok)
       (forward-char (1- (length tok))) ".")
      (t tok))))
@@ -2249,9 +2249,9 @@ Return values can be
              (save-excursion
                (smie-backward-sexp 'halfsexp)
                (cons 'column (smie-indent-virtual))))))
-	((and tuareg-match-patterns-aligned
-	      (equal token "|-or") (smie-rule-parent-p "|"))
-	 (smie-rule-parent))
+        ((and tuareg-match-patterns-aligned
+              (equal token "|-or") (smie-rule-parent-p "|"))
+         (smie-rule-parent))
         ;; If we're looking at the first class-field-spec
         ;; in a "object(type)...end", don't rely on the default behavior which
         ;; will treat (type) as a previous element with which to align.
