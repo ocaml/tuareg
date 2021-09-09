@@ -85,7 +85,7 @@ check:
 indent-test: indent-test.ml.test
 
 tuareg-site-file.el: $(SOURCES)
-	(echo ";;; $@ --- Automatically extracted autoloads.";\
+	(echo ";;; $@ --- Automatically extracted autoloads.  -*- lexical-binding: t; -*-";\
 	 echo ";;; Code:";\
 	 echo "(add-to-list 'load-path";\
 	 echo "             (or (file-name-directory load-file-name) (car load-path)))";\
