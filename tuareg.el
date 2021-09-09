@@ -489,6 +489,19 @@ Valid names are `browse-url', `browse-url-firefox', etc."
   "Return non-nil if point is inside an OCaml literal or comment."
   (nth 8 (syntax-ppss pos)))
 
+(defun tuareg--point-after-comment-p ()
+  "Return non-nil if a comment (possibly inside another one)
+precedes the point."
+  (and (eq (char-before) ?\))
+       (eq (char-before (1- (point))) ?*)
+       (save-excursion
+         (let ((pt (point)))
+           ;; A solution based on a single call to `syntax-ppss'
+           ;; takes > 1.5 the time of the following one.
+           (forward-comment -1)
+           (forward-comment 1)
+           (eq pt (point))))))
+
 (defun tuareg-backward-up-list ()
   ;; FIXME: not clear if moving out of a string/comment should count as 1 or no.
   (condition-case nil
@@ -1318,7 +1331,8 @@ for the interactive mode."
 
 (defun tuareg--font-lock-in-string-or-comment ()
   "Returns t if the point is inside a string or a comment.
-This based on the fontification and is faster than calling `syntax-ppss'."
+This based on the fontification and is faster than calling `syntax-ppss'.
+It must not be used outside fontification purposes."
   (let* ((face (get-text-property (point) 'face)))
     (and (symbolp face)
          (memq face '(font-lock-comment-face
@@ -3065,30 +3079,7 @@ expansion at run-time, if the run-time version of Emacs does know this macro."
     (if (equal "->" (nth 2 (smie-forward-sexp "-dlpd-")))
         (smie-indent-forward-token))))
 
-(defun tuareg--point-before-comment-p ()
-  "Return non-nil if a comment follows the point."
-  (let ((pt (point)))
-    (and (< (+ pt 2) (point-max))
-         (eq (char-after) ?\()
-         (eq (char-after (1+ pt)) ?*)
-         (save-excursion
-           (and (forward-comment 1)
-                (forward-comment -1)
-                (eq (point) pt))))))
-
-(defun tuareg--point-after-comment-p ()
-  "Return non-nil if a comment precedes the point."
-  (let ((pt (point)))
-    (and (> pt (+ (point-min) 3))
-         (eq (char-before) ?\))
-         (eq (char-before (1- pt)) ?*)
-         (save-excursion
-           (and (forward-comment -1)
-                (forward-comment 1)
-                (eq (point) pt))))))
-
 (defun tuareg--blink-matching-check (orig-fun &rest args)
-  ;; FIXME: Should we merge this with `tuareg--show-paren'?
   (if (tuareg--point-after-comment-p)
       ;; Immediately after a comment-ending "*)" -- no mismatch error.
       nil
@@ -3097,9 +3088,31 @@ expansion at run-time, if the run-time version of Emacs does know this macro."
 (defvar show-paren-data-function); Silence the byte-compiler
 
 (defun tuareg--show-paren (orig-fun)
-  (if (or (tuareg--point-before-comment-p) (tuareg--point-after-comment-p))
-      nil
-    (funcall orig-fun)))
+  "Advice for `show-paren-data-function' to match comment delimiters."
+  (let ((here (point))
+        there)
+    (cond
+     ;; Immediately after end of a comment?
+     ((and (eq (char-before) ?\))
+           (eq (char-before (1- here)) ?*)
+           (save-excursion (forward-comment -1)
+                           (setq there (point))
+                           (forward-comment 1)
+                           (eq here (point))))
+      (list (- here 2) here
+            there (+ there (if (eq (char-after (+ there 2)) ?*) 3 2))
+            nil))
+     ;; Immediately before start of a comment?
+     ((and (eq (char-after) ?\()
+           (eq (char-after (1+ here)) ?*)
+           (save-excursion (forward-comment 1)
+                           (setq there (point))
+                           (forward-comment -1)
+                           (eq here (point))))
+      (list here (+ here (if (eq (char-after (+ here 2)) ?*) 3 2))
+            (- there 2) there
+            nil))
+     (t (funcall orig-fun)))))
 
 (defun tuareg--common-mode-setup ()
   (setq-local syntax-propertize-function #'tuareg-syntax-propertize)
