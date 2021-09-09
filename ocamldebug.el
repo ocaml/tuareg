@@ -242,18 +242,26 @@ representation is simply concatenated with the COMMAND."
   ;; Accumulate onto previous output
   (setq ocamldebug-filter-accumulator
 	(concat ocamldebug-filter-accumulator string))
-  (when (or (string-match (concat
-                           "\\(\n\\|\\`\\)[ \t]*\\([0-9]+\\)[ \t]+"
-                           ocamldebug-goto-position
-                           "-[0-9]+[ \t]*\\(before\\).*\n")
-                          ocamldebug-filter-accumulator)
-            (string-match (concat
-                           "\\(\n\\|\\`\\)[ \t]*\\([0-9]+\\)[ \t]+[0-9]+-"
-                           ocamldebug-goto-position
-                           "[ \t]*\\(after\\).*\n")
-                          ocamldebug-filter-accumulator))
-    (setq ocamldebug-goto-output
-	  (match-string 2 ocamldebug-filter-accumulator))
+  ;;    Address  Characters        Kind      Repr.
+  ;;     14452     64-82      before/fun
+  ;;     14584    182-217      after/ret
+  ;;0:     30248     -1--1          pseudo
+  ;;0:     30076     64-82      before/fun
+  (when (or (string-match
+             (concat "\\(?:\n\\|\\`\\)[ \t]*"
+                     "\\([0-9]+\\)\\(?::[ \t]*\\([0-9]+\\)\\)?[ \t]+"
+                     ocamldebug-goto-position
+                     "-[0-9]+[ \t]*before.*\n")
+             ocamldebug-filter-accumulator)
+            (string-match
+             (concat "\\(?:\n\\|\\`\\)[ \t]*"
+                     "\\([0-9]+\\)\\(?::[ \t]*\\([0-9]+\\)\\)?[ \t]+[0-9]+-"
+                     ocamldebug-goto-position
+                     "[ \t]*after.*\n")
+             ocamldebug-filter-accumulator))
+    (let ((id (match-string 1 ocamldebug-filter-accumulator))
+          (pos (match-string 2 ocamldebug-filter-accumulator)))
+      (setq ocamldebug-goto-output (if pos (concat id ":" pos) id)))
     (setq ocamldebug-filter-accumulator
 	  (substring ocamldebug-filter-accumulator (1- (match-end 0)))))
   (when (string-match comint-prompt-regexp ocamldebug-filter-accumulator)
@@ -283,8 +291,9 @@ buffer, then try to obtain the time from context around point."
 	(save-selected-window
 	  (select-window (get-buffer-window ocamldebug-current-buffer))
 	  (save-excursion
-            (if (re-search-backward "^Time : [0-9]+ - pc : [0-9]+ "
-                                    nil t (- 1 ntime))
+            (if (re-search-backward
+                 "^Time *: [0-9]+ - pc *: [0-9]+\\(?::[0-9]+\\)? "
+                 nil t (- 1 ntime))
                 (ocamldebug-goto nil)
               (error "I don't have %d times in my history"
                      (- 1 ntime))))))))
@@ -293,7 +302,8 @@ buffer, then try to obtain the time from context around point."
                  ((eobp) 0)
                  ((save-excursion
                     (beginning-of-line 1)
-                    (looking-at "^Time : \\([0-9]+\\) - pc : [0-9]+ "))
+                    (looking-at
+                     "^Time *: \\([0-9]+\\) - pc *: [0-9]+\\(?::[0-9]+\\)? "))
                   (string-to-number (match-string 1)))
                  ((string-to-number (ocamldebug-format-command "%e"))))))
       (ocamldebug-call "goto" nil time)))
@@ -311,7 +321,7 @@ buffer, then try to obtain the time from context around point."
             (accept-process-output proc))
           (setq address (unless (eq ocamldebug-goto-output 'fail)
                           (re-search-backward
-                           (concat "^Time : \\([0-9]+\\) - pc : "
+                           (concat "^Time *: \\([0-9]+\\) - pc *: "
                                    ocamldebug-goto-output
                                    " - module "
                                    module "$")
@@ -325,13 +335,17 @@ buffer, then try to obtain the time from context around point."
   (setq ocamldebug-filter-accumulator
         (concat ocamldebug-filter-accumulator string))
   (when (string-match
-         (concat "\\(\n\\|\\`\\)[ \t]*\\([0-9]+\\)[ \t]+[0-9]+[ \t]*in "
+         ;; Num    Address  Where
+         ;;  1      14552  file u.ml, line 5, characters 1-34
+         ;;  1 0:     30176  file u.ml, line 5, characters 1-34
+         (concat "\\(?:\n\\|\\`\\)[ \t]*\\([0-9]+\\)[ \t]+"
+                 "[0-9]+\\(?::[ \t]*[0-9]+\\)?[ \t]+file +"
                  (regexp-quote ocamldebug-delete-file)
                  ", character "
                  ocamldebug-delete-position "\n")
          ocamldebug-filter-accumulator)
     (setq ocamldebug-delete-output
-          (match-string 2 ocamldebug-filter-accumulator))
+          (match-string 1 ocamldebug-filter-accumulator))
     (setq ocamldebug-filter-accumulator
           (substring ocamldebug-filter-accumulator (1- (match-end 0)))))
   (when (string-match comint-prompt-regexp
@@ -362,13 +376,15 @@ around point."
     (let ((narg (ocamldebug-numeric-arg arg)))
       (if (> narg 0) (ocamldebug-call "delete" nil narg)
         (with-current-buffer ocamldebug-current-buffer
-          (if (re-search-backward "^Breakpoint [0-9]+ at [0-9]+ : file "
-                                  nil t (- 1 narg))
+          (if (re-search-backward
+               "^Breakpoint [0-9]+ at [0-9]+\\(?::[0-9]+\\)? *: file "
+               nil t (- 1 narg))
               (ocamldebug-delete nil)
             (error "I don't have %d breakpoints in my history"
 		     (- 1 narg)))))))
    ((eq (current-buffer) ocamldebug-current-buffer)
-    (let* ((bpline "^Breakpoint \\([0-9]+\\) at [0-9]+ : file ")
+    (let* ((bpline
+            "^Breakpoint \\([0-9]+\\) at [0-9]+\\(?::[0-9]+\\)? *: file ")
 	   (arg (cond
 		 ((eobp)
 		  (save-excursion (re-search-backward bpline nil t))
