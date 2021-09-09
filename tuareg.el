@@ -3204,7 +3204,7 @@ Short cuts for interactions with the REPL:
     (setq indent-tabs-mode nil)
     (setq ff-search-directories '(".")
           ff-other-file-alist tuareg-other-file-alist)
-    (add-hook 'ff-file-created-hook #'tuareg--ff-file-created-hook)
+    (add-hook 'ff-file-created-hook #'tuareg--ff-file-created-hook nil t)
     (tuareg--common-mode-setup)
     (tuareg--install-font-lock)
     (setq-local beginning-of-defun-function #'tuareg-beginning-of-defun)
