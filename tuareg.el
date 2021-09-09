@@ -3087,19 +3087,19 @@ expansion at run-time, if the run-time version of Emacs does know this macro."
                 (forward-comment 1)
                 (eq (point) pt))))))
 
-(defun tuareg--blink-matching-check (start end)
+(defun tuareg--blink-matching-check (orig-fun &rest args)
+  ;; FIXME: Should we merge this with `tuareg--show-paren'?
   (if (tuareg--point-after-comment-p)
       ;; Immediately after a comment-ending "*)" -- no mismatch error.
       nil
-    (smie-blink-matching-check start end)))
+    (apply orig-fun args)))
 
 (defvar show-paren-data-function); Silence the byte-compiler
-(declare-function show-paren--default "paren" ())
 
-(defun tuareg--show-paren ()
+(defun tuareg--show-paren (orig-fun)
   (if (or (tuareg--point-before-comment-p) (tuareg--point-after-comment-p))
       nil
-    (show-paren--default)))
+    (funcall orig-fun)))
 
 (defun tuareg--common-mode-setup ()
   (setq-local syntax-propertize-function #'tuareg-syntax-propertize)
@@ -3107,7 +3107,8 @@ expansion at run-time, if the run-time version of Emacs does know this macro."
   (smie-setup tuareg-smie-grammar #'tuareg-smie-rules
               :forward-token #'tuareg-smie-forward-token
               :backward-token #'tuareg-smie-backward-token)
-  (setq-local blink-matching-check-function #'tuareg--blink-matching-check)
+  (add-function :around (local 'blink-matching-check-function)
+                #'tuareg--blink-matching-check)
   (tuareg--eval-when-macrop add-function
     (when (boundp 'smie--hanging-eolp-function)
       ;; FIXME: As its name implies, smie--hanging-eolp-function
@@ -3118,7 +3119,8 @@ expansion at run-time, if the run-time version of Emacs does know this macro."
   (add-hook 'smie-indent-functions #'tuareg-smie--args nil t)
   (add-hook 'smie-indent-functions #'tuareg-smie--inside-string nil t)
   (setq-local add-log-current-defun-function #'tuareg-current-fun-name)
-  (setq-local show-paren-data-function #'tuareg--show-paren)
+  (add-function :around (local 'show-paren-data-function)
+                #'tuareg--show-paren)
   (setq prettify-symbols-alist
         (if tuareg-prettify-symbols-full
             (append tuareg-prettify-symbols-basic-alist
