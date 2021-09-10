@@ -3715,9 +3715,6 @@ If the region is active, evaluate all phrases intersecting the region."
                 (setq start (min start beg-phrase))
                 (setq end (max end end-phrase))))))))
      (t
-      ;; Move before the comment, if we are in one.
-      (let ((ppss (syntax-ppss)))
-        (if (nth 4 ppss) (goto-char (1- (nth 8 ppss)))))
       (let ((phrase (tuareg-discover-phrase)))
         (unless phrase
           (user-error "Expression after the point is not well braced"))
