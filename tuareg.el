@@ -3724,10 +3724,15 @@ If the region is active, evaluate all phrases intersecting the region."
         (setq start (car phrase))
         (setq end (cadr phrase)))))
     (tuareg-interactive--send-region start end)
-    (if (not tuareg-skip-after-eval-phrase)
-        (goto-char opoint)
-      (goto-char end)
-      (tuareg-skip-blank-and-comments))))
+    (if tuareg-skip-after-eval-phrase
+        (progn
+          (when (region-active-p)
+            ;; We are moving point and the user probably doesn't
+            ;; expect the region to be affected.
+            (deactivate-mark))
+          (goto-char end)
+          (tuareg-skip-blank-and-comments))
+      (goto-char opoint))))
 
 (defun tuareg-eval-buffer ()
   "Send the buffer to the Tuareg Interactive process."
