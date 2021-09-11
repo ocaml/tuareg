@@ -5,7 +5,10 @@
   Note that <kbd>C-c C-c</kbd> launches the compilation.
 * `tuareg-jbuilder`: <kbd>C-c C-c</kbd> launches the compilation.
 * Be more subtle in phrase detection.
-* Syntax highlighting improvements: faster; much better highlighting
+* Bogus mismatched parentheses at the end of comment fixed.
+* ⚠ `show-paren-mode`: also highlight comment delimiters.  You can
+  turn that off by setting `tuareg-comment-show-paren` to `nil`.
+* Syntax highlighting improvements: much faster; much better highlighting
   of function, class, and method arguments (including setting the
   `font-lock-multiline` property); `[]` and `::` have the constructor
   face; first class module, `type nonrec`, `raise_notrace`, `with

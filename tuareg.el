@@ -257,6 +257,11 @@ See `ff-other-file-alist'."
   :group 'tuareg
   :type '(repeat (list regexp (choice (repeat string) function))))
 
+(defcustom tuareg-comment-show-paren t
+  "Highlight comment delimiters in `show-paren-mode' if non-nil."
+  :group 'tuareg
+  :type 'boolean)
+
 
 (defcustom tuareg-interactive-scroll-to-bottom-on-output nil
   "*Controls when to scroll to the bottom of the interactive buffer
@@ -3120,8 +3125,6 @@ expansion at run-time, if the run-time version of Emacs does know this macro."
   (smie-setup tuareg-smie-grammar #'tuareg-smie-rules
               :forward-token #'tuareg-smie-forward-token
               :backward-token #'tuareg-smie-backward-token)
-  (add-function :around (local 'blink-matching-check-function)
-                #'tuareg--blink-matching-check)
   (tuareg--eval-when-macrop add-function
     (when (boundp 'smie--hanging-eolp-function)
       ;; FIXME: As its name implies, smie--hanging-eolp-function
@@ -3132,8 +3135,11 @@ expansion at run-time, if the run-time version of Emacs does know this macro."
   (add-hook 'smie-indent-functions #'tuareg-smie--args nil t)
   (add-hook 'smie-indent-functions #'tuareg-smie--inside-string nil t)
   (setq-local add-log-current-defun-function #'tuareg-current-fun-name)
-  (add-function :around (local 'show-paren-data-function)
-                #'tuareg--show-paren)
+  (add-function :around (local 'blink-matching-check-function)
+                #'tuareg--blink-matching-check)
+  (when tuareg-comment-show-paren
+    (add-function :around (local 'show-paren-data-function)
+                  #'tuareg--show-paren))
   (setq prettify-symbols-alist
         (if tuareg-prettify-symbols-full
             (append tuareg-prettify-symbols-basic-alist

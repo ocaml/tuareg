@@ -138,6 +138,9 @@ Tips & customization
                     (setq-local comment-style 'multi-line)
                     (setq-local comment-continue "   ")))
 
+- If you turn on `show-paren-mode`, the delimiters of comments will
+  also be highlighted.  If you do not like this behavior, set
+  `tuareg-comment-show-paren` to `nil`.
 
 - Syntax highlighting has 3 levels.  You can select the one you prefer
   by setting [font-lock-maximum-decoration][] from `0` to `2`.  By
