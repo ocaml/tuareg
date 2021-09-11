@@ -245,11 +245,15 @@ the obsolete `*.annot` files), open a module for documentation,...
 [NonGNU ELPA]: https://elpa.nongnu.org/
 [MELPA]: https://melpa.org/
 
-Bugs
-----
 
-See the [Github project](https://github.com/ocaml/tuareg/issues).
+Reporting
+---------
 
+The official Tuareg home page is located at:
+<https://github.com/ocaml/tuareg>.
+
+Bug reports & patches: use the tracker:
+<https://github.com/ocaml/tuareg/issues>.
 
 Thanks
 ------
@@ -286,12 +290,3 @@ Tuareg mode have been maintained by Albert Cohen until version 1.45.
 
 Jane Street took over maintenance based on Albert Cohen's version 1.46
 (later retracted by him), and released its first version as 2.0.
-
-Reporting
----------
-
-The official Tuareg home page is located at:
-<https://github.com/ocaml/tuareg>.
-
-Bug reports & patches: use the tracker:
-<https://github.com/ocaml/tuareg/issues>.
