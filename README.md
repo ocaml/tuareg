@@ -28,8 +28,8 @@ Install
 
 The easier way to install Tuareg is though
 the [Emacs package system](https://www.gnu.org/software/emacs/manual/html_node/emacs/Packages.html)
-and [MELPA][] — you first have to
-[configure the latter](https://melpa.org/#/getting-started).
+with [NonGNU ELPA][] or
+[MELPA][] ([configuration](https://melpa.org/#/getting-started)).
 
 You can also install it using [OPAM][]:
 
@@ -233,7 +233,8 @@ location of an identifier with <kbd>C-cC-l</kbd>, to go to the next
 (resp. previous) phrase with <kbd>C-cC-n</kbd>
 (resp. <kbd>C-cC-p</kbd>),...  Highly recommended.
 
-[caml-mode][] (available in [MELPA][]) is used to display types (using
+[caml-mode][] (available in [NonGNU ELPA][] and [MELPA][]) is used to
+display types (using
 the obsolete `*.annot` files), open a module for documentation,...
 
 [Menhir]: http://gallium.inria.fr/~fpottier/menhir/
@@ -241,6 +242,7 @@ the obsolete `*.annot` files), open a module for documentation,...
 [Merlin]: https://github.com/ocaml/merlin
 [OPAM]: http://opam.ocaml.org/
 [caml-mode]: https://github.com/ocaml/caml-mode
+[NonGNU ELPA]: https://elpa.nongnu.org/
 [MELPA]: https://melpa.org/
 
 Bugs
