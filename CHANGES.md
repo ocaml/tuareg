@@ -8,6 +8,8 @@ Backward incompatible changes are marked with “⚠”.
 * ⚠ `tuareg-eval-phrase` (<kbd>C-cC-e</kbd> and <kbd>C-xC-e</kbd>) now
   evaluate the smallest set of phrases containing the region if the
   latter is active.
+* ⚠ `tuareg-eval-phrase` now skips `;;` even on a separate line when moving
+  forward. This permits quick evaluation of multiple phrases in succession.
 * ⚠ `tuareg-eval-region` (<kbd>C-cC-r</kbd>): only send the content of
   the region to the REPL.
 * Be more subtle in phrase detection.
@@ -32,6 +34,15 @@ Backward incompatible changes are marked with “⚠”.
   with <kbd>C-M-home</kbd>, <kbd>C-M-a</kbd> or <kbd>ESC
   <C-home></kbd> (resp. <kbd><C-M-end></kbd>, <kbd>C-M-e</kbd>, or
   <kbd>ESC <C-end></kbd>).
+* ⚠ `beginning-of-defun` (<kbd>C-M-a</kbd>, <kbd>C-M-home</kbd>) is
+  now repeatable. Previously it would not move the cursor if invoked
+  at the beginning of a defun. Now it goes to the start of the
+  previous defun, which is the standard in Emacs and generally more
+  useful.
+* ⚠ Movement by defun now considers `and` clauses of a `type` or
+  declarative `let` to be defuns in their own right, since that's
+  closer to how programmers think. This generally makes defun-based
+  operations more useful.
 * ⚠ `tuareg-comment-dwim` is now bound to <kbd>C-cC-;</kbd> (fixes #149).
 * Fix the highlighting of errors locations in interactive mode.
 * ocamldebug: Handle correctly the new code pointer format (issue #205).
@@ -40,6 +51,15 @@ Backward incompatible changes are marked with “⚠”.
   OCaml ≥ 4.08 (fixes #202).
 * Autoload compilation error regexp so it is correct even if Tuareg
   was not loaded.
+* Messages from recent OCaml compiler versions are now parsed
+  correctly for severity and source location. This includes precise
+  parsing of the location start and end columns. Exception backtraces
+  are now also recognised.
+* Ancillary locations are now treated as Info-level messages, not
+  errors in their own right. This way they no longer contribute to
+  Emacs's compilation-mode error count, but they will be ignored by
+  `next-error` and `previous-error`. Set `compilation-skip-threshold`
+  to `0` if you want `next-error` to step into these locations.
 * Evaluation of phrases: evaluate the above phrase if the point is in
   or after comments immediately following the let-binding (without
   separating blank lines).
@@ -47,6 +67,19 @@ Backward incompatible changes are marked with “⚠”.
 * Use a pty to communicate with the `ocaml` process (fixes #83).
 * `tuareg-opam`: syntax highlighting updates.
 * ⚠ Remove `tuareg-light`, you should now use `tuareg`.
+* `class type` is now parsed correctly (#239).
+* Improved indentation of class definition with non-hanging `object` (#239).
+  The new behaviour agrees with ocp-indent and seems to be the more modern
+  usage. `initialize` clauses are also indented correctly.
+* Better default colour for extension nodes on dark background.
+  `tuareg-font-lock-extension-node-face` was nigh-unreadable against
+  a dark background. The face now uses the default background colour.
+* Ocamldoc `(** ... *)` comments are now fontified by their structure.
+  This makes markup constructs stand out in order to improve legibility
+  and reduces the risk of mistakes. The body text is set in
+  `font-lock-doc-face` as before; mark-up constructs use
+  `tuareg-font-lock-doc-markup-face`, which defaults to
+  `font-lock-doc-markup-face` (new in Emacs 28) if available.
 
 Note that the mode `tuareg-dune` which was in the development version
 of this package is now part of [Dune](https://github.com/ocaml/dune).
