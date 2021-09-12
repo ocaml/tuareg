@@ -3065,14 +3065,6 @@ file outside _build? "))
             (message "File in _build.  C-x C-q to edit.")
             nil))))))
 
-(defmacro tuareg--eval-when-macrop (f form)
-  "Execute FORM but only when F is `fboundp' (because it's a macro).
-If F is not bound yet, then keep the code un-expanded and perform the
-expansion at run-time, if the run-time version of Emacs does know this macro."
-  (declare (debug (symbolp body)) (indent 1))
-  (if (fboundp f) form                  ;Macro expanded at compile-time.
-    `(if (fboundp ',f) (eval ',form)))) ;Macro expanded at run-time.
-
 (defun tuareg--hanging-eolp-advice ()
   "Recognize \"fun ..args.. ->\" at EOL as being hanging."
   (when (looking-at "fun\\_>")
@@ -3125,13 +3117,12 @@ expansion at run-time, if the run-time version of Emacs does know this macro."
   (smie-setup tuareg-smie-grammar #'tuareg-smie-rules
               :forward-token #'tuareg-smie-forward-token
               :backward-token #'tuareg-smie-backward-token)
-  (tuareg--eval-when-macrop add-function
-    (when (boundp 'smie--hanging-eolp-function)
-      ;; FIXME: As its name implies, smie--hanging-eolp-function
-      ;; is not to be used by packages like us, but SMIE's maintainer
-      ;; hasn't provided any alternative so far :-(
-      (add-function :before (local 'smie--hanging-eolp-function)
-                    #'tuareg--hanging-eolp-advice)))
+  (when (boundp 'smie--hanging-eolp-function)
+    ;; FIXME: As its name implies, smie--hanging-eolp-function
+    ;; is not to be used by packages like us, but SMIE's maintainer
+    ;; hasn't provided any alternative so far :-(
+    (add-function :before (local 'smie--hanging-eolp-function)
+                  #'tuareg--hanging-eolp-advice))
   (add-hook 'smie-indent-functions #'tuareg-smie--args nil t)
   (add-hook 'smie-indent-functions #'tuareg-smie--inside-string nil t)
   (setq-local add-log-current-defun-function #'tuareg-current-fun-name)
