@@ -495,17 +495,11 @@ Valid names are `browse-url', `browse-url-firefox', etc."
   (nth 8 (syntax-ppss pos)))
 
 (defun tuareg--point-after-comment-p ()
-  "Return non-nil if a comment (possibly inside another one)
-precedes the point."
+  "Return non-nil if a comment precedes the point."
   (and (eq (char-before) ?\))
-       (eq (char-before (1- (point))) ?*)
+       (eq (char-before (1- (point))) ?*) ; implies position is in range
        (save-excursion
-         (let ((pt (point)))
-           ;; A solution based on a single call to `syntax-ppss'
-           ;; takes > 1.5 the time of the following one.
-           (forward-comment -1)
-           (forward-comment 1)
-           (eq pt (point))))))
+         (nth 4 (syntax-ppss (1- (point)))))))
 
 (defun tuareg-backward-up-list ()
   ;; FIXME: not clear if moving out of a string/comment should count as 1 or no.
@@ -3086,30 +3080,43 @@ file outside _build? "))
 
 (defun tuareg--show-paren (orig-fun)
   "Advice for `show-paren-data-function' to match comment delimiters."
-  (let ((here (point))
-        there)
-    (cond
-     ;; Immediately after end of a comment?
-     ((and (eq (char-before) ?\))
-           (eq (char-before (1- here)) ?*)
-           (save-excursion (forward-comment -1)
-                           (setq there (point))
-                           (forward-comment 1)
-                           (eq here (point))))
-      (list (- here 2) here
-            there (+ there (if (eq (char-after (+ there 2)) ?*) 3 2))
-            nil))
-     ;; Immediately before start of a comment?
-     ((and (eq (char-after) ?\()
-           (eq (char-after (1+ here)) ?*)
-           (save-excursion (forward-comment 1)
-                           (setq there (point))
-                           (forward-comment -1)
-                           (eq here (point))))
-      (list here (+ here (if (eq (char-after (+ here 2)) ?*) 3 2))
-            (- there 2) there
-            nil))
-     (t (funcall orig-fun)))))
+  (cond
+   ;; Immediately after "*)"
+   ((and (eq (char-before) ?\))
+         (eq (char-before (1- (point))) ?*))
+    (let* ((here-beg (- (point) 2))
+           (ppss (save-excursion (syntax-ppss here-beg)))
+           (comment-nesting (nth 4 ppss)))
+      (cond
+       (comment-nesting ; "*)" ends a comment
+        (let* ((there-beg (if (= comment-nesting 1) (nth 8 ppss)
+                            (save-excursion (forward-comment -1)
+                                            (point))))
+               (ofs (if (eq (char-after (+ there-beg 2)) ?*) 3 2)))
+          (list here-beg (point) there-beg (+ there-beg ofs) nil)))
+       ((nth 3 ppss); inside a string, don't consider "*)" as a closer
+        nil)
+       ;; Mismatch
+       (t (list here-beg (point) here-beg (point) t)))))
+   ;; Immediately before "(*"
+   ((and (eq (char-after) ?\()
+         (eq (char-after (1+ (point))) ?*))
+    (save-excursion
+      (let* ((here-beg (point))
+             (ofs (if (eq (char-after (+ here-beg 2)) ?*) 3 2))
+             (here-end (+ here-beg ofs))
+             (ppss (syntax-ppss here-end)))
+        (cond
+         ((nth 4 ppss); "(*" starts a comment
+          (if (progn (goto-char here-beg)
+                     (forward-comment 1))
+              (list here-beg here-end (- (point) 2) (point) nil)
+            (list here-beg here-end here-beg here-end t)))
+         ((nth 3 ppss); inside a string, don't consider "(*" as an opener
+          nil)
+         ;; Mismatch
+         (t (list here-beg here-end here-beg here-end t))))))
+   (t (funcall orig-fun))))
 
 (defun tuareg--common-mode-setup ()
   (setq-local syntax-propertize-function #'tuareg-syntax-propertize)
