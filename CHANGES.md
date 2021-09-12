@@ -1,9 +1,15 @@
-2.2.0 2018-
------------
+3.0 2021-09-20
+--------------
+
+Backward incompatible changes are marked with “⚠”.
 
 * New mode `tuareg-menhir` thanks to Stefan Monnier.
   Note that <kbd>C-c C-c</kbd> launches the compilation.
-* `tuareg-jbuilder`: <kbd>C-c C-c</kbd> launches the compilation.
+* ⚠ `tuareg-eval-phrase` (<kbd>C-cC-e</kbd> and <kbd>C-xC-e</kbd>) now
+  evaluate the smallest set of phrases containing the region if the
+  latter is active.
+* ⚠ `tuareg-eval-region` (<kbd>C-cC-r</kbd>): only send the content of
+  the region to the REPL.
 * Be more subtle in phrase detection.
 * Bogus mismatched parentheses at the end of comment fixed.
 * ⚠ `show-paren-mode`: also highlight comment delimiters.  You can
@@ -26,17 +32,21 @@
   with <kbd>C-M-home</kbd>, <kbd>C-M-a</kbd> or <kbd>ESC
   <C-home></kbd> (resp. <kbd><C-M-end></kbd>, <kbd>C-M-e</kbd>, or
   <kbd>ESC <C-end></kbd>).
-* `tuareg-comment-dwim` is now bound to <kbd>C-cC-;</kbd> (fixes #149).
+* ⚠ `tuareg-comment-dwim` is now bound to <kbd>C-cC-;</kbd> (fixes #149).
+* Fix the highlighting of errors locations in interactive mode.
+* ocamldebug: Handle correctly the new code pointer format (issue #205).
 * Rework electric functions (fixes issues #150 and #162).
-* Update the compilation regexp to detect warnings and for the
-  upcoming OCaml 4.08.  This also improves the highlighting of error
-  messages.
+* Update the compilation regexp to detect warnings and errors for the
+  OCaml ≥ 4.08 (fixes #202).
+* Autoload compilation error regexp so it is correct even if Tuareg
+  was not loaded.
 * Evaluation of phrases: evaluate the above phrase if the point is in
   or after comments immediately following the let-binding (without
   separating blank lines).
+* Better indentation of empty lines (fixes #179).
 * Use a pty to communicate with the `ocaml` process (fixes #83).
-* Remove `tuareg-light`, you should now use `tuareg`.
 * `tuareg-opam`: syntax highlighting updates.
+* ⚠ Remove `tuareg-light`, you should now use `tuareg`.
 
 Note that the mode `tuareg-dune` which was in the development version
 of this package is now part of [Dune](https://github.com/ocaml/dune).
