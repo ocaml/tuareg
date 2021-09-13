@@ -6,11 +6,11 @@
 (require 'newcomment)
 
 ;; Emacs < 26
-(defun tuareg--comment-padright--advice (origfn &rest args)
+(defun tuareg--comment-padright--advice (orig-fun &rest args)
   (let ((str (nth 0 args)))
     (unless (and (eq major-mode 'tuareg-mode)
                  (stringp str) (not (string-match "\\S-" str)))
-      (apply origfn args))))
+      (apply orig-fun args))))
 
 (when (and (< emacs-major-version 26) (fboundp 'comment-region-default))
   (advice-add 'comment-padright :around #'tuareg--comment-padright--advice))
@@ -86,10 +86,10 @@
 	 lines
 	 indent))))))
 
-(defun tuareg--comment-region-default--advice (origfn &rest args)
+(defun tuareg--comment-region-default--advice (orig-fun &rest args)
   (apply (if (eq major-mode 'tuareg-mode)
              'tuareg--comment-region-default
-           origfn)
+           orig-fun)
          args))
 
 (when (and (< emacs-major-version 27) (fboundp 'comment-region-default))
@@ -183,10 +183,10 @@ out."
 	 lines
 	 indent))))))
 
-(defun tuareg--comment-region-default-1--advice (origfn &rest args)
+(defun tuareg--comment-region-default-1--advice (orig-fun &rest args)
   (apply (if (eq major-mode 'tuareg-mode)
              'tuareg--comment-region-default-1
-           origfn)
+           orig-fun)
          args))
 
 (when (and (= emacs-major-version 27) (fboundp 'comment-region-default-1))
@@ -295,10 +295,10 @@ This function is the default value of `uncomment-region-function'."
 	  (goto-char (point-max))))))
   (set-marker end nil))
 
-(defun tuareg--uncomment-region-default--advice (origfn &rest args)
+(defun tuareg--uncomment-region-default--advice (orig-fun &rest args)
   (apply (if (eq major-mode 'tuareg-mode)
              'tuareg--uncomment-region-default
-           origfn)
+           orig-fun)
          args))
 
 (when (and (< emacs-major-version 27) (fboundp 'uncomment-region-default))
@@ -413,10 +413,10 @@ This function is the default value of `uncomment-region-function'."
               (delete-char (- (skip-chars-backward " " slim)))))))))
   (set-marker end nil))
 
-(defun tuareg--uncomment-region-default-1--advice (origfn &rest args)
+(defun tuareg--uncomment-region-default-1--advice (orig-fun &rest args)
   (apply (if (eq major-mode 'tuareg-mode)
              'tuareg--uncomment-region-default-1
-           origfn)
+           orig-fun)
          args))
 
 (when (and (<= emacs-major-version 28) (fboundp 'uncomment-region-default-1))
