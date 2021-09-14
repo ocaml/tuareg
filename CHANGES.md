@@ -5,12 +5,12 @@ Backward incompatible changes are marked with “⚠”.
 
 * New mode `tuareg-menhir` thanks to Stefan Monnier.
   Note that <kbd>C-c C-c</kbd> launches the compilation.
-* ⚠ `tuareg-eval-phrase` (<kbd>C-cC-e</kbd> and <kbd>C-xC-e</kbd>) now
+* ⚠ `tuareg-eval-phrase` (<kbd>C-c C-e</kbd> and <kbd>C-x C-e</kbd>) now
   evaluate the smallest set of phrases containing the region if the
   latter is active.
 * ⚠ `tuareg-eval-phrase` now skips `;;` even on a separate line when moving
   forward. This permits quick evaluation of multiple phrases in succession.
-* ⚠ `tuareg-eval-region` (<kbd>C-cC-r</kbd>): only send the content of
+* ⚠ `tuareg-eval-region` (<kbd>C-c C-r</kbd>): only send the content of
   the region to the REPL.
 * Be more subtle in phrase detection.
 * Bogus mismatched parentheses at the end of comment fixed.
@@ -27,13 +27,13 @@ Backward incompatible changes are marked with “⚠”.
   was extended to `.eliom` ↔ `.eliomi` and `.mly` ↔ `.mli`.  It also
   work for pre-processed files named `.pp.ml` and `.pp.mli`.
 * When switching from an `.ml` to a non-existing `.mli` file using
-  <kbd>C-cC-a</kbd>, one is offered to fill the `.mli` buffer with the
+  <kbd>C-c C-a</kbd>, one is offered to fill the `.mli` buffer with the
   generated interface.
 * Set `beginning-of-defun-function` and `end-of-defun-function` which
   allows to go to the beginning of the current function (resp. end)
   with <kbd>C-M-home</kbd>, <kbd>C-M-a</kbd> or <kbd>ESC
-  <C-home></kbd> (resp. <kbd><C-M-end></kbd>, <kbd>C-M-e</kbd>, or
-  <kbd>ESC <C-end></kbd>).
+  C-home</kbd> (resp. <kbd>C-M-end</kbd>, <kbd>C-M-e</kbd>, or
+  <kbd>ESC C-end</kbd>).
 * ⚠ `beginning-of-defun` (<kbd>C-M-a</kbd>, <kbd>C-M-home</kbd>) is
   now repeatable. Previously it would not move the cursor if invoked
   at the beginning of a defun. Now it goes to the start of the
@@ -43,7 +43,7 @@ Backward incompatible changes are marked with “⚠”.
   declarative `let` to be defuns in their own right, since that's
   closer to how programmers think. This generally makes defun-based
   operations more useful.
-* ⚠ `tuareg-comment-dwim` is now bound to <kbd>C-cC-;</kbd> (fixes #149).
+* ⚠ `tuareg-comment-dwim` is now bound to <kbd>C-c C-;</kbd> (fixes #149).
 * Fix the highlighting of errors locations in interactive mode.
 * ocamldebug: Handle correctly the new code pointer format (issue #205).
 * Rework electric functions (fixes issues #150 and #162).
