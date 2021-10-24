@@ -211,7 +211,7 @@ Additional packages
 -------------------
 
 It is recommended to install [Merlin][] which is available in
-[OPAM][].  Tuareg is automatically detect it and use some of its
+[OPAM][].  Tuareg will automatically detect it and use some of its
 features (e.g. for *imenu*).  Merlin offers auto-completion, the
 possibility to query the type with <kbd>C-cC-t</kbd>, to find the
 location of an identifier with <kbd>C-cC-l</kbd>, to go to the next
