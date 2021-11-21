@@ -533,6 +533,7 @@ do not perturb in essential ways the alignment are used.  See
 
 (defvar tuareg-prettify-symbols-basic-alist
   `(("sqrt" . ?√)
+    ("cbrt" . ?∛)
     ("&&" . ?∧)        ; 'LOGICAL AND' (U+2227)
     ("||" . ?∨)        ; 'LOGICAL OR' (U+2228)
     ("+." . ?∔)        ;DOT PLUS (U+2214)
@@ -540,6 +541,18 @@ do not perturb in essential ways the alignment are used.  See
     ;;("*." . ?×)
     ("*." . ?∙)   ; BULLET OPERATOR
     ("/." . ?÷)
+    ("+:" . "̈+"); (⨥ ＋ ➕ ⨁ ⨢)
+    ("-:" . "̈－"); COMBINING DIAERESIS ̈-  (⨪ － ➖)
+    ("*:" .  "̈∙"); (⨱ ＊ ✕ ✖ ⁑ ◦ ⨰ ⦿ ⨀ ⨂)
+    ("/:" . "̈÷"); (➗)
+    ("+^" . ?⨣)
+    ("-^" . "̂－") ; COMBINING CIRCUMFLEX ACCENT
+    ("*^" . "̂∙")
+    ("/^" . "̂÷")
+    ("+~" . ?⨤)
+    ("-~" . "̃－") ; COMBINING TILDE
+    ("*~" . "̃∙")
+    ("/~" . "̃÷")
     ("<-" . ?←)
     ("<=" . ?≤)
     (">=" . ?≥)
@@ -618,7 +631,9 @@ Regexp match data 0 points to the chars."
                            tuareg-prettify-symbols-extra-alist)
                  tuareg-prettify-symbols-basic-alist)))
     (dolist (x alist)
-      (when (and (char-displayable-p (cdr x))
+      (when (and (or (and (number-or-marker-p (cdr x))
+                          (char-displayable-p (cdr x)))
+                     (seq-every-p #'char-displayable-p (cdr x)))
                  (not (assoc (car x) alist))) ; not yet in alist.
         (push x alist)))
     (when alist
