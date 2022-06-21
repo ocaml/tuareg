@@ -183,21 +183,21 @@ if it has to."
 
 (defcustom tuareg-in-indent 0 ; tuareg-default-indent
   "*How many spaces to indent from a `in' keyword.
-Upstream <http://caml.inria.fr/resources/doc/guides/guidelines.en.html>
+Upstream <https://ocaml.org/docs/guidelines>
 recommends 0, and this is what we default to since 2.0.1
 instead of the historical `tuareg-default-indent'."
   :group 'tuareg :type 'integer)
 
 (defcustom tuareg-with-indent 0
   "*How many spaces to indent from a `with' keyword.
-The examples at <http://caml.inria.fr/resources/doc/guides/guidelines.en.html>
+The examples at <https://ocaml.org/docs/guidelines>
 show the '|' is aligned with 'match', thus 0 is the default value."
   :group 'tuareg :type 'integer)
 
 (defcustom tuareg-match-clause-indent 1
   "*How many spaces to indent a clause of match after a pattern `| ... ->'
 or `... ->' (pattern without preceding `|' in the first clause of a matching).
-To respect <http://caml.inria.fr/resources/doc/guides/guidelines.en.html>
+To respect <https://ocaml.org/docs/guidelines>
 the default is 1."
   :type 'integer)
 
@@ -311,7 +311,7 @@ them to the OCaml REPL."
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-manual-url
-  "http://caml.inria.fr/pub/docs/manual-ocaml/"
+  "https://v2.ocaml.org/manual/"
   "*URL to the OCaml reference manual."
   :group 'tuareg :type 'string)
 
