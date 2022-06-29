@@ -194,7 +194,7 @@ instead of the historical `tuareg-default-indent'."
 (defcustom tuareg-with-indent 0
   "*How many spaces to indent from a `with' keyword.
 The examples at <http://caml.inria.fr/resources/doc/guides/guidelines.en.html>
-show the '|' is aligned with 'match', thus 0 is the default value."
+show the `|' is aligned with `match', thus 0 is the default value."
   :group 'tuareg :type 'integer)
 
 (defcustom tuareg-match-clause-indent 1
