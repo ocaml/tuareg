@@ -4100,11 +4100,10 @@ See `imenu-create-index-function'."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                      Related files & modes
 
-(eval-when-compile
-  (autoload 'speedbar-add-supported-extension "speedbar")
-  (defvar speedbar-obj-alist))
+(with-eval-after-load 'speedbar
+  (declare-function speedbar-add-supported-extension "speedbar" (extension))
+  (defvar speedbar-obj-alist)
 
-(when (require 'speedbar nil t)
   (speedbar-add-supported-extension
    '(".ml" ".mli" ".mll" ".mly" ".mlp" ".ls"))
   (push '("\\.mli\\'" . ".cmi") speedbar-obj-alist)
