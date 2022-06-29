@@ -20,18 +20,15 @@ DIST_FILES += $(ELS) Makefile README.md tuareg.install
 
 EMACSFORMACOSX = /Applications/Emacs.app/Contents/MacOS/Emacs
 EMACSMACPORTS = /Applications/MacPorts/Emacs.app/Contents/MacOS/Emacs
-AQUAMACS = $(shell test -d /Applications \
-	&& find /Applications -type f | grep 'Aquamacs$$')
+AQUAMACS = /Applications/Aquamacs.app/Contents/MacOS/Aquamacs
 ifeq ($(wildcard $(EMACSFORMACOSX)),$(EMACSFORMACOSX))
 EMACS ?= $(EMACSFORMACOSX)
 else
 ifeq ($(wildcard $(EMACSMACPORTS)),$(EMACSMACPORTS))
 EMACS ?= $(EMACSMACPORTS)
 else
-ifneq ($(strip $(AQUAMACS)),)
 ifeq ($(wildcard $(AQUAMACS)),$(AQUAMACS))
 EMACS ?= $(AQUAMACS)
-endif
 endif
 endif
 endif
