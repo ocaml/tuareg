@@ -320,14 +320,18 @@ them to the OCaml REPL."
   "URL to the OCaml reference manual."
   :group 'tuareg :type 'string)
 
-(defcustom tuareg-browser 'browse-url
+(defcustom tuareg-browser #'browse-url
   "Name of function that displays the OCaml reference manual.
 Valid names are `browse-url', `browse-url-firefox', etc."
   :group 'tuareg :type 'function)
 
 (defcustom tuareg-library-path "/usr/local/lib/ocaml/"
-  "Path to the OCaml library."
+  "Name of directory holding the OCaml library."
   :group 'tuareg :type 'string)
+
+(defcustom tuareg-mode-line-other-file nil
+  "If non-nil, display the (extension of the) alternative file in mode line."
+  :type 'boolean)
 
 (defvar tuareg-options-list
   `(["Prettify symbols" prettify-symbols-mode
@@ -3245,18 +3249,21 @@ file outside _build? "))
 (defun tuareg--other-file (filename)
   "Given a FILENAME \"foo.ml\", return \"foo.mli\" if it exists.
 Return nil otherwise."
-  (when path
-    (let* ((ext (file-name-extension path))
-           (path-no-ext (file-name-sans-extension path))
-           (matching-exts
-            (cadr (assoc (format "\\.%s\\'" ext) tuareg-other-file-alist)))
-           (matching-paths
-            (mapcar (lambda (ext) (concat path-no-ext ext))
-                    matching-exts))
-           (paths (cl-remove-if-not #'file-exists-p matching-paths)))
-      (car paths))))
+  ;; FIXME: Share code with `tuareg-find-alternate-file'.
+  (when filename
+    (catch 'found
+      (let* ((file-no-ext (file-name-sans-extension filename))
+             (matching-exts
+              (catch 'found
+                (pcase-dolist (`(,rx ,exts) tuareg-other-file-alist)
+                  (when (string-match-p rx filename) (throw 'found exts))))))
+        (dolist (ext matching-exts)
+          (when (file-exists-p (concat file-no-ext ext))
+            (throw 'found (substring ext 1))))))))
 
+(defvar-local tuareg--other-file nil)
 
+(defvar tuareg-mode-name "Tuareg")
 
 ;;;###autoload
 (define-derived-mode tuareg-mode prog-mode "Tuareg"
@@ -3299,11 +3306,15 @@ Short cuts for interactions with the REPL:
 \\{tuareg-interactive-mode-map}"
 
   (setq mode-name
-        '(:eval
-          (let ((other-file (tuareg--other-file (buffer-file-name))))
-            (if other-file
-                (format "Tuareg[+%s]" (file-name-extension other-file))
-              "Tuareg"))))
+        '(tuareg--other-file
+          ;; FIXME: Clicking on the "+mli" should probably jump to the
+          ;; .mli file.
+          ("" tuareg-mode-name "[+" tuareg--other-file "]")
+          tuareg-mode-name))
+  ;; FIXME: Update `tuareg--other-file' every once in a while, e.g. when we
+  ;; save the `.ml' or `.mli' file.
+  (setq tuareg--other-file
+        (if tuareg-mode-line-other-file (tuareg--other-file buffer-file-name)))
   (unless (tuareg--switch-outside-build)
     ;; Initialize the Tuareg menu
     (tuareg-build-menu)
@@ -4047,7 +4058,7 @@ Short cuts for interaction within the REPL:
   "Browse the OCaml library."
   (interactive)
   (let ((buf-name "*ocaml-library*") (opoint)
-        (dir (read-from-minibuffer "Library path: " tuareg-library-path)))
+        (dir (read-from-minibuffer "Library dir: " tuareg-library-path)))
     (when (and (file-directory-p dir) (file-readable-p dir))
       (setq tuareg-library-path dir)
       ;; List *.ml and *.mli files

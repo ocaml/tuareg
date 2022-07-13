@@ -190,7 +190,8 @@ Tips & customization
 
 - If you wish to have a nice 🐫 as the mode name, add
 
-        (add-hook 'tuareg-mode-hook #'(lambda() (setq mode-name "🐫")))
+        (add-hook 'tuareg-mode-hook
+                  (lambda() (setq tuareg-mode-name "🐫")))
 
   to your [Init File][].
 

@@ -3,7 +3,8 @@
 
 Backward incompatible changes are marked with “⚠”.
 
-* New mode `tuareg-menhir` thanks to Stefan Monnier.
+* New option `tuareg-mode-line-other-file`.
+* New mode `tuareg-menhir-mode`.
   Note that <kbd>C-c C-c</kbd> launches the compilation.
 * ⚠ `tuareg-eval-phrase` (<kbd>C-c C-e</kbd> and <kbd>C-x C-e</kbd>) now
   evaluate the smallest set of phrases containing the region if the
