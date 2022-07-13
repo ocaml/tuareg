@@ -271,7 +271,6 @@ See `ff-other-file-alist'."
   :group 'tuareg
   :type 'boolean)
 
-
 (defcustom tuareg-interactive-scroll-to-bottom-on-output nil
   "Controls when to scroll to the bottom of the interactive buffer
 upon evaluating an expression.
@@ -3243,6 +3242,22 @@ file outside _build? "))
 
 (defvar compilation-error-screen-columns)
 
+(defun tuareg--other-file (filename)
+  "Given a FILENAME \"foo.ml\", return \"foo.mli\" if it exists.
+Return nil otherwise."
+  (when path
+    (let* ((ext (file-name-extension path))
+           (path-no-ext (file-name-sans-extension path))
+           (matching-exts
+            (cadr (assoc (format "\\.%s\\'" ext) tuareg-other-file-alist)))
+           (matching-paths
+            (mapcar (lambda (ext) (concat path-no-ext ext))
+                    matching-exts))
+           (paths (cl-remove-if-not #'file-exists-p matching-paths)))
+      (car paths))))
+
+
+
 ;;;###autoload
 (define-derived-mode tuareg-mode prog-mode "Tuareg"
   "Major mode for editing OCaml code.
@@ -3283,6 +3298,12 @@ Short cuts for the Tuareg mode:
 Short cuts for interactions with the REPL:
 \\{tuareg-interactive-mode-map}"
 
+  (setq mode-name
+        '(:eval
+          (let ((other-file (tuareg--other-file (buffer-file-name))))
+            (if other-file
+                (format "Tuareg[+%s]" (file-name-extension other-file))
+              "Tuareg"))))
   (unless (tuareg--switch-outside-build)
     ;; Initialize the Tuareg menu
     (tuareg-build-menu)
