@@ -2,7 +2,7 @@
 [![MELPA](https://melpa.org/packages/tuareg-badge.svg)](https://melpa.org/#/tuareg)
 [![DebianBadge](https://badges.debian.net/badges/debian/stable/elpa-tuareg/version.svg)](https://packages.debian.org/stable/elpa-tuareg)
 [![LGPL v2](https://img.shields.io/badge/licence-lgpl2-blue.svg)](COPYING)
-[![Build Status](https://travis-ci.org/ocaml/tuareg.svg?branch=master)](https://travis-ci.org/ocaml/tuareg)
+[![Build Status](https://github.com/ocaml/tuareg/workflows/test/badge.svg)](https://github.com/ocaml/tuareg/actions?query=workflow%3Atest)
 
 Tuareg: an Emacs OCaml mode
 ===========================
@@ -16,10 +16,10 @@ and to run the OCaml debugger within Emacs.
 Contents
 --------
 
-`README.md`      — This file.  
-`HISTORY`        — Differences with previous versions.  
-`tuareg.el`      — A major mode for editing OCaml code in Emacs.  
-`ocamldebug.el`  — To run the OCaml debugger under Emacs.  
+`README.md`      — This file.
+`HISTORY`        — Differences with previous versions.
+`tuareg.el`      — A major mode for editing OCaml code in Emacs.
+`ocamldebug.el`  — To run the OCaml debugger under Emacs.
 `sample.ml`      — Sample file to check the indentation engine.
 `compilation.txt` — To check the compilation regexp `tuareg--error-regexp`.
 
