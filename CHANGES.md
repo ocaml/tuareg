@@ -84,7 +84,7 @@ Backward incompatible changes are marked with “⚠”.
 Note that the mode `tuareg-dune` which was in the development version
 of this package is now part of [Dune](https://github.com/ocaml/dune).
 
-[binding operators]: https://caml.inria.fr/pub/docs/manual-ocaml-4.08/manual046.html
+[binding operators]: https://v2.ocaml.org/releases/4.08/htmlman/index.html
 
 2.1.0 2017-11-10
 ----------------
