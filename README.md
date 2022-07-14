@@ -13,15 +13,15 @@ code, to highlight important parts of the code, to run an OCaml
 (also called *toplevel*),
 and to run the OCaml debugger within Emacs.
 
-Contents
+Package Contents
 --------
 
-`README.md`      — This file.
-`HISTORY`        — Differences with previous versions.
-`tuareg.el`      — A major mode for editing OCaml code in Emacs.
-`ocamldebug.el`  — To run the OCaml debugger under Emacs.
-`sample.ml`      — Sample file to check the indentation engine.
-`compilation.txt` — To check the compilation regexp `tuareg--error-regexp`.
+- `README.md`      — This file.
+- `HISTORY`        — Differences with previous versions.
+- `tuareg.el`      — A major mode for editing OCaml code in Emacs.
+- `ocamldebug.el`  — To run the OCaml debugger under Emacs.
+- `sample.ml`      — Sample file to check the indentation engine.
+- `compilation.txt` — To check the compilation regexp `tuareg--error-regexp`.
 
 Install
 -------
