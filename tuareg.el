@@ -102,28 +102,9 @@
   "Tuareg revision from the control system used.")
 
 (defconst tuareg-mode-version
-  (let ((version (or (if (fboundp 'package-get-version)
-                         (package-get-version))
-                     "2.3.0")))
-    (concat "Tuareg Version " version
-            (when tuareg-mode-revision
-              (concat " (" tuareg-mode-revision ")"))))
-  ;; FIXME: Do we really want to have this copy of the license blurb
-  ;; as the docstring?
-  "         Copyright (C) 1997-2006 Albert Cohen, all rights reserved.
-         Copyright (C) 2009-2010 Jane Street Holding, LLC.
-         Copyright (C) 2011- Stefan Monnier & Christophe Troestler
-         Copying is covered by the GNU General Public License.
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-    GNU General Public License for more details.")
+  (or (if (fboundp 'package-get-version)
+          (package-get-version))
+      "2.3.0"))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                      Compatibility functions
@@ -3925,9 +3906,14 @@ If the region is active, evaluate all phrases intersecting the region."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               Menu support
 
-(defun tuareg-about ()
+(defun tuareg-display-version ()
+  "Display the current version and revision in the minibuffer."
   (interactive)
-  (describe-variable 'tuareg-mode-version))
+  (if tuareg-mode-revision
+      (message "Tuareg %s (%s)" tuareg-mode-version tuareg-mode-revision)
+    (message "Tuareg %s" tuareg-mode-version)))
+
+(define-obsolete-function-alias 'tuareg-about 'tuareg-display-version "3.0")
 
 (defun tuareg-short-cuts ()
   "Short cuts for the Tuareg mode:
@@ -3997,7 +3983,7 @@ Short cuts for interaction within the REPL:
      ("Tuareg Options" ["Dummy" nil t])
      ("Tuareg Interactive Options" ["Dummy" nil t])
      "---"
-     ["About" tuareg-about t]
+     ["Version" tuareg-display-version t]
      ["Short Cuts" tuareg-short-cuts]
      ["Help" tuareg-help t]))
   (tuareg-update-options-menu))
