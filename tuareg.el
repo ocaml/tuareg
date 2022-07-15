@@ -91,15 +91,21 @@
 
 (defconst tuareg-mode-revision
   (eval-when-compile
-    (with-temp-buffer
-      (if (file-directory-p ".git")
-           (progn
-             (insert "git: ")
-             (call-process "git" nil t nil "log" "--pretty=%h" "-1")))
-      (unless (zerop (buffer-size))
-        (buffer-substring-no-properties
-         (point-min) (1- (point-max))))))
-  "Tuareg revision from the control system used.")
+    (let ((dir (or (and (fboundp 'macroexp-file-name)
+                        (let ((f (macroexp-file-name)))
+                          (and f (file-name-directory f))))
+                   (and load-file-name (file-name-directory load-file-name))
+                   default-directory)))
+      (with-temp-buffer
+        (let ((default-directory dir))
+          (and (file-exists-p ".git")
+               (ignore-errors
+                 (call-process "git" nil t nil "log" "--pretty=%h" "-1"))
+               (not (zerop (buffer-size)))
+               (concat "git: "
+                       (buffer-substring-no-properties
+                        (point-min) (1- (point-max)))))))))
+  "Tuareg revision from the control system used, or nil.")
 
 (defconst tuareg-mode-version
   (let ((version (or (if (fboundp 'package-get-version)
