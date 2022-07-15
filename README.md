@@ -1,7 +1,7 @@
 [![NonGNU ELPA](https://elpa.nongnu.org/nongnu/tuareg.svg)](https://elpa.nongnu.org/nongnu/tuareg.html)
 [![MELPA](https://melpa.org/packages/tuareg-badge.svg)](https://melpa.org/#/tuareg)
 [![DebianBadge](https://badges.debian.net/badges/debian/stable/elpa-tuareg/version.svg)](https://packages.debian.org/stable/elpa-tuareg)
-[![LGPL v2](https://img.shields.io/badge/licence-lgpl2-blue.svg)](COPYING)
+[![License GPL 3](https://img.shields.io/badge/license-GPL_3-green.svg)](COPYING)
 [![Build Status](https://github.com/ocaml/tuareg/workflows/test/badge.svg)](https://github.com/ocaml/tuareg/actions?query=workflow%3Atest)
 
 Tuareg: an Emacs OCaml mode
@@ -294,3 +294,8 @@ Tuareg mode have been maintained by Albert Cohen until version 1.45.
 
 Jane Street took over maintenance based on Albert Cohen's version 1.46
 (later retracted by him), and released its first version as 2.0.
+
+License
+-------
+
+Tuareg is distributed under the GNU General Public License, version 3.
