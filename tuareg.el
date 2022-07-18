@@ -3,7 +3,6 @@
 ;; Copyright (C) 1997-2006 Albert Cohen, all rights reserved.
 ;; Copyright (C) 2011-2022 Free Software Foundation, Inc.
 ;; Copyright (C) 2009-2010 Jane Street Holding, LLC.
-;; Licensed under the GNU General Public License.
 
 ;; Author: Albert Cohen <Albert.Cohen@inria.fr>
 ;;      Sam Steingold <sds@gnu.org>
@@ -19,6 +18,21 @@
 ;; Keywords: ocaml languages
 ;; Homepage: https://github.com/ocaml/tuareg
 ;; EmacsWiki: TuaregMode
+
+;; This file is *NOT* part of GNU Emacs.
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -62,21 +76,6 @@
 ;; *ocamldebug-FILE*.  It is similar to April 1996 version, with minor
 ;; changes to support XEmacs, Tuareg and OCaml. Furthermore, package
 ;; `thingatpt' is not required any more.
-
-;; This file is *NOT* part of GNU Emacs.
-
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or
-;; (at your option) any later version.
-
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-
-;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Code:
 
