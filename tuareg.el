@@ -80,7 +80,7 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(require 'cl-lib)
 (require 'easymenu)
 (require 'find-file)
 (require 'subr-x)
@@ -1532,6 +1532,7 @@ Run only once."
     (define-key map "\C-c\C-r" #'tuareg-eval-region)
     (define-key map "\C-c\C-b" #'tuareg-eval-buffer)
     (define-key map "\C-c\C-s" #'tuareg-run-ocaml)
+    (define-key map "\C-c\C-z" #'tuareg-switch-to-repl)
     (define-key map "\C-c\C-i" #'tuareg-interrupt-ocaml)
     (define-key map "\C-c\C-k" #'tuareg-kill-ocaml)
     (define-key map "\C-c`" #'tuareg-interactive-next-error-source)
@@ -3559,6 +3560,7 @@ OCaml uses exclusive end-columns but Emacs wants them to be inclusive."
   (let ((map (copy-keymap comint-mode-map)))
     (define-key map "\C-c\C-i" #'tuareg-interrupt-ocaml)
     (define-key map "\C-c\C-k" #'tuareg-kill-ocaml)
+    (define-key map "\C-c\C-z" #'tuareg-switch-to-recent-buffer)
     (define-key map "\C-c`" #'tuareg-interactive-next-error-repl)
     (define-key map "\C-c?" #'tuareg-interactive-next-error-repl)
     (define-key map "\C-m" #'tuareg-interactive-send-input)
@@ -3666,6 +3668,30 @@ which the matched error refers. Return (BEG-POS . END-POS)."
                  'font-lock-face 'tuareg-font-lock-interactive-error-face)))
              )))))))
 
+(defun tuareg-switch-to-repl (eob-p)
+  "Switch to the inferior OCaml process buffer.
+With prefix argument EOB-P, positions cursor at end of buffer."
+  (interactive "P")
+  (let ((repl-buffer (get-buffer tuareg-interactive-buffer-name)))
+    (if (get-buffer-process repl-buffer)
+        (pop-to-buffer repl-buffer)
+      ;; start a new REPL if one is not running already
+      (call-interactively #'tuareg-run-ocaml)))
+  (when eob-p
+    (push-mark)
+    (goto-char (point-max))))
+
+(defun tuareg-switch-to-recent-buffer ()
+  "Switch to the most recently used `tuareg-mode' buffer."
+  (interactive)
+  (let ((recent-ocaml-buffer
+         (cl-find-if (lambda (buf)
+                       (with-current-buffer buf (derived-mode-p 'tuareg-mode)))
+                     (buffer-list))))
+    (if recent-ocaml-buffer
+        (pop-to-buffer recent-ocaml-buffer)
+      (message "Tuareg: No recent Ocaml buffer found."))))
+
 (easy-menu-define
   tuareg-interactive-mode-menu tuareg-interactive-mode-map
   "Tuareg Interactive Mode Menu."
@@ -3675,6 +3701,8 @@ which the matched error refers. Return (BEG-POS . END-POS)."
      ["Interrupt OCaml REPL" tuareg-interrupt-ocaml
       :active (comint-check-proc tuareg-interactive-buffer-name)]
      ["Kill OCaml REPL" tuareg-kill-ocaml
+      :active (comint-check-proc tuareg-interactive-buffer-name)]
+     ["Switch to Recent Source Buffer" tuareg-switch-to-recent-buffer
       :active (comint-check-proc tuareg-interactive-buffer-name)]
      ["Evaluate Region" tuareg-eval-region :active (region-active-p)]
      ["Evaluate Phrase" tuareg-eval-phrase t]
@@ -3960,6 +3988,8 @@ Short cuts for interaction within the REPL:
    '("Tuareg"
      ("Interactive Mode"
       ["Run OCaml REPL" tuareg-run-ocaml t]
+      ["Switch to OCaml REPL" tuareg-switch-to-repl
+       :active (comint-check-proc tuareg-interactive-buffer-name)]
       ["Interrupt OCaml REPL" tuareg-interrupt-ocaml
        :active (comint-check-proc tuareg-interactive-buffer-name)]
       ["Kill OCaml REPL" tuareg-kill-ocaml
