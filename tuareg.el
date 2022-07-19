@@ -56,7 +56,7 @@
 ;; M-x compile) and browse the errors (C-x `). Typing C-x ` sets the
 ;; point at the beginning of the erroneous program fragment, and the
 ;; mark at the end.  Under Emacs, the program fragment is temporarily
-;; hilighted.
+;; highlighted.
 ;;
 ;; M-x tuareg-run-ocaml (or simply `run-ocaml') starts an OCaml
 ;; REPL (aka toplevel) with input and output in an Emacs buffer named
