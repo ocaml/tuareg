@@ -14,7 +14,7 @@
 ;;      Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Created: 8 Jan 1997
 ;; Version: 3.0.0-snapshot
-;; Package-Requires: ((emacs "24.4") (caml "4.8"))
+;; Package-Requires: ((emacs "26.3") (caml "4.8"))
 ;; Keywords: ocaml languages
 ;; Homepage: https://github.com/ocaml/tuareg
 ;; EmacsWiki: TuaregMode
