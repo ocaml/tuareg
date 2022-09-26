@@ -79,7 +79,7 @@
   "Marker for displaying the current event.")
 
 (defvar ocamldebug-track-frame t
-  "*If non-nil, always display current frame position in another window.")
+  "If non-nil, always display current frame position in another window.")
 
 (defface ocamldebug-event
   '((t :invert t))

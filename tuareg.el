@@ -1,9 +1,8 @@
 ;;; tuareg.el --- OCaml mode  -*- coding: utf-8; lexical-binding:t -*-
 
 ;; Copyright (C) 1997-2006 Albert Cohen, all rights reserved.
-;; Copyright (C) 2011-2021 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2022 Free Software Foundation, Inc.
 ;; Copyright (C) 2009-2010 Jane Street Holding, LLC.
-;; Licensed under the GNU General Public License.
 
 ;; Author: Albert Cohen <Albert.Cohen@inria.fr>
 ;;      Sam Steingold <sds@gnu.org>
@@ -20,13 +19,30 @@
 ;; Homepage: https://github.com/ocaml/tuareg
 ;; EmacsWiki: TuaregMode
 
+;; This file is *NOT* part of GNU Emacs.
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 ;;; Commentary:
+;;
 ;; Tuareg helps editing OCaml code, to highlight important parts of
 ;; the code, to run an OCaml REPL, and to run the OCaml debugger
 ;; within Emacs.
 ;; See https://github.com/ocaml/tuareg for customization tips.
 
 ;;; Installation:
+;;
 ;; If you have permissions to the local `site-lisp' directory, you
 ;; only have to copy `tuareg.el', `ocamldebug.el'
 ;; and `tuareg-site-file.el'.  Otherwise, copy the previous files
@@ -35,11 +51,12 @@
 ;; (add-to-list 'load-path "DIR")
 
 ;;; Usage:
+;;
 ;; Tuareg allows you to run batch OCaml compilations from Emacs (using
 ;; M-x compile) and browse the errors (C-x `). Typing C-x ` sets the
 ;; point at the beginning of the erroneous program fragment, and the
 ;; mark at the end.  Under Emacs, the program fragment is temporarily
-;; hilighted.
+;; highlighted.
 ;;
 ;; M-x tuareg-run-ocaml (or simply `run-ocaml') starts an OCaml
 ;; REPL (aka toplevel) with input and output in an Emacs buffer named
@@ -60,21 +77,9 @@
 ;; changes to support XEmacs, Tuareg and OCaml. Furthermore, package
 ;; `thingatpt' is not required any more.
 
-;; This file is *NOT* part of GNU Emacs.
-
-;; This program is free software; you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2 of the License, or
-;; (at your option) any later version.
-
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-;; GNU General Public License for more details.
-
 ;;; Code:
 
-(eval-when-compile (require 'cl-lib))
+(require 'cl-lib)
 (require 'easymenu)
 (require 'find-file)
 (require 'subr-x)
@@ -85,22 +90,32 @@
 
 (defconst tuareg-mode-revision
   (eval-when-compile
-    (with-temp-buffer
-      (if (file-directory-p ".git")
-           (progn
-             (insert "git: ")
-             (call-process "git" nil t nil "log" "--pretty=%h" "-1")))
-      (unless (zerop (buffer-size))
-        (buffer-substring-no-properties
-         (point-min) (1- (point-max))))))
-  "Tuareg revision from the control system used.")
+    (let ((dir (if (fboundp 'macroexp-file-name)
+                   (let ((f (macroexp-file-name)))
+                     (and f (file-name-directory f)))
+                 (or (and load-file-name (file-name-directory load-file-name))
+                     default-directory))))
+      (when dir
+        (with-temp-buffer
+          (let ((default-directory dir))
+            (and (file-exists-p ".git")
+                 (ignore-errors
+                   (call-process "git" nil t nil "log" "--pretty=%h" "-1"))
+                 (not (zerop (buffer-size)))
+                 (concat "git: "
+                         (buffer-substring-no-properties
+                          (point-min) (1- (point-max))))))))))
+  "Tuareg revision from the control system used, or nil.")
 
 (defconst tuareg-mode-version
-  (let ((version "Tuareg Version 2.2.0"))
-    (if (null tuareg-mode-revision)
-        version
-      (concat version " (" tuareg-mode-revision ")")
-      ))
+  (let ((version (or (if (fboundp 'package-get-version)
+                         (package-get-version))
+                     "2.3.0")))
+    (concat "Tuareg Version " version
+            (when tuareg-mode-revision
+              (concat " (" tuareg-mode-revision ")"))))
+  ;; FIXME: Do we really want to have this copy of the license blurb
+  ;; as the docstring?
   "         Copyright (C) 1997-2006 Albert Cohen, all rights reserved.
          Copyright (C) 2009-2010 Jane Street Holding, LLC.
          Copyright (C) 2011- Stefan Monnier & Christophe Troestler
@@ -108,7 +123,7 @@
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
+    the Free Software Foundation; either version 3 of the License, or
     (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
@@ -151,7 +166,7 @@
 ;; Indentation defaults
 
 (defcustom tuareg-default-indent 2
-  "*Default indentation.
+  "Default indentation.
 
 Global indentation variable (large values may lead to indentation overflows).
 When no governing keyword is found, this value is used to indent the line
@@ -159,7 +174,7 @@ if it has to."
   :group 'tuareg :type 'integer)
 
 (defcustom tuareg-support-camllight nil
-  "*If true, handle Caml Light character syntax (incompatible with labels)."
+  "If true, handle Caml Light character syntax (incompatible with labels)."
   :group 'tuareg :type 'boolean
   :set (lambda (var val)
          (set-default var val)
@@ -168,7 +183,7 @@ if it has to."
                                 tuareg-mode-syntax-table))))
 
 (defcustom tuareg-support-metaocaml nil
-  "*If true, handle MetaOCaml syntax."
+  "If true, handle MetaOCaml syntax."
   :group 'tuareg :type 'boolean
   :set (lambda (var val)
          (set-default var val)
@@ -179,27 +194,27 @@ if it has to."
                  (tuareg--install-font-lock)))))))
 
 (defcustom tuareg-in-indent 0 ; tuareg-default-indent
-  "*How many spaces to indent from a `in' keyword.
-Upstream <http://caml.inria.fr/resources/doc/guides/guidelines.en.html>
+  "How many spaces to indent from a `in' keyword.
+Upstream <https://ocaml.org/docs/guidelines>
 recommends 0, and this is what we default to since 2.0.1
 instead of the historical `tuareg-default-indent'."
   :group 'tuareg :type 'integer)
 
 (defcustom tuareg-with-indent 0
-  "*How many spaces to indent from a `with' keyword.
-The examples at <http://caml.inria.fr/resources/doc/guides/guidelines.en.html>
-show the '|' is aligned with 'match', thus 0 is the default value."
+  "How many spaces to indent from a `with' keyword.
+The examples at <https://ocaml.org/docs/guidelines>
+show the `|' is aligned with `match', thus 0 is the default value."
   :group 'tuareg :type 'integer)
 
 (defcustom tuareg-match-clause-indent 1
-  "*How many spaces to indent a clause of match after a pattern `| ... ->'
+  "How many spaces to indent a clause of match after a pattern `| ... ->'
 or `... ->' (pattern without preceding `|' in the first clause of a matching).
-To respect <http://caml.inria.fr/resources/doc/guides/guidelines.en.html>
+To respect <https://ocaml.org/docs/guidelines>
 the default is 1."
   :type 'integer)
 
 (defcustom tuareg-match-when-indent (+ 4 tuareg-match-clause-indent)
-  "*How many spaces from `|' to indent `when' in a pattern match
+  "How many spaces from `|' to indent `when' in a pattern match
    | patt
         when cond ->
       clause"
@@ -231,7 +246,7 @@ with `|', `)', `]`, and `}' are always indented when the
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-electric-close-vector t
-  "*Non-nil means electrically insert `|' before a vector-closing `]' or
+  "Non-nil means electrically insert `|' before a vector-closing `]' or
 `>' before an object-closing `}'.
 
 Many people find electric keys irritating, so you can disable them by
@@ -262,9 +277,8 @@ See `ff-other-file-alist'."
   :group 'tuareg
   :type 'boolean)
 
-
 (defcustom tuareg-interactive-scroll-to-bottom-on-output nil
-  "*Controls when to scroll to the bottom of the interactive buffer
+  "Controls when to scroll to the bottom of the interactive buffer
 upon evaluating an expression.
 
 See `comint-scroll-to-bottom-on-output' for details."
@@ -278,53 +292,57 @@ See `comint-scroll-to-bottom-on-output' for details."
                  (setq-local comint-scroll-to-bottom-on-output val)))))))
 
 (defcustom tuareg-skip-after-eval-phrase t
-  "*Non-nil means skip to the end of the phrase after evaluation in the
+  "Non-nil means skip to the end of the phrase after evaluation in the
 OCaml REPL."
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-interactive-read-only-input nil
-  "*Non-nil means input sent to the OCaml REPL is read-only."
+  "Non-nil means input sent to the OCaml REPL is read-only."
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-interactive-echo-phrase t
-  "*Non-nil means echo phrases in the REPL buffer when sending
+  "Non-nil means echo phrases in the REPL buffer when sending
 them to the OCaml REPL."
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-interactive-input-font-lock t
-  "*Non nil means Font-Lock for REPL input phrases."
+  "Non nil means Font-Lock for REPL input phrases."
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-interactive-output-font-lock t
-  "*Non nil means Font-Lock for REPL output messages."
+  "Non nil means Font-Lock for REPL output messages."
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-interactive-error-font-lock t
-  "*Non nil means Font-Lock for REPL error messages."
+  "Non nil means Font-Lock for REPL error messages."
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-display-buffer-on-eval t
-  "*Non nil means pop up the OCaml REPL when evaluating code."
+  "Non nil means pop up the OCaml REPL when evaluating code."
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-manual-url
-  "http://caml.inria.fr/pub/docs/manual-ocaml/"
-  "*URL to the OCaml reference manual."
+  "https://v2.ocaml.org/manual/"
+  "URL to the OCaml reference manual."
   :group 'tuareg :type 'string)
 
-(defcustom tuareg-browser 'browse-url
-  "*Name of function that displays the OCaml reference manual.
+(defcustom tuareg-browser #'browse-url
+  "Name of function that displays the OCaml reference manual.
 Valid names are `browse-url', `browse-url-firefox', etc."
   :group 'tuareg :type 'function)
 
 (defcustom tuareg-library-path "/usr/local/lib/ocaml/"
-  "*Path to the OCaml library."
+  "Name of directory holding the OCaml library."
   :group 'tuareg :type 'string)
+
+(defcustom tuareg-mode-line-other-file nil
+  "If non-nil, display the (extension of the) alternative file in mode line."
+  :type 'boolean)
 
 (defvar tuareg-options-list
   `(["Prettify symbols" prettify-symbols-mode
       :style toggle :selected prettify-symbols-mode :active t])
-  "*List of menu-configurable Tuareg options.")
+  "List of menu-configurable Tuareg options.")
 
 (defvar tuareg-interactive-options-list
   '(("Skip phrase after evaluation" . 'tuareg-skip-after-eval-phrase)
@@ -335,10 +353,10 @@ Valid names are `browse-url', `browse-url-firefox', etc."
     ("Font-lock interactive error" . 'tuareg-interactive-error-font-lock)
     "---"
     ("Read only input" . 'tuareg-interactive-read-only-input))
-  "*List of menu-configurable Tuareg options.")
+  "List of menu-configurable Tuareg options.")
 
 (defvar tuareg-interactive-program "ocaml -nopromptcont"
-  "*Default program name for invoking an OCaml REPL (aka toplevel) from Emacs.")
+  "Default program name for invoking an OCaml REPL (aka toplevel) from Emacs.")
 ;; Could be interesting to have this variable buffer-local
 ;;   (e.g., ocaml vs. metaocaml buffers)
 ;; (make-variable-buffer-local 'tuareg-interactive-program)
@@ -389,7 +407,7 @@ Valid names are `browse-url', `browse-url-firefox', etc."
   'tuareg-font-lock-module-face)
 
 (defface tuareg-font-lock-constructor-face
-  '((t (:inherit default)))
+  '((t (:inherit default)))             ;FIXME: Why not just nil?
   "Face description for constructors of (polymorphic) variants and exceptions."
   :group 'tuareg-faces)
 (defvar tuareg-font-lock-constructor-face
@@ -513,7 +531,7 @@ Valid names are `browse-url', `browse-url-firefox', etc."
 ;; Originally by Stefan Monnier
 
 (defcustom tuareg-font-lock-symbols nil
-  "*Display fun and -> and such using symbols in fonts.
+  "Display fun and -> and such using symbols in fonts.
 This may sound like a neat trick, but note that it can change the
 alignment and can thus lead to surprises.  On recent Emacs >= 24.4,
 use `prettify-symbols-mode'."
@@ -647,7 +665,7 @@ Regexp match data 0 points to the chars."
     (modify-syntax-entry ?# "." st)
     (modify-syntax-entry ?? ". p" st)
     (modify-syntax-entry ?~ ". p" st)
-    ;; See http://caml.inria.fr/pub/docs/manual-ocaml/lex.html.
+    ;; See https://v2.ocaml.org/manual/lex.html.
     (dolist (c '(?! ?$ ?% ?& ?+ ?- ?/ ?: ?< ?= ?> ?@ ?^ ?|))
       (modify-syntax-entry c "." st))
     (modify-syntax-entry ?' "_" st) ; ' is part of symbols (for primes).
@@ -712,7 +730,7 @@ Regexp match data 0 points to the chars."
                               'syntax-table (string-to-syntax "|"))))
         (`?\{
          ;; We're inside a quoted string
-         ;; http://caml.inria.fr/pub/docs/manual-ocaml/extn.html#sec244
+         ;; https://v2.ocaml.org/manual/extn.html#sec244
          (let ((id (save-excursion
                      (goto-char (1+ (nth 8 ppss)))
                      (buffer-substring (point)
@@ -1528,6 +1546,7 @@ Run only once."
     (define-key map "\C-c\C-r" #'tuareg-eval-region)
     (define-key map "\C-c\C-b" #'tuareg-eval-buffer)
     (define-key map "\C-c\C-s" #'tuareg-run-ocaml)
+    (define-key map "\C-c\C-z" #'tuareg-switch-to-repl)
     (define-key map "\C-c\C-i" #'tuareg-interrupt-ocaml)
     (define-key map "\C-c\C-k" #'tuareg-kill-ocaml)
     (define-key map "\C-c`" #'tuareg-interactive-next-error-source)
@@ -1687,7 +1706,7 @@ For use on `electric-indent-functions'."
             (mod-constraints (mod-constraints "m-and" mod-constraints)
                              ("w-type" simpledef)
                              ("w-module" simpledef))
-            ;; http://caml.inria.fr/pub/docs/manual-ocaml/expr.html
+            ;; https://v2.ocaml.org/manual/expr.html
             ;; exp1 is "all exps except for `if exp then'".
             (exp1 ("begin" exp "end")
                   ("(" exp:type ")")
@@ -1751,10 +1770,10 @@ For use on `electric-indent-functions'."
             (foo2 ("mutable" id) (foo2 ";" foo2))
             )
           ;; Type precedence rules.
-          ;; http://caml.inria.fr/pub/docs/manual-ocaml/types.html
+          ;; https://v2.ocaml.org/manual/types.html
           '((nonassoc "as") (assoc "t->") (assoc "*…"))
           ;; Pattern precedence rules.
-          ;; http://caml.inria.fr/pub/docs/manual-ocaml/patterns.html
+          ;; https://v2.ocaml.org/manual/patterns.html
           '((nonassoc "as") (assoc "|-or") (assoc ",") (assoc "::"))
           ;; Resolve "{a=(1;b=2)}" vs "{(a=1);(b=2)}".
           '((nonassoc ";") (nonassoc "f="))
@@ -1804,7 +1823,7 @@ For use on `electric-indent-functions'."
       bnfprec2
       (smie-precs->prec2
        ;; Precedence of operators.
-       ;; http://caml.inria.fr/pub/docs/manual-ocaml/expr.html
+       ;; https://v2.ocaml.org/manual/expr.html
        (reverse
         '((nonassoc ".")
           ;; function application, constructor application, assert, lazy
@@ -1938,7 +1957,7 @@ For use on `electric-indent-functions'."
      ((or (member tok '("let" "=" "->"
                         "module" "class" "open" "type" "with" "and"
                         "exception"))
-          ;; http://caml.inria.fr/pub/docs/manual-ocaml/expr.html lists
+          ;; https://v2.ocaml.org/manual/expr.html lists
           ;; the tokens whose precedence is based on their prefix.
           (memq (aref tok 0) '(?* ?/ ?% ?+ ?- ?@ ?^ ?= ?< ?> ?| ?& ?$)))
       ;; When indenting, the movement is mainly backward, so it's OK to make
@@ -2158,7 +2177,7 @@ Return values can be
       (if (tuareg-smie--|-or-p) "|-or" "|"))
      ;; Some infix operators get a precedence based on their prefix, so we
      ;; collapse them into a canonical representative.
-     ;; See http://caml.inria.fr/pub/docs/manual-ocaml/expr.html.
+     ;; See https://v2.ocaml.org/manual/expr.html.
      ((memq (aref tok 0) '(?* ?/ ?% ?+ ?- ?@ ?^ ?= ?< ?> ?| ?& ?$))
       (cond
        ((member tok '("|" "||" "&" "&&" "<-" "->" ">.")) tok)
@@ -2528,7 +2547,7 @@ Return a non-nil value if a comment was skipped."
       nil)))
 
 (defun tuareg--skip-backward-comments-semicolon ()
-  "Skip 'sticky' comments and ';;' after a definition."
+  "Skip `sticky' comments and `;;' after a definition."
   ;; Comments after the definition not separated by a blank like
   ;; ("sticking") are considered part of the definition.
   (when (looking-at-p "[ \t]*(\\*")
@@ -2550,7 +2569,7 @@ Return a non-nil value if a comment was skipped."
       nil)))
 
 (defun tuareg--skip-forward-comments-semicolon ()
-  "Skip ';;' and then 'sticky' comments after a definition."
+  "Skip `;;' and then `sticky' comments after a definition."
   (when (looking-at (rx (* (in " \t\n")) ";;"))
     (goto-char (match-end 0)))
   (while (tuareg--skip-forward-comment)))
@@ -2897,24 +2916,51 @@ This function moves the point."
 (defun tuareg--fill-comment ()
   "Assumes the point is inside a comment and justify it.
 This function moves the point."
-  (let* ((start (set-marker (make-marker) (nth 8 (syntax-ppss))))
-         (end (make-marker))
-         fill-prefix
-         (use-hard-newlines t))
-    (goto-char (marker-position start))
-    (indent-according-to-mode)
-    (setq fill-prefix (make-string (+ 3 (current-column)) ?\ ))
-    (forward-comment 1)
-    (set-marker end (point))
-    (goto-char (marker-position start))
-    (let ((e (marker-position end)))
-      (while (re-search-forward "\n\n" e t)
-        (put-text-property (match-beginning 0) (match-end 0) 'hard 't)))
-    (fill-region start end)
-    (remove-text-properties (marker-position start) (marker-position end)
-                            '(hard))
-    (set-marker start nil)
-    (set-marker end nil)))
+  (let* ((com-start (nth 8 (syntax-ppss)))
+         content-start
+         com-end
+         in-doc-comment
+         par-start
+         par-end)
+    (save-excursion
+      (goto-char com-start)
+      (setq content-start (and (looking-at comment-start-skip)
+                               (match-end 0)))
+      (setq in-doc-comment (looking-at-p (rx "(**" (not (in "*")))))
+      (forward-comment 1)
+      (setq com-end (point)))
+
+    ;; In doc comments, let @tags start a paragraph.
+    (let ((paragraph-start
+           (if in-doc-comment
+               (concat paragraph-start
+                       "\\|"
+                       (rx (* (in " \t")) "@" (+ (in "a-z")) symbol-end))
+             paragraph-start)))
+      (save-restriction
+        (narrow-to-region content-start com-end)
+        (save-excursion
+          (skip-chars-forward " \t")
+          (backward-paragraph)
+          (skip-chars-forward " \t\n")
+          (setq par-start (point))
+          (forward-paragraph)
+          (setq par-end (point))))
+
+      ;; Set `fill-prefix' to preserve the indentation of the start of the
+      ;; paragraph, assuming that is what the user wants.
+      (let ((fill-prefix
+             (save-excursion
+               (goto-char par-start)
+               (let ((col
+                      (if (and in-doc-comment
+                               (looking-at-p
+                                (rx "@" (+ (in "a-z")) symbol-end)))
+                          ;; Indent two spaces under @tag.
+                          (+ 2 (current-column))
+                        (current-column))))
+                 (make-string col ?\s)))))
+        (fill-region-as-paragraph par-start par-end)))))
 
 (defun tuareg-indent-phrase ()
   "Depending of the context: justify and indent a comment,
@@ -3133,6 +3179,47 @@ file outside _build? "))
          (t (list here-beg here-end here-beg here-end t))))))
    (t (funcall orig-fun))))
 
+(defun tuareg--indent-line-inside-comment ()
+  "Indent the current line if it is inside a comment."
+  (let ((ppss (syntax-ppss)))
+    (and (nth 4 ppss)
+         (let ((indent-col
+                (save-excursion
+                  (let* ((com-start (nth 8 ppss))
+                         (in-doc-comment
+                          (save-excursion
+                            (goto-char com-start)
+                            (looking-at-p (rx "(**" (not (in "*"))))))
+                         tag-starts-line)
+                    ;; Use the indentation of the previous nonempty line.
+                    ;; If we are in a doc comment and that line
+                    ;; starts with an @tag, and the current line
+                    ;; doesn't, then indent to after the @tag.
+                    (goto-char (max com-start (line-beginning-position)))
+                    (setq tag-starts-line
+                          (and in-doc-comment
+                               (looking-at-p
+                                (rx (* (in " \t"))
+                                    "@" (+ (in "a-z")) symbol-end))))
+                    (skip-chars-backward " \t\n" com-start)
+                    (goto-char (max com-start (line-beginning-position)))
+                    (when (looking-at (rx "(*" (* "*")))
+                      (goto-char (match-end 0)))
+                    (skip-chars-forward " \t")
+                    (when (and in-doc-comment
+                               (not tag-starts-line)
+                               (looking-at-p (rx "@" (+ (in "a-z")) " ")))
+                      (forward-char 2)))
+                  (current-column))))
+           (indent-line-to indent-col)
+           t))))
+
+(defun tuareg--indent-line (orig-fun)
+  (let ((res (funcall orig-fun)))
+    (if (eq res 'noindent)
+        (tuareg--indent-line-inside-comment)
+      res)))
+
 (defun tuareg--common-mode-setup ()
   (setq-local syntax-propertize-function #'tuareg-syntax-propertize)
   (setq-local parse-sexp-ignore-comments t)
@@ -3145,6 +3232,8 @@ file outside _build? "))
     ;; hasn't provided any alternative so far :-(
     (add-function :before (local 'smie--hanging-eolp-function)
                   #'tuareg--hanging-eolp-advice))
+  (add-function :around (local 'indent-line-function)
+                #'tuareg--indent-line)
   (add-hook 'smie-indent-functions #'tuareg-smie--args nil t)
   (add-hook 'smie-indent-functions #'tuareg-smie--inside-string nil t)
   (setq-local add-log-current-defun-function #'tuareg-current-fun-name)
@@ -3179,6 +3268,25 @@ file outside _build? "))
 
 (defvar compilation-error-screen-columns)
 
+(defun tuareg--other-file (filename)
+  "Given a FILENAME \"foo.ml\", return \"foo.mli\" if it exists.
+Return nil otherwise."
+  ;; FIXME: Share code with `tuareg-find-alternate-file'.
+  (when filename
+    (catch 'found
+      (let* ((file-no-ext (file-name-sans-extension filename))
+             (matching-exts
+              (catch 'found
+                (pcase-dolist (`(,rx ,exts) tuareg-other-file-alist)
+                  (when (string-match-p rx filename) (throw 'found exts))))))
+        (dolist (ext matching-exts)
+          (when (file-exists-p (concat file-no-ext ext))
+            (throw 'found (substring ext 1))))))))
+
+(defvar-local tuareg--other-file nil)
+
+(defvar tuareg-mode-name "Tuareg")
+
 ;;;###autoload
 (define-derived-mode tuareg-mode prog-mode "Tuareg"
   "Major mode for editing OCaml code.
@@ -3195,7 +3303,7 @@ You have better byte-compile tuareg.el.
 For customization purposes, you should use `tuareg-mode-hook'
 \(run for every file) or `tuareg-load-hook' (run once) and not patch
 the mode itself.  You should add to your configuration file something like:
-  (add-hook 'tuareg-mode-hook
+  (add-hook \\='tuareg-mode-hook
             (lambda ()
                ... ; your customization code
             ))
@@ -3219,6 +3327,16 @@ Short cuts for the Tuareg mode:
 Short cuts for interactions with the REPL:
 \\{tuareg-interactive-mode-map}"
 
+  (setq mode-name
+        '(tuareg--other-file
+          ;; FIXME: Clicking on the "+mli" should probably jump to the
+          ;; .mli file.
+          ("" tuareg-mode-name "[+" tuareg--other-file "]")
+          tuareg-mode-name))
+  ;; FIXME: Update `tuareg--other-file' every once in a while, e.g. when we
+  ;; save the `.ml' or `.mli' file.
+  (setq tuareg--other-file
+        (if tuareg-mode-line-other-file (tuareg--other-file buffer-file-name)))
   (unless (tuareg--switch-outside-build)
     ;; Initialize the Tuareg menu
     (tuareg-build-menu)
@@ -3456,6 +3574,7 @@ OCaml uses exclusive end-columns but Emacs wants them to be inclusive."
   (let ((map (copy-keymap comint-mode-map)))
     (define-key map "\C-c\C-i" #'tuareg-interrupt-ocaml)
     (define-key map "\C-c\C-k" #'tuareg-kill-ocaml)
+    (define-key map "\C-c\C-z" #'tuareg-switch-to-recent-buffer)
     (define-key map "\C-c`" #'tuareg-interactive-next-error-repl)
     (define-key map "\C-c?" #'tuareg-interactive-next-error-repl)
     (define-key map "\C-m" #'tuareg-interactive-send-input)
@@ -3563,6 +3682,30 @@ which the matched error refers. Return (BEG-POS . END-POS)."
                  'font-lock-face 'tuareg-font-lock-interactive-error-face)))
              )))))))
 
+(defun tuareg-switch-to-repl (eob-p)
+  "Switch to the inferior OCaml process buffer.
+With prefix argument EOB-P, positions cursor at end of buffer."
+  (interactive "P")
+  (let ((repl-buffer (get-buffer tuareg-interactive-buffer-name)))
+    (if (get-buffer-process repl-buffer)
+        (pop-to-buffer repl-buffer)
+      ;; start a new REPL if one is not running already
+      (call-interactively #'tuareg-run-ocaml)))
+  (when eob-p
+    (push-mark)
+    (goto-char (point-max))))
+
+(defun tuareg-switch-to-recent-buffer ()
+  "Switch to the most recently used `tuareg-mode' buffer."
+  (interactive)
+  (let ((recent-ocaml-buffer
+         (cl-find-if (lambda (buf)
+                       (with-current-buffer buf (derived-mode-p 'tuareg-mode)))
+                     (buffer-list))))
+    (if recent-ocaml-buffer
+        (pop-to-buffer recent-ocaml-buffer)
+      (message "Tuareg: No recent Ocaml buffer found."))))
+
 (easy-menu-define
   tuareg-interactive-mode-menu tuareg-interactive-mode-map
   "Tuareg Interactive Mode Menu."
@@ -3572,6 +3715,8 @@ which the matched error refers. Return (BEG-POS . END-POS)."
      ["Interrupt OCaml REPL" tuareg-interrupt-ocaml
       :active (comint-check-proc tuareg-interactive-buffer-name)]
      ["Kill OCaml REPL" tuareg-kill-ocaml
+      :active (comint-check-proc tuareg-interactive-buffer-name)]
+     ["Switch to Recent Source Buffer" tuareg-switch-to-recent-buffer
       :active (comint-check-proc tuareg-interactive-buffer-name)]
      ["Evaluate Region" tuareg-eval-region :active (region-active-p)]
      ["Evaluate Phrase" tuareg-eval-phrase t]
@@ -3857,6 +4002,8 @@ Short cuts for interaction within the REPL:
    '("Tuareg"
      ("Interactive Mode"
       ["Run OCaml REPL" tuareg-run-ocaml t]
+      ["Switch to OCaml REPL" tuareg-switch-to-repl
+       :active (comint-check-proc tuareg-interactive-buffer-name)]
       ["Interrupt OCaml REPL" tuareg-interrupt-ocaml
        :active (comint-check-proc tuareg-interactive-buffer-name)]
       ["Kill OCaml REPL" tuareg-kill-ocaml
@@ -3941,7 +4088,7 @@ Short cuts for interaction within the REPL:
 ;; From M. Quercia
 
 (defun tuareg-browse-manual ()
-  "*Browse OCaml reference manual."
+  "Browse OCaml reference manual."
   (interactive)
   (setq tuareg-manual-url (read-from-minibuffer "URL: " tuareg-manual-url))
   (funcall tuareg-browser tuareg-manual-url))
@@ -3962,7 +4109,7 @@ Short cuts for interaction within the REPL:
   "Browse the OCaml library."
   (interactive)
   (let ((buf-name "*ocaml-library*") (opoint)
-        (dir (read-from-minibuffer "Library path: " tuareg-library-path)))
+        (dir (read-from-minibuffer "Library dir: " tuareg-library-path)))
     (when (and (file-directory-p dir) (file-readable-p dir))
       (setq tuareg-library-path dir)
       ;; List *.ml and *.mli files
@@ -4039,15 +4186,14 @@ See `imenu-create-index-function'."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                      Related files & modes
 
-(eval-when-compile
-  (autoload 'speedbar-add-supported-extension "speedbar")
-  (defvar speedbar-obj-alist))
+(with-eval-after-load 'speedbar
+  (declare-function speedbar-add-supported-extension "speedbar" (extension))
+  (defvar speedbar-obj-alist)
 
-(when (require 'speedbar nil t)
   (speedbar-add-supported-extension
    '(".ml" ".mli" ".mll" ".mly" ".mlp" ".ls"))
-  (push '("\\.mli$" . ".cmi") speedbar-obj-alist)
-  (push '("\\.ml$"  . ".cmo") speedbar-obj-alist))
+  (push '("\\.mli\\'" . ".cmi") speedbar-obj-alist)
+  (push '("\\.ml\\'"  . ".cmo") speedbar-obj-alist))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                             Hooks and Exit

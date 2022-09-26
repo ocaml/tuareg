@@ -1,8 +1,8 @@
 [![NonGNU ELPA](https://elpa.nongnu.org/nongnu/tuareg.svg)](https://elpa.nongnu.org/nongnu/tuareg.html)
 [![MELPA](https://melpa.org/packages/tuareg-badge.svg)](https://melpa.org/#/tuareg)
 [![DebianBadge](https://badges.debian.net/badges/debian/stable/elpa-tuareg/version.svg)](https://packages.debian.org/stable/elpa-tuareg)
-[![LGPL v2](https://img.shields.io/badge/licence-lgpl2-blue.svg)](COPYING)
-[![Build Status](https://travis-ci.org/ocaml/tuareg.svg?branch=master)](https://travis-ci.org/ocaml/tuareg)
+[![License GPL 3](https://img.shields.io/badge/license-GPL_3-green.svg)](COPYING)
+[![Build Status](https://github.com/ocaml/tuareg/workflows/test/badge.svg)](https://github.com/ocaml/tuareg/actions?query=workflow%3Atest)
 
 Tuareg: an Emacs OCaml mode
 ===========================
@@ -13,15 +13,15 @@ code, to highlight important parts of the code, to run an OCaml
 (also called *toplevel*),
 and to run the OCaml debugger within Emacs.
 
-Contents
+Package Contents
 --------
 
-`README.md`      — This file.  
-`HISTORY`        — Differences with previous versions.  
-`tuareg.el`      — A major mode for editing OCaml code in Emacs.  
-`ocamldebug.el`  — To run the OCaml debugger under Emacs.  
-`sample.ml`      — Sample file to check the indentation engine.
-`compilation.txt` — To check the compilation regexp `tuareg--error-regexp`.
+- `README.md`      — This file.
+- `HISTORY`        — Differences with previous versions.
+- `tuareg.el`      — A major mode for editing OCaml code in Emacs.
+- `ocamldebug.el`  — To run the OCaml debugger under Emacs.
+- `sample.ml`      — Sample file to check the indentation engine.
+- `compilation.txt` — To check the compilation regexp `tuareg--error-regexp`.
 
 Install
 -------
@@ -190,7 +190,8 @@ Tips & customization
 
 - If you wish to have a nice 🐫 as the mode name, add
 
-        (add-hook 'tuareg-mode-hook #'(lambda() (setq mode-name "🐫")))
+        (add-hook 'tuareg-mode-hook
+                  (lambda() (setq tuareg-mode-name "🐫")))
 
   to your [Init File][].
 
@@ -229,7 +230,7 @@ Additional packages
 -------------------
 
 It is recommended to install [Merlin][] which is available in
-[OPAM][].  Tuareg is automatically detect it and use some of its
+[OPAM][].  Tuareg will automatically detect it and use some of its
 features (e.g. for *imenu*).  Merlin offers auto-completion, the
 possibility to query the type with <kbd>C-cC-t</kbd>, to find the
 location of an identifier with <kbd>C-cC-l</kbd>, to go to the next
@@ -293,3 +294,8 @@ Tuareg mode have been maintained by Albert Cohen until version 1.45.
 
 Jane Street took over maintenance based on Albert Cohen's version 1.46
 (later retracted by him), and released its first version as 2.0.
+
+License
+-------
+
+Tuareg is distributed under the GNU General Public License, version 3 or later.
