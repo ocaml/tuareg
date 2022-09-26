@@ -83,6 +83,7 @@
 (require 'easymenu)
 (require 'find-file)
 (require 'subr-x)
+(require 'seq)
 (require 'caml-help nil t)
 (require 'caml-types nil t)
 (require 'tuareg-opam)
