@@ -87,7 +87,7 @@ tuareg-site-file.el: $(SOURCES)
 	 echo "(add-to-list 'load-path";\
 	 echo "             (or (file-name-directory load-file-name) (car load-path)))";\
 	 echo "") >$@
-	$(EMACS) --batch --eval '(setq generated-autoload-file "'`pwd`'/$@")' -f batch-update-autoloads "."
+	$(EMACS) --batch --eval '(if (>= emacs-major-version 28) (make-directory-autoloads "." "'`pwd`'/$@") (setq generated-autoload-file "'`pwd`'/$@") (batch-update-autoloads))' "."
 
 dist distrib: $(TARBALL)
 
