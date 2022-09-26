@@ -88,49 +88,6 @@
 (require 'tuareg-opam)
 (require 'tuareg-compat)
 
-(defconst tuareg-mode-revision
-  (eval-when-compile
-    (let ((dir (if (fboundp 'macroexp-file-name)
-                   (let ((f (macroexp-file-name)))
-                     (and f (file-name-directory f)))
-                 (or (and load-file-name (file-name-directory load-file-name))
-                     default-directory))))
-      (when dir
-        (with-temp-buffer
-          (let ((default-directory dir))
-            (and (file-exists-p ".git")
-                 (ignore-errors
-                   (call-process "git" nil t nil "log" "--pretty=%h" "-1"))
-                 (not (zerop (buffer-size)))
-                 (concat "git: "
-                         (buffer-substring-no-properties
-                          (point-min) (1- (point-max))))))))))
-  "Tuareg revision from the control system used, or nil.")
-
-(defconst tuareg-mode-version
-  (let ((version (or (if (fboundp 'package-get-version)
-                         (package-get-version))
-                     "2.3.0")))
-    (concat "Tuareg Version " version
-            (when tuareg-mode-revision
-              (concat " (" tuareg-mode-revision ")"))))
-  ;; FIXME: Do we really want to have this copy of the license blurb
-  ;; as the docstring?
-  "         Copyright (C) 1997-2006 Albert Cohen, all rights reserved.
-         Copyright (C) 2009-2010 Jane Street Holding, LLC.
-         Copyright (C) 2011- Stefan Monnier & Christophe Troestler
-         Copying is covered by the GNU General Public License.
-
-    This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-    GNU General Public License for more details.")
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                      Compatibility functions
 
@@ -3726,7 +3683,6 @@ With prefix argument EOB-P, positions cursor at end of buffer."
     ("Tuareg Options" ["Dummy" nil t])
     ("Tuareg Interactive Options" ["Dummy" nil t])
     "---"
-    ["About" tuareg-about t]
     ["Help" tuareg-interactive-help t]))
 
 (define-derived-mode tuareg-interactive-mode comint-mode "Tuareg-Interactive"
@@ -3974,10 +3930,6 @@ If the region is active, evaluate all phrases intersecting the region."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               Menu support
 
-(defun tuareg-about ()
-  (interactive)
-  (describe-variable 'tuareg-mode-version))
-
 (defun tuareg-short-cuts ()
   "Short cuts for the Tuareg mode:
 \\{tuareg-mode-map}
@@ -4048,7 +4000,6 @@ Short cuts for interaction within the REPL:
      ("Tuareg Options" ["Dummy" nil t])
      ("Tuareg Interactive Options" ["Dummy" nil t])
      "---"
-     ["About" tuareg-about t]
      ["Short Cuts" tuareg-short-cuts]
      ["Help" tuareg-help t]))
   (tuareg-update-options-menu))
