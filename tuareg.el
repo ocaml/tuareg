@@ -219,8 +219,10 @@ much less efficient."
   :group 'tuareg :type 'boolean)
 
 (defcustom tuareg-other-file-alist
-  '(("\\.\\(?:pp\\.\\)?mli\\'" (".ml" ".mll" ".mly" ".pp.ml"))
-    ("\\.\\(?:pp\\.\\)?ml\\'" (".mli"))
+  '(("\\.pp\\.mli\\'" (".ml" ".mll" ".mly" ".pp.ml"))
+    ("\\.mli\\'" (".ml" ".mll" ".mly" ".pp.ml"))
+    ("\\.pp\\.ml\\'" (".mli"))
+    ("\\.ml\\'" (".mli"))
     ("\\.mll\\'" (".mli"))
     ("\\.mly\\'" (".mli"))
     ("\\.eliomi\\'" (".eliom"))

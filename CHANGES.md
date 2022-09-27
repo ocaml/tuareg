@@ -26,7 +26,7 @@ Backward incompatible changes are marked with “⚠”.
   levels of fontification (see the README).
 * The switch .ml ↔ .mli now uses the Emacs built-in `find-file` and
   was extended to `.eliom` ↔ `.eliomi` and `.mly` ↔ `.mli`.  It also
-  work for pre-processed files named `.pp.ml` and `.pp.mli`.
+  works for pre-processed files named `.pp.ml` and `.pp.mli`.
 * When switching from an `.ml` to a non-existing `.mli` file using
   <kbd>C-c C-a</kbd>, one is offered to fill the `.mli` buffer with the
   generated interface.
