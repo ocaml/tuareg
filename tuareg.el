@@ -13,7 +13,7 @@
 ;; Maintainer: Christophe Troestler <Christophe.Troestler@umons.ac.be>
 ;;      Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Created: 8 Jan 1997
-;; Version: 3.0.1-snapshot
+;; Version: 3.0.1
 ;; Package-Requires: ((emacs "26.3") (caml "4.8"))
 ;; Keywords: ocaml languages
 ;; Homepage: https://github.com/ocaml/tuareg
