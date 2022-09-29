@@ -89,6 +89,14 @@ tuareg-site-file.el: $(SOURCES)
 	 echo "") >$@
 	$(EMACS) --batch --eval '(if (>= emacs-major-version 28) (make-directory-autoloads "." "'`pwd`'/$@") (setq generated-autoload-file "'`pwd`'/$@") (batch-update-autoloads))' "."
 
+tuareg.install:
+	echo "share_root: [" > $@
+	for f in $(ELS); do \
+	  echo "  \"$$f\" {\"emacs/site-lisp/$$f\"}" >> $@; \
+	  echo "  \"?$${f}c\" {\"emacs/site-lisp/$${f}c\"}" >> $@; \
+	done
+	echo "]" >> $@
+
 dist distrib: $(TARBALL)
 
 $(TARBALL): $(DIST_FILES)
