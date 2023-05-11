@@ -722,8 +722,12 @@ delimiting the region of interest. "
                       ,@body))
                 body)))
         (push re regexps)
-        (push `((match-beginning ,group-number) . ,clause-body)
-              clauses)
+        ;; We can just omit empty clauses since the conditions are
+        ;; mutually exclusive by construction (and the value of the
+        ;; clause bodies are ignored).
+        (when body
+          (push `((match-beginning ,group-number) . ,clause-body)
+                clauses))
         (setq group-number (+ group-number 1 re-ngroups))))
     (let ((combined-re (mapconcat (lambda (re) (concat "\\(" re "\\)"))
                                   (nreverse regexps) "\\|"))
