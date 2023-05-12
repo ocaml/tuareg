@@ -1348,6 +1348,7 @@ It must not be used outside fontification purposes."
            pos)
       (setq tuareg--pattern-matcher-limit nil)
       (while (and
+              (<= (point) limit)
               (setq pos (re-search-forward "[=({:]" limit t))
               (progn
                 (backward-char)
@@ -1387,6 +1388,7 @@ It must not be used outside fontification purposes."
            (limit (+ opoint 800))
            pos)
       (while (and
+              (<= (point) limit)
               (setq pos (re-search-forward "[-({]" limit t))
               (cond
                ((or (char-equal ?\( (char-before))
