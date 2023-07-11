@@ -1,3 +1,8 @@
+unreleased
+----------
+
+* Add support for [opam-switch-mode](https://github.com/ProofGeneral/opam-switch-mode): enable the mode with <kbd>M-x opam-switch-mode</kbd> or add an automatic hook `(add-hook 'tuareg-mode-hook #'opam-switch-mode)`.
+
 3.0.1 2022-09-29
 ----------------
 

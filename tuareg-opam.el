@@ -348,7 +348,8 @@ issue an \"opam switch\" in a shell.  If this variable is set to
 t, Tuareg will try to use opam to set the right environment for
 `compile', `run-ocaml' and `merlin-mode' based on the current
 opam switch at the time the command is run (provided opam is
-found).  You may also use `tuareg-opam-update-env' to set the
+found).  You may also use `tuareg-opam-update-env', or the menus
+from the ELPA package `opam-switch-mode', to set the
 environment for another compiler from within emacs (without
 changing the opam switch).  Beware that setting it to t causes
 problems if you compile under tramp."
@@ -382,7 +383,11 @@ error message as a string)."
 
 ;;;###autoload
 (defun tuareg-opam-update-env (switch)
-  "Update the environment to follow current OPAM switch configuration."
+  "Update the environment to follow current OPAM switch configuration.
+
+You may also be interested in the ELPA package `opam-switch-mode' that
+provides a similar feature, along with a menu-bar and a mode-bar menu
+`\"OPSW\"'; see https://github.com/ProofGeneral/opam-switch-mode."
   (interactive
    (let* ((compl (tuareg-opam-installed-compilers))
           (current (tuareg-opam-current-compiler))
