@@ -1,7 +1,7 @@
 ;;; tuareg.el --- OCaml mode  -*- coding: utf-8; lexical-binding:t -*-
 
 ;; Copyright (C) 1997-2006 Albert Cohen, all rights reserved.
-;; Copyright (C) 2011-2022 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2023 Free Software Foundation, Inc.
 ;; Copyright (C) 2009-2010 Jane Street Holding, LLC.
 
 ;; Author: Albert Cohen <Albert.Cohen@inria.fr>
@@ -3935,6 +3935,36 @@ If the region is active, evaluate all phrases intersecting the region."
   (when (comint-check-proc tuareg-interactive-buffer-name)
     (with-current-buffer tuareg-interactive-buffer-name
       (comint-kill-subjob))))
+
+(defcustom tuareg-kill-ocaml-on-opam-switch t
+  "If t, kill the OCaml toplevel before the opam switch changes.
+If the user changes the opam switch using `opam-switch-set-switch'
+or an `\"OPSW\"' menu from `opam-switch-mode', this option asks to
+kill the OCaml toplevel process, so that the next eval command
+starts a new process, typically with a different OCaml version
+from a different opam switch.
+
+See https://github.com/ProofGeneral/opam-switch-mode
+
+Note: `opam-switch-mode' triggers automatic changes for `exec-path'
+and `process-environment', which are useful to find the `\"ocaml\"'
+binary and that of its subprocesses, in the ambient opam switch.
+
+`opam-switch-mode' 1.6+ is compatible with `tuareg-mode' whatever
+is the value of `tuareg-opam-insinuate' (albeit the default value
+nil is recommended as it omits the `\"opam exec --\"' wrapper)."
+  :type 'boolean)
+
+(defun tuareg--kill-ocaml-on-opam-switch ()
+  "Kill the OCaml toplevel before the opam switch changes.
+This function is for the `opam-switch-mode' hook
+`opam-switch-before-change-opam-switch-hook', which runs just
+before the user changes the opam switch through `opam-switch-mode'."
+  (when tuareg-kill-ocaml-on-opam-switch
+    (tuareg-kill-ocaml)))
+
+(add-hook 'opam-switch-before-change-opam-switch-hook
+          #'tuareg--kill-ocaml-on-opam-switch t)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               Menu support
