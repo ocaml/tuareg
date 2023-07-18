@@ -386,7 +386,6 @@ Delegate the task to `opam-switch-set-switch' if the minor mode
 `opam-switch-mode' (https://github.com/ProofGeneral/opam-switch-mode)
 is installed. This ELPA package also provides a menu-bar and a
 mode-bar menu `\"OPSW\"'."
-  (declare (obsolete opam-switch-set-switch "2023-07"))
   (interactive
    (let* ((compl (tuareg-opam-installed-compilers))
           (current (tuareg-opam-current-compiler))

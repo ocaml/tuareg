@@ -1495,7 +1495,7 @@ Run only once."
     (define-key map "\C-c\C-c" #'compile)
     (define-key map "\C-c\C-w" (if (fboundp 'opam-switch-set-switch)
                                    #'opam-switch-set-switch
-                                 'tuareg-opam-update-env))
+                                 #'tuareg-opam-update-env))
     (define-key map "\M-\C-x" #'tuareg-eval-phrase)
     (define-key map "\C-x\C-e" #'tuareg-eval-phrase)
     (define-key map "\C-c\C-e" #'tuareg-eval-phrase)
