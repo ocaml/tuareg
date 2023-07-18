@@ -295,12 +295,11 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
     map)
   "Keymap used in Tuareg-opam mode.")
 
-(defun tuareg-opam-build-menu ()
-  (easy-menu-define
-    tuareg-opam-mode-menu  (list tuareg-opam-mode-map)
-    "Tuareg-opam mode menu."
-    '("OPAM"
-      ["Skeleton" tuareg-opam-insert-opam-form t])))
+(easy-menu-define
+  tuareg-opam-mode-menu  (list tuareg-opam-mode-map)
+  "Tuareg-opam mode menu."
+  '("OPAM"
+    ["Skeleton" tuareg-opam-insert-opam-form t]))
 
 
 ;;;###autoload
@@ -323,9 +322,7 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
   (setq-local tuareg-opam--flymake-proc-err-line-patterns
               tuareg-opam--err-line-patterns)
   (when (and tuareg-opam-flymake buffer-file-name)
-    (flymake-mode t))
-  (tuareg-opam-build-menu)
-  (run-mode-hooks 'tuareg-opam-mode-hook))
+    (flymake-mode t)))
 
 (defun tuareg-opam-config-env (&optional switch)
   "Get the opam environment for the given switch (or the default
@@ -417,6 +414,8 @@ mode-bar menu `\"OPSW\"'."
 switch before compiling."
   (let* ((env (tuareg-opam-config-env)))
     (when env
+      ;; FIXME: This blindly overrides other settings the user
+      ;; may have put into `compilation-environment'!
       (setq-local compilation-environment
                   (mapcar (lambda(v) (concat (car v) "=" (cadr v)))
                           (tuareg-opam-config-env))))))
@@ -426,3 +425,4 @@ switch before compiling."
 
 
 (provide 'tuareg-opam)
+;;; tuareg-opam.el ends here

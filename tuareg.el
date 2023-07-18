@@ -1493,7 +1493,9 @@ Run only once."
     (define-key map "\C-c\C-q" #'tuareg-indent-phrase)
     (define-key map "\C-c\C-a" #'tuareg-find-alternate-file)
     (define-key map "\C-c\C-c" #'compile)
-    (define-key map "\C-c\C-w" #'tuareg-opam-update-env)
+    (define-key map "\C-c\C-w" (if (fboundp 'opam-switch-set-switch)
+                                   #'opam-switch-set-switch
+                                 'tuareg-opam-update-env))
     (define-key map "\M-\C-x" #'tuareg-eval-phrase)
     (define-key map "\C-x\C-e" #'tuareg-eval-phrase)
     (define-key map "\C-c\C-e" #'tuareg-eval-phrase)
@@ -3510,11 +3512,7 @@ OCaml uses exclusive end-columns but Emacs wants them to be inclusive."
   (setq tuareg-interactive-program
         (concat tuareg-opam " exec -- ocaml"))
 
-  (advice-add 'compile :before #'tuareg--compile-opam)
-
-  (defvar merlin-command)               ;Silence byte-compiler.
-  (setq merlin-command 'opam)
-  )
+  (advice-add 'compile :before #'tuareg--compile-opam))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
