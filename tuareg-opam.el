@@ -351,8 +351,8 @@ opam switch at the time the command is run (provided opam is
 found).  You may also use `tuareg-opam-update-env', or the menus
 from the ELPA package `opam-switch-mode', to set the
 environment for another compiler from within emacs (without
-changing the opam switch).  Beware that setting it to t causes
-problems if you compile under tramp."
+affecting the OPAM switches outside of this Emacs session).
+Beware that setting it to t causes problems if you compile under tramp."
   :group 'tuareg :type 'boolean)
 
 (defun tuareg--shell-command-to-string (command)
@@ -385,23 +385,31 @@ error message as a string)."
 (defun tuareg-opam-update-env (switch)
   "Update the environment to follow current OPAM switch configuration.
 
-You may also be interested in the ELPA package `opam-switch-mode' that
-provides a similar feature, along with a menu-bar and a mode-bar menu
-`\"OPSW\"'; see https://github.com/ProofGeneral/opam-switch-mode."
+Delegate the task to `opam-switch-set-switch' if the minor mode
+`opam-switch-mode' (https://github.com/ProofGeneral/opam-switch-mode)
+is installed. This ELPA package also provides a menu-bar and a
+mode-bar menu `\"OPSW\"'."
+  (declare (obsolete opam-switch-set-switch "2023-07"))
   (interactive
    (let* ((compl (tuareg-opam-installed-compilers))
           (current (tuareg-opam-current-compiler))
           (default (if current current "current"))
           (prompt (format "opam switch (default: %s): " default)))
-     (list (completing-read prompt compl))))
-  (let* ((switch (if (string= switch "") nil switch))
-         (env (tuareg-opam-config-env switch)))
-    (if env
-        (dolist (v env)
-          (setenv (car v) (cadr v))
-          (when (string= (car v) "PATH")
-            (setq exec-path (split-string (cadr v) path-separator))))
-      (message "Switch %s does not exist (or opam not found)" switch))))
+     (if (fboundp 'opam-switch-set-switch)
+         '(use-opam-switch-interactively)
+       (list (completing-read prompt compl)))))
+  (if (fboundp 'opam-switch-set-switch)
+      (if (eq switch 'use-opam-switch-interactively)
+          (call-interactively #'opam-switch-set-switch)
+        (opam-switch-set-switch switch))
+    (let* ((switch (if (string= switch "") nil switch))
+           (env (tuareg-opam-config-env switch)))
+      (if env
+          (dolist (v env)
+            (setenv (car v) (cadr v))
+            (when (string= (car v) "PATH")
+              (setq exec-path (split-string (cadr v) path-separator))))
+        (message "Switch %s does not exist (or opam not found)" switch)))))
 
 ;; OPAM compilation
 (defun tuareg--compile-opam (&rest _)
