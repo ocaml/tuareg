@@ -239,6 +239,16 @@ location of an identifier with <kbd>C-cC-l</kbd>, to go to the next
 (resp. previous) phrase with <kbd>C-cC-n</kbd>
 (resp. <kbd>C-cC-p</kbd>),...  Highly recommended.
 
+### opam-switch-mode
+
+If you happen to work with several switches, it is recommended to install
+[opam-switch-mode][] (available in [NonGNU ELPA][] and [MELPA][]).
+This minor mode defines a command <kbd>M-x opam-switch-set-switch</kbd>
+as well as a menu-bar and a mode-bar menu "OPSW",
+to easily select another OPAM switch. Upon such a change, a hook kills
+the running OCaml toplevel, if any, so that the next eval command
+is run using the OCaml toplevel from the new switch.
+
 ### Caml mode
 
 [caml-mode][] (available in [NonGNU ELPA][] and [MELPA][]) is used to
@@ -252,6 +262,7 @@ the obsolete `*.annot` files), open a module for documentation,...
 [caml-mode]: https://github.com/ocaml/caml-mode
 [NonGNU ELPA]: https://elpa.nongnu.org/
 [MELPA]: https://melpa.org/
+[opam-switch-mode]: https://github.com/ProofGeneral/opam-switch-mode
 
 
 Reporting
