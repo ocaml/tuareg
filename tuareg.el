@@ -3198,10 +3198,12 @@ file outside _build? "))
     (add-function :around (local 'show-paren-data-function)
                   #'tuareg--show-paren))
   (setq prettify-symbols-alist
-        (if tuareg-prettify-symbols-full
-            (append tuareg-prettify-symbols-basic-alist
-                    tuareg-prettify-symbols-extra-alist)
-          tuareg-prettify-symbols-basic-alist))
+	;; preserve previous alist
+        (append prettify-symbols-alist
+		(if tuareg-prettify-symbols-full
+		    (append tuareg-prettify-symbols-basic-alist
+			    tuareg-prettify-symbols-extra-alist)
+		  tuareg-prettify-symbols-basic-alist)))
   (when (boundp 'prettify-symbols-compose-predicate) ; Emacs 25 or later
     (setq prettify-symbols-compose-predicate
           #'tuareg--prettify-symbols-compose-p))
