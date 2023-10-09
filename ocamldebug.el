@@ -779,7 +779,7 @@ See also https://dune.readthedocs.io/en/latest/dune-files.html
         (let* ((contents (ocamldebug--read-from-file dune))
                (lib (and contents (ocamldebug--find-single-library contents)))
                (is-wrapped
-                (and lib (null (seq-contains-p lib '(wrapped false)))))
+                (and lib (null (member '(wrapped false) lib))))
                (libname (and is-wrapped (ocamldebug--dune-library-name lib))))
           (if libname
               (concat libname "__" (ocamldebug--upcase-first-char mod))
