@@ -222,6 +222,7 @@ See `prettify-symbols-alist' for more information.")
 ;;;;                           Linting
 
 (require 'flymake)
+(require 'flymake-proc nil :noerror)
 
 (defalias 'tuareg-opam--flymake-proc-init-create-temp-buffer-copy
   (if (fboundp 'flymake-proc-init-create-temp-buffer-copy)
@@ -317,8 +318,9 @@ characters \\([0-9]+\\)-\\([0-9]+\\): +\\([^\n]*\\)$"
   (defvar tuareg-opam--flymake-proc-allowed-file-name-masks)
   (defvar tuareg-opam--flymake-proc-err-line-patterns)
 
-  (push tuareg-opam--allowed-file-name-masks
-        tuareg-opam--flymake-proc-allowed-file-name-masks)
+  (when (boundp 'tuareg-opam--flymake-proc-allowed-file-name-masks)
+    (push tuareg-opam--allowed-file-name-masks
+          tuareg-opam--flymake-proc-allowed-file-name-masks))
   (setq-local tuareg-opam--flymake-proc-err-line-patterns
               tuareg-opam--err-line-patterns)
   (when (and tuareg-opam-flymake buffer-file-name)
