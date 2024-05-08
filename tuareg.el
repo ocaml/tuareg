@@ -251,6 +251,13 @@ See `comint-scroll-to-bottom-on-output' for details."
                (when (derived-mode-p 'tuareg-interactive-mode)
                  (setq-local comint-scroll-to-bottom-on-output val)))))))
 
+(defcustom tuareg-process-connection-type t
+  "Default value for `process-connection-type' for top-levels.
+Only applies to top-levels launched by `tuareg-run-ocaml'.
+Choose nil to use a pipe, or t to use a pty.  For example, to run
+utop via `tuareg-run-ocaml', set this variable to nil."
+  :group 'tuareg :type 'boolean)
+
 (defcustom tuareg-skip-after-eval-phrase t
   "Non-nil means skip to the end of the phrase after evaluation in the
 OCaml REPL."
@@ -3735,7 +3742,7 @@ I/O via buffer `*OCaml*'."
                                 tuareg-interactive-program))))
   (unless (comint-check-proc tuareg-interactive-buffer-name)
     (let ((cmdlist (tuareg--split-args tuareg-interactive-program))
-          (process-connection-type t))
+          (process-connection-type tuareg-process-connection-type))
       (set-buffer (apply (function make-comint) "OCaml"
                          (car cmdlist) nil (cdr cmdlist)))
       (tuareg-interactive-mode)
