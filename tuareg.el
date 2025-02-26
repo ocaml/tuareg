@@ -3319,6 +3319,11 @@ Short cuts for interactions with the REPL:
     (setq imenu-create-index-function #'tuareg-imenu-create-index)
     (run-mode-hooks 'tuareg-load-hook)))
 
+;; We don't inherit from `caml-mode', but `tuareg-mode' is a kind of
+;; `caml-mode', for the purpose of tools like Eglot, YASnippet, etc...
+(when (fboundp 'derived-mode-add-parents) ;Emacs≥30
+  (derived-mode-add-parents 'tuareg-mode '(caml-mode)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               Error processing
 
