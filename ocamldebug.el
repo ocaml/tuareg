@@ -1,21 +1,23 @@
 ;;; ocamldebug.el --- Run ocamldebug / camldebug under Emacs  -*- lexical-binding:t -*-
-;; Derived from gdb.el.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;         Copying is covered by the GNU General Public License.
 ;;
-;;    This program is free software; you can redistribute it and/or modify
-;;    it under the terms of the GNU General Public License as published by
-;;    the Free Software Foundation; either version 2 of the License, or
-;;    (at your option) any later version.
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 3 of the License, or
+;; (at your option) any later version.
 ;;
-;;    This program is distributed in the hope that it will be useful,
-;;    but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-;;    GNU General Public License for more details.
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; History:
+;;
+;; This is based on the `camldebug.el' by Jacques Garrigue
+;; and Ian T Zimmerman, that's in the `caml' package.
 ;;
 ;;itz 04-06-96 I pondered basing this on gud. The potential advantages
 ;;were: automatic bugfix , keymaps and menus propagation.
@@ -27,21 +29,36 @@
 ;;assume that a sane person doesn't use gdb and dbx at the same time,
 ;;it's not so OK (IMHO) for gdb and ocamldebug.
 
+;; Derived from gdb.el.
+;; gdb.el is Copyright (C) 1988, 2025 Free Software Foundation, Inc, and is part
+;; of GNU Emacs
+;; Modified by Jerome Vouillon, 1994.
+;; Modified by Ian T. Zimmerman, 1996.
+;; Modified by Xavier Leroy, 1997.
+
+;; Xavier Leroy, 21/02/97: adaptation to ocamldebug.
+
 ;;Albert Cohen 04-97: Patch for Tuareg support.
 ;;Albert Cohen 05-98: A few patches and OCaml customization.
 ;;Albert Cohen 09-98: XEmacs support and some improvements.
 ;;Erwan Jahier and Albert Cohen 11-05: support for ocamldebug 3.09.
+;; Copyright (C) 2011-2025  Free Software Foundation, Inc.
 
 ;;; Commentary:
 
 ;;; Code:
 
+;; FIXME: Sync with `camldebug.el', or even merge them back!
+
 (require 'comint)
 (require 'shell)
-(require 'tuareg (expand-file-name "tuareg" (file-name-directory
-                                             (or load-file-name
-                                                 byte-compile-current-file
-                                                 buffer-file-name))))
+(require 'tuareg (expand-file-name "tuareg"
+                                   (file-name-directory
+                                    (if (fboundp 'macroexp-file-name) ;Emacs≥28
+                                        (macroexp-file-name)
+                                      (or load-file-name
+                                          byte-compile-current-file
+                                          buffer-file-name)))))
 (require 'derived)
 (require 'seq)
 
@@ -79,8 +96,8 @@
 (defvar ocamldebug-event-marker (make-marker)
   "Marker for displaying the current event.")
 
-(defvar ocamldebug-track-frame t
-  "If non-nil, always display current frame position in another window.")
+(defvar ocamldebug-track-frame t        ;FIXME: Make it a `defcustom'?
+  "*If non-nil, always display current frame position in another window.")
 
 (defface ocamldebug-event
   '((t :inverse-video t))
@@ -106,11 +123,10 @@
     (define-key map "\C-c" ocamldebug-prefix-map)
     (define-key map "\C-l" #'ocamldebug-refresh)
     ;; This is already the default anyway!
-    ;;(define-key map "\t" 'comint-dynamic-complete)
-    (define-key map "\M-?"
-      ;; FIXME: This binding is wrong since comint-dynamic-list-completions
-      ;; is a function, not a command.
-      #'comint-dynamic-list-completions)
+    ;;(define-key map "\t" #'comint-dynamic-complete)
+    ;; FIXME: This binding is wrong since comint-dynamic-list-completions
+    ;; is a function, not a command.
+    ;;(define-key map "\M-?" #'comint-dynamic-list-completions)
     map))
 
 (define-derived-mode ocamldebug-mode comint-mode "OCaml-Debugger"
@@ -118,7 +134,7 @@
 
 The following commands are available:
 
-\\{ocamldebug-mode-map}
+\\<ocamldebug-mode-map>\\{ocamldebug-mode-map}
 
 \\[ocamldebug-display-frame] displays in the other window
 the last line referred to in the ocamldebug buffer.
@@ -179,15 +195,16 @@ representation is simply concatenated with the COMMAND."
 
   (let* ((fun (intern (format "ocamldebug-%s" name))))
     `(progn
-       ,(if doc
-            `(defun ,fun (arg)
-               ,doc
-               (interactive "P")
-               (ocamldebug-call ,name ,args
-                                (ocamldebug-numeric-arg arg))))
+       ,(when doc
+          `(defun ,fun (arg)
+             ,doc
+             (interactive "P")
+             (ocamldebug-call ,name ,args
+                              (ocamldebug-numeric-arg arg))))
        (define-key ocamldebug-prefix-map ,key #',fun))))
 
-(def-ocamldebug "step"	"\C-s"	"Step one source line with display.")
+(def-ocamldebug "step"	"\C-s"	"Step one event forward.")
+(def-ocamldebug "backstep" "\C-k" "Step one event backward.")
 (def-ocamldebug "run"	"\C-r"	"Run the program.")
 (def-ocamldebug "reverse" "\C-v" "Run the program in reverse.")
 (def-ocamldebug "last"   "\C-l"  "Go to latest time in execution history.")
@@ -196,7 +213,8 @@ representation is simply concatenated with the COMMAND."
 (def-ocamldebug "close"  "\C-c"  "Close the current module." "%m")
 (def-ocamldebug "finish" "\C-f"	"Finish executing current function.")
 (def-ocamldebug "print"	"\C-p"	"Print value of symbol at point."	"%e")
-(def-ocamldebug "next"   "\C-n"	"Step one source line (skip functions)")
+(def-ocamldebug "display" "\C-d" "Display value of symbol at point."     "%e")
+(def-ocamldebug "next"   "\C-n"	"Step one event forward (skip functions)")
 (def-ocamldebug "up"     "<"  "Go up N stack frames (numeric arg) with display")
 (def-ocamldebug "down"  ">" "Go down N stack frames (numeric arg) with display")
 (def-ocamldebug "break"  "\C-b"	"Set breakpoint at current line."
@@ -349,8 +367,7 @@ buffer, then try to obtain the time from context around point."
           (match-string 1 ocamldebug-filter-accumulator))
     (setq ocamldebug-filter-accumulator
           (substring ocamldebug-filter-accumulator (1- (match-end 0)))))
-  (when (string-match comint-prompt-regexp
-                      ocamldebug-filter-accumulator)
+  (when (string-match comint-prompt-regexp ocamldebug-filter-accumulator)
     (setq ocamldebug-delete-output (or ocamldebug-delete-output 'fail))
     (setq ocamldebug-filter-accumulator ""))
   (if (string-match "\n\\(.*\\)\\'" ocamldebug-filter-accumulator)
@@ -403,7 +420,7 @@ around point."
       (with-current-buffer ocamldebug-current-buffer
 	(let ((proc (get-buffer-process (current-buffer)))
 	      (ocamldebug-filter-function #'ocamldebug-delete-filter)
-	      ocamldebug-delete-output)
+	      (ocamldebug-delete-output))
 	  (ocamldebug-call-1 "info break")
 	  (while (not (and ocamldebug-delete-output
 			   (zerop (length
@@ -421,14 +438,12 @@ around point."
 	(concat ocamldebug-filter-accumulator string))
   (while (string-match "\\(\n\\|\\`\\)\\(.+\\)\n"
 		       ocamldebug-filter-accumulator)
-    (setq ocamldebug-complete-list
-	  (cons (match-string 2 ocamldebug-filter-accumulator)
-		ocamldebug-complete-list))
+    (push (match-string 2 ocamldebug-filter-accumulator)
+	  ocamldebug-complete-list)
     (setq ocamldebug-filter-accumulator
 	  (substring ocamldebug-filter-accumulator
 		     (1- (match-end 0)))))
-  (when (string-match comint-prompt-regexp
-                      ocamldebug-filter-accumulator)
+  (when (string-match comint-prompt-regexp ocamldebug-filter-accumulator)
     (setq ocamldebug-complete-list
 	  (or ocamldebug-complete-list 'fail))
     (setq ocamldebug-filter-accumulator ""))
@@ -439,14 +454,13 @@ around point."
 
 (defun ocamldebug-complete ()
   "Perform completion on the ocamldebug command preceding point."
+  (declare (obsolete completion-at-point "24.1"))
   (interactive)
   (let* ((capf-data (ocamldebug-capf))
          (command-word (buffer-substring (nth 0 capf-data) (nth 1 capf-data))))
     (completion-in-region (nth 0 capf-data) (nth 1 capf-data)
                           (sort (all-completions command-word (nth 2 capf-data))
                                 #'string-lessp))))
-
-(make-obsolete 'ocamldebug-complete 'completion-at-point "24.1")
 
 (defun ocamldebug-capf ()
   ;; FIXME: Use an `end' after point when applicable.
@@ -497,19 +511,20 @@ separated and possibly quoted as they would be passed on the
 command line).")
 
 ;;;###autoload
-(defun ocamldebug (pgm-path)
+(defun ocamldebug (file)
   "Run ocamldebug on program FILE in buffer *ocamldebug-FILE*.
 The directory containing FILE becomes the initial working directory
 and source-file directory for ocamldebug.  If you wish to change this, use
 the ocamldebug commands `cd DIR' and `directory'."
   (interactive "fRun ocamldebug on file: ")
-  (setq pgm-path (expand-file-name pgm-path))
-  (let* ((file (file-name-nondirectory pgm-path))
+  (setq file (expand-file-name file))
+  (let* ((dir (file-name-directory file))
+         (file (file-name-nondirectory file))
          (name (concat "ocamldebug-" file))
          (buffer-name (concat "*" name "*")))
     (pop-to-buffer buffer-name)
     (unless (comint-check-proc buffer-name)
-      (setq default-directory (file-name-directory pgm-path))
+      (setq default-directory dir)
       (setq ocamldebug-debuggee-args
             (read-from-minibuffer (format "Args for %s: " file)
                                   ocamldebug-debuggee-args))
@@ -519,18 +534,19 @@ the ocamldebug commands `cd DIR' and `directory'."
       (message "Current directory is %s" default-directory)
       (let* ((args (tuareg--split-args ocamldebug-debuggee-args))
              (cmdlist (tuareg--split-args ocamldebug-command-name))
-             (cmdlist (mapcar #'substitute-in-file-name cmdlist)))
-        (apply #'make-comint name
-               (car cmdlist)
-               nil
-               "-emacs" "-cd" default-directory
-               (append (cdr cmdlist) (cons pgm-path args)))
-        (set-process-filter (get-buffer-process (current-buffer))
-                            #'ocamldebug-filter)
-        (set-process-sentinel (get-buffer-process (current-buffer))
-                              #'ocamldebug-sentinel)
-        (ocamldebug-mode)))
-  (ocamldebug-set-buffer)))
+             (cmdlist (mapcar #'substitute-in-file-name cmdlist))
+             (buf
+              (apply #'make-comint name
+                     (car cmdlist)
+                     nil
+                     "-emacs" "-cd" default-directory
+                     (append (cdr cmdlist) (cons file args))))
+             (proc (get-buffer-process buf)))
+        (with-current-buffer buf
+          (set-process-filter proc #'ocamldebug-filter)
+          (set-process-sentinel proc #'ocamldebug-sentinel)
+          (ocamldebug-mode))))
+    (ocamldebug-set-buffer)))
 
 ;;;###autoload
 (defalias 'camldebug #'ocamldebug)
@@ -545,7 +561,7 @@ the ocamldebug commands `cd DIR' and `directory'."
 (defun ocamldebug-marker-filter (string)
   (setq ocamldebug-filter-accumulator
 	(concat ocamldebug-filter-accumulator string))
-  (let ((output "") begin)
+  (let ((output "") (begin))
     ;; Process all the complete markers in this chunk.
     (while (setq begin
 		 (string-match
@@ -664,7 +680,7 @@ the ocamldebug commands `cd DIR' and `directory'."
 
 (defun ocamldebug-display-frame ()
   "Find, obey and delete the last filename-and-line marker from OCaml debugger.
-The marker looks like \\032\\032FILENAME:CHARACTER\\n.
+The marker looks like \\032\\032Mfilename:startchar:endchar:beforeflag\\n.
 Obeying it means displaying in another window the specified file and line."
   (interactive)
   (ocamldebug-set-buffer)
@@ -684,7 +700,7 @@ Obeying it means displaying in another window the specified file and line."
   (let* ((pop-up-windows t)
 	 (buffer (find-file-noselect true-file))
 	 (window (display-buffer buffer t))
-         spos epos pos)
+         (spos) (epos) (pos))
     (with-current-buffer buffer
       (save-restriction
 	(widen)
@@ -695,7 +711,7 @@ Obeying it means displaying in another window the specified file and line."
                        (filepos-to-bufferpos echar 'approximate)
                      (+ (point-min) echar)))
         (setq pos (if kind spos epos))
-        (ocamldebug-set-current-event spos epos pos (current-buffer) kind))
+        (ocamldebug-set-current-event spos epos (current-buffer) kind))
       (cond ((or (< pos (point-min)) (> pos (point-max)))
 	     (widen)
 	     (goto-char pos))))
@@ -710,7 +726,7 @@ Obeying it means displaying in another window the specified file and line."
         (delete-overlay ocamldebug-overlay-under))
     (setq overlay-arrow-position nil)))
 
-(defun ocamldebug-set-current-event (spos epos pos buffer before)
+(defun ocamldebug-set-current-event (spos epos buffer before)
   (if window-system
       (if before
           (progn
@@ -720,10 +736,10 @@ Obeying it means displaying in another window the specified file and line."
         (move-overlay ocamldebug-overlay-event (1- epos) epos buffer)
         (move-overlay ocamldebug-overlay-under spos (1- epos) buffer))
     (with-current-buffer buffer
-      (goto-char pos)
+      (goto-char (if before spos epos))
       (beginning-of-line)
       (move-marker ocamldebug-event-marker (point))
-      (setq overlay-arrow-position ocamldebug-event-marker))))
+      (setq-local overlay-arrow-position ocamldebug-event-marker))))
 
 ;;; Miscellaneous.
 
@@ -768,12 +784,10 @@ Dune wrapping means that a file `foo.ml' belonging to a dune library
 and a file `bar.ml' containing `module Foo = Bar__Foo' will be generated.
 See also https://dune.readthedocs.io/en/latest/dune-files.html
 
-(for now only understands dune files with a single library stanza)"
+\(for now only understands dune files with a single library stanza)"
   (let ((mod
-         (substring
-          filename
-          (string-match "\\([^/]*\\)\\.ml$" filename)
-          (match-end 1)))
+         (substring filename (string-match "\\([^/]*\\)\\.ml$" filename)
+                    (match-end 1)))
         (dune (expand-file-name "dune" (file-name-directory filename))))
     (if (file-exists-p dune)
         (let* ((contents (ocamldebug--read-from-file dune))
