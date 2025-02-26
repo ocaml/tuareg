@@ -83,7 +83,7 @@
   "If non-nil, always display current frame position in another window.")
 
 (defface ocamldebug-event
-  '((t :invert t))
+  '((t :inverse-video t))
   "Face to highlight the first/last char of current event."
   :group 'tuareg)
 

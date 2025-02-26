@@ -1,7 +1,7 @@
 ;;; tuareg.el --- OCaml mode  -*- coding: utf-8; lexical-binding:t -*-
 
 ;; Copyright (C) 1997-2006 Albert Cohen, all rights reserved.
-;; Copyright (C) 2011-2023 Free Software Foundation, Inc.
+;; Copyright (C) 2011-2025 Free Software Foundation, Inc.
 ;; Copyright (C) 2009-2010 Jane Street Holding, LLC.
 
 ;; Author: Albert Cohen <Albert.Cohen@inria.fr>
@@ -371,7 +371,7 @@ Valid names are `browse-url', `browse-url-firefox', etc."
 (tuareg--obsolete-face-var tuareg-font-lock-constructor-face)
 
 (defface tuareg-font-lock-label-face
-  '((t (:inherit font-lock-constant-face keep)))
+  '((t (:inherit font-lock-constant-face))) ;; keep?
   "Face description for labels."
   :group 'tuareg-faces)
 (tuareg--obsolete-face-var tuareg-font-lock-label-face)
