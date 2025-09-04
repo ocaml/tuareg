@@ -21,7 +21,8 @@ jobs:
           - "26.3"
           - "27.2"
           - "28.2"
-          - "29.1"
+          - "29.4"
+          - "30.2"
           - snapshot
     steps:
       - name: Set up Emacs
@@ -30,7 +31,7 @@ jobs:
           version: ${{matrix.emacs_version}}
 
       - name: Check out tuareg
-        uses: actions/checkout@v2
+        uses: actions/checkout@v5
 
       - name: Byte-compile
         run: make elc-werror
