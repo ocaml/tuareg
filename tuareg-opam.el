@@ -376,7 +376,7 @@ error message as a string)."
   (let* ((cmd (concat tuareg-opam " switch show -s"))
          (cpl (tuareg--shell-command-to-string cmd)))
     (when cpl
-      (replace-regexp-in-string "[ \t\n]*" "" cpl))))
+      (replace-regexp-in-string "[ \t\n]+" "" cpl))))
 
 ;;;###autoload
 (defun tuareg-opam-update-env (switch)

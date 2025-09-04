@@ -94,11 +94,11 @@
 
 (defun tuareg-editing-ls3 ()
   "Tell whether we are editing Lucid Synchrone syntax."
-  (string-match-p "\\.ls\\'" (or buffer-file-name (buffer-name))))
+  (string-suffix-p ".ls" (or buffer-file-name (buffer-name))))
 
 (defun tuareg-editing-ocamllex ()
   "Tell whether we are editing OCamlLex syntax."
-  (string-match-p "\\.mll\\'" (or buffer-file-name (buffer-name))))
+  (string-suffix-p ".mll" (or buffer-file-name (buffer-name))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                    Import types and help features
@@ -1399,7 +1399,7 @@ It must not be used outside fontification purposes."
     tuareg--pattern-matcher-limit))
 
 (defun tuareg--pattern-equal-matcher (limit)
-  "Find \"=\" and \"+=\" and remove its highlithing."
+  "Find \"=\" and \"+=\" and remove its highlighting."
   (unless (tuareg--font-lock-in-string-or-comment)
     (let (pos)
       (while (and
@@ -1871,7 +1871,7 @@ For use on `electric-indent-functions'."
           ;; Watch out for floats!
           (pcase (char-before)
             ((or `?- `?+)
-             (and (memq (char-after) '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9 ?0))
+             (and (memq (char-after) '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9))
                   (save-excursion
                     (forward-char -1) (skip-syntax-backward "w_")
                     (looking-at tuareg-smie--float-re))
@@ -1887,7 +1887,7 @@ For use on `electric-indent-functions'."
       (cond
        ((memq (char-after) '(?\; ?,)) nil) ; ".;" is not a token.
        ((and (eq (char-after) ?\.)
-             (memq (char-before) '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9 ?0)))
+             (memq (char-before) '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9)))
         (skip-chars-backward "0-9"))    ; A float number!
        (t ;; The "." char is given symbol property so that "M.x" is
         ;; considered as a single symbol, but in reality, it's part of
@@ -3018,7 +3018,7 @@ or indent all lines in the current phrase."
       (replace-regexp-in-string "\n  " "\n" sig))))
 
 (defun tuareg--ff-file-created-hook ()
-  (when (and (string-match "\\.mli\\'" (buffer-file-name))
+  (when (and (string-suffix-p ".mli" (buffer-file-name))
              (y-or-n-p "Try to generate interface?"))
     (if (require 'merlin nil t)
         (let* (ml-buf ty)
