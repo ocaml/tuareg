@@ -3,6 +3,7 @@ unreleased
 
 * Add support for [opam-switch-mode](https://github.com/ProofGeneral/opam-switch-mode): you can enable the mode with <kbd>M-x opam-switch-mode</kbd> or add an automatic hook `(add-hook 'tuareg-mode-hook #'opam-switch-mode)`.
 * Fix keybindings to comply with [GNU Emacs' Key Binding Conventions](https://www.gnu.org/software/emacs/manual/html_node/elisp/Key-Binding-Conventions.html) (unbind <kbd>C-c ?</kbd> as <kbd>C-c `</kbd> is already set; unbind <kbd>C-c C-h</kbd> and bind <kbd>C-h .</kbd> instead). See also [this issue](https://github.com/ocaml/merlin/issues/1386#issuecomment-1701567716).
+* Recognise identifiers containing non-ASCII (Unicode) letters.
 
 3.0.1 2022-09-29
 ----------------
