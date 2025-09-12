@@ -1274,8 +1274,9 @@ for the interactive mode."
                          "[|#?~]" operator-char "+\\)")
                 1 'tuareg-font-lock-operator-face)
                ;; "-" is special: avoid "->" and "-13"
-               (,(concat "\\(-\\)\\(?:[^0-9>]\\|\\("
-                         operator-char-no> operator-char "*\\)\\)")
+               (,(concat "\\(-\\)\\("
+                         operator-char-no>
+                         operator-char "*\\|\\(?:[^0-9>]\\)\\)")
                 (1 'tuareg-font-lock-operator-face)
                 (2 'tuareg-font-lock-operator-face keep t))
                (,(regexp-opt '("type" "module" "module type"
