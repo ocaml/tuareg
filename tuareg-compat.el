@@ -8,7 +8,7 @@
 ;; Emacs < 26
 (defun tuareg--comment-padright--advice (orig-fun &rest args)
   (let ((str (nth 0 args)))
-    (unless (and (eq major-mode 'tuareg-mode)
+    (unless (and (derived-mode-p 'tuareg-mode)
                  (stringp str) (not (string-match "\\S-" str)))
       (apply orig-fun args))))
 
@@ -87,7 +87,7 @@
 	 indent))))))
 
 (defun tuareg--comment-region-default--advice (orig-fun &rest args)
-  (apply (if (eq major-mode 'tuareg-mode)
+  (apply (if (derived-mode-p 'tuareg-mode)
              'tuareg--comment-region-default
            orig-fun)
          args))
@@ -184,7 +184,7 @@ out."
 	 indent))))))
 
 (defun tuareg--comment-region-default-1--advice (orig-fun &rest args)
-  (apply (if (eq major-mode 'tuareg-mode)
+  (apply (if (derived-mode-p 'tuareg-mode)
              'tuareg--comment-region-default-1
            orig-fun)
          args))
@@ -296,7 +296,7 @@ This function is the default value of `uncomment-region-function'."
   (set-marker end nil))
 
 (defun tuareg--uncomment-region-default--advice (orig-fun &rest args)
-  (apply (if (eq major-mode 'tuareg-mode)
+  (apply (if (derived-mode-p 'tuareg-mode)
              'tuareg--uncomment-region-default
            orig-fun)
          args))
@@ -414,7 +414,7 @@ This function is the default value of `uncomment-region-function'."
   (set-marker end nil))
 
 (defun tuareg--uncomment-region-default-1--advice (orig-fun &rest args)
-  (apply (if (eq major-mode 'tuareg-mode)
+  (apply (if (derived-mode-p 'tuareg-mode)
              'tuareg--uncomment-region-default-1
            orig-fun)
          args))
