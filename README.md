@@ -310,6 +310,9 @@ Tuareg mode have been maintained by Albert Cohen until version 1.45.
 Jane Street took over maintenance based on Albert Cohen's version 1.46
 (later retracted by him), and released its first version as 2.0.
 
+Currently the project does not have a maintainer.  Some people with access
+are sometimes able to merge simple PRs to keep the mode usable.
+
 License
 -------
 
