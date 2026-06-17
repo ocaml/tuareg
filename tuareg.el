@@ -3330,17 +3330,10 @@ Short cuts for interactions with the REPL:
 ;;;###autoload
 (define-derived-mode tuareg-interface-mode tuareg-mode "Tuareg-Interface"
   "Major mode for editing OCaml interface (.mli) files."
-  (run-mode-hooks 'tuareg-load-hook))
-
-(defun tuareg--redirect-to-interface-mode ()
-  "Redirect .mli and .eliomi files to `tuareg-interface-mode'."
-  (when (and buffer-file-name
-             (or (string-suffix-p ".mli" buffer-file-name)
-                 (string-suffix-p ".eliomi" buffer-file-name))
-             (eq major-mode 'tuareg-mode))
-    (tuareg-interface-mode)))
-
-(add-hook 'tuareg-mode-hook #'tuareg--redirect-to-interface-mode)
+  (setq mode-name
+        '(tuareg--other-file
+          ("" "Tuareg-Interface" "[+" tuareg--other-file "]")
+          "Tuareg-Interface")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               Error processing
