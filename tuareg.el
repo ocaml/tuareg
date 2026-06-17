@@ -3216,8 +3216,10 @@ file outside _build? "))
             #'tuareg--electric-indent-predicate nil t)
   (add-hook 'post-self-insert-hook #'tuareg--electric-close-vector nil t))
 
-;;;###autoload(add-to-list 'auto-mode-alist '("\\.ml[ip]?\\'" . tuareg-mode))
-;;;###autoload(add-to-list 'auto-mode-alist '("\\.eliomi?\\'" . tuareg-mode))
+;;;###autoload(add-to-list 'auto-mode-alist '("\\.mli\\'" . tuareg-interface-mode))
+;;;###autoload(add-to-list 'auto-mode-alist '("\\.ml[p]?\\'" . tuareg-mode))
+;;;###autoload(add-to-list 'auto-mode-alist '("\\.eliomi\\'" . tuareg-interface-mode))
+;;;###autoload(add-to-list 'auto-mode-alist '("\\.eliom\\'" . tuareg-mode))
 ;;;###autoload(dolist (ext '(".cmo" ".cmx" ".cma" ".cmxa" ".cmi"
 ;;;###autoload                ".annot" ".cmt" ".cmti"))
 ;;;###autoload  (add-to-list 'completion-ignored-extensions ext))
@@ -3324,6 +3326,14 @@ Short cuts for interactions with the REPL:
 ;; `caml-mode', for the purpose of tools like Eglot, YASnippet, etc...
 (when (fboundp 'derived-mode-add-parents) ;Emacs≥30
   (derived-mode-add-parents 'tuareg-mode '(caml-mode)))
+
+;;;###autoload
+(define-derived-mode tuareg-interface-mode tuareg-mode "Tuareg-Interface"
+  "Major mode for editing OCaml interface (.mli) files."
+  (setq mode-name
+        '(tuareg--other-file
+          ("" "Tuareg-Interface" "[+" tuareg--other-file "]")
+          "Tuareg-Interface")))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               Error processing

@@ -802,5 +802,13 @@ the original code."
                           "         theta iota\n")))
   )
 
+(ert-deftest tuareg-interface-mode-test ()
+  (with-temp-buffer
+    (setq buffer-file-name "test.mli")
+    (tuareg-interface-mode)
+    (should (derived-mode-p 'tuareg-mode))
+    (should (eq major-mode 'tuareg-interface-mode))
+    (should (equal (car mode-name) 'tuareg--other-file))
+    (should-not (fboundp 'tuareg--redirect-to-interface-mode))))
 
 (provide 'tuareg-tests)
