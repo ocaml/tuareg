@@ -1117,13 +1117,17 @@ for the interactive mode."
              1 'font-lock-function-name-face)
             ;; Highlight "let" and function names (their argument
             ;; patterns can then be treated uniformly with variable bindings)
-            (,(concat let-binding-g4 " *\\(?:\\(" lid "\\) *"
+            (,(concat let-binding-g4
+                      "\\(?: *" (regexp-opt '("local_" "mutable") 'symbols) "\\)?"
+                      " *\\(?:\\(" lid "\\) *"
                       "\\(?:[^ =,:a]\\|a\\(?:[^s]\\|s[^[:space:]]\\)\\)\\)?")
              (1 'tuareg-font-lock-governing-face keep t)
              (2 'tuareg-font-lock-infix-extension-node-face keep t)
              (3 'tuareg-font-lock-governing-face keep t)
              (4 'tuareg-font-lock-governing-face keep t)
-             (5 'font-lock-function-name-face keep t))
+             ;; Group 5 (local_, mutable) is covered by the keywords rule
+             ;; below.
+             (6 'font-lock-function-name-face keep t))
             (,(concat "\\_<\\(include\\)\\_>\\(?: +\\("
                       extended-module-path "\\|( *"
                       extended-module-path " *: *" balanced-braces " *)\\)\\)?")
@@ -1198,7 +1202,9 @@ for the interactive mode."
         (1 'font-lock-variable-name-face keep); functor (module) variable
         (2 'tuareg-font-lock-module-face keep))
        ;; Other uses of "with", "mutable", "private", "virtual"
-       (,(regexp-opt '("of" "with" "mutable" "private" "virtual") 'symbols)
+       (,(regexp-opt '("of" "with" "mutable" "private" "virtual"
+                       "global_" "local_" "exclave_")
+                     'symbols)
         (0 'font-lock-keyword-face))
        ;; labels
        (,(concat "\\([?~]" lid "\\)" tuareg--whitespace-re ":[^:>=]")
