@@ -1002,7 +1002,7 @@ for the interactive mode."
              (1 'font-lock-keyword-face)
              (2 'tuareg-font-lock-infix-extension-node-face keep)
              (3 'font-lock-variable-name-face nil t))
-            (,(concat "\\_<\\(fun\\|match\\)\\_>\\(" maybe-infix-ext+attr "\\)")
+            (,(concat "\\_<\\(fun\\|match\\|if\\)\\_>\\(" maybe-infix-ext+attr "\\)")
              (1 'font-lock-keyword-face)
              (2 'tuareg-font-lock-infix-extension-node-face keep))
             ;; "type" to introduce a local abstract type considered a keyword
