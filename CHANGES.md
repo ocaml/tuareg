@@ -11,6 +11,8 @@ unreleased
 * ⚠ No longer depend on the `caml` Emacs package.  If you want to use
   `tuareg-mode` and `caml-mode` together, you now need to explicitly install
   both.
+* You can now customise the list of symbols font locked as keywords by
+  customizing the new user option `tuareg-keywords`.
 
 3.0.1 2022-09-29
 ----------------

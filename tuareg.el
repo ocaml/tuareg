@@ -497,6 +497,16 @@ do not perturb in essential ways the alignment are used.  See
 `tuareg-prettify-symbols-extra-alist'."
   :group 'tuareg :type 'boolean)
 
+(defcustom tuareg-keywords
+  '("failwith" "failwithf" "exit" "at_exit" "invalid_arg"
+    "parser" "raise" "raise_notrace" "ref" "ignore"
+    "Match_failure" "Assert_failure" "Invalid_argument"
+    "Failure" "Not_found" "Out_of_memory" "Stack_overflow"
+    "Sys_error" "End_of_file" "Division_by_zero"
+    "Sys_blocked_io" "Undefined_recursive_module")
+  "Names of symbols to handle as keywords."
+  :group 'tuareg :type '(repeat string))
+
 (defvar tuareg-prettify-symbols-basic-alist
   `(("sqrt" . ?√)
     ("cbrt" . ?∛)
@@ -1215,13 +1225,7 @@ for the interactive mode."
         1 'tuareg-font-lock-label-face keep)
        ;; Polymorphic variants (take precedence on builtin names)
        (,(concat "`" id) . tuareg-font-lock-constructor-face)
-       (,(regexp-opt '("failwith" "failwithf" "exit" "at_exit" "invalid_arg"
-                       "parser" "raise" "raise_notrace" "ref" "ignore"
-                       "Match_failure" "Assert_failure" "Invalid_argument"
-                       "Failure" "Not_found" "Out_of_memory" "Stack_overflow"
-                       "Sys_error" "End_of_file" "Division_by_zero"
-                       "Sys_blocked_io" "Undefined_recursive_module")
-                     'symbols)
+       (,(regexp-opt tuareg-keywords 'symbols)
         (0 'font-lock-builtin-face))
        ("\\[[ \t]*\\]" . tuareg-font-lock-constructor-face) ; []
        ("[])[:alpha:]0-9 \t]\\(::\\)[[([:alpha:]0-9 \t]" ; :: (not not ::…)
