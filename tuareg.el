@@ -14,7 +14,7 @@
 ;;      Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Created: 8 Jan 1997
 ;; Version: 3.0.2-snapshot
-;; Package-Requires: ((emacs "26.3") (caml "4.8"))
+;; Package-Requires: ((emacs "26.3"))
 ;; Keywords: ocaml languages
 ;; Homepage: https://github.com/ocaml/tuareg
 ;; EmacsWiki: TuaregMode
@@ -496,6 +496,16 @@ do not perturb in essential ways the alignment are used.  See
 `tuareg-prettify-symbols-basic-alist' and
 `tuareg-prettify-symbols-extra-alist'."
   :group 'tuareg :type 'boolean)
+
+(defcustom tuareg-keywords
+  '("failwith" "failwithf" "exit" "at_exit" "invalid_arg"
+    "parser" "raise" "raise_notrace" "ref" "ignore"
+    "Match_failure" "Assert_failure" "Invalid_argument"
+    "Failure" "Not_found" "Out_of_memory" "Stack_overflow"
+    "Sys_error" "End_of_file" "Division_by_zero"
+    "Sys_blocked_io" "Undefined_recursive_module")
+  "Names of symbols to handle as keywords."
+  :group 'tuareg :type '(repeat string))
 
 (defvar tuareg-prettify-symbols-basic-alist
   `(("sqrt" . ?√)
@@ -1002,7 +1012,7 @@ for the interactive mode."
              (1 'font-lock-keyword-face)
              (2 'tuareg-font-lock-infix-extension-node-face keep)
              (3 'font-lock-variable-name-face nil t))
-            (,(concat "\\_<\\(fun\\|match\\)\\_>\\(" maybe-infix-ext+attr "\\)")
+            (,(concat "\\_<\\(fun\\|match\\|if\\)\\_>\\(" maybe-infix-ext+attr "\\)")
              (1 'font-lock-keyword-face)
              (2 'tuareg-font-lock-infix-extension-node-face keep))
             ;; "type" to introduce a local abstract type considered a keyword
@@ -1117,13 +1127,17 @@ for the interactive mode."
              1 'font-lock-function-name-face)
             ;; Highlight "let" and function names (their argument
             ;; patterns can then be treated uniformly with variable bindings)
-            (,(concat let-binding-g4 " *\\(?:\\(" lid "\\) *"
+            (,(concat let-binding-g4
+                      "\\(?: *" (regexp-opt '("local_" "mutable") 'symbols) "\\)?"
+                      " *\\(?:\\(" lid "\\) *"
                       "\\(?:[^ =,:a]\\|a\\(?:[^s]\\|s[^[:space:]]\\)\\)\\)?")
              (1 'tuareg-font-lock-governing-face keep t)
              (2 'tuareg-font-lock-infix-extension-node-face keep t)
              (3 'tuareg-font-lock-governing-face keep t)
              (4 'tuareg-font-lock-governing-face keep t)
-             (5 'font-lock-function-name-face keep t))
+             ;; Group 5 (local_, mutable) is covered by the keywords rule
+             ;; below.
+             (6 'font-lock-function-name-face keep t))
             (,(concat "\\_<\\(include\\)\\_>\\(?: +\\("
                       extended-module-path "\\|( *"
                       extended-module-path " *: *" balanced-braces " *)\\)\\)?")
@@ -1198,7 +1212,9 @@ for the interactive mode."
         (1 'font-lock-variable-name-face keep); functor (module) variable
         (2 'tuareg-font-lock-module-face keep))
        ;; Other uses of "with", "mutable", "private", "virtual"
-       (,(regexp-opt '("of" "with" "mutable" "private" "virtual") 'symbols)
+       (,(regexp-opt '("of" "with" "mutable" "private" "virtual"
+                       "global_" "local_" "exclave_")
+                     'symbols)
         (0 'font-lock-keyword-face))
        ;; labels
        (,(concat "\\([?~]" lid "\\)" tuareg--whitespace-re ":[^:>=]")
@@ -1209,13 +1225,7 @@ for the interactive mode."
         1 'tuareg-font-lock-label-face keep)
        ;; Polymorphic variants (take precedence on builtin names)
        (,(concat "`" id) . tuareg-font-lock-constructor-face)
-       (,(regexp-opt '("failwith" "failwithf" "exit" "at_exit" "invalid_arg"
-                       "parser" "raise" "raise_notrace" "ref" "ignore"
-                       "Match_failure" "Assert_failure" "Invalid_argument"
-                       "Failure" "Not_found" "Out_of_memory" "Stack_overflow"
-                       "Sys_error" "End_of_file" "Division_by_zero"
-                       "Sys_blocked_io" "Undefined_recursive_module")
-                     'symbols)
+       (,(regexp-opt tuareg-keywords 'symbols)
         (0 'font-lock-builtin-face))
        ("\\[[ \t]*\\]" . tuareg-font-lock-constructor-face) ; []
        ("[])[:alpha:]0-9 \t]\\(::\\)[[([:alpha:]0-9 \t]" ; :: (not not ::…)
@@ -3035,45 +3045,46 @@ or indent all lines in the current phrase."
 directory and a corresponding file exists outside the _build
 directory, propose the user to switch to it.  Return t if the
 switch was made."
-  (let ((fpath (buffer-file-name))
-	(p nil)
-        (in-build nil)
-        base b)
-    (when fpath
-      ;; Inspired by `locate-dominating-file'.
-      (setq fpath (abbreviate-file-name fpath))
-      (setq base (file-name-nondirectory fpath))
-      (setq fpath (file-name-directory fpath))
-      (while (not (or in-build
-                      (null fpath)
-                      (string-match-p locate-dominating-stop-dir-regexp fpath)))
-        (setq b (file-name-nondirectory (directory-file-name fpath)))
-        (if (string= b "_build")
-            (setq in-build t)
-          (push (file-name-as-directory b) p)
-          (if (equal fpath (setq fpath (file-name-directory
-                                        (directory-file-name fpath))))
-              (setq fpath nil))))
-      (when in-build
-	;; Make `fpath' the path without _build.
-	(setq fpath (file-name-directory (directory-file-name fpath)))
-        ;; jbuilder prefixes the path with a <context> dir, not ocamlbuild
-        (let* ((context (pop p))
-               (rel-fpath (concat (apply #'concat p) base))
-               (alt0 (concat fpath rel-fpath)); jbuilder
-               (alt1 (concat fpath context rel-fpath)); ocamlbuild
-               (alt (if (file-readable-p alt0) alt0))
-               (alt (or alt (if (file-readable-p alt1) alt1))))
-          (if (and alt
-                   (y-or-n-p "File in _build.  Switch to corresponding \
+  (unless noninteractive
+    (let ((fpath (buffer-file-name))
+	  (p nil)
+          (in-build nil)
+          base b)
+      (when fpath
+        ;; Inspired by `locate-dominating-file'.
+        (setq fpath (abbreviate-file-name fpath))
+        (setq base (file-name-nondirectory fpath))
+        (setq fpath (file-name-directory fpath))
+        (while (not (or in-build
+                        (null fpath)
+                        (string-match-p locate-dominating-stop-dir-regexp fpath)))
+          (setq b (file-name-nondirectory (directory-file-name fpath)))
+          (if (string= b "_build")
+              (setq in-build t)
+            (push (file-name-as-directory b) p)
+            (if (equal fpath (setq fpath (file-name-directory
+                                          (directory-file-name fpath))))
+                (setq fpath nil))))
+        (when in-build
+	  ;; Make `fpath' the path without _build.
+	  (setq fpath (file-name-directory (directory-file-name fpath)))
+          ;; jbuilder prefixes the path with a <context> dir, not ocamlbuild
+          (let* ((context (pop p))
+                 (rel-fpath (concat (apply #'concat p) base))
+                 (alt0 (concat fpath rel-fpath))         ; jbuilder
+                 (alt1 (concat fpath context rel-fpath)) ; ocamlbuild
+                 (alt (if (file-readable-p alt0) alt0))
+                 (alt (or alt (if (file-readable-p alt1) alt1))))
+            (if (and alt
+                     (y-or-n-p "File in _build.  Switch to corresponding \
 file outside _build? "))
-              (progn
-                (kill-buffer)
-                (find-file alt)
-                t)
-            (read-only-mode)
-            (message "File in _build.  C-x C-q to edit.")
-            nil))))))
+                (progn
+                  (kill-buffer)
+                  (find-file alt)
+                  t)
+              (read-only-mode)
+              (message "File in _build.  C-x C-q to edit.")
+              nil)))))))
 
 (defun tuareg--hanging-eolp-advice ()
   "Recognize \"fun ..args.. ->\" at EOL as being hanging."

@@ -6,6 +6,13 @@ unreleased
 * Recognise identifiers containing non-ASCII (Unicode) letters.
 * ⚠ Introduce a new mode, `tuareg-interface-mode`, for `.mli` and `.eliomi` files.
   Note that since these files are no longer in `tuareg-mode` directly, exact major-mode checks like `(eq major-mode 'tuareg-mode)` in user configurations or third-party packages will now return nil in interface buffers. Use `(derived-mode-p 'tuareg-mode)` instead.
+* When visiting a file under `_build`, don't offer to switch to switch to a
+  file outside of `_build/` in the case that Emacs is running noninteractively.
+* ⚠ No longer depend on the `caml` Emacs package.  If you want to use
+  `tuareg-mode` and `caml-mode` together, you now need to explicitly install
+  both.
+* You can now customise the list of symbols font locked as keywords by
+  customizing the new user option `tuareg-keywords`.
 
 3.0.1 2022-09-29
 ----------------
